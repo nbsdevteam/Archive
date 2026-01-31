@@ -1,0 +1,5 @@
+.dashboard {
+  &__card {
+    margin-bottom: 1rem;
+  }
+}

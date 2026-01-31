@@ -1,0 +1,13 @@
+.documents {
+  &__search-card {
+    margin-bottom: 1rem;
+  }
+
+  &__search-input {
+    width: 100%;
+  }
+
+  &__table-card {
+    margin-bottom: 24px;
+  }
+}

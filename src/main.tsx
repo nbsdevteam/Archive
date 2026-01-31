@@ -1,0 +1,33 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import React from "react";
+
+import "./i18n/config";
+
+// Import all CSS and assets (required for styling)
+import "../src/assets/css/bootstrap.min.css";
+import "../src/assets/css/feather.css";
+import "../src/assets/scss/custom.scss";
+import "../src/assets/icon/boxicons/boxicons/css/boxicons.min.css";
+import "../src/assets/icon/weather/weathericons.css";
+import "../src/assets/icon/typicons/typicons.css";
+import "../src/assets/css/fontawesome/css/fontawesome.min.css";
+import "../src/assets/css/fontawesome/css/all.min.css";
+import "../src/assets/icon/ionic/ionicons.css";
+import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
+import "../src/assets/js/bootstrap.bundle.min.js";
+
+// Initialize preloading for better performance
+import { initializePreloading } from "./router/preloadUtils";
+initializePreloading();
+
+// Import the new App component (replaces the old provider/router setup)
+import { App } from "./app/App";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  </StrictMode>
+);

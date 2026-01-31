@@ -1,0 +1,56 @@
+.notifications {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  &__headerRight {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__chipRow {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__card {
+    margin-bottom: 24px;
+  }
+
+  &__state {
+    padding: 1.5rem;
+  }
+
+  &__item {
+    padding: 0;
+  }
+
+  &__item--unread {
+    background: rgba(102, 126, 234, 0.08);
+  }
+
+  &__itemTitleRow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__itemBody {
+    margin-top: 0.75rem;
+  }
+
+  &__itemTime {
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
