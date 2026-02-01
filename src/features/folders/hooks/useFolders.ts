@@ -3,7 +3,7 @@
  * Provides data fetching and state management for folders
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as foldersApi from "../services/folders.api";
 import type { Folder, FolderListParams, FolderListResponse } from "../types/folders.types";
 
@@ -64,8 +64,12 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
     [useApi, stateParam, departmentIdParam, folderTypeParam]
   );
 
+  const didRunRef = useRef(false);
   useEffect(() => {
+    if (didRunRef.current) return;
+    didRunRef.current = true;
     fetchFolders();
+    return () => {};
   }, [fetchFolders]);
 
   return {

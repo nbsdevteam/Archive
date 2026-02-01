@@ -12,6 +12,8 @@ import {
   toggleMiniSidebar,
 } from "../../data/redux/sidebarSlice";
 import { all_routes } from "../../../router/all_routes";
+import { Button } from "../../../shared/components/ui";
+import { useAuth } from "../../../features/auth/hooks/useAuth";
 import { HorizontalSidebarData } from "../../data/json/horizontalSidebar";
 import React from "react";
 import type {
@@ -74,6 +76,13 @@ const Header = React.memo(() => {
   );
   const Location = useLocation();
   const headerSearchRef = useRef<HTMLDivElement>(null);
+  const { logout } = useAuth();
+
+  const handleLogout = useCallback(() => {
+    logout().then(() => {
+      navigate(routes.login, { replace: true });
+    });
+  }, [logout, navigate]);
 
   // Multi-level menu open states (using Set for multiple open menus)
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
@@ -834,12 +843,14 @@ const Header = React.memo(() => {
                         </Link>
                       </div>
                       <div className="card-footer">
-                        <Link
-                          className="dropdown-item d-inline-flex align-items-center p-0 py-2"
-                          to={routes.login}
+                        <Button
+                          type="button"
+                          variant="light"
+                          className="dropdown-item d-inline-flex align-items-center p-0 py-2 border-0 bg-transparent w-100 text-start shadow-none"
+                          onClick={handleLogout}
                         >
                           <i className="ti ti-login me-2"></i>Logout
-                        </Link>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -890,9 +901,14 @@ const Header = React.memo(() => {
               <Link className="dropdown-item" to={routes.archiveActivity}>
                 <i className="ti ti-activity me-1"></i>Activity
               </Link>
-              <Link className="dropdown-item" to={routes.login}>
+              <Button
+                type="button"
+                variant="light"
+                className="dropdown-item border-0 bg-transparent w-100 text-start shadow-none"
+                onClick={handleLogout}
+              >
                 <i className="ti ti-login me-2"></i>Logout
-              </Link>
+              </Button>
             </div>
           </div>
         </div>

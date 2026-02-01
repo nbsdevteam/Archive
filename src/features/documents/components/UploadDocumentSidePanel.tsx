@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SidePanel, Input, SelectField, MultiSelectField, Icon } from "../../../shared/components/ui";
+import { SidePanel, Input, SelectField, MultiSelectField, Icon, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
@@ -412,24 +412,17 @@ export const UploadDocumentSidePanel = ({
 
   const footer = (
     <div className="d-flex gap-2 justify-content-end">
-      <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isUploading}>
+      <Button variant="secondary" onClick={onClose} disabled={isUploading}>
         Cancel
-      </button>
-      <button
-        type="button"
-        className="btn btn-secondary"
+      </Button>
+      <Button
+        variant="secondary"
+        isLoading={isUploading}
         onClick={handleUploadClick}
         disabled={submitDisabled}
       >
-        {isUploading ? (
-          <>
-            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-            {t("common.uploading")}
-          </>
-        ) : (
-          t("documents.uploadDocument")
-        )}
-      </button>
+        {t("documents.uploadDocument")}
+      </Button>
     </div>
   );
 
@@ -609,19 +602,20 @@ export const UploadDocumentSidePanel = ({
             }}
           />
           <div className="d-flex gap-2">
-            <button
+            <Button
               type="button"
-              className={`btn btn-secondary flex-grow-1 ${errors.file ? "is-invalid" : ""}`}
+              variant="secondary"
+              className={`flex-grow-1 ${errors.file ? "is-invalid" : ""}`}
               onClick={() => fileInputRef.current?.click()}
             >
               <Icon name="paperclip" className="me-1" />
               {selectedFile instanceof File ? `Selected: ${selectedFile.name}` : "Select File"}
-            </button>
+            </Button>
             {selectedFile instanceof File && (
-              <button type="button" className="btn btn-outline-secondary" onClick={handleClearFile}>
+              <Button type="button" variant="outline" className="btn-outline-secondary" onClick={handleClearFile}>
                 <Icon name="x" className="me-1" />
                 {t("common.remove", { defaultValue: "Remove" })}
-              </button>
+              </Button>
             )}
           </div>
           {errors.file && <div className="invalid-feedback d-block">{errors.file.message as string}</div>}

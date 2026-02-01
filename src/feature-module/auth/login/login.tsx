@@ -36,15 +36,15 @@ const Login = () => {
               <div className="authentication-card w-100">
                 <div className="authen-overlay-item border w-100">
                   <h1 className="text-white display-1">
-                    Empowering people <br /> through seamless HR <br /> management.
+                    NBS Archive <br /> System
                   </h1>
                   <div className="my-4 mx-auto authen-overlay-img">
-                    <ImageWithBasePath src="assets/img/bg/authentication-bg-01.png" alt="Authentication illustration" />
+                    <ImageWithBasePath src="assets/img/bg/authentication-bg-01.png" alt="Archive system" />
                   </div>
                   <div>
                     <p className="text-white fs-20 fw-semibold text-center">
-                      Efficiently manage your workforce, streamline <br />{" "}
-                      operations effortlessly.
+                      Store, organize, and retrieve documents <br />{" "}
+                      with confidence.
                     </p>
                   </div>
                 </div>
@@ -56,17 +56,17 @@ const Login = () => {
               <div className="col-md-7 mx-auto vh-100">
                 <form className="vh-100" onSubmit={navigationPath}>
                   <div className="vh-100 d-flex flex-column justify-content-between p-4 pb-0">
-                    <div className="mx-auto mb-5 text-center">
+                    {/* <div className="mx-auto mb-5 text-center">
                       <ImageWithBasePath
-                        src="assets/img/logo.svg"
+                        src="assets/img/logo-2.svg"
                         className="img-fluid"
                         alt="NBS Archive System"
                       />
-                    </div>
+                    </div> */}
                     <div className="">
                       <div className="text-center mb-3">
                         <h2 className="mb-2">Sign In</h2>
-                        <p className="mb-0">Please enter your details to sign in</p>
+                        <p className="mb-0">Access your archive workspace securely</p>
                       </div>
                       <div className="mb-3">
                         <label className="form-label">Email Address</label>

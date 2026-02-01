@@ -360,18 +360,7 @@ const Sidebar = React.memo(() => {
           <h6 className="fs-12 fw-normal mb-1">Admin User</h6>
           <p className="fs-10">Administrator</p>
         </div>
-        <div className="sidebar-nav mb-3">
-          <ul
-            className="nav nav-tabs nav-tabs-solid nav-tabs-rounded nav-justified bg-transparent"
-            role="tablist"
-          >
-            <li className="nav-item">
-              <Link className="nav-link active border-0" to="#">
-                Menu
-              </Link>
-            </li>
-          </ul>
-        </div>
+       <hr/>
       </div>
 
       {/* Sidebar Header */}

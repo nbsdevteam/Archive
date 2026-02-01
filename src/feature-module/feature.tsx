@@ -5,6 +5,7 @@ import Sidebar from "../core/common/sidebar";
 import ThemeSettings from "../core/common/theme-settings";
 import ThemeInitializer from "../core/common/ThemeInitializer";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { LoadingSpinner } from "../core/common/LoadingSpinner";
 import HorizontalSidebar from "../core/common/horizontal-sidebar";
 import TwoColumnSidebar from "../core/common/two-column";
 import StackedSidebar from "../core/common/stacked-sidebar";
@@ -121,17 +122,6 @@ const Feature = React.memo(() => {
     [mobileSidebar]
   );
 
-  // Memoize the Preloader component
-  const Preloader = useMemo(
-    () => () =>
-      (
-        <div id="global-loader">
-          <div className="page-loader"></div>
-        </div>
-      ),
-    []
-  );
-
   // Memoize the reset mobile sidebar effect
   const resetMobileSidebar = useCallback(() => {
     dispatch(setResetMobileSidebar());
@@ -232,7 +222,7 @@ const Feature = React.memo(() => {
       <>
         {showLoader ? (
           <>
-            <Preloader />
+            <LoadingSpinner />
             {mainContent}
           </>
         ) : (

@@ -1,1 +1,0 @@
-const r=(r="call",e={},o=1)=>({jsonrpc:"2.0",method:r,params:e,id:o}),e=r=>{if(r.error)throw new Error(`JSON-RPC Error: ${r.error.message} (code: ${r.error.code})`);if(void 0===r.result)throw new Error("JSON-RPC Response missing result");return r.result};export{r as createJsonRpcRequest,e as extractJsonRpcResult};

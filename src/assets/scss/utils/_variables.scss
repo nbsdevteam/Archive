@@ -1,6 +1,6 @@
 @use "sass:color";
-// Font import
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+// Font imports - Inter for UI text, Roboto for numeric surfaces
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Roboto:wght@400;500&display=swap');
 
 // Base Font
 $font-size-base: 14px;
@@ -10,12 +10,13 @@ $font-weight-lighter: lighter;
 $font-weight-light: 300;
 $font-weight-normal: 400;
 $font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
-$font-weight-bolder: bolder;
+$font-weight-semibold: 500; // Capped at 500
+$font-weight-bold: 500; // Capped at 500
+$font-weight-bolder: 500; // Capped at 500
 
 // Font Family
-$font-family-primary: "Roboto", sans-serif;
+$font-family-primary: "Inter", sans-serif;
+$font-family-numeric: "Roboto", sans-serif;
 $font-awesome: "Fontawesome";
 	
 // Theme Colors Variables

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
@@ -14,9 +14,19 @@ const SignatureRequestsPage = () => {
   const { requests, fetchRequests, approve, reject, isLoading, error } = useSignatureStore();
   const [tab, setTab] = useState<'all' | 'pending'>('pending');
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const didRunRef = useRef(false);
+  const lastTabRef = useRef<'all' | 'pending' | null>(null);
 
   useEffect(() => {
+    if (didRunRef.current && lastTabRef.current === tab) return;
+    didRunRef.current = true;
+    lastTabRef.current = tab;
     fetchRequests(tab === 'pending' ? { state: 'pending' } : {});
+    return () => {
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
+    };
   }, [tab, fetchRequests]);
 
   const handleApprove = async (requestId: number) => {
@@ -81,7 +91,7 @@ const SignatureRequestsPage = () => {
           <Alert variant="danger" className="mb-3">
             {error}
             <button
-              className="btn btn-sm btn-outline-primary ms-2"
+              className="btn btn-sm btn-outline-secondary ms-2"
               onClick={handleRetry}
             >
               Retry

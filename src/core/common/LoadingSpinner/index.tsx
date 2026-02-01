@@ -7,9 +7,11 @@ interface LoadingSpinnerProps {
   text?: string;
 }
 
+const THEME_CREAMY = "#c9a86c";
+
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "medium",
-  color = "#007bff",
+  color = THEME_CREAMY,
   text,
 }) => {
   const containerClass = `loading-spinner-container ${
@@ -21,7 +23,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }`;
 
   return (
-    <div className={containerClass}>
+    <div
+      className={containerClass}
+      style={{ ["--loading-spinner-color" as string]: color }}
+    >
       <div className="loading-spinner" style={{ borderTopColor: color }}>
         <div className="spinner-ring" style={{ borderTopColor: color }}></div>
       </div>

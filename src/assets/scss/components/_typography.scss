@@ -15,13 +15,13 @@ h6,
 .h6 {
   color: variables.$title-color;
   font-family: variables.$font-family-primary;
-  font-weight: variables.$font-weight-bold;
+  font-weight: variables.$font-weight-normal;
   margin-bottom: 0;
 }
 h1,
 .h1 {
   font-size: 28px;
-  font-weight: variables.$font-weight-bold;
+  font-weight: variables.$font-weight-normal;
   @include mixins.respond-below(lg) {
     font-size: 26px;
   }
@@ -32,7 +32,7 @@ h1,
 h2,
 .h2 {
   font-size: 24px;
-  font-weight: variables.$font-weight-bold;
+  font-weight: variables.$font-weight-normal;
   @include mixins.respond-below(md) {
     font-size: 22px;
   }
@@ -40,7 +40,7 @@ h2,
 h3,
 .h3 {
   font-size: 20px;
-  font-weight: variables.$font-weight-semibold;
+  font-weight: variables.$font-weight-normal;
   @include mixins.respond-below(md) {
     font-size: 18px;
   }
@@ -48,7 +48,7 @@ h3,
 h4,
 .h4 {
   font-size: 18px;
-  font-weight: variables.$font-weight-semibold;
+  font-weight: variables.$font-weight-normal;
   @include mixins.respond-below(md) {
     font-size: 16px;
   }
@@ -56,12 +56,12 @@ h4,
 h5,
 .h5 {
   font-size: 16px;
-  font-weight: variables.$font-weight-semibold;
+  font-weight: variables.$font-weight-normal;
 }
 h6,
 .h6 {
   font-size: 14px;
-  font-weight: variables.$font-weight-semibold;
+  font-weight: variables.$font-weight-normal;
 }
 .display-1 {
   font-size: 40px;
@@ -490,4 +490,100 @@ hr {
 .list-circle {
     list-style: circle;
     padding-left: 2rem;
+}
+
+// ============================================
+// Typography Utilities - Inter + Roboto
+// ============================================
+
+// Font family + weight primitives (Inter)
+.InterL {
+  font-family: variables.$font-family-primary;
+  font-weight: variables.$font-weight-light; // 300
+}
+.InterN {
+  font-family: variables.$font-family-primary;
+  font-weight: variables.$font-weight-normal; // 400
+}
+.InterM {
+  font-family: variables.$font-family-primary;
+  font-weight: variables.$font-weight-medium; // 500
+}
+.InterSB {
+  font-family: variables.$font-family-primary;
+  font-weight: variables.$font-weight-semibold; // 500 (capped)
+}
+.InterB {
+  font-family: variables.$font-family-primary;
+  font-weight: variables.$font-weight-bold; // 500 (capped)
+}
+
+// Font family + weight primitives (Roboto - for numeric surfaces)
+.RobotoN {
+  font-family: variables.$font-family-numeric;
+  font-weight: variables.$font-weight-normal; // 400
+}
+.RobotoM {
+  font-family: variables.$font-family-numeric;
+  font-weight: variables.$font-weight-medium; // 500
+}
+.RobotoB {
+  font-family: variables.$font-family-numeric;
+  font-weight: variables.$font-weight-bold; // 500 (capped)
+}
+
+// Numeric utility - Roboto with tabular numerals
+.Num {
+  font-family: variables.$font-family-numeric;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: normal;
+}
+
+// Semantic typography roles
+.tHeading1 {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$h2-font-size; // 24px
+  font-weight: variables.$font-weight-bold; // 500
+  color: variables.$title-color;
+  line-height: 1.3;
+}
+.tHeading2 {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$h3-font-size; // 20px
+  font-weight: variables.$font-weight-semibold; // 500
+  color: variables.$title-color;
+  line-height: 1.3;
+}
+.tLabel {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$font-size-13;
+  font-weight: variables.$font-weight-normal; // 400
+  color: variables.$text-color;
+}
+.tLabelMuted {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$font-size-12;
+  font-weight: variables.$font-weight-normal; // 400
+  color: variables.$text-muted;
+}
+.tValue {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$font-size-14;
+  font-weight: variables.$font-weight-medium; // 500
+  color: variables.$title-color;
+}
+.tValueStrong {
+  font-family: variables.$font-family-primary;
+  font-size: variables.$font-size-16;
+  font-weight: variables.$font-weight-bold; // 500
+  color: variables.$title-color;
+}
+.tValueNum {
+  font-family: variables.$font-family-numeric;
+  font-size: variables.$font-size-14;
+  font-weight: variables.$font-weight-medium; // 500
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: variables.$title-color;
 }

@@ -1,18 +1,25 @@
 import { type InputHTMLAttributes, forwardRef } from "react";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: string;
   error?: string;
   helperText?: string;
+  size?: "sm" | "md" | "lg";
 }
 
+const heightClassBySize = {
+  sm: "control-height-sm",
+  md: "control-height-md",
+  lg: "control-height-lg",
+} as const;
+
 /**
- * Input - Reusable input component
- * Wraps Bootstrap form controls with consistent API
+ * Input - Reusable input component; height matches Button for toolbar alignment.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, className = "", ...props }, ref) => {
-    const inputClasses = `form-control ${error ? "is-invalid" : ""} ${className}`.trim();
+  ({ label, error, helperText, size = "md", className = "", ...props }, ref) => {
+    const heightClass = heightClassBySize[size];
+    const inputClasses = `form-control ${heightClass} ${error ? "is-invalid" : ""} ${className}`.trim();
 
     return (
       <div className="mb-3">

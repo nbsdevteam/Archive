@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { useDocumentStore } from "../stores/documentStore";
 import { UploadDocumentSidePanel } from "../components";
-import { useDebounce } from "../../../shared/hooks/useDebounce";
-import { Spinner, Alert, Input, Icon } from "../../../shared/components/ui";
+import { useRunOnceOnMount } from "../../../shared/hooks";
+import { Button, Spinner, Alert, Icon, SearchInput } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import "../styles/documents.css";
 
@@ -16,53 +16,50 @@ const DocumentsPage = () => {
   const routes = all_routes;
   const navigate = useNavigate();
   const { documents, isLoading, fetchDocuments, error, clearError, pagination } = useDocumentStore();
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const debouncedQuery = useDebounce(searchQuery, 300);
+  const lastSearchRef = useRef<string>("");
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+  useRunOnceOnMount(fetchDocuments);
 
-  useEffect(() => {
-    if (debouncedQuery.trim().length >= 1) {
-      fetchDocuments({ search: debouncedQuery.trim() });
-    } else if (debouncedQuery.trim().length === 0) {
+  const onSearchDebounced = useCallback((value: string) => {
+    const hadSearch = lastSearchRef.current.length >= 1;
+    lastSearchRef.current = value;
+    if (value.length >= 1) {
+      fetchDocuments({ search: value });
+    } else if (hadSearch) {
       fetchDocuments();
     }
-  }, [debouncedQuery, fetchDocuments]);
+  }, [fetchDocuments]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
-  const handleNavigateToDocument = (documentId: number) => {
+  const handleNavigateToDocument = useCallback((documentId: number) => {
     navigate(`${routes.documentDetail.replace(":id", documentId.toString())}`);
-  };
+  }, [navigate, routes.documentDetail]);
 
-  const handleOpenUpload = () => {
+  const handleOpenUpload = useCallback(() => {
     setIsUploadOpen(true);
-  };
+  }, []);
 
-  const handleUploadSuccess = () => {
-    if (debouncedQuery.trim()) {
-      fetchDocuments({ search: debouncedQuery.trim() });
+  const handleUploadSuccess = useCallback(() => {
+    if (lastSearchRef.current) {
+      fetchDocuments({ search: lastSearchRef.current });
     } else {
       fetchDocuments();
     }
     setIsUploadOpen(false);
-  };
+  }, [fetchDocuments]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     clearError();
     fetchDocuments();
-  };
+  }, [clearError, fetchDocuments]);
+
+  const handleRefresh = useCallback(() => {
+    if (lastSearchRef.current.length >= 1) {
+      fetchDocuments({ search: lastSearchRef.current });
+    } else {
+      fetchDocuments();
+    }
+  }, [fetchDocuments]);
 
   const getStatusBadgeVariant = (status?: string) => {
     if (!status) return "secondary";
@@ -93,51 +90,56 @@ const DocumentsPage = () => {
             </nav>
           </div>
           <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="me-2 mb-2">
-              <button
-                onClick={handleOpenUpload}
-                className="btn btn-secondary btn-md d-inline-flex align-items-center"
-              >
-                <Icon name="upload" className="me-2" />
-                Upload Files
-              </button>
-            </div>
             <div className="ms-2 head-icons">
               <CollapseHeader />
             </div>
           </div>
         </div>
 
-        <div className="card documents__search-card mb-3">
-          <div className="card-body">
-            <Input
-              type="text"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchKeyDown}
-              className="documents__search-input"
-            />
-          </div>
-        </div>
-
         <div className="card documents__table-card">
-          <div className="card-header d-flex align-items-center justify-content-between">
-            <h5 className="card-title mb-0">Documents</h5>
-            <span className="text-muted fs-13">
-              {isLoading ? "Loading..." : `${documents?.length ?? 0} ${documents?.length === 1 ? "document" : "documents"}`}
-            </span>
+          <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="card-title mb-0">Documents</h5>
+              <span className="text-muted fs-13">
+                {isLoading ? "Loading..." : <><span className="Num">{documents?.length ?? 0}</span> {documents?.length === 1 ? "document" : "documents"}</>}
+              </span>
+            </div>
+            <div className="d-flex align-items-center gap-2 documents__header-actions">
+              <SearchInput
+                placeholder="Search documents..."
+                debounceMs={300}
+                onDebouncedChange={onSearchDebounced}
+                icon="file-search-corner"
+                wide
+                highlight
+                className="documents__search-wrap"
+                inputClassName="documents__search-input"
+                aria-label="Search documents"
+              />
+           
+              <Button variant="outline" size="md" className="d-inline-flex align-items-center btn-outline-secondary" onClick={handleOpenUpload}>
+                <Icon name="file-up" className="me-2" />
+                Upload Documents
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                className="d-inline-flex align-items-center btn-outline-secondary"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                aria-label="Refresh documents"
+              >
+                <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
+              </Button>
+            </div>
           </div>
           <div className="card-body">
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}
-                <button
-                  className="btn btn-sm btn-outline-primary ms-2"
-                  onClick={handleRetry}
-                >
+                <Button variant="outline" size="sm" className="btn-outline-secondary ms-2" onClick={handleRetry}>
                   Retry
-                </button>
+                </Button>
               </Alert>
             )}
             {isLoading ? (
@@ -169,7 +171,7 @@ const DocumentsPage = () => {
                       documents.map((doc) => (
                         <tr key={doc.id} style={{ cursor: "pointer" }} onClick={() => handleNavigateToDocument(doc.id)}>
                           <td>{doc.name || doc.title || "-"}</td>
-                          <td>{doc.barcode || "-"}</td>
+                          <td className="Num">{doc.barcode || "-"}</td>
                           <td>{doc.document_type_name || doc.document_type?.name || "-"}</td>
                           <td>{doc.department_name || doc.department?.name || "-"}</td>
                           <td>
@@ -183,15 +185,17 @@ const DocumentsPage = () => {
                             </span>
                           </td>
                           <td className="text-end">
-                            <button
-                              className="btn btn-sm btn-light me-1"
+                            <Button
+                              variant="light"
+                              size="sm"
+                              className="me-1"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleNavigateToDocument(doc.id);
                               }}
                             >
                               View
-                            </button>
+                            </Button>
                           </td>
                         </tr>
                       ))

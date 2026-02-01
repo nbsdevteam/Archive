@@ -34,7 +34,7 @@ const ArchiveDocuments = () => {
             <div className="me-2 mb-2">
               <Link
                 to={routes.archiveUpload}
-                className="btn btn-secondary d-inline-flex align-items-center"
+                className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
               >
                 <Icon name="upload" className="me-2" />
                 Upload Files

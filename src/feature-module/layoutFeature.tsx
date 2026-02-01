@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "../core/common/header";
 import Sidebar from "../core/common/sidebar";
 import { useEffect, useState, useMemo } from "react";
+import { LoadingSpinner } from "../core/common/LoadingSpinner";
 import HorizontalSidebar from "../core/common/horizontal-sidebar";
 import TwoColumnSidebar from "../core/common/two-column";
 import StackedSidebar from "../core/common/stacked-sidebar";
@@ -184,17 +185,6 @@ const LayoutFeature = React.memo(() => {
     [mobileSidebar]
   );
 
-  // Memoize the Preloader component
-  const Preloader = useMemo(
-    () => () =>
-      (
-        <div id="global-loader">
-          <div className="page-loader"></div>
-        </div>
-      ),
-    []
-  );
-
   // Show preloader only on initial mount when dataLoader is enabled
   useEffect(() => {
     if (dataLoader === "enable") {
@@ -241,7 +231,7 @@ const LayoutFeature = React.memo(() => {
       <>
         {showLoader ? (
           <>
-            <Preloader />
+            <LoadingSpinner />
             {mainContent}
           </>
         ) : (

@@ -604,7 +604,7 @@ const DocumentDetailPage = () => {
                           key={v.id}
                           variant="outline"
                           size="sm"
-                          className="btn-outline-primary"
+                          className="btn-outline-secondary"
                           onClick={() => handleDownloadVersion(v.id, v.file_name)}
                         >
                           v{v.version_number} – {v.file_name}
@@ -620,8 +620,8 @@ const DocumentDetailPage = () => {
               <div>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <span>{t("documents.versionHistory", { defaultValue: "Version history" })}</span>
-                  <Button variant="secondary" size="sm" onClick={() => setModalUploadVersion(true)}>
-                    <Icon name="upload" className="me-1" />
+                  <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => setModalUploadVersion(true)}>
+                    <Icon name="file-up" className="me-1" />
                     {t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}
                   </Button>
                 </div>
@@ -647,7 +647,7 @@ const DocumentDetailPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="btn-outline-primary"
+                              className="btn-outline-secondary"
                               onClick={() => handleDownloadVersion(v.id, v.file_name)}
                             >
                               {t("documents.download", { defaultValue: "Download" })}
@@ -702,7 +702,7 @@ const DocumentDetailPage = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="me-1 btn-outline-primary"
+                                className="me-1 btn-outline-secondary"
                                 onClick={() => handleDownloadAttachment(a.id, a.file_name)}
                               >
                                 {t("documents.download", { defaultValue: "Download" })}
@@ -768,8 +768,8 @@ const DocumentDetailPage = () => {
                     </Button>
                   )}
                   {canRequestSignature && approvedRequests.length > 0 && (
-                    <Button variant="secondary" size="sm" onClick={() => setModalUploadSigned(true)}>
-                      <Icon name="upload" className="me-1" />
+                    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => setModalUploadSigned(true)}>
+                      <Icon name="file-up" className="me-1" />
                       {t("documents.uploadSignedVersion", { defaultValue: "Upload signed version" })}
                     </Button>
                   )}
@@ -949,10 +949,10 @@ const DocumentDetailPage = () => {
               onChange={(e) => setUploadVersionFile(e.target.files?.[0] ?? null)}
             />
             {uploadVersionFile && (
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleClearUploadVersionFile}>
+              <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={handleClearUploadVersionFile}>
                 <Icon name="x" className="me-1" />
                 {t("common.remove", { defaultValue: "Remove" })}
-              </button>
+              </Button>
             )}
           </div>
           {uploadVersionFile && <small className="text-muted d-block mt-1">{uploadVersionFile.name}</small>}
@@ -1054,10 +1054,10 @@ const DocumentDetailPage = () => {
               onChange={(e) => setSignedFile(e.target.files?.[0] ?? null)}
             />
             {signedFile && (
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleClearSignedFile}>
+              <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={handleClearSignedFile}>
                 <Icon name="x" className="me-1" />
                 {t("common.remove", { defaultValue: "Remove" })}
-              </button>
+              </Button>
             )}
           </div>
           {signedFile && <small className="text-muted d-block mt-1">{signedFile.name}</small>}

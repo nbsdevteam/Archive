@@ -451,38 +451,42 @@ Core
 
 ## Fonts & Typography (Global)
 
-Use **Inter** for labels and headings, and **Roboto** for numeric value text. All typography is controlled via global CSS classes so font styling stays consistent across the app.
+Use **Inter** for all UI text (labels, headings, body text), and **Roboto** for numeric value surfaces (counts, metrics, IDs, barcodes). All typography is controlled via global SCSS variables and utility classes so font styling stays consistent across the app.
+
+**Important**: Maximum font-weight is **500** for all UI text. No text should use font-weight greater than 500 (no 600, 700, 800, 900, or "bolder").
 
 ### Folder structure
 
-- `src/app/styles/`
-  - `globals.css` — Global reset, theme tokens, typography utilities
-  - `fonts.css` — Google Fonts imports for Inter and Roboto
-  - `typography.css` — Global semantic classes (labels, headings, values)
-- `src/assets/fonts/` — Optional; reserved for future self-hosted font files. For now, fonts are loaded via Google Fonts.
+- `src/assets/scss/`
+  - `utils/_variables.scss` — Font imports (Google Fonts), font-family tokens, and weight variables
+  - `components/_typography.scss` — Typography utility classes (Inter/Roboto primitives, semantic roles)
+  - `custom.scss` — Additional overrides for vendor utilities (Bootstrap, etc.)
+- `src/assets/fonts/` — Optional; reserved for future self-hosted font files. Currently fonts are loaded via Google Fonts.
 
 ### Font loading (Google Fonts)
 
-- **Inter** — UI labels and headings
-- **Roboto** — Numeric-heavy value text and tabular numerals
+- **Inter** (weights: 300, 400, 500) — Default UI font for all text
+- **Roboto** (weights: 400, 500) — Numeric surfaces and tabular numerals
 
-Load these in `fonts.css` (or existing SCSS variables) via `@import` or `<link>` from Google Fonts.
+These are loaded in `src/assets/scss/utils/_variables.scss` via `@import url(...)` from Google Fonts.
 
 ### Font family + weight primitives
 
 Global classes that set font family and weight only. Use these when you need explicit Inter/Roboto styling:
 
-| Class    | Meaning        | Use |
-|---------|----------------|-----|
-| `.InterL`  | Inter Light    | Light labels |
-| `.InterN`  | Inter Normal   | Body / default text |
-| `.InterM`  | Inter Medium   | Emphasized labels |
-| `.InterSB` | Inter SemiBold | Subheadings |
-| `.InterB`  | Inter Bold     | Headings |
-| `.RobotoN` | Roboto Normal  | Numeric body |
-| `.RobotoM` | Roboto Medium  | Numeric emphasis |
-| `.RobotoB` | Roboto Bold    | Key numbers |
-| `.Num`     | Numeric utility | Sets `font-family: Roboto, ...`, `font-variant-numeric: tabular-nums`, `letter-spacing: normal` for numbers |
+| Class    | Meaning        | Weight | Use |
+|---------|----------------|--------|-----|
+| `.InterL`  | Inter Light    | 300 | Light labels |
+| `.InterN`  | Inter Normal   | 400 | Body / default text |
+| `.InterM`  | Inter Medium   | 500 | Emphasized labels |
+| `.InterSB` | Inter SemiBold | 500 | Subheadings (capped at 500) |
+| `.InterB`  | Inter Bold     | 500 | Headings (capped at 500) |
+| `.RobotoN` | Roboto Normal  | 400 | Numeric body |
+| `.RobotoM` | Roboto Medium  | 500 | Numeric emphasis |
+| `.RobotoB` | Roboto Bold    | 500 | Key numbers (capped at 500) |
+| `.Num`     | Numeric utility | — | Sets `font-family: Roboto`, `font-variant-numeric: tabular-nums`, `font-feature-settings: "tnum" 1` for numbers |
+
+**Note**: `.InterSB`, `.InterB`, and `.RobotoB` all map to weight 500 (the maximum allowed weight).
 
 ### Semantic text roles (headings, labels, values)
 
@@ -527,11 +531,11 @@ Example (pseudo-JSX):
 
 ---
 
-## Styling: Tailwind + CSS Modules
+## Styling: SCSS + CSS Modules
 
-- **Global CSS** (`src/app/styles/`) is for tokens, typography, and layout primitives (including the classes above).
+- **Global SCSS** (`src/assets/scss/`) contains tokens, typography utilities, and layout primitives (including the classes above).
 - **Feature/page CSS Modules** (`*.module.css`, `*.module.scss`) are for component- and page-scoped structure only; avoid duplicating typography rules there.
-- If Tailwind is added later, typography role classes (e.g. `tHeading1`, `tLabel`, `tValue`) can be implemented in `@layer utilities` or kept in global CSS.
+- Typography role classes (e.g. `tHeading1`, `tLabel`, `tValue`) are defined in `src/assets/scss/components/_typography.scss`.
 
 ---
 

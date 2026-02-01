@@ -1,0 +1,68 @@
+/**
+ * Canonical control heights for Button, Input, and SearchInput alignment.
+ * Use these so toolbars (e.g. Documents, Folders) have consistent height.
+ */
+:root {
+  --control-height-sm: 26px;
+  --control-height-md: 30px;
+  --control-height-lg: 38px;
+  --control-font-size-sm: 0.75rem;
+  --control-font-size-md: 0.8125rem;
+  --control-font-size-lg: 0.875rem;
+}
+
+.control-height-sm {
+  height: var(--control-height-sm) !important;
+  min-height: var(--control-height-sm);
+  box-sizing: border-box;
+}
+
+.control-height-md {
+  height: var(--control-height-md) !important;
+  min-height: var(--control-height-md);
+  box-sizing: border-box;
+}
+
+.control-height-lg {
+  height: var(--control-height-lg) !important;
+  min-height: var(--control-height-lg);
+  box-sizing: border-box;
+}
+
+/* Buttons: center text and use smaller font */
+.btn.control-height-sm,
+.btn.control-height-md,
+.btn.control-height-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.btn.control-height-sm {
+  font-size: var(--control-font-size-sm);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.btn.control-height-md {
+  font-size: var(--control-font-size-md);
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+}
+.btn.control-height-lg {
+  font-size: var(--control-font-size-lg);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+/* Inputs: match button font size when using control height */
+.form-control.control-height-sm {
+  font-size: var(--control-font-size-sm);
+}
+.form-control.control-height-md {
+  font-size: var(--control-font-size-md);
+}
+.form-control.control-height-lg {
+  font-size: var(--control-font-size-lg);
+}

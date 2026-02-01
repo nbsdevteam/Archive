@@ -3,7 +3,7 @@
  * Provides data fetching and state management for notifications
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as notificationsService from "../services/notifications.service";
 import type { Notification, NotificationListParams } from "../types/notifications.types";
 
@@ -83,9 +83,13 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     }
   }, [useApi, fetchNotifications, fetchUnreadCount]);
 
+  const didRunRef = useRef(false);
   useEffect(() => {
+    if (didRunRef.current) return;
+    didRunRef.current = true;
     fetchNotifications();
     fetchUnreadCount();
+    return () => {};
   }, [fetchNotifications, fetchUnreadCount]);
 
   return {

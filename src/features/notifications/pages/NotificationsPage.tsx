@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
@@ -14,9 +14,19 @@ const NotificationsPage = () => {
   const routes = all_routes;
   const { notifications, unreadCount, isLoading, error, fetchNotifications, markAsRead, markAllAsRead, clearError } = useNotificationStore();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const didRunRef = useRef(false);
+  const lastFilterRef = useRef<'all' | 'unread' | null>(null);
 
   useEffect(() => {
+    if (didRunRef.current && lastFilterRef.current === filter) return;
+    didRunRef.current = true;
+    lastFilterRef.current = filter;
     fetchNotifications(filter === 'unread');
+    return () => {
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
+    };
   }, [filter, fetchNotifications]);
 
   const handleMarkAsRead = async (id: number) => {
@@ -78,7 +88,7 @@ const NotificationsPage = () => {
               </div>
               {filter === 'all' && notifications.length > 0 && (
                 <button
-                  className="btn btn-sm btn-outline-primary"
+                  className="btn btn-sm btn-outline-secondary"
                   onClick={handleMarkAllAsRead}
                 >
                   Mark All Read
@@ -91,7 +101,7 @@ const NotificationsPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <button
-                  className="btn btn-sm btn-outline-primary ms-2"
+                  className="btn btn-sm btn-outline-secondary ms-2"
                   onClick={handleRetry}
                 >
                   Retry

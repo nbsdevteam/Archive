@@ -3,7 +3,7 @@
  * Provides data fetching and state management for documents
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as documentsApi from "../services/documents.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
 import type { Document, DocumentListParams, DocumentListResponse } from "../types/documents.types";
@@ -56,8 +56,16 @@ export const useDocuments = (options: UseDocumentsOptions = {}) => {
     [useApi, initialParams]
   );
 
+  const didRunRef = useRef(false);
   useEffect(() => {
+    if (didRunRef.current) return;
+    didRunRef.current = true;
     fetchDocuments({ search: debouncedSearch });
+    return () => {
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
+    };
   }, [debouncedSearch, fetchDocuments]);
 
   return {

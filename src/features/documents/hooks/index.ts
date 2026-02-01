@@ -3,3 +3,4 @@
  */
 
 export * from "./useDocuments";
+export * from "./useDocumentCount";

@@ -233,7 +233,8 @@
     "archivedDocuments": "Archived Documents",
     "notifications": "Notifications",
     "viewDetails": "View Details",
-    "foldersByDepartment": "Folders by Department"
+    "foldersByDepartment": "Folders by Department",
+    "documentsByDepartment": "Documents by Department"
   },
   "header": {
     "searchFailed": "Search failed"

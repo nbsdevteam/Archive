@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SidePanel, Input, SelectField } from "../../../shared/components/ui";
+import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { createFolder } from "../services/folders.api";
@@ -141,24 +141,17 @@ export const CreateFolderSidePanel = ({
 
   const footer = (
     <div className="d-flex gap-2 justify-content-end">
-      <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isSubmitting}>
+      <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
         {t("common.cancel")}
-      </button>
-      <button
-        type="button"
-        className="btn btn-secondary"
+      </Button>
+      <Button
+        variant="secondary"
+        isLoading={isSubmitting}
         onClick={handleSubmit(onSubmit)}
         disabled={submitDisabled}
       >
-        {isSubmitting ? (
-          <>
-            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-            {t("folders.creating")}
-          </>
-        ) : (
-          t("folders.create")
-        )}
-      </button>
+        {t("folders.create")}
+      </Button>
     </div>
   );
 

@@ -15,6 +15,7 @@ import "../src/assets/css/fontawesome/css/fontawesome.min.css";
 import "../src/assets/css/fontawesome/css/all.min.css";
 import "../src/assets/icon/ionic/ionicons.css";
 import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
+import "../src/shared/styles/control-heights.css";
 import "../src/assets/js/bootstrap.bundle.min.js";
 
 // Initialize preloading for better performance

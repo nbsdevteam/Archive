@@ -5,7 +5,7 @@ import { all_routes } from "../../../router/all_routes";
 import { useLogin } from "../hooks/useLogin";
 import { LoginRoleToggle, type LoginRole } from "../components/LoginRoleToggle";
 import { clearTokens } from "../../../shared/utils/storage";
-import { Icon } from "../../../shared/components/ui";
+import { Button, Icon } from "../../../shared/components/ui";
 import styles from "../styles/login.page.module.css";
 
 const USER_STORAGE_KEY = "user";
@@ -108,12 +108,12 @@ export default function LoginPage() {
               <div className="col-md-7 mx-auto vh-100">
                 <form className="vh-100" onSubmit={handleSubmitWrapped}>
                   <div className="vh-100 d-flex flex-column justify-content-between p-4 pb-0">
-                    <div className="mx-auto mb-5 text-center">
-                      <ImageWithBasePath
+                    <div className="mx-auto mb-5 text-center ">
+                      {/* <ImageWithBasePath
                         src="assets/img/logo-2.svg"
                         className="img-fluid"
                         alt="NBS Archive System"
-                      />
+                      /> */}
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
@@ -196,9 +196,9 @@ export default function LoginPage() {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <button type="submit" className="btn btn-secondary w-100" disabled={loading}>
+                        <Button type="submit" variant="secondary" className="w-100" disabled={loading} isLoading={loading}>
                           {loading ? "Signing in…" : "Sign In"}
-                        </button>
+                        </Button>
                       </div>
                       <div className="text-center">
                         <h6 className="fw-normal text-dark mb-0">

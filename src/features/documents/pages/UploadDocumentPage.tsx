@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import { UploadDocumentSidePanel } from "../components";
 import type { UploadDocumentFormValues } from "../components";
-import { Icon } from "../../../shared/components/ui";
+import { Button, Icon } from "../../../shared/components/ui";
 
 /**
  * UploadDocumentPage - Upload document UI (legacy route /documents/upload).
@@ -67,10 +67,10 @@ const UploadDocumentPage = () => {
             <p className="text-muted mb-4">
               Upload a new document by selecting department, document type, title, and file.
             </p>
-            <button type="button" className="btn btn-secondary btn-lg" onClick={() => setPanelOpen(true)}>
-              <Icon name="upload" className="me-2" />
+            <Button variant="outline" size="lg" className="btn-outline-secondary" onClick={() => setPanelOpen(true)}>
+              <Icon name="file-up" className="me-2" />
               Upload Document
-            </button>
+            </Button>
           </div>
         </div>
 

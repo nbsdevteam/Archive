@@ -1,1 +1,0 @@
-import{a as t}from"./react-vendor-B7r0zZB7.js";const e=(e,r=300)=>{const[o,s]=t.useState(e);return t.useEffect(()=>{const t=setTimeout(()=>{s(e)},r);return()=>{clearTimeout(t)}},[e,r]),o};export{e as u};

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
@@ -16,9 +16,17 @@ const EditRequestsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const didRunRef = useRef(false);
 
   useEffect(() => {
+    if (didRunRef.current) return;
+    didRunRef.current = true;
     loadRequests();
+    return () => {
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
+    };
   }, []);
 
   const loadRequests = async () => {
@@ -98,7 +106,7 @@ const EditRequestsPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <button
-                  className="btn btn-sm btn-outline-primary ms-2"
+                  className="btn btn-sm btn-outline-secondary ms-2"
                   onClick={loadRequests}
                 >
                   Retry

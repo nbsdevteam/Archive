@@ -392,14 +392,14 @@ const FolderDetailPage = () => {
             </nav>
           </div>
           <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={handleUploadInFolder}>
+    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
               <Icon name="upload" className="me-1" />
               {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
             </Button>
             <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
               {t("common.back", { defaultValue: "Back" })}
             </Link>
-            <Button variant="outline" size="sm" className="btn-outline-primary" onClick={load}>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={load}>
               {t("common.refresh", { defaultValue: "Refresh" })}
             </Button>
             <CollapseHeader />
@@ -409,7 +409,7 @@ const FolderDetailPage = () => {
         {error && (
           <Alert variant="danger" className="mb-3">
             {error}
-            <Button variant="outline" size="sm" className="ms-2 btn-outline-primary" onClick={load}>
+            <Button variant="outline" size="sm" className="ms-2 btn-outline-secondary" onClick={load}>
               {t("common.retry", { defaultValue: "Retry" })}
             </Button>
           </Alert>
@@ -457,7 +457,7 @@ const FolderDetailPage = () => {
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h6 className="mb-0">📌 {t("folders.mainDocument", { defaultValue: "Main document" })}</h6>
             {mainDoc && (
-              <Button variant="outline" size="sm" className="btn-outline-primary" onClick={handleDownloadMainDocument}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleDownloadMainDocument}>
                 <Icon name="download" className="me-1" />
                 {t("documents.download", { defaultValue: "Download" })}
               </Button>
@@ -490,11 +490,11 @@ const FolderDetailPage = () => {
                       <td>{formatDate(mainDoc.upload_date)}</td>
                       <td>{mainDoc.status ?? "–"}</td>
                       <td className="text-end">
-                        <Button variant="outline" size="sm" className="btn-outline-primary me-1" onClick={(e) => { e.stopPropagation(); handleDownloadMainDocument(); }}>
+                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); handleDownloadMainDocument(); }}>
                           <Icon name="download" className="me-1" />
                           {t("documents.download", { defaultValue: "Download" })}
                         </Button>
-                        <Button variant="outline" size="sm" className="btn-outline-primary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
+                        <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
                           {t("common.view", { defaultValue: "View" })}
                         </Button>
                       </td>
@@ -540,7 +540,7 @@ const FolderDetailPage = () => {
                         <td>{formatDate(d.upload_date)}</td>
                         <td>{d.status ?? "–"}</td>
                         <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-primary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(d.id); }}>
+                          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(d.id); }}>
                             {t("common.view", { defaultValue: "View" })}
                           </Button>
                         </td>
@@ -570,7 +570,7 @@ const FolderDetailPage = () => {
                   </option>
                 ))}
               </select>
-              <Button variant="outline" size="sm" className="btn-outline-primary" onClick={handleAddAttachment}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleAddAttachment}>
                 {t("folders.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
             </div>
@@ -596,7 +596,7 @@ const FolderDetailPage = () => {
                         <td>{a.name}</td>
                         <td>{a.file_name}</td>
                         <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-primary" onClick={() => handleDownloadAttachment(a.id, a.file_name)}>
+                          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => handleDownloadAttachment(a.id, a.file_name)}>
                             {t("documents.download", { defaultValue: "Download" })}
                           </Button>
                         </td>
@@ -658,7 +658,7 @@ const FolderDetailPage = () => {
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h6 className="mb-0">📄 {t("documents.preview", { defaultValue: "Preview" })}</h6>
             {mainDoc && previewDoc?.id && previewFileName && (
-              <Button variant="outline" size="sm" className="btn-outline-primary" onClick={handleDownloadMainDocument}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleDownloadMainDocument}>
                 <Icon name="download" className="me-1" />
                 {t("documents.download", { defaultValue: "Download" })}
               </Button>

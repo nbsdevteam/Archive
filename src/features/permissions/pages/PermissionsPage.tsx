@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
-import { Spinner, Icon } from "../../../shared/components/ui";
+import { Button, Spinner, Icon } from "../../../shared/components/ui";
 import { all_routes } from "../../../router/all_routes";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { listAdminUsers } from "../services/permissions.api";
@@ -37,8 +37,18 @@ const PermissionsPage = () => {
     }
   }, []);
 
+  const didRunRef = useRef(false);
+  const lastSearchRef = useRef<string | null>(null);
   useEffect(() => {
+    if (didRunRef.current && lastSearchRef.current === debouncedSearch) return;
+    didRunRef.current = true;
+    lastSearchRef.current = debouncedSearch;
     fetchUsers(debouncedSearch);
+    return () => {
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
+    };
   }, [debouncedSearch, fetchUsers]);
 
   if (!isAdmin) {
@@ -97,15 +107,15 @@ const PermissionsPage = () => {
             <div className="input-group" style={{ maxWidth: "300px" }}>
               <input
                 type="text"
-                className="form-control"
+                className="form-control control-height-md"
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 aria-label="Search users"
               />
-              <button className="btn btn-secondary btn-md" type="button" aria-label="Search">
+              <Button variant="secondary" size="md" type="button" aria-label="Search">
                 <Icon name="search" />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="card-body">
@@ -153,7 +163,7 @@ const PermissionsPage = () => {
                           </td>
                           <td>{displayDepartments(u)}</td>
                           <td className="text-end">
-                            <button className="btn btn-sm btn-secondary">Edit</button>
+                            <Button variant="secondary" size="sm">Edit</Button>
                           </td>
                         </tr>
                       ))

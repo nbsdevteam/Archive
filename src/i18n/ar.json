@@ -234,7 +234,8 @@
     "archivedDocuments": "المستندات المؤرشفة",
     "notifications": "الإشعارات",
     "viewDetails": "عرض التفاصيل",
-    "foldersByDepartment": "المجلدات حسب القسم"
+    "foldersByDepartment": "المجلدات حسب القسم",
+    "documentsByDepartment": "المستندات حسب القسم"
   },
   "header": {
     "searchFailed": "فشل البحث"

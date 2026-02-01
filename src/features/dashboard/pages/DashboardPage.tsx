@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import ReactApexChart from "react-apexcharts";
-import type { ApexOptions } from "apexcharts";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
-import { Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon } from "../../../shared/components/ui";
 import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocuments } from "../../documents/hooks/useDocuments";
+import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { CreateFolderSidePanel } from "../../folders/components";
 import { UploadDocumentSidePanel } from "../../documents/components";
+import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 import "../styles/dashboard.css";
 
@@ -27,7 +26,10 @@ const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 const DashboardPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
-  const [stats, setStats] = useState<{ total_documents?: number } | null>(null);
+  const [stats, setStats] = useState<{
+    total_documents?: number;
+    by_department?: Array<{ department: string; count: number }>;
+  } | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [folderPanelOpen, setFolderPanelOpen] = useState(false);
   const [uploadPanelOpen, setUploadPanelOpen] = useState(false);
@@ -35,14 +37,12 @@ const DashboardPage = () => {
   const { folders, loading: foldersLoading, error: foldersError, pagination: foldersPagination, fetchFolders } = useFolders({
     useApi: true,
   });
-  const { pagination: docsActivePagination } = useDocuments({
+  const { count: activeDocumentsCount, loading: docsActiveLoading } = useDocumentCount({
     useApi: true,
-    initialParams: DOCUMENT_PARAMS_ACTIVE,
-  });
-  const { pagination: docsArchivedPagination } = useDocuments({
+   });
+  const { count: archivedDocumentsCount } = useDocumentCount({
     useApi: true,
-    initialParams: DOCUMENT_PARAMS_ARCHIVED,
-  });
+   });
   const {
     notifications,
     unreadCount,
@@ -58,9 +58,22 @@ const DashboardPage = () => {
     (async () => {
       try {
         const response = await adminApi.getDashboardStats();
-        if (!cancelled && response?.stats) setStats(response.stats);
+        if (cancelled) return;
+        // Backend may return { success, stats } or the stats object directly as result
+        const statsPayload =
+          response?.stats ??
+          (response &&
+          typeof response === "object" &&
+          ("total_documents" in response || "by_department" in response)
+            ? (response as { total_documents?: number; by_department?: Array<{ department: string; count: number }> })
+            : null);
+        if (statsPayload) setStats(statsPayload);
+        else setStats({});
       } catch (err) {
-        if (!cancelled) setStatsError(handleApiError(err));
+        if (!cancelled) {
+          setStatsError(handleApiError(err));
+          setStats({});
+        }
       }
     })();
     return () => {
@@ -70,38 +83,20 @@ const DashboardPage = () => {
 
   const totalFolders = foldersPagination?.total ?? folders.length;
   const totalDocuments = stats?.total_documents ?? 0;
-  const activeDocuments = docsActivePagination?.total ?? 0;
-  const archivedDocuments = docsArchivedPagination?.total ?? 0;
+  const activeDocuments = activeDocumentsCount;
+  const archivedDocuments = archivedDocumentsCount;
 
+  const documentsByDepartment = useMemo(
+    () => stats?.by_department ?? [],
+    [stats?.by_department]
+  );
   const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
-  const chartOptions = useMemo<ApexOptions>(
-    () => ({
-      chart: {
-        height: 235,
-        type: "bar",
-        toolbar: { show: false },
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 5,
-          horizontal: true,
-          barHeight: "35%",
-          endingShape: "rounded",
-        },
-      },
-      dataLabels: { enabled: false },
-      colors: ["#F26522"],
-      grid: {
-        borderColor: "#E5E7EB",
-        strokeDashArray: 5,
-        padding: { top: -20, left: 0, right: 0, bottom: -20 },
-      },
-      xaxis: {
-        categories: chartData.categories,
-        labels: { style: { colors: "#111827", fontSize: "12px" } },
-      },
-      series: [{ name: "Folders", data: chartData.data }],
-    }),
+  const foldersByDepartmentItems = useMemo(
+    () =>
+      chartData.categories.map((department, i) => ({
+        department,
+        count: chartData.data[i] ?? 0,
+      })),
     [chartData]
   );
 
@@ -148,20 +143,20 @@ const DashboardPage = () => {
               <p className="mb-0">
                 You have{" "}
                 <Link to={routes.notifications} className="text-primary text-decoration-underline">
-                  {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+                  <span className="Num">{unreadCount}</span> unread notification{unreadCount !== 1 ? "s" : ""}
                 </Link>
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2 align-items-center">
-              <button type="button" className="btn btn-secondary btn-md" onClick={() => setFolderPanelOpen(true)}>
+              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={() => setFolderPanelOpen(true)}>
                 <Icon name="folder-plus" className="me-1" />
                 Add Folder
-              </button>
-              <button type="button" className="btn btn-secondary btn-md" onClick={() => setUploadPanelOpen(true)}>
-                <Icon name="upload" className="me-1" />
+              </Button>
+              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={() => setUploadPanelOpen(true)}>
+                <Icon name="file-up" className="me-1" />
                 Upload Document
-              </button>
-              <Link to={routes.notifications} className="btn btn-secondary btn-md">
+              </Button>
+              <Link to={routes.notifications} className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center px-3">
                 <Icon name="bell" className="me-1" />
                 View notifications
               </Link>
@@ -186,67 +181,66 @@ const DashboardPage = () => {
           </div>
         ) : (
           <>
-            {/* Single row: all 5 cards on the left (row + wrap), Folders by Department chart on the right */}
-            <div className="row mb-3 align-items-stretch">
-              <div className="col-xxl-4">
-                <div className="row flex-wrap g-3">
-                  <div className="col-6 col-md-4 d-flex">
-                    <div className="card flex-fill w-100">
+            {/* Grid layout: stat cards (fixed-size + wrap) + 2 donut cards in same row */}
+            <div className="row mb-3 align-items-stretch g-3 dashboard-top-grid">
+              <div className="col-12 col-xxl-6">
+                <div className="dashboard-stat-grid">
+                  <div className="dashboard-stat-grid__item d-flex">
+                    <div className="card flex-fill">
                       <div className="card-body">
                         <span className="avatar rounded-circle bg-primary mb-2">
                           <Icon name="folder" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h6>
-                        <h3 className="mb-3">{totalFolders.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num">{totalFolders.toLocaleString()}</h3>
                         <Link to={routes.folders} className="link-default">{t("dashboard.viewDetails")}</Link>
                       </div>
                     </div>
                   </div>
-                  <div className="col-6 col-md-4 d-flex">
-                    <div className="card flex-fill w-100">
+                  <div className="dashboard-stat-grid__item d-flex">
+                    <div className="card flex-fill">
                       <div className="card-body">
                         <span className="avatar rounded-circle bg-secondary mb-2">
                           <Icon name="file-text" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalDocuments")}</h6>
-                        <h3 className="mb-3">{totalDocuments.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num">{totalDocuments.toLocaleString()}</h3>
                         <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
                       </div>
                     </div>
                   </div>
-                  <div className="col-6 col-md-4 d-flex">
-                    <div className="card flex-fill w-100">
+                  <div className="dashboard-stat-grid__item d-flex">
+                    <div className="card flex-fill">
                       <div className="card-body">
                         <span className="avatar rounded-circle bg-info mb-2">
                           <Icon name="file-check" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
-                        <h3 className="mb-3">{activeDocuments.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num">{activeDocuments.toLocaleString()}</h3>
                         <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
                       </div>
                     </div>
                   </div>
-                  <div className="col-6 col-md-4 d-flex">
-                    <div className="card flex-fill w-100">
+                  <div className="dashboard-stat-grid__item d-flex">
+                    <div className="card flex-fill">
                       <div className="card-body">
                         <span className="avatar rounded-circle bg-dark mb-2">
                           <Icon name="archive" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
-                        <h3 className="mb-3">{archivedDocuments.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num">{archivedDocuments.toLocaleString()}</h3>
                         <Link to={routes.documents} className="link-default">View Details</Link>
                       </div>
                     </div>
                   </div>
-                  {/* Notifications card - merged stat + list */}
-                  <div className="col-6 col-md-4 d-flex">
-                    <div className="card flex-fill w-100">
+                  <div className="dashboard-stat-grid__item d-flex">
+                    <div className="card flex-fill">
                       <div className="card-body">
                         <span className="avatar rounded-circle bg-warning mb-2">
                           <Icon name="bell" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h6>
-                        <h3 className="mb-3">{unreadCount.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num">{unreadCount.toLocaleString()}</h3>
                         {notificationsLoading ? (
                           <div className="text-center py-2">
                             <Spinner size="sm" />
@@ -254,7 +248,7 @@ const DashboardPage = () => {
                         ) : notificationsError ? (
                           <div className="text-danger small mb-2">{notificationsError}</div>
                         ) : notifications.length > 0 ? (
-                          <div className="mb-3">
+                          <div className="mb-2">
                             <ul className="list-unstyled mb-0">
                               {notifications.slice(0, 3).map((n) => (
                                 <li key={n.id} className="mb-2 pb-2 border-bottom">
@@ -281,8 +275,24 @@ const DashboardPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-xxl-8 mt-3 mt-xxl-0">
-                <div className="card h-100">
+              <div className="col-12 col-md-6 col-xxl-3">
+                <div className="card h-100 dashboard-donut-card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">{t("dashboard.documentsByDepartment")}</h5>
+                  </div>
+                  <div className="card-body pb-2">
+                    {stats === null && !statsError ? (
+                      <div className="text-center py-3">
+                        <Spinner size="sm" />
+                      </div>
+                    ) : (
+                      <DepartmentDonutChart items={documentsByDepartment} />
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="col-12 col-md-6 col-xxl-3">
+                <div className="card h-100 dashboard-donut-card">
                   <div className="card-header">
                     <h5 className="card-title mb-0">{t("dashboard.foldersByDepartment")}</h5>
                   </div>
@@ -291,15 +301,8 @@ const DashboardPage = () => {
                       <div className="text-center py-3">
                         <Spinner size="sm" />
                       </div>
-                    ) : chartData.categories.length === 0 ? (
-                      <div className="text-center py-3 text-muted small">No folder data</div>
                     ) : (
-                      <ReactApexChart
-                        options={chartOptions}
-                        series={chartOptions.series}
-                        type="bar"
-                        height={235}
-                      />
+                      <DepartmentDonutChart items={foldersByDepartmentItems} />
                     )}
                   </div>
                 </div>

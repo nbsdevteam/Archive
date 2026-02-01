@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
@@ -8,7 +8,7 @@ import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
 import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocuments } from "../../documents/hooks/useDocuments";
+import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 import "../styles/dashboard.css";
@@ -29,9 +29,9 @@ const LayoutModernDashboardPage = () => {
   const { folders, loading: foldersLoading, error: foldersError, pagination: foldersPagination } = useFolders({
     useApi: true,
   });
-  const { documents, loading: docsLoading, pagination: docsPagination } = useDocuments({
+  const { count: activeDocumentsCount } = useDocumentCount({
     useApi: true,
-    initialParams: DOCUMENT_PARAMS,
+    initialParams: {},
   });
   const {
     notifications,
@@ -43,7 +43,10 @@ const LayoutModernDashboardPage = () => {
     initialParams: NOTIFICATION_PARAMS,
   });
 
+  const didRunRef = useRef(false);
   useEffect(() => {
+    if (didRunRef.current) return;
+    didRunRef.current = true;
     let cancelled = false;
     (async () => {
       try {
@@ -55,12 +58,15 @@ const LayoutModernDashboardPage = () => {
     })();
     return () => {
       cancelled = true;
+      setTimeout(() => {
+        didRunRef.current = false;
+      }, 0);
     };
   }, []);
 
   const totalFolders = foldersPagination?.total ?? folders.length;
   const totalDocuments = stats?.total_documents ?? 0;
-  const activeDocuments = docsPagination?.total ?? 0;
+  const activeDocuments = activeDocumentsCount;
 
   const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
   const chartOptions = useMemo<ApexOptions>(
@@ -97,6 +103,7 @@ const LayoutModernDashboardPage = () => {
   const loading = foldersLoading || docsLoading;
   const hasError = statsError || foldersError || notificationsError;
 
+  return null;
   return (
     <div className="page-wrapper">
       <div className="content">
@@ -137,7 +144,7 @@ const LayoutModernDashboardPage = () => {
               <p className="mb-0">
                 You have{" "}
                 <Link to={routes.notifications} className="text-primary text-decoration-underline">
-                  {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+                  <span className="Num">{unreadCount}</span> unread notification{unreadCount !== 1 ? "s" : ""}
                 </Link>
               </p>
             </div>
@@ -163,7 +170,7 @@ const LayoutModernDashboardPage = () => {
                       <Icon name="folder" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Total Folders</h6>
-                    <h4 className="mb-0">{totalFolders.toLocaleString()}</h4>
+                    <h4 className="mb-0 Num">{totalFolders.toLocaleString()}</h4>
                     <Link to={routes.folders} className="link-default mt-2 d-inline-block">
                       View folders
                     </Link>
@@ -177,7 +184,7 @@ const LayoutModernDashboardPage = () => {
                       <Icon name="file-text" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Total Documents</h6>
-                    <h4 className="mb-0">{totalDocuments.toLocaleString()}</h4>
+                    <h4 className="mb-0 Num">{totalDocuments.toLocaleString()}</h4>
                     <Link to={routes.documents} className="link-default mt-2 d-inline-block">
                       View documents
                     </Link>
@@ -191,7 +198,7 @@ const LayoutModernDashboardPage = () => {
                       <Icon name="file-check" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Active Documents</h6>
-                    <h4 className="mb-0">{activeDocuments.toLocaleString()}</h4>
+                    <h4 className="mb-0 Num">{activeDocuments.toLocaleString()}</h4>
                     <Link to={routes.documents} className="link-default mt-2 d-inline-block">
                       View documents
                     </Link>
@@ -205,7 +212,7 @@ const LayoutModernDashboardPage = () => {
                       <Icon name="bell" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Unread Notifications</h6>
-                    <h4 className="mb-0">{unreadCount.toLocaleString()}</h4>
+                    <h4 className="mb-0 Num">{unreadCount.toLocaleString()}</h4>
                     <Link to={routes.notifications} className="link-default mt-2 d-inline-block">
                       View notifications
                     </Link>

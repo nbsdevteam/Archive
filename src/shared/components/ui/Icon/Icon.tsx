@@ -2,12 +2,15 @@ import type { LucideProps } from "lucide-react";
 import {
   Home,
   Upload,
+  FileUp,
   Download,
   ArrowLeft,
   Paperclip,
   Search,
   FolderPlus,
   Folder,
+  FolderSearch,
+  FileSearchCorner,
   Bell,
   FileText,
   FileCheck,
@@ -17,22 +20,26 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  RefreshCw,
 } from "lucide-react";
 
 /**
- * Icon name mapping from Themify (ti-*) to Lucide components.
+ * Icon name mapping (Lucide React names as kebab-case).
  * Add new mappings here as needed.
  */
 const iconMap = {
   home: Home,
   "smart-home": Home,
   upload: Upload,
+  "file-up": FileUp,
   download: Download,
   "arrow-left": ArrowLeft,
   paperclip: Paperclip,
   search: Search,
   "folder-plus": FolderPlus,
   folder: Folder,
+  "folder-search": FolderSearch,
+  "file-search-corner": FileSearchCorner,
   bell: Bell,
   "file-text": FileText,
   "file-check": FileCheck,
@@ -43,6 +50,7 @@ const iconMap = {
   eye: Eye,
   "eye-off": EyeOff,
   eyeOff: EyeOff,
+  "refresh-cw": RefreshCw,
 } as const;
 
 export type IconName = keyof typeof iconMap;

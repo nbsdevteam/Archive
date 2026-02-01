@@ -1,6 +1,7 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom"; // Assuming you're using React Router
 import { all_routes } from "../../../router/all_routes";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 const Loader = () => {
   const routes = all_routes
@@ -32,19 +33,11 @@ const Loader = () => {
 
   return (
     <>
-      {showLoader && <Preloader />}
+      {showLoader && <LoadingSpinner />}
       <div>
         {/* Your other content goes here */}
       </div>
     </>
-  );
-};
-
-const Preloader = () => {
-  return (
-    <div id="global-loader">
-		<div className="page-loader"></div>
-	</div>
   );
 };
 

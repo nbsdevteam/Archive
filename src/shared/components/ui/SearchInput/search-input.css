@@ -1,0 +1,58 @@
+/**
+ * SearchInput: icon inside the input (single bordered box).
+ */
+.search-input {
+  display: inline-flex;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+}
+
+.search-input__icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--bs-secondary);
+  z-index: 1;
+}
+
+/* Scoped under .search-input so we beat global .form-control { padding } */
+.search-input .search-input__field {
+  width: 100%;
+  padding-left: calc(1.75rem + 0.5rem) !important;
+  padding-right: 0.75rem !important;
+  border-radius: var(--bs-border-radius, 0.375rem);
+  background-color: var(--bs-body-bg, #fff);
+  border-color: var(--bs-border-color);
+}
+
+.search-input .search-input__field:focus {
+  border-color: var(--bs-border-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.08);
+  outline: 0;
+  background-color: var(--bs-body-bg, #fff);
+}
+
+.search-input--wide {
+  min-width: 320px;
+  flex: 1;
+}
+
+.search-input--highlight .search-input__field {
+  background-color: var(--bs-tertiary-bg, #f8f9fa);
+  border-color: var(--bs-border-color);
+}
+
+.search-input--highlight .search-input__icon {
+  color: var(--bs-secondary);
+}
+
+.search-input--highlight .search-input__field:focus {
+  background-color: var(--bs-body-bg, #fff);
+  border-color: var(--bs-border-color);
+}

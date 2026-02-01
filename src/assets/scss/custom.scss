@@ -163,7 +163,7 @@ span.form-icon {
   background: rgb(49, 132, 199);
   color: white;
   border-radius: 20px;
-  font-weight: bolder;
+  font-weight: 500;
   position: relative;
   /* margin-top: 2px ; */
 }
@@ -534,7 +534,7 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
   gap: 8px;
   .logo-text {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
     color: inherit;
     white-space: nowrap;
   }
@@ -546,7 +546,7 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
   gap: 8px;
   .logo-text {
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     color: inherit;
     white-space: nowrap;
   }
@@ -1278,7 +1278,7 @@ th.ant-table-cell {
 .table.ant-table-wrapper .ant-table-thead > tr > th,
 .ant-table-wrapper .ant-table-thead > tr > td {
   color: #111827;
-  font-weight: 600;
+  font-weight: 500;
   background: #e5e7eb;
   border-bottom: 1px solid #e9edf4;
   font-size: 14px;
@@ -1573,9 +1573,9 @@ body.app-chat {
 .p-inputtext {
   border: 2px solid #e8e8e9 !important;
   border-radius: 5px !important;
-  font-family: Archivo, sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 500;
   height: 75px;
   width: 76px;
   margin-right: 16px;
@@ -1774,7 +1774,7 @@ span.p-dropdown-label.p-inputtext span {
   .table.ant-table-wrapper .ant-table-thead > tr > th,
   .ant-table-wrapper .ant-table-thead > tr > td {
     color: #e5e7eb;
-    font-weight: 600;
+    font-weight: 500;
     background: #101010;
     border-bottom: 1px solid #101010;
     font-size: 14px;
@@ -2094,4 +2094,32 @@ span.p-dropdown-label.p-inputtext span {
 }
 .ant-picker .ant-picker-input > input {
   color: #0d0d0d;
+}
+
+// ============================================
+// Typography Weight Cap Overrides
+// Max font-weight is 500 for all UI text
+// ============================================
+
+// Override Bootstrap font-weight utilities (cap at 500)
+.fw-semibold,
+.fw-bold,
+.fw-bolder {
+  font-weight: 500 !important;
+}
+
+// Override HTML semantic elements (cap at 500)
+strong,
+b {
+  font-weight: 500;
+}
+
+// Headings already capped via SCSS tokens, but ensure consistency
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  font-weight: 500;
 }

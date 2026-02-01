@@ -139,7 +139,7 @@ const SearchPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <button
-                  className="btn btn-sm btn-outline-primary ms-2"
+                  className="btn btn-sm btn-outline-secondary ms-2"
                   onClick={handleRetry}
                 >
                   Retry

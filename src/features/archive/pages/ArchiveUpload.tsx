@@ -4,7 +4,7 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import { all_routes } from "../../../router/all_routes";
 import { useArchiveUpload } from "../hooks";
 import type { UploadDocumentParams } from "../types/archive.types";
-import { Icon } from "../../../shared/components/ui";
+import { Button, Icon } from "../../../shared/components/ui";
 
 const ArchiveUpload = () => {
   const routes = all_routes;
@@ -149,10 +149,10 @@ const ArchiveUpload = () => {
                     <div className="d-flex align-items-center justify-content-between">
                       <p className="text-muted mb-1">Selected files:</p>
                       {selectedFiles.length > 1 && (
-                        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleClearAllFiles}>
+                        <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={handleClearAllFiles}>
                           <Icon name="x" className="me-1" />
                           Remove all
-                        </button>
+                        </Button>
                       )}
                     </div>
                     <ul className="list-unstyled">
@@ -161,10 +161,10 @@ const ArchiveUpload = () => {
                           <small>
                             {file.name} ({(file.size / 1024).toFixed(2)} KB)
                           </small>
-                          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => handleRemoveFile(idx)}>
+                          <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={() => handleRemoveFile(idx)}>
                             <Icon name="trash" className="me-1" />
                             Remove
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>
@@ -188,13 +188,15 @@ const ArchiveUpload = () => {
                 <Link to={routes.archiveDocuments} className="btn btn-light me-2">
                   Cancel
                 </Link>
-                <button
+                <Button
                   type="submit"
-                  className="btn btn-secondary"
+                  variant="outline"
+                  className="btn-outline-secondary"
+                  isLoading={uploading}
                   disabled={uploading || selectedFiles.length === 0}
                 >
-                  {uploading ? "Uploading..." : "Upload"}
-                </button>
+                  Upload
+                </Button>
               </div>
             </form>
           </div>

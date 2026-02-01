@@ -3,3 +3,33 @@
     margin-bottom: 1rem;
   }
 }
+
+/* Top grid: fixed-size stat cards that wrap nicely */
+.dashboard-stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-content: flex-start;
+}
+
+/* Default (sm/md): 2-up layout */
+.dashboard-stat-grid__item {
+  flex: 1 1 calc(50% - 0.75rem);
+  min-width: 220px;
+}
+
+/* lg+ : fixed card width, wrap into 3-ish per row */
+@media (min-width: 992px) {
+  .dashboard-stat-grid__item {
+    flex: 0 0 220px;
+    max-width: 220px;
+  }
+}
+
+/* Documents by Department donut - compact width, same card height as stat cards */
+.dashboard-donut-card {
+  max-width: 100%;
+}
+.dashboard-donut-card .card-body {
+  min-height: 200px;
+}
