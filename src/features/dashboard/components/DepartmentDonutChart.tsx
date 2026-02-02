@@ -12,59 +12,85 @@ interface DepartmentDonutChartProps {
 }
 
 const DEFAULT_COLORS = [
-  "#F26522",
-  "#0d6efd",
-  "#198754",
-  "#ffc107",
-  "#6f42c1",
-  "#fd7e14",
-  "#20c997",
-  "#dc3545",
+  "#84BCFF",
+  "#77E2A6",
+  "#C27ACF",
+  "#FFDD79",
+  "#7CE2F5",
+  "#FE94C6",
+  "#F7A37A",
+  "#95B2BB",
 ];
 
 export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
   const { series, labels, options } = useMemo(() => {
     const labels = items.map((i) => i.department);
     const series = items.map((i) => i.count);
+    const total = series.reduce((a, b) => a + b, 0);
     const opts: ApexOptions = {
       chart: {
         type: "donut",
-        height: 280,
+        height: 320,
         toolbar: { show: false },
+        fontFamily: "\"Inter\", sans-serif",
       },
       labels,
       colors: DEFAULT_COLORS.slice(0, Math.max(labels.length, 1)),
       legend: {
         position: "bottom",
-        fontSize: "12px",
+        fontSize: "13px",
+        fontFamily: "\"Inter\", sans-serif",
+        markers: {
+          width: 10,
+          height: 10,
+          radius: 6,
+        },
+        itemMargin: {
+          horizontal: 8,
+          vertical: 4,
+        },
       },
       dataLabels: {
         enabled: true,
+        formatter: (value) => `${Math.round(value)}%`,
         style: {
-          fontSize: "9px",
-          fontWeight: 600,
+          fontSize: "11px",
+          fontWeight: 400,
+          fontFamily: "\"Inter\", sans-serif",
         },
         textAnchor: "middle",
+        dropShadow: {
+          enabled: false,
+        },
       },
       plotOptions: {
         pie: {
           dataLabels: {
-            minAngleToShowLabel: 10,
+            minAngleToShowLabel: 15,
             offset: 0,
           },
           donut: {
-            size: "55%",
+            size: "65%",
             labels: {
               show: true,
               name: {
                 show: true,
-                formatter:(val) =>"Total",
+                fontSize: "13px",
+                fontFamily: "\"Inter\", sans-serif",
+              },
+              value: {
+                fontSize: "18px",
+                fontWeight: 500,
+                fontFamily: "\"Roboto\", sans-serif",
               },
               total: {
                 show: true,
                 showAlways: true,
                 label: "Total",
-                formatter: () => String(series.reduce((a, b) => a + b, 0)),
+                fontSize: "14px",
+                fontWeight: 500,
+                fontFamily: "\"Inter\", sans-serif",
+                formatter: () => String(total),
               },
             },
           },

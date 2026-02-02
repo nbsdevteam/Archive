@@ -18,7 +18,7 @@ const ALLRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <Suspense
-                fallback={<LoadingSpinner text="Loading application..." />}
+                fallback={<LoadingSpinner />}
               >
                 <LazyFeature />
               </Suspense>
@@ -29,7 +29,7 @@ const ALLRoutes: React.FC = () => {
             <Route
               path={route.path}
               element={
-                <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
+                <Suspense fallback={<LoadingSpinner />}>
                   {route.element}
                 </Suspense>
               }
@@ -43,7 +43,7 @@ const ALLRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <Suspense
-                fallback={<LoadingSpinner text="Loading layout..." />}
+                fallback={<LoadingSpinner />}
               >
                 <LazyLayoutFeature />
               </Suspense>
@@ -54,7 +54,7 @@ const ALLRoutes: React.FC = () => {
             <Route
               path={route.path}
               element={
-                <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
+                <Suspense fallback={<LoadingSpinner />}>
                   {route.element}
                 </Suspense>
               }
@@ -67,7 +67,7 @@ const ALLRoutes: React.FC = () => {
         <Route
           element={
             <Suspense
-              fallback={<LoadingSpinner text="Loading authentication..." />}
+              fallback={<LoadingSpinner />}
             >
               <LazyAuthFeature />
             </Suspense>
@@ -77,7 +77,7 @@ const ALLRoutes: React.FC = () => {
             <Route
               path={route.path}
               element={
-                <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
+                <Suspense fallback={<LoadingSpinner />}>
                   {route.element}
                 </Suspense>
               }

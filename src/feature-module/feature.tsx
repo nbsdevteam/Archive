@@ -219,16 +219,7 @@ const Feature = React.memo(() => {
   return (
     <>
       <style>{cssVariablesString}</style>
-      <>
-        {showLoader ? (
-          <>
-            <LoadingSpinner />
-            {mainContent}
-          </>
-        ) : (
-          mainContent
-        )}
-      </>
+      {mainContent}
       <div className={`sidebar-overlay${mobileSidebar ? " opened" : ""}`}></div>
     </>
   );

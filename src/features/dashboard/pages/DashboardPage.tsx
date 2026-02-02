@@ -183,7 +183,7 @@ const DashboardPage = () => {
           <>
             {/* Grid layout: stat cards (fixed-size + wrap) + 2 donut cards in same row */}
             <div className="row mb-3 align-items-stretch g-3 dashboard-top-grid">
-              <div className="col-12 col-xxl-6">
+              <div className="col-12 col-xxl-4">
                 <div className="dashboard-stat-grid">
                   <div className="dashboard-stat-grid__item d-flex">
                     <div className="card flex-fill">
@@ -275,7 +275,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="col-12 col-md-6 col-xxl-3">
+              <div className="col-12 col-md-6 col-xxl-4">
                 <div className="card h-100 dashboard-donut-card">
                   <div className="card-header">
                     <h5 className="card-title mb-0">{t("dashboard.documentsByDepartment")}</h5>
@@ -286,12 +286,23 @@ const DashboardPage = () => {
                         <Spinner size="sm" />
                       </div>
                     ) : (
-                      <DepartmentDonutChart items={documentsByDepartment} />
+                      <>
+                        <DepartmentDonutChart items={documentsByDepartment} />
+                        <div className="dashboard-donut-info mt-3 px-2">
+                          <h6 className="dashboard-donut-info__label mb-2">Overview</h6>
+                          <p className="dashboard-donut-info__text mb-0">
+                            This visualization displays the distribution of documents across all departments in your organization. 
+                            Use this data to identify departments with the highest document volume, track content growth patterns, 
+                            and ensure balanced resource allocation. The percentage breakdown helps you quickly assess departmental 
+                            activity and make informed decisions about archiving strategies.
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="col-12 col-md-6 col-xxl-3">
+              <div className="col-12 col-md-6 col-xxl-4">
                 <div className="card h-100 dashboard-donut-card">
                   <div className="card-header">
                     <h5 className="card-title mb-0">{t("dashboard.foldersByDepartment")}</h5>
@@ -302,7 +313,18 @@ const DashboardPage = () => {
                         <Spinner size="sm" />
                       </div>
                     ) : (
-                      <DepartmentDonutChart items={foldersByDepartmentItems} />
+                      <>
+                        <DepartmentDonutChart items={foldersByDepartmentItems} />
+                        <div className="dashboard-donut-info mt-3 px-2">
+                          <h6 className="dashboard-donut-info__label mb-2">Overview</h6>
+                          <p className="dashboard-donut-info__text mb-0">
+                            This chart shows how folders are organized across your departments, providing insights into content 
+                            structure and storage patterns. Monitor which departments maintain the most folders, identify areas 
+                            requiring additional organization, and track folder creation trends over time. This breakdown is 
+                            essential for optimizing your archiving workflow and maintaining a well-structured document hierarchy.
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
