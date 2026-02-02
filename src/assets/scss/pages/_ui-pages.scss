@@ -55,7 +55,7 @@
   }
   span.flatpickr-weekday {
     color: rgba(242, 101, 34, 0.8) ;
-    font-weight: 500 ;
+    font-weight: 400 ;
 }
 .flatpickr-day.today {
     border-color: variables.$primary ;
@@ -126,7 +126,7 @@ ul,ol{
         margin: 3px 0;
         border: 1px solid variables.$primary;
         border-radius: 0.3rem;
-        font-weight: 500;
+        font-weight: 400;
         &.filtered {
           background-color: variables.$danger;
           color: variables.$white;
@@ -174,7 +174,7 @@ ul,ol{
   }
   .nested-1, .nested-2, .nested-3 {
     border: 1px solid rgba(variables.$secondary, 0.05);
-    font-weight: 500;
+    font-weight: 400;
   }
   /* End:: sortable js */
   
@@ -381,7 +381,7 @@ ul,ol{
   
   .flatpickr-day {
     color: variables.$gray-600 ;
-    font-weight: 500 ;
+    font-weight: 400 ;
   
     &.nextMonthDay,
     &.prevMonthDay {
@@ -528,7 +528,7 @@ ul,ol{
     padding-inline-start: 0 ;
     padding-inline-end: 0.5ch ;
     font-size: 0.875rem ;
-    font-weight: 500 ;
+    font-weight: 400 ;
   }
   
   .flatpickr-months .flatpickr-prev-month:hover,
@@ -581,7 +581,7 @@ ul,ol{
   
   span.flatpickr-weekday {
     color: variables.$primary ;
-    font-weight: 500 ;
+    font-weight: 400 ;
   }
   
   .flatpickr-months .flatpickr-month {
@@ -660,7 +660,7 @@ ul,ol{
   .swiper-button-next:after,
   .swiper-button-prev:after {
     font-size: 0.75rem ;
-    font-weight: 500 ;
+    font-weight: 400 ;
   }
   
   .swiper-horizontal1 .swiper-slide {

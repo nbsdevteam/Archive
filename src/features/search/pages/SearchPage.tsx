@@ -73,7 +73,7 @@ const SearchPage = () => {
       <div className="content">
         <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
           <div className="my-auto mb-2">
-            <h2 className="mb-1">Search</h2>
+            <h2 className="mb-1 page-heading">Search</h2>
             <nav>
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">

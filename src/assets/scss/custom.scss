@@ -163,7 +163,7 @@ span.form-icon {
   background: rgb(49, 132, 199);
   color: white;
   border-radius: 20px;
-  font-weight: 500;
+  font-weight: 400;
   position: relative;
   /* margin-top: 2px ; */
 }
@@ -534,7 +534,7 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
   gap: 8px;
   .logo-text {
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 400;
     color: inherit;
     white-space: nowrap;
   }
@@ -546,7 +546,7 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
   gap: 8px;
   .logo-text {
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 400;
     color: inherit;
     white-space: nowrap;
   }
@@ -1125,7 +1125,7 @@ div.sidebar-themesettings
   border-color: #f26522;
   color: #fff;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   position: relative;
   padding: 7px 20px 7px 40px !important;
 }
@@ -1278,7 +1278,7 @@ th.ant-table-cell {
 .table.ant-table-wrapper .ant-table-thead > tr > th,
 .ant-table-wrapper .ant-table-thead > tr > td {
   color: #111827;
-  font-weight: 500;
+  font-weight: 400;
   background: #e5e7eb;
   border-bottom: 1px solid #e9edf4;
   font-size: 14px;
@@ -1575,7 +1575,7 @@ body.app-chat {
   border-radius: 5px !important;
   font-family: "Inter", sans-serif;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 400;
   height: 75px;
   width: 76px;
   margin-right: 16px;
@@ -1774,7 +1774,7 @@ span.p-dropdown-label.p-inputtext span {
   .table.ant-table-wrapper .ant-table-thead > tr > th,
   .ant-table-wrapper .ant-table-thead > tr > td {
     color: #e5e7eb;
-    font-weight: 500;
+    font-weight: 400;
     background: #101010;
     border-bottom: 1px solid #101010;
     font-size: 14px;
@@ -2098,28 +2098,35 @@ span.p-dropdown-label.p-inputtext span {
 
 // ============================================
 // Typography Weight Cap Overrides
-// Max font-weight is 500 for all UI text
+// Max font-weight is 400 for all UI text
+// Exception: page heading/title can be 500 via `.page-heading`
 // ============================================
 
-// Override Bootstrap font-weight utilities (cap at 500)
+// Override Bootstrap font-weight utilities (cap at 400)
+.fw-medium,
 .fw-semibold,
 .fw-bold,
 .fw-bolder {
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 
-// Override HTML semantic elements (cap at 500)
+// Override HTML semantic elements (cap at 400)
 strong,
 b {
-  font-weight: 500;
+  font-weight: 400;
 }
 
-// Headings already capped via SCSS tokens, but ensure consistency
+// Headings default to 400 (page title will opt-in to 500)
 h1, .h1,
 h2, .h2,
 h3, .h3,
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  font-weight: 500;
+  font-weight: 400;
+}
+
+// Page title heading (e.g. "Dashboard" above breadcrumb)
+.page-heading {
+  font-weight: 500 !important;
 }

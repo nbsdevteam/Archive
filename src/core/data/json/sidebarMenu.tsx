@@ -10,7 +10,7 @@ export const SidebarDataTest = [
     separateRoute: false,
     submenuItems: [
       {
-        label: "Dashboard",
+        label: "Dashboards",
         translationKey: "dashboard",
         link: routes.dashboard,
         submenu: false,
