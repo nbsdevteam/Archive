@@ -5,6 +5,7 @@ import { Chart } from "primereact/chart";
 import { Calendar } from "primereact/calendar";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
+import { DashboardChartCard, DashboardStatCard } from "../../../features/dashboard/components";
 
 const EmployeeDashboard = () => {
   const routes = all_routes;
@@ -89,140 +90,142 @@ const EmployeeDashboard = () => {
 
         <div className="row">
           <div className="col-xl-3 col-md-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-body">
-                <p className="text-muted mb-1">My Uploads</p>
-                <h4 className="mb-2">128</h4>
-                <p className="fs-13 text-success mb-0">+6 this week</p>
-              </div>
-            </div>
+            <DashboardStatCard
+              className="flex-fill"
+              label="My Uploads"
+              value="128"
+              labelClassName="text-muted mb-1"
+              valueAs="h4"
+              valueClassName="mb-2"
+            >
+              <p className="fs-13 text-success mb-0">+6 this week</p>
+            </DashboardStatCard>
           </div>
           <div className="col-xl-3 col-md-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-body">
-                <p className="text-muted mb-1">Pending Review</p>
-                <h4 className="mb-2">9</h4>
-                <p className="fs-13 text-warning mb-0">2 due soon</p>
-              </div>
-            </div>
+            <DashboardStatCard
+              className="flex-fill"
+              label="Pending Review"
+              value="9"
+              labelClassName="text-muted mb-1"
+              valueAs="h4"
+              valueClassName="mb-2"
+            >
+              <p className="fs-13 text-warning mb-0">2 due soon</p>
+            </DashboardStatCard>
           </div>
           <div className="col-xl-3 col-md-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-body">
-                <p className="text-muted mb-1">Shared With Me</p>
-                <h4 className="mb-2">54</h4>
-                <p className="fs-13 text-success mb-0">+4 this week</p>
-              </div>
-            </div>
+            <DashboardStatCard
+              className="flex-fill"
+              label="Shared With Me"
+              value="54"
+              labelClassName="text-muted mb-1"
+              valueAs="h4"
+              valueClassName="mb-2"
+            >
+              <p className="fs-13 text-success mb-0">+4 this week</p>
+            </DashboardStatCard>
           </div>
           <div className="col-xl-3 col-md-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-body">
-                <p className="text-muted mb-1">Storage Used</p>
-                <h4 className="mb-2">46 GB</h4>
-                <p className="fs-13 text-muted mb-0">of 100 GB</p>
-              </div>
-            </div>
+            <DashboardStatCard
+              className="flex-fill"
+              label="Storage Used"
+              value="46 GB"
+              labelClassName="text-muted mb-1"
+              valueAs="h4"
+              valueClassName="mb-2"
+            >
+              <p className="fs-13 text-muted mb-0">of 100 GB</p>
+            </DashboardStatCard>
           </div>
         </div>
 
         <div className="row">
           <div className="col-xl-8 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header">
-                <h5 className="card-title mb-0">Weekly Upload Activity</h5>
-              </div>
-              <div className="card-body">
-                <ReactApexChart
-                  options={activityTrend.options}
-                  series={activityTrend.series}
-                  type="line"
-                  height={260}
-                />
-              </div>
-            </div>
+            <DashboardChartCard title="Weekly Upload Activity" className="flex-fill">
+              <ReactApexChart
+                options={activityTrend.options}
+                series={activityTrend.series}
+                type="line"
+                height={260}
+              />
+            </DashboardChartCard>
           </div>
           <div className="col-xl-4 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header">
-                <h5 className="card-title mb-0">Document Status</h5>
+            <DashboardChartCard title="Document Status" className="flex-fill">
+              <div style={{ height: 220 }}>
+                <Chart type="doughnut" data={statusData} options={statusOptions} />
               </div>
-              <div className="card-body">
-                <div style={{ height: 220 }}>
-                  <Chart type="doughnut" data={statusData} options={statusOptions} />
-                </div>
-                <div className="d-flex flex-wrap mt-3">
-                  {statusData.labels.map((label) => (
-                    <span key={label} className="badge bg-light text-dark me-2 mb-2">
-                      {label}
-                    </span>
-                  ))}
-                </div>
+              <div className="d-flex flex-wrap mt-3">
+                {statusData.labels.map((label) => (
+                  <span key={label} className="badge bg-light text-dark me-2 mb-2">
+                    {label}
+                  </span>
+                ))}
               </div>
-            </div>
+            </DashboardChartCard>
           </div>
         </div>
 
         <div className="row">
           <div className="col-xl-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">Recent Folders</h5>
+            <DashboardChartCard
+              title="Recent Folders"
+              className="flex-fill"
+              headerActions={(
                 <Link to={routes.archiveFolders} className="link-primary fs-13">
                   View all
                 </Link>
-              </div>
-              <div className="card-body">
-                <ul className="list-group list-group-flush">
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Contracts / Q1 2024</span>
-                    <span className="text-muted fs-12">Updated today</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>HR / Policies</span>
-                    <span className="text-muted fs-12">Updated yesterday</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Finance / Invoices</span>
-                    <span className="text-muted fs-12">Updated 3 days ago</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Legal / Compliance</span>
-                    <span className="text-muted fs-12">Updated last week</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+              )}
+            >
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Contracts / Q1 2024</span>
+                  <span className="text-muted fs-12">Updated today</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>HR / Policies</span>
+                  <span className="text-muted fs-12">Updated yesterday</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Finance / Invoices</span>
+                  <span className="text-muted fs-12">Updated 3 days ago</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Legal / Compliance</span>
+                  <span className="text-muted fs-12">Updated last week</span>
+                </li>
+              </ul>
+            </DashboardChartCard>
           </div>
           <div className="col-xl-6 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h5 className="card-title mb-0">Recent Documents</h5>
+            <DashboardChartCard
+              title="Recent Documents"
+              className="flex-fill"
+              headerActions={(
                 <Link to={routes.archiveDocuments} className="link-primary fs-13">
                   View all
                 </Link>
-              </div>
-              <div className="card-body">
-                <ul className="list-group list-group-flush">
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Invoice_2024_Q1.xlsx</span>
-                    <span className="text-muted fs-12">Approved</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Service_Agreement.pdf</span>
-                    <span className="text-muted fs-12">Pending</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Policy_Update.docx</span>
-                    <span className="text-muted fs-12">Needs review</span>
-                  </li>
-                  <li className="list-group-item px-0 d-flex justify-content-between">
-                    <span>Project_Alpha_Brief.pptx</span>
-                    <span className="text-muted fs-12">Approved</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+              )}
+            >
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Invoice_2024_Q1.xlsx</span>
+                  <span className="text-muted fs-12">Approved</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Service_Agreement.pdf</span>
+                  <span className="text-muted fs-12">Pending</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Policy_Update.docx</span>
+                  <span className="text-muted fs-12">Needs review</span>
+                </li>
+                <li className="list-group-item px-0 d-flex justify-content-between">
+                  <span>Project_Alpha_Brief.pptx</span>
+                  <span className="text-muted fs-12">Approved</span>
+                </li>
+              </ul>
+            </DashboardChartCard>
           </div>
         </div>
       </div>

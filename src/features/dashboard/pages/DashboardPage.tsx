@@ -5,7 +5,7 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import { all_routes } from "../../../router/all_routes";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
-import { Button, Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, Card } from "../../../shared/components/ui";
 import { useFolders } from "../../folders/hooks/useFolders";
 import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
@@ -186,101 +186,88 @@ const DashboardPage = () => {
               <div className="col-12 col-xxl-4">
                 <div className="dashboard-stat-grid">
                   <div className="dashboard-stat-grid__item d-flex">
-                    <div className="card flex-fill">
-                      <div className="card-body">
-                        <span className="avatar rounded-circle bg-primary mb-2">
-                          <Icon name="folder" className="fs-16" />
-                        </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h6>
-                        <h3 className="mb-2 Num">{totalFolders.toLocaleString()}</h3>
-                        <Link to={routes.folders} className="link-default">{t("dashboard.viewDetails")}</Link>
-                      </div>
-                    </div>
+                    <Card className="flex-fill" glassEffect>
+                      <span className="avatar rounded-circle bg-primary mb-2">
+                        <Icon name="folder" className="fs-16" />
+                      </span>
+                      <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h6>
+                      <h3 className="mb-2 Num">{totalFolders.toLocaleString()}</h3>
+                      <Link to={routes.folders} className="link-default">{t("dashboard.viewDetails")}</Link>
+                    </Card>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
-                    <div className="card flex-fill">
-                      <div className="card-body">
-                        <span className="avatar rounded-circle bg-secondary mb-2">
-                          <Icon name="file-text" className="fs-16" />
-                        </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalDocuments")}</h6>
-                        <h3 className="mb-2 Num">{totalDocuments.toLocaleString()}</h3>
-                        <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
-                      </div>
-                    </div>
+                    <Card className="flex-fill" glassEffect>
+                      <span className="avatar rounded-circle bg-secondary mb-2">
+                        <Icon name="file-text" className="fs-16" />
+                      </span>
+                      <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalDocuments")}</h6>
+                      <h3 className="mb-2 Num">{totalDocuments.toLocaleString()}</h3>
+                      <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
+                    </Card>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
-                    <div className="card flex-fill">
-                      <div className="card-body">
-                        <span className="avatar rounded-circle bg-info mb-2">
-                          <Icon name="file-check" className="fs-16" />
-                        </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
-                        <h3 className="mb-2 Num">{activeDocuments.toLocaleString()}</h3>
-                        <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
-                      </div>
-                    </div>
+                    <Card className="flex-fill" glassEffect>
+                      <span className="avatar rounded-circle bg-info mb-2">
+                        <Icon name="file-check" className="fs-16" />
+                      </span>
+                      <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
+                      <h3 className="mb-2 Num">{activeDocuments.toLocaleString()}</h3>
+                      <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
+                    </Card>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
-                    <div className="card flex-fill">
-                      <div className="card-body">
-                        <span className="avatar rounded-circle bg-dark mb-2">
-                          <Icon name="archive" className="fs-16" />
-                        </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
-                        <h3 className="mb-2 Num">{archivedDocuments.toLocaleString()}</h3>
-                        <Link to={routes.documents} className="link-default">View Details</Link>
-                      </div>
-                    </div>
+                    <Card className="flex-fill" glassEffect>
+                      <span className="avatar rounded-circle bg-dark mb-2">
+                        <Icon name="archive" className="fs-16" />
+                      </span>
+                      <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
+                      <h3 className="mb-2 Num">{archivedDocuments.toLocaleString()}</h3>
+                      <Link to={routes.documents} className="link-default">View Details</Link>
+                    </Card>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
-                    <div className="card flex-fill">
-                      <div className="card-body">
-                        <span className="avatar rounded-circle bg-warning mb-2">
-                          <Icon name="bell" className="fs-16" />
-                        </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h6>
-                        <h3 className="mb-2 Num">{unreadCount.toLocaleString()}</h3>
-                        {notificationsLoading ? (
-                          <div className="text-center py-2">
-                            <Spinner size="sm" />
-                          </div>
-                        ) : notificationsError ? (
-                          <div className="text-danger small mb-2">{notificationsError}</div>
-                        ) : notifications.length > 0 ? (
-                          <div className="mb-2">
-                            <ul className="list-unstyled mb-0">
-                              {notifications.slice(0, 3).map((n) => (
-                                <li key={n.id} className="mb-2 pb-2 border-bottom">
-                                  <div className="d-flex align-items-start justify-content-between">
-                                    <div className="flex-grow-1 min-w-0">
-                                      <h6 className="mb-0 fs-13 text-truncate">
-                                        {!n.is_read && <span className="badge bg-primary rounded-pill me-1">New</span>}
-                                        {n.title}
-                                      </h6>
-                                      <p className="mb-0 small text-muted text-truncate">{n.message}</p>
-                                      <small className="text-muted">
-                                        {n.created_at ? new Date(n.created_at).toLocaleString() : ""}
-                                      </small>
-                                    </div>
+                    <Card className="flex-fill" glassEffect>
+                      <span className="avatar rounded-circle bg-warning mb-2">
+                        <Icon name="bell" className="fs-16" />
+                      </span>
+                      <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h6>
+                      <h3 className="mb-2 Num">{unreadCount.toLocaleString()}</h3>
+                      {notificationsLoading ? (
+                        <div className="text-center py-2">
+                          <Spinner size="sm" />
+                        </div>
+                      ) : notificationsError ? (
+                        <div className="text-danger small mb-2">{notificationsError}</div>
+                      ) : notifications.length > 0 ? (
+                        <div className="mb-2">
+                          <ul className="list-unstyled mb-0">
+                            {notifications.slice(0, 3).map((n) => (
+                              <li key={n.id} className="mb-2 pb-2 border-bottom">
+                                <div className="d-flex align-items-start justify-content-between">
+                                  <div className="flex-grow-1 min-w-0">
+                                    <h6 className="mb-0 fs-13 text-truncate">
+                                      {!n.is_read && <span className="badge bg-primary rounded-pill me-1">New</span>}
+                                      {n.title}
+                                    </h6>
+                                    <p className="mb-0 small text-muted text-truncate">{n.message}</p>
+                                    <small className="text-muted">
+                                      {n.created_at ? new Date(n.created_at).toLocaleString() : ""}
+                                    </small>
                                   </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ) : null}
-                        <Link to={routes.notifications} className="link-default">View All</Link>
-                      </div>
-                    </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      <Link to={routes.notifications} className="link-default">View All</Link>
+                    </Card>
                   </div>
                 </div>
               </div>
               <div className="col-12 col-md-6 col-xxl-4">
-                <div className="card h-100 dashboard-donut-card">
-                  <div className="card-header">
-                    <h5 className="card-title mb-0">{t("dashboard.documentsByDepartment")}</h5>
-                  </div>
-                  <div className="card-body pb-2">
+                <Card title={t("dashboard.documentsByDepartment")} className="h-100 dashboard-donut-card">
+                  <div className="pb-2">
                     {stats === null && !statsError ? (
                       <div className="text-center py-3">
                         <Spinner size="sm" />
@@ -300,14 +287,11 @@ const DashboardPage = () => {
                       </>
                     )}
                   </div>
-                </div>
+                </Card>
               </div>
               <div className="col-12 col-md-6 col-xxl-4">
-                <div className="card h-100 dashboard-donut-card">
-                  <div className="card-header">
-                    <h5 className="card-title mb-0">{t("dashboard.foldersByDepartment")}</h5>
-                  </div>
-                  <div className="card-body pb-2">
+                <Card title={t("dashboard.foldersByDepartment")} className="h-100 dashboard-donut-card">
+                  <div className="pb-2">
                     {foldersLoading ? (
                       <div className="text-center py-3">
                         <Spinner size="sm" />
@@ -327,7 +311,7 @@ const DashboardPage = () => {
                       </>
                     )}
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           </>

@@ -392,7 +392,7 @@ const FolderDetailPage = () => {
             </nav>
           </div>
           <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
               <Icon name="upload" className="me-1" />
               {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
             </Button>
@@ -558,21 +558,24 @@ const FolderDetailPage = () => {
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
             <div className="d-flex align-items-center gap-2">
-              <select
-                className="form-select form-select-sm"
-                style={{ width: "auto", minWidth: 200 }}
-                value={attachmentsDocId}
-                onChange={handleAttachmentsDocIdChange}
-              >
-                {documents.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.title ?? d.name ?? "–"} — {d.barcode}
-                  </option>
-                ))}
-              </select>
+              {documents.length > 0 && (
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "auto", minWidth: 200 }}
+                  value={attachmentsDocId}
+                  onChange={handleAttachmentsDocIdChange}
+                >
+                  {documents.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.title ?? d.name ?? "–"} — {d.barcode}
+                    </option>
+                  ))}
+                </select>
+              )}
               <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleAddAttachment}>
                 {t("folders.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
+            
             </div>
           </div>
           <div className="card-body">

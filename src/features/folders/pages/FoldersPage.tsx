@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, Spinner, Alert, Icon, SearchInput } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, SearchInput, Card } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useFolders } from "../hooks/useFolders";
 import type { Folder } from "../types/folders.types";
@@ -208,18 +208,18 @@ const FoldersPage = () => {
                 <Spinner size="md" />
               </div>
             ) : viewMode === "grid" ? (
-              <div className="row">
+              <div className="row g-3">
                 {filteredFolders.length === 0 ? (
                   <div className="col-12 text-center py-5 text-muted">No folders found</div>
                 ) : (
                   filteredFolders.map((folder) => (
                     <div className="col-xl-3 col-md-6 d-flex" key={folder.id}>
                       <div
-                        className="card flex-fill"
+                        className="flex-fill"
                         role="button"
                         tabIndex={0}
                         onClick={() => handleNavigateToFolder(folder.id)}
-                        onKeyDown={(e) => {
+                        onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
                             handleNavigateToFolder(folder.id);
@@ -227,7 +227,8 @@ const FoldersPage = () => {
                         }}
                         style={{ cursor: "pointer" }}
                       >
-                        <div className="card-body">
+                        <Card className="flex-fill" bordered={false}>
+                          <div className="card-body">
                           <div className="d-flex align-items-center justify-content-between mb-3">
                             <span className="p-2 br-10 bg-primary-transparent border border-primary d-flex align-items-center justify-content-center">
                               <Icon name="folder" className="text-primary fs-18" />
@@ -251,7 +252,8 @@ const FoldersPage = () => {
                           >
                             View documents
                           </Link>
-                        </div>
+                          </div>
+                        </Card>
                       </div>
                     </div>
                   ))

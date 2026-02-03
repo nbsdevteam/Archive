@@ -71,24 +71,22 @@ const NotificationsPage = () => {
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between notifications__header">
             <h5 className="card-title mb-0">Notifications</h5>
-            <div className="notifications__headerRight">
-              <div className="notifications__chipRow">
-                <button
-                  className={`btn btn-sm ${filter === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                  onClick={() => setFilter('all')}
-                >
-                  All
-                </button>
-                <button
-                  className={`btn btn-sm ${filter === 'unread' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                  onClick={() => setFilter('unread')}
-                >
-                  Unread ({unreadCount})
-                </button>
-              </div>
+            <div className="notifications__headerRight btn-list d-flex flex-wrap align-items-center">
+              <button
+                className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                onClick={() => setFilter('all')}
+              >
+                All
+              </button>
+              <button
+                className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'unread' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                onClick={() => setFilter('unread')}
+              >
+                Unread ({unreadCount})
+              </button>
               {filter === 'all' && notifications.length > 0 && (
                 <button
-                  className="btn btn-sm btn-outline-secondary"
+                  className="btn btn-sm control-height-sm btn-outline-secondary d-inline-flex align-items-center"
                   onClick={handleMarkAllAsRead}
                 >
                   Mark All Read
@@ -101,7 +99,7 @@ const NotificationsPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <button
-                  className="btn btn-sm btn-outline-secondary ms-2"
+                  className="btn btn-sm control-height-sm btn-outline-secondary d-inline-flex align-items-center ms-2"
                   onClick={handleRetry}
                 >
                   Retry

@@ -10,16 +10,9 @@
 
   &__headerRight {
     display: flex;
-    gap: 0.75rem;
     flex-wrap: wrap;
     align-items: center;
-  }
-
-  &__chipRow {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    align-items: center;
+    /* Spacing between buttons from .btn-list (margin on children) */
   }
 
   &__card {

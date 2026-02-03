@@ -253,7 +253,14 @@ export const UploadDocumentSidePanel = ({
           setDocumentTypes(typesRes?.data ?? []);
           setFolders(foldersRes?.folders ?? []);
           setValue("document_type_id", 0);
-          setValue("folder_id", undefined);
+          // Preserve folder_id when opened from folder detail (e.g. "Upload in folder") for this department
+          const preserveFolder =
+            lockFolderContext &&
+            initialValues?.folder_id != null &&
+            (initialValues?.department_id ?? 0) === departmentId;
+          if (!preserveFolder) {
+            setValue("folder_id", undefined);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -265,7 +272,7 @@ export const UploadDocumentSidePanel = ({
     return () => {
       cancelled = true;
     };
-  }, [departmentId, setValue]);
+  }, [departmentId, setValue, lockFolderContext, initialValues?.folder_id, initialValues?.department_id]);
 
   useEffect(() => {
     if (isOpen) {
@@ -391,10 +398,12 @@ export const UploadDocumentSidePanel = ({
   const folderOptions: SelectOption[] = [{ value: 0, label: t("common.none") }, ...folders.map((f) => ({ value: f.id, label: `${f.name} — ${f.code}` }))];
   const tagOptions: SelectOption[] = tags.map((tag) => ({ value: tag.id, label: tag.name }));
 
-  // Enable Upload when all required (*) fields except file are filled. File is validated on submit.
+  // Enable Upload when all required (*) fields are filled, including file.
   const hasRequiredTitle = typeof title === "string" && title.trim().length > 0;
+  const hasFile = selectedFile instanceof File;
   const canSubmit =
     hasRequiredTitle &&
+    hasFile &&
     (uploadKind === "attachment"
       ? Number(targetDocumentId) >= 1
       : Number(departmentId) >= 1 &&
@@ -585,7 +594,10 @@ export const UploadDocumentSidePanel = ({
         )}
 
         <div className="mb-3">
-          <label className="form-label">{t("documents.file")}</label>
+          <label className="form-label">
+            {t("documents.file")}
+            <span className="text-danger ms-1">*</span>
+          </label>
           <input
             type="file"
             className="d-none"

@@ -2,6 +2,11 @@
   margin-bottom: 1rem;
 }
 
+/* Remove NBS Card body padding only in folders grid */
+.folders__table-card [class*="Card-module__body"] {
+  padding: 0;
+}
+
 .folders__view-toggle {
   display: inline-flex;
   flex-direction: row;

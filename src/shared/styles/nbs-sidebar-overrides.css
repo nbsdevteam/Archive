@@ -1,0 +1,21 @@
+/**
+ * NBS Sidebar: ensure library active state wins over consumer global styles.
+ * Load this after @nbs/component-library/dist/styles.css.
+ *
+ * The library's default active class (activePrimary) does not use !important,
+ * so consumer .sidebar button or global button styles can override it.
+ * This file re-applies the library's active look with higher specificity and
+ * !important (matching what the library already does for color variants like
+ * activeBlue, activeGreen).
+ *
+ * Library-side fix (in @nbs/component-library): make the default active state
+ * win in consumer apps by (1) using a more specific selector (e.g.
+ * .sidebar button.itemActive or .sidebar button.activePrimary), and (2) adding
+ * !important to the default active background and color (like .activeBlue,
+ * .activeGreen, etc.). Then this override can be removed.
+ */
+.sidebar [class*="sidebar-module__sidebar"] button[class*="activePrimary"] {
+  background-color: var(--nbs-sidebar-active-bg) !important;
+  color: var(--nbs-sidebar-active-text) !important;
+  border-color: var(--nbs-sidebar-active-border) !important;
+}

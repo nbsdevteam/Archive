@@ -1,31 +1,47 @@
 import { type ReactNode } from "react";
+import { Card as NbsCard } from "@nbs/component-library";
 
 interface CardProps {
   children: ReactNode;
   title?: string;
   className?: string;
   headerActions?: ReactNode;
-}
+  glassEffect?: boolean;
+  bordered?: boolean;
+  footer?: ReactNode;
+  imageSrc?: string;
+  imageAlt?: string;
+  shadow?: boolean;
+  glassVariant?: "shine" | "perfume";
+  glassRandomHue?: boolean;
+ }
 
-/**
- * Card - Reusable card component
- * Wraps Bootstrap card styling
- */
 export const Card = ({
   children,
   title,
   className = "",
   headerActions,
-}: CardProps) => {
+  glassEffect = false,
+  bordered = true,
+  footer,
+  imageSrc,
+  imageAlt,
+  shadow = true,
+  glassVariant = "shine",
+  glassRandomHue = false,
+ }: CardProps) => {
+  
+  const header =
+    title || headerActions ? (
+      <div className="d-flex align-items-center justify-content-between">
+        {title && <h5 className="mb-0">{title}</h5>}
+        {headerActions && <div>{headerActions}</div>}
+      </div>
+    ) : undefined;
+
   return (
-    <div className={`card ${className}`}>
-      {title && (
-        <div className="card-header d-flex align-items-center justify-content-between">
-          <h5 className="card-title mb-0">{title}</h5>
-          {headerActions && <div>{headerActions}</div>}
-        </div>
-      )}
-      <div className="card-body">{children}</div>
-    </div>
+    <NbsCard  className={className} header={header} glassEffect={glassEffect}>
+      {children}
+    </NbsCard>
   );
 };

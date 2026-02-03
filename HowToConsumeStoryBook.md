@@ -19,13 +19,13 @@ This guide is for developers and automation (e.g. agents) integrating the NBS Co
 
 | Component | How to use | Notes |
 |-----------|------------|--------|
-| **Sidebar** | **Props only.** Pass `items`, `activeHref`, `title`, `glassEffect`, `width`. | No `config` prop. Each item is a `SidebarItem` with `name`, `href`, `icon`, `onClick`. |
+| **Sidebar** | **Props or optional `config`.** Use `items` for a simple list, or `config` for sections/accordion/nested items. | `sidebarHeader` is optional; if you already have a header, don’t pass it. Each item can use `color` variants. `randomHue` enables colored hover backgrounds. |
 | **Card** | **Either props or `config`.** Use `title`, `children`, `footer`, etc., **or** a single `config` object. | See [Card component](#card-component) and [Config-driven Card](#card-with-config). |
 | **Button, Badge, Alert, Modal, Input, Select, Checkbox, Radio, Textarea, Switch** | **Props only.** | Standard React props; no `config`. |
 | **DataTable** | **Either props or `config`.** Columns/data as props or via `config`. | Same pattern as Card. |
 | **Dialog, Tabs, Accordion, NavigationMenu, Breadcrumb, DropdownMenu, Form, Combobox, CommandPalette** | **Config-driven.** Pass a `config` object. | See [Config-driven components](#config-driven-components). |
 
-**Important:** The `config` prop is **optional** everywhere. You can use components the **normal way** with direct props (e.g. `title`, `children`, `items`) and never pass `config` if you prefer. Use `config` only when you want a single-object API for dynamic or structured content. **Sidebar** does not support `config`—always use `items` and other props.
+**Important:** The `config` prop is **optional** everywhere. You can use components the **normal way** with direct props (e.g. `title`, `children`, `items`) and never pass `config` if you prefer. Use `config` only when you want a single-object API for dynamic or structured content. **Sidebar** supports both `items` (simple) and optional `config` (advanced). If you already have a sidebar header in your app, don’t pass `title` or `sidebarHeader` so we don’t override it.
 
 ---
 
@@ -220,11 +220,11 @@ function MyComponent() {
         <p>Card with custom header</p>
       </Card>
 
-      {/* Card with footer */}
+      {/* Card with footer – right-align buttons with spacing */}
       <Card
         title="Card with Footer"
         footer={
-          <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <Button variant="primary" size="small">Action</Button>
           </div>
         }
@@ -232,7 +232,7 @@ function MyComponent() {
         <p>Card content</p>
       </Card>
 
-      {/* Complete card */}
+      {/* Complete card – footer buttons right-aligned with gap */}
       <Card
         imageSrc="https://via.placeholder.com/400x200"
         imageAlt="Image"
@@ -240,9 +240,9 @@ function MyComponent() {
         title="Complete Card"
         subtitle="Subtitle"
         footer={
-          <div className="d-flex gap-2">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <Button variant="primary" size="small">Save</Button>
-            <Button variant="secondary" size="small">Cancel</Button>
+            <Button variant="outline-secondary" size="small">Cancel</Button>
           </div>
         }
       >
@@ -268,7 +268,7 @@ function MyComponent() {
 }
 ```
 
-**Card usage:** The examples above use **direct props** (`title`, `children`, `footer`, etc.). Card also accepts an **optional** **`config`** prop—you can use either approach. **Config is not mandatory.** Use direct props for simple cards; use `config` only when you want structured or dynamic content. See [Config-driven components](#config-driven-components) for a Card `config` example.
+**Card usage:** The examples above use **direct props** (`title`, `children`, `footer`, etc.). Card also accepts an **optional** **`config`** prop—you can use either approach. **Config is not mandatory.** Use direct props for simple cards; use `config` only when you want structured or dynamic content. See [Config-driven components](#config-driven-components) for a Card `config` example. **Footer:** For custom `footer` (ReactNode), use a flex container with `justifyContent: 'flex-end'` and `gap: '0.75rem'` to right-align buttons with spacing. When using `config.footer.actions`, footer alignment defaults to **right** (or **space-between** if there is footer content), and action buttons are spaced and use primary / outline-secondary variants.
 
 For **glass effect** options (shine, perfume, random hue), see [Glass effect, Card, and Sidebar](#glass-effect-card-and-sidebar).
 
@@ -930,17 +930,20 @@ function MyComponent() {
 
 ### Sidebar
 
-**Sidebar does not use a `config` prop.** Always pass an array of **items** and the other props below.
+**Sidebar supports simple `items` or an optional `config` for sections/accordion/nested items.** If your app already has its own sidebar header, **don’t pass** `title` or `sidebarHeader` so we don’t override it.
 
-- **`items`** (required): Array of `SidebarItem`: `{ name, href, icon, onClick, hoverColor?, activeColor? }`. Icons are from `lucide-react`.
-- **`activeHref`**: The `href` of the currently active item (e.g. current route).
-- **`title`**: Sidebar title. Default `"Call Center"`.
-- **`glassEffect`**: Enables glass-style hover on nav items. Default `true`. Does not enable random hue.
+- **`items`** (optional): Simple list of `SidebarItem` `{ name, href, icon, onClick, color?, hoverColor?, activeColor? }`.
+- **`config`** (optional): Advanced layout with sections + nested items.
+- **`sidebarHeader`**: ReactNode rendered **as-is** (no wrapper). Pass a string or any custom node.
+- **`title`** (legacy convenience): Renders the default header wrapper with a title (still supported).
+- **`activeHref`**: The `href` of the active item (e.g. current route).
+- **`glassEffect`**: Enables glass-style hover on nav items. Default `true`.
+- **`randomHue`**: When `true`, hover states use colored backgrounds per item variant. Default `false`.
 - **`width`**: Width of the sidebar. Default `"256px"`. Can be a number (e.g. `256`) or string.
 - **`className`**, **`itemClassName`**: Optional class names.
 
 ```typescript
-import { Sidebar, type SidebarItem } from '@nbs/component-library';
+import { Sidebar, SidebarHeader, type SidebarItem } from '@nbs/component-library';
 import { LayoutDashboard, Users, Settings } from 'lucide-react';
 
 const items: SidebarItem[] = [
@@ -949,18 +952,21 @@ const items: SidebarItem[] = [
     href: '/dashboard',
     icon: LayoutDashboard,
     onClick: (href) => console.log('Navigate:', href),
+    color: 'blue',
   },
   {
     name: 'Users',
     href: '/users',
     icon: Users,
     onClick: (href) => console.log('Navigate:', href),
+    color: 'purple',
   },
   {
     name: 'Settings',
     href: '/settings',
     icon: Settings,
     onClick: (href) => console.log('Navigate:', href),
+    color: 'slate',
   },
 ];
 
@@ -970,7 +976,7 @@ function MyLayout() {
       <Sidebar
         items={items}
         activeHref="/dashboard"
-        title="My App"
+        sidebarHeader={<SidebarHeader title="My App" />}
         glassEffect
         width={256}
       />
@@ -980,7 +986,51 @@ function MyLayout() {
 }
 ```
 
-**Example:** Disable glass with `glassEffect={false}`. Always provide `items` and at least `onClick` per item.
+```typescript
+import { Sidebar, type SidebarConfig } from '@nbs/component-library';
+import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
+
+const config: SidebarConfig = {
+  sections: [
+    {
+      id: 'main',
+      label: 'Main menu',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        {
+          type: 'link',
+          name: 'Dashboard',
+          href: '/dashboard',
+          icon: LayoutDashboard,
+          color: 'blue',
+        },
+        {
+          type: 'group',
+          name: 'Analytics',
+          icon: BarChart3,
+          defaultOpen: true,
+          children: [
+            { type: 'link', name: 'Overview', href: '/analytics/overview', color: 'indigo' },
+            { type: 'link', name: 'Trends', href: '/analytics/trends', color: 'emerald' },
+          ],
+        },
+        {
+          type: 'link',
+          name: 'Settings',
+          href: '/settings',
+          icon: Settings,
+          color: 'slate',
+        },
+      ],
+    },
+  ],
+};
+
+<Sidebar config={config} activeHref="/analytics/overview" />;
+```
+
+**Note:** Prefer the `color` variants for hover/active styles. Use `hoverColor`/`activeColor` only when you need custom class names.
 
 ## Complete Example: Form with Multiple Components
 
@@ -1225,7 +1275,7 @@ Some components accept an **optional** **`config`** prop so you can pass a singl
 | **Card**, **DataTable** | **Dual API.** Use direct props (e.g. `title`, `children`) **or** a `config` object. Prefer props for simple cases; use `config` for structured/stateful content. |
 | **Dialog**, **Tabs**, **Accordion**, **NavigationMenu**, **Breadcrumb**, **DropdownMenu**, **Form**, **Combobox**, **CommandPalette** | **Optional `config`.** You can pass a `config` object, or use the component’s normal props when available. See each component’s types for the full API. |
 
-**Sidebar** does **not** support `config`; always use `items` and other props. For all other components above, **config is optional**—use direct props for normal usage whenever the component supports them.
+**Sidebar** supports both `items` (simple list) and optional **`config`** (sections, accordion, nested items). For all components above, **config is optional**—use direct props for normal usage whenever the component supports them.
 
 ### Tabs with config
 
@@ -1278,7 +1328,7 @@ Use this to implement the library correctly:
 
 1. **Install:** `npm install github:syednaqvi98nibras/StoryBook#latest` (or pin to a tag like `#v1.1.1`).
 2. **Styles:** In the app entry file (e.g. `main.tsx`), add: `import '@nbs/component-library/dist/styles.css';` (once, before any component imports).
-3. **Sidebar:** Use props only. Pass `items` (array of `{ name, href, icon, onClick }`), `activeHref`, `title`, `glassEffect`, `width`. Do not pass `config`.
+3. **Sidebar:** Use simple `items` for basic lists, or optional `config` for sections/accordion/nested items. If your app already has a sidebar header, don’t pass `title` or `sidebarHeader`.
 4. **Card:** Use either direct props (`title`, `children`, `footer`, …) or a `config` object, not both for the same structure.
 5. **Other components:** Use props as shown in this guide. For Dialog, Tabs, Accordion, etc., the `config` prop is **optional**—use normal props when you prefer; use `config` when you want the single-object API.
 6. **Types:** Import types where needed, e.g. `import { Sidebar, type SidebarItem } from '@nbs/component-library';`.
