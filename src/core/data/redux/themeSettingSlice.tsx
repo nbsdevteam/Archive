@@ -33,6 +33,17 @@ const themeSettingSlice = createSlice({
       state.dataLayout = action.payload;
       localStorage.setItem("dataLayout", action.payload);
       document.documentElement.setAttribute("data-layout", action.payload);
+      if (action.payload === "modern") {
+        state.dataTopBar = "white";
+        state.dataTopBarColor = "white";
+        state.dataTopbarBg = "";
+        localStorage.setItem("dataTopBar", "white");
+        localStorage.setItem("dataTopBarColor", "white");
+        localStorage.setItem("dataTopbarBg", "");
+        document.documentElement.setAttribute("data-topbar", "white");
+        document.documentElement.setAttribute("data-topbarcolor", "white");
+        document.body.setAttribute("data-topbarbg", "");
+      }
     },
     setDataWidth: (state, action: PayloadAction<string>) => {
       state.dataWidth = action.payload;
@@ -66,8 +77,6 @@ const themeSettingSlice = createSlice({
       localStorage.setItem("dataTopbarAll", action.payload);
     },
     setDataTheme: (state, action: PayloadAction<string>) => {
-      const themeValue = action.payload === "dark" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", themeValue);
       state.dataTheme = action.payload;
       localStorage.setItem("dataTheme", action.payload);
     },

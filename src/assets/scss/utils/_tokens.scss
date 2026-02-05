@@ -1,0 +1,31 @@
+@use "variables";
+
+:root {
+  --app-body-bg: #{variables.$body-bg};
+  --app-surface-bg: #{variables.$default-background};
+  --app-border-color: #{variables.$border-color};
+  --app-text-color: #{variables.$text-color};
+  --app-muted-color: #{variables.$text-muted};
+  --app-title-color: #{variables.$title-color};
+  --app-link-color: #{variables.$link-color};
+  --app-link-muted-color: #{variables.$gray-500};
+
+  --bs-body-bg: var(--app-body-bg);
+  --bs-body-color: var(--app-text-color);
+  --bs-secondary-color: var(--app-muted-color);
+  --bs-heading-color: var(--app-title-color);
+  --bs-border-color: var(--app-border-color);
+  --bs-link-color: var(--app-link-color);
+}
+
+html[data-theme="dark"],
+body[data-theme="dark"] {
+  --app-body-bg: #{variables.$darkmode-white};
+  --app-surface-bg: #{variables.$darkmode-light};
+  --app-border-color: #{variables.$darkmode-gray-300};
+  --app-text-color: #{variables.$darkmode-dark};
+  --app-muted-color: #{variables.$darkmode-gray-500};
+  --app-title-color: #{variables.$darkmode-gray-900};
+  --app-link-color: #{variables.$primary};
+  --app-link-muted-color: #{variables.$darkmode-gray-500};
+}

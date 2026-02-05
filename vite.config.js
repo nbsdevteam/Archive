@@ -29,7 +29,7 @@ export default defineConfig({
         /**
          * Dev server settings (only used when you run `vite`/`npm run dev`).
          */
-        port: 3002,
+        port: 3003,
         host: true,
         proxy: {
             /**

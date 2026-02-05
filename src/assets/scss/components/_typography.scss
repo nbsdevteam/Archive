@@ -13,7 +13,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  color: variables.$title-color;
+  color: var(--app-title-color);
   font-family: variables.$font-family-primary;
   font-weight: variables.$font-weight-normal;
   margin-bottom: 0;
@@ -207,10 +207,10 @@ h6,
 }
 
 .text-default {
-  color: variables.$text-color !important;
+  color: var(--app-text-color) !important;
 }
 .text-muted {
-  color: variables.$text-muted !important;
+  color: var(--app-muted-color) !important;
 }
 .text-primary {
   color: variables.$primary !important;
@@ -310,7 +310,7 @@ h6,
   color: variables.$dark-transparent;
 }
 a {
-  color: variables.$gray-900;
+  color: var(--app-link-color);
   cursor: pointer;
   text-decoration: none;
   @include mixins.transition(all 0.5s ease);
@@ -545,39 +545,39 @@ hr {
   font-family: variables.$font-family-primary;
   font-size: variables.$h2-font-size; // 24px
   font-weight: variables.$font-weight-bold; // 500
-  color: variables.$title-color;
+  color: var(--app-title-color);
   line-height: 1.3;
 }
 .tHeading2 {
   font-family: variables.$font-family-primary;
   font-size: variables.$h3-font-size; // 20px
   font-weight: variables.$font-weight-semibold; // 500
-  color: variables.$title-color;
+  color: var(--app-title-color);
   line-height: 1.3;
 }
 .tLabel {
   font-family: variables.$font-family-primary;
   font-size: variables.$font-size-13;
   font-weight: variables.$font-weight-normal; // 400
-  color: variables.$text-color;
+  color: var(--app-text-color);
 }
 .tLabelMuted {
   font-family: variables.$font-family-primary;
   font-size: variables.$font-size-12;
   font-weight: variables.$font-weight-normal; // 400
-  color: variables.$text-muted;
+  color: var(--app-muted-color);
 }
 .tValue {
   font-family: variables.$font-family-primary;
   font-size: variables.$font-size-14;
   font-weight: variables.$font-weight-medium; // 500
-  color: variables.$title-color;
+  color: var(--app-title-color);
 }
 .tValueStrong {
   font-family: variables.$font-family-primary;
   font-size: variables.$font-size-16;
   font-weight: variables.$font-weight-bold; // 500
-  color: variables.$title-color;
+  color: var(--app-title-color);
 }
 .tValueNum {
   font-family: variables.$font-family-numeric;
@@ -585,5 +585,5 @@ hr {
   font-weight: variables.$font-weight-medium; // 500
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  color: variables.$title-color;
+  color: var(--app-title-color);
 }

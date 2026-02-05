@@ -4,9 +4,9 @@
 body {
 	font-family: variables.$font-family-primary;
 	font-size: variables.$font-size-14;
-	color: variables.$text-color;
+	color: var(--app-text-color);
 	line-height: 1.5;
-	background-color: variables.$light;
+	background-color: var(--app-body-bg);
 	overflow-y: auto;
 	overflow-x: hidden;
 }
@@ -39,7 +39,7 @@ strong {
 	font-weight: variables.$font-weight-bold;
 }
 h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
-  	color: variables.$title-color;
+  	color: var(--app-title-color);
   	font-family: variables.$font-family-primary;
 	font-weight: variables.$font-weight-bold;
   	margin-bottom: 0;

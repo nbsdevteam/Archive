@@ -1,0 +1,46 @@
+html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] {
+  background-color: var(--app-surface-bg);
+  color: var(--app-text-color);
+  border-color: var(--app-border-color);
+}
+
+html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] [class*="sidebar-module__sectionLabel"] {
+  color: var(--app-muted-color);
+}
+
+html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button {
+  color: var(--app-text-color);
+}
+
+html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button:hover,
+html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button:focus {
+  background-color: var(--app-body-bg);
+  color: var(--app-title-color);
+}
+
+html[data-theme="dark"] .sidebar .bg-light {
+  background-color: var(--app-surface-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+html[data-theme="dark"] .sidebar .bg-light h6,
+html[data-theme="dark"] .sidebar .bg-light p {
+  color: inherit;
+}
+
+html[data-theme="dark"] [class*="Card-module__card"] {
+  background-color: var(--app-surface-bg);
+  border-color: var(--app-border-color);
+  color: var(--app-text-color);
+}
+
+html[data-theme="dark"] [class*="Card-module__header"],
+html[data-theme="dark"] [class*="Card-module__body"],
+html[data-theme="dark"] [class*="Card-module__footer"] {
+  background-color: transparent;
+  color: inherit;
+}
+
+html[data-theme="dark"] [class*="Card-module__card"]:hover {
+  background-color: var(--app-body-bg);
+}

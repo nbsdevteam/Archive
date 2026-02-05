@@ -643,6 +643,13 @@
 
     .sidebar {
         display: block;
+        border-right: 1px solid variables.$gray-200;
+
+        /* Prevent double border from NBS sidebar in modern layout */
+        [class*="sidebar-module__sidebar"] {
+            border-right: 0;
+            border-left: 0;
+        }
 
         .sidebar-logo {
             display: none;

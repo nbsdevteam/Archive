@@ -92,7 +92,7 @@
     }
 }
 .link-default {
-	color: variables.$gray-500;
+	color: var(--app-link-muted-color);
 	&:hover {
 		color: variables.$primary;
 	}

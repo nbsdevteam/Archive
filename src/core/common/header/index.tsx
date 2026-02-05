@@ -12,7 +12,7 @@ import {
   toggleMiniSidebar,
 } from "../../data/redux/sidebarSlice";
 import { all_routes } from "../../../router/all_routes";
-import { Button } from "../../../shared/components/ui";
+import { Button, ThemeToggleButton } from "../../../shared/components/ui";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import { HorizontalSidebarData } from "../../data/json/horizontalSidebar";
 import React from "react";
@@ -589,19 +589,19 @@ const Header = React.memo(() => {
               <div
                 className="me-auto d-flex align-items-center"
                 id="header-search"
-                style={{ flex: 1, minWidth: 0 }}
+                style={{ flex: 1, minWidth: 0, gap: "1.25rem" }}
               >
                 <Link
                   id="toggle_btn"
                   to="#"
                   onClick={handleToggleMiniSidebar}
-                  className="btn btn-menubar me-1"
+                  className="btn btn-menubar flex-shrink-0"
                 >
                   <i className="ti ti-arrow-bar-to-left"></i>
                 </Link>
                 <div
                   ref={headerSearchRef}
-                  className="position-relative me-1"
+                  className="position-relative"
                   style={{ minWidth: "280px", width: "50%", flex: "0 1 50%", maxWidth: "50%" }}
                 >
                   <div className="input-group input-group-flat d-inline-flex w-100">
@@ -687,9 +687,10 @@ const Header = React.memo(() => {
                     </div>
                   )}
                 </div>
-                <Link to={routes.archiveFolders} className="btn btn-menubar">
-                  <i className="ti ti-folder"></i>
-                </Link>
+                <span className="d-inline-flex flex-shrink-0 px-4">
+                  <ThemeToggleButton />
+                </span>
+              
               </div>
 
               <div

@@ -52,12 +52,12 @@
   user-select: none;
   position: relative;
   z-index: 1;
-  color: #495057;
+  color: var(--app-muted-color);
   transition: color 0.2s ease;
 }
 
 .folders__view-option:hover {
-  color: #212529;
+  color: var(--app-text-color);
 }
 
 .folders__view-option--active-grid,

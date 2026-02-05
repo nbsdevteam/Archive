@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../imageWithBasePath";
 import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
 import { setExpandMenu } from "../../data/redux/sidebarSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { SidebarDataTest } from "../../data/json/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
 import type { AppDispatch } from "../../data/redux/store";
@@ -18,7 +18,6 @@ import {
 
 /** Typed alias so the IDE shows prop suggestions for inline props */
 const NbsSidebar = NbsSidebarImport as React.ComponentType<SidebarProps>;
-import "@nbs/component-library/dist/styles.css";
 
 import {
   LayoutDashboard,
@@ -86,6 +85,8 @@ function pickActiveHref(pathname: string, hrefs: string[]): string {
 }
 
 const Sidebar = memo(() => {
+  const dataLayout = useSelector((state: any) => state.themeSetting.dataLayout);
+  const useGlassEffect = dataLayout !== "modern";
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -183,7 +184,7 @@ const Sidebar = memo(() => {
       </div>
 
       <div className="modern-profile p-3 pb-0">
-        <div className="text-center rounded bg-light p-3 mb-4 user-profile">
+        <div className="text-center rounded p-3 mb-4 user-profile">
           <div className="avatar avatar-lg online mb-3">
             <ImageWithBasePath
               src="assets/img/profiles/avatar-02.jpg"
@@ -248,7 +249,7 @@ const Sidebar = memo(() => {
         </div>
       </div>
 
-      <NbsSidebar config={sidebarConfig} activeHref={activeHref} width="100%" glassEffect/>
+      <NbsSidebar config={sidebarConfig} activeHref={activeHref} width="100%" glassEffect={useGlassEffect} />
     </div>
   );
 });

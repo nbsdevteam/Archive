@@ -137,20 +137,26 @@ const LayoutModernDashboardPage = () => {
 
         {/* Welcome */}
         <div className="card border-0 mb-3">
-          <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
-            <div>
-              <h3 className="mb-2">Welcome back</h3>
-              <p className="mb-0">
-                You have{" "}
-                <Link to={routes.notifications} className="text-primary text-decoration-underline">
-                  <span className="Num">{unreadCount}</span> unread notification{unreadCount !== 1 ? "s" : ""}
-                </Link>
-              </p>
+          <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="card-title mb-0">Welcome back Admin</h5>
+              <span className="text-muted fs-13">
+                {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+              </span>
             </div>
             <Link to={routes.notifications} className="btn btn-secondary btn-md">
               <Icon name="bell" className="me-1" />
               View notifications
             </Link>
+          </div>
+          <div className="card-body pt-3 pb-2">
+            <p className="mb-0">
+              You have{" "}
+              <Link to={routes.notifications} className="text-primary text-decoration-underline">
+                <span className="Num">{unreadCount}</span> unread notification{unreadCount !== 1 ? "s" : ""}
+              </Link>
+              . Keep an eye on new uploads and approvals.
+            </p>
           </div>
         </div>
 

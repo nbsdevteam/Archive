@@ -24,6 +24,7 @@ import ImageWithBasePath from "../imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import { ColorPicker } from 'antd';
 import type { ColorPickerProps, GetProp } from 'antd';
+import { usePrefersColorScheme } from "../../../shared/hooks";
 
 type Color = Extract<GetProp<ColorPickerProps, 'value'>, string | { cleared: any }>;
 const ThemeSettings = () => {
@@ -37,6 +38,7 @@ const ThemeSettings = () => {
   const dataTopBar = useSelector((state: any) => state.themeSetting.dataTopBar);
   const dataTopBarColor = useSelector((state: any) => state.themeSetting.dataTopBarColor);
   const dataTheme = useSelector((state: any) => state.themeSetting.dataTheme);
+  const { prefersDark } = usePrefersColorScheme();
   const dataSidebarAll = useSelector((state: any) => state.themeSetting.dataSidebarAll);
   const dataColorAll = useSelector((state: any) => state.themeSetting.dataColorAll);
   const dataTopBarColorAll = useSelector((state: any) => state.themeSetting.dataTopBarColorAll);
@@ -123,7 +125,6 @@ useEffect(() => {
     document.documentElement.setAttribute("data-width", dataWidth);
     document.documentElement.setAttribute("data-card", dataCard);
     document.documentElement.setAttribute("data-sidebar", dataSidebar);
-    document.documentElement.setAttribute("data-theme", dataTheme);
     document.documentElement.setAttribute("data-topbar", dataTopBar);
     document.documentElement.setAttribute("data-topbarcolor", dataTopBarColor);
     document.documentElement.setAttribute("data-color", dataColor);
@@ -134,7 +135,7 @@ useEffect(() => {
     setColorRgb2(`rgb(${dataTopbarAll})`)
     setColorRgb3(`rgb(${dataTopBarColorAll})`)
     setColorRgb4(`rgb(${dataColorAll})`)
-  },[dataLayout,dataWidth,dataSidebar,dataSidebarAll,dataTheme,dataSidebarBg,dataTopBarColor,dataTopBar,dataTopbarBg,dataColor,dataLoader,dataColorAll,dataTopBarColorAll,dataTopbarAll,dataCard])
+  },[dataLayout,dataWidth,dataSidebar,dataSidebarAll,dataSidebarBg,dataTopBarColor,dataTopBar,dataTopbarBg,dataColor,dataLoader,dataColorAll,dataTopBarColorAll,dataTopbarAll,dataCard])
   return (
     <>
     <div className="sidebar-contact ">
@@ -672,6 +673,7 @@ useEffect(() => {
                         name="theme"
                         id="lightTheme"
                         value="light"
+                        disabled={prefersDark}
                         checked={dataTheme === "light" ? true : false}
                         onChange={() => handleDataThemeChange("light")}
                       />
@@ -693,6 +695,7 @@ useEffect(() => {
                         name="theme"
                         id="darkTheme"
                         value="dark"
+                        disabled={prefersDark}
                         checked={dataTheme === "dark" ? true : false}
                         onChange={() => handleDataThemeChange("dark")}
                       />
@@ -708,6 +711,11 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
+                {prefersDark && (
+                  <p className="text-muted fs-12 mb-0">
+                    System theme is set to Dark Mode. Theme is locked.
+                  </p>
+                )}
               </div>
             </div>
           </div>

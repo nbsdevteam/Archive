@@ -38,9 +38,6 @@ const Feature = React.memo(() => {
   const dataLoader = useSelector(
     (state: RootState) => state.themeSetting.dataLoader
   );
-  const dataTheme = useSelector(
-    (state: RootState) => state.themeSetting.dataTheme
-  );
   const dataSidebarAll = useSelector(
     (state: RootState) => state.themeSetting.dataSidebarAll
   );
@@ -126,14 +123,6 @@ const Feature = React.memo(() => {
   const resetMobileSidebar = useCallback(() => {
     dispatch(setResetMobileSidebar());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (dataTheme === "dark") {
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.setAttribute("data-theme", "light");
-    }
-  }, [dataTheme]);
 
   // Apply data-size attribute for hoverview on html tag
   useEffect(() => {

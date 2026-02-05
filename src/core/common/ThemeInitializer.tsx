@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 const ThemeInitializer: React.FC = () => {
-  const dataTheme = useSelector((state: any) => state.themeSetting.dataTheme);
   const dataLayout = useSelector((state: any) => state.themeSetting.dataLayout);
   const dataWidth = useSelector((state: any) => state.themeSetting.dataWidth);
   const dataCard = useSelector((state: any) => state.themeSetting.dataCard);
@@ -16,8 +15,6 @@ const ThemeInitializer: React.FC = () => {
 
   useEffect(() => {
     // Initialize all theme attributes on app start
-    const themeValue = dataTheme === "dark" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", themeValue);
     document.documentElement.setAttribute("data-layout", dataLayout);
     document.documentElement.setAttribute("data-width", dataWidth);
     document.documentElement.setAttribute("data-card", dataCard);
