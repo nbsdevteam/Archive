@@ -1,75 +1,15 @@
-import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { all_routes } from "../../../router/all_routes";
-import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
-import { handleApiError } from "../../../app/adapter/api/client";
 import "../styles/edit-requests.css";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { useEditRequestsPageContainer } from "../containers/useEditRequestsPageContainer";
 
 /**
  * EditRequestsPage - Edit requests management page
  */
 const EditRequestsPage = () => {
-  const routes = all_routes;
-  const [requests, setRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [processingId, setProcessingId] = useState<number | null>(null);
-  const didRunRef = useRef(false);
-
-  useEffect(() => {
-    if (didRunRef.current) return;
-    didRunRef.current = true;
-    loadRequests();
-    return () => {
-      setTimeout(() => {
-        didRunRef.current = false;
-      }, 0);
-    };
-  }, []);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await editRequestsApi.getEditRequests();
-      const list = Array.isArray(response?.data) ? response.data : [];
-      setRequests(list);
-    } catch (err) {
-      console.error('Failed to load requests:', err);
-      setError(handleApiError(err));
-      setRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async (requestId: number) => {
-    try {
-      setProcessingId(requestId);
-      await editRequestsApi.approveEditRequest(requestId);
-      await loadRequests();
-    } catch (err: any) {
-      console.error("Failed to approve request:", err);
-      setError(handleApiError(err));
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const handleReject = async (requestId: number) => {
-    try {
-      setProcessingId(requestId);
-      await editRequestsApi.rejectEditRequest(requestId, "Rejected by user");
-      await loadRequests();
-    } catch (err: any) {
-      console.error("Failed to reject request:", err);
-      setError(handleApiError(err));
-    } finally {
-      setProcessingId(null);
-    }
-  };
+  const { routes, requests, loading, error, processingId, loadRequests, handleApprove, handleReject } =
+    useEditRequestsPageContainer();
 
   return (
     <div className="page-wrapper">

@@ -310,7 +310,7 @@
 
         &:hover {
             .contact-icon-mail {
-                background-color: variables.$primary-transparent;
+                background-color: rgba(var(--primary-rgb), 0.12);
 
                 span {
                     i {

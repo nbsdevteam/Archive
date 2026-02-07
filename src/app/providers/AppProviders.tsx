@@ -1,5 +1,4 @@
 import { type ReactNode } from "react";
-import { ReduxProvider } from "./ReduxProvider";
 import { ThemeProvider } from "./ThemeProvider";
 import { PerformanceProvider } from "../../core/providers/PerformanceProvider";
 import ErrorBoundary from "../../components/ErrorBoundary/ErrorBoundary";
@@ -15,18 +14,16 @@ type AppProvidersProps = {
  */
 export const AppProviders = ({ children }: AppProvidersProps) => {
   return (
-    <ReduxProvider>
-      <PerformanceProvider
-        enableProfiling={false}
-        enableMemoization={true}
-        enableVirtualization={true}
-      >
-        <ThemeProvider>
-          <ErrorBoundary fallback={<div>Oops! An unexpected error occurred.</div>}>
-            {children}
-          </ErrorBoundary>
-        </ThemeProvider>
-      </PerformanceProvider>
-    </ReduxProvider>
+    <PerformanceProvider
+      enableProfiling={false}
+      enableMemoization={true}
+      enableVirtualization={true}
+    >
+      <ThemeProvider>
+        <ErrorBoundary fallback={<div>Oops! An unexpected error occurred.</div>}>
+          {children}
+        </ErrorBoundary>
+      </ThemeProvider>
+    </PerformanceProvider>
   );
 };

@@ -7,6 +7,7 @@ import {
   type UploadDocumentRequest,
 } from '../../../app/adapter/api/documents.api';
 import { handleApiError } from '../../../app/adapter/api/client';
+import { downloadBlobAsFile } from '../../../shared/utils/files/downloadBlobAsFile';
 
 interface DocumentState {
   documents: Document[];
@@ -54,8 +55,6 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
     try {
       const response = await documentsApi.getDocuments(params);
-
-      console.log('Documents response:', response);
 
       set({
         documents: response?.data || [],
@@ -158,26 +157,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     try {
       const blob = await documentsApi.downloadDocument(documentId, versionId);
 
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      link.style.display = 'none'; // Hide the link to prevent visual flash
-      document.body.appendChild(link);
-      
-      // Use a small delay to ensure the link is ready
-      setTimeout(() => {
-        link.click();
-        
-        // Clean up after download starts
-        setTimeout(() => {
-          if (document.body.contains(link)) {
-            document.body.removeChild(link);
-          }
-          window.URL.revokeObjectURL(url);
-        }, 200);
-      }, 10);
+      // Small delay to avoid UI jank in some browsers.
+      setTimeout(() => downloadBlobAsFile(blob, fileName), 10);
 
       set({ isDownloading: false });
     } catch (error) {

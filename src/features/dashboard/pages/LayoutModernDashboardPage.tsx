@@ -1,16 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactApexChart from "react-apexcharts";
-import type { ApexOptions } from "apexcharts";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { adminApi } from "../../../app/adapter/api/admin.api";
-import { handleApiError } from "../../../app/adapter/api/client";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
-import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
-import { useNotifications } from "../../notifications/hooks/useNotifications";
-import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
+import { useLayoutModernDashboardPageContainer } from "../containers/useLayoutModernDashboardPageContainer";
 import "../styles/dashboard.css";
 
 /**
@@ -18,90 +11,22 @@ import "../styles/dashboard.css";
  * Cards: Total Folders, Total Documents, Active Documents, Unread Notifications.
  * Notifications list from API + Folders by Department chart.
  */
-const DOCUMENT_PARAMS = { status: "active" as const, per_page: 1, page: 1 };
-const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
-
 const LayoutModernDashboardPage = () => {
   const routes = all_routes;
-  const [stats, setStats] = useState<{ total_documents?: number } | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
-
-  const { folders, loading: foldersLoading, error: foldersError, pagination: foldersPagination } = useFolders({
-    useApi: true,
-  });
-  const { count: activeDocumentsCount } = useDocumentCount({
-    useApi: true,
-    initialParams: {},
-  });
   const {
+    statsError,
     notifications,
     unreadCount,
-    loading: notificationsLoading,
-    error: notificationsError,
-  } = useNotifications({
-    useApi: true,
-    initialParams: NOTIFICATION_PARAMS,
-  });
-
-  const didRunRef = useRef(false);
-  useEffect(() => {
-    if (didRunRef.current) return;
-    didRunRef.current = true;
-    let cancelled = false;
-    (async () => {
-      try {
-        const response = await adminApi.getDashboardStats();
-        if (!cancelled && response?.stats) setStats(response.stats);
-      } catch (err) {
-        if (!cancelled) setStatsError(handleApiError(err));
-      }
-    })();
-    return () => {
-      cancelled = true;
-      setTimeout(() => {
-        didRunRef.current = false;
-      }, 0);
-    };
-  }, []);
-
-  const totalFolders = foldersPagination?.total ?? folders.length;
-  const totalDocuments = stats?.total_documents ?? 0;
-  const activeDocuments = activeDocumentsCount;
-
-  const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
-  const chartOptions = useMemo<ApexOptions>(
-    () => ({
-      chart: {
-        height: 280,
-        type: "bar",
-        toolbar: { show: false },
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 5,
-          horizontal: true,
-          barHeight: "35%",
-          endingShape: "rounded",
-        },
-      },
-      dataLabels: { enabled: false },
-      colors: ["#F26522"],
-      grid: {
-        borderColor: "#E5E7EB",
-        strokeDashArray: 5,
-        padding: { top: -20, left: 0, right: 0, bottom: 0 },
-      },
-      xaxis: {
-        categories: chartData.categories,
-        labels: { style: { colors: "#111827", fontSize: "13px" } },
-      },
-      series: [{ name: "Folders", data: chartData.data }],
-    }),
-    [chartData]
-  );
-
-  const loading = foldersLoading || notificationsLoading;
-  const hasError = statsError || foldersError || notificationsError;
+    notificationsLoading,
+    notificationsError,
+    totalFolders,
+    totalDocuments,
+    activeDocuments,
+    chartData,
+    chartOptions,
+    loading,
+    hasError,
+  } = useLayoutModernDashboardPageContainer();
 
   return (
     <div className="page-wrapper">

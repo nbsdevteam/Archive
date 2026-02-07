@@ -10,49 +10,43 @@ import type { DocumentListParams, DocumentListResponse } from "../types/document
 const EMPTY_PARAMS: DocumentListParams = {};
 
 interface UseDocumentCountOptions {
-  useApi?: boolean;
   initialParams?: DocumentListParams;
 }
 
 export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
-  const { useApi = true, initialParams = EMPTY_PARAMS } = options;
+  const { initialParams = EMPTY_PARAMS } = options;
 
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const didRunRef = useRef(false);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (didRunRef.current) return;
-    didRunRef.current = true;
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     let cancelled = false;
 
     (async () => {
       try {
         setLoading(true);
-        if (!useApi) {
-          setCount(0);
-          return;
-        }
         const response: DocumentListResponse = await documentsApi.listDocuments({
           ...initialParams,
           per_page: 1,
           page: 1,
         });
-        if (!cancelled) {
-          const total = response.pagination?.total ?? (response.documents?.length ?? 0);
-          setCount(total);
-        }
+        const total = response.pagination?.total ?? (response.documents?.length ?? 0);
+        setCount(total);
       } catch (err) {
         if (!cancelled) setCount(0);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [useApi, initialParams.status, initialParams.department_id, initialParams.document_type_id]);
+  }, [initialParams.status, initialParams.department_id, initialParams.document_type_id]);
 
   return { count, loading };
 };

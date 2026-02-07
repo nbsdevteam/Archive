@@ -18,7 +18,6 @@ export const SidebarDataTest = [
         icon: "LayoutDashboard", // lucide-react icon name
         base: routes.dashboard,
         base2: routes.adminDashboard,
-        base3: routes.employeeDashboard,
       },
       {
         label: "Documents",
@@ -67,27 +66,6 @@ export const SidebarDataTest = [
         showSubRoute: false,
         icon: "Bell", // lucide-react icon name
         base: routes.notifications,
-      },
-      {
-        label: "Charts",
-        translationKey: "charts",
-        link: routes.apexChart,
-        submenu: false,
-        showSubRoute: false,
-        icon: "BarChart3", // lucide-react icon name
-        base: routes.apexChart,
-        base2: routes.primeChart,
-        base3: routes.chartJs,
-      },
-      {
-        label: "Data Tables",
-        translationKey: "dataTables",
-        link: routes.dataTables,
-        submenu: false,
-        showSubRoute: false,
-        icon: "Table", // lucide-react icon name
-        base: routes.dataTables,
-        base2: routes.tablesBasic,
       },
       {
         label: "Permissions",

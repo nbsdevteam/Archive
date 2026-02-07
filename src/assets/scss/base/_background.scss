@@ -320,11 +320,11 @@ $value in variables.$theme-colors {
   color: variables.$black !important;
 }
 .bg-primary-transparent {
-    background-color: variables.$primary-transparent !important;
-    color: variables.$primary !important;
+    background-color: rgba(var(--primary-rgb), 0.12) !important;
+    color: rgb(var(--primary-rgb)) !important;
     &:hover {
-        background-color: variables.$primary-transparent !important;
-        color: variables.$primary !important;
+        background-color: rgba(var(--primary-rgb), 0.12) !important;
+        color: rgb(var(--primary-rgb)) !important;
     }
 }
 .bg-secondary-transparent {
@@ -515,7 +515,7 @@ $value in variables.$theme-colors {
     background: variables.$light-300;
 }
 .bg-transparent-primary {
-    background: variables.$primary-transparent;
+    background: rgba(var(--primary-rgb), 0.12);
 }
 .bg-transparent-dark {
     background: variables.$dark-transparent;

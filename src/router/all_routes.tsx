@@ -1,8 +1,7 @@
 export const all_routes: Record<string, string> = {
   // dashboards
   adminDashboard: "/index",
-  employeeDashboard: "/employee-dashboard",
-  dashboard: "/dashboard", // Legacy alias
+  dashboard: "/dashboard",
 
   // archive module
   archiveFolders: "/archive/folders",
@@ -11,7 +10,7 @@ export const all_routes: Record<string, string> = {
   archiveTrash: "/archive/trash",
   archiveActivity: "/archive/activity",
 
-  // legacy routes (aliases to archive or new features)
+  // documents + folders
   documents: "/documents",
   documentsUpload: "/documents/upload",
   documentDetail: "/documents/:id",
@@ -23,59 +22,11 @@ export const all_routes: Record<string, string> = {
   permissions: "/admin/permissions",
   search: "/search",
 
-  // reporting utilities
-  dataTables: "/data-tables",
-  tablesBasic: "/tables-basic",
-  apexChart: "/ui-apexchart",
-  primeChart: "/ui-prime-chart",
-  chartJs: "/ui-chart-js",
-
   // auth routes
   login: "/login",
-  login2: "/login-2",
-  login3: "/login-3",
   register: "/register",
-  register2: "/register-2",
-  register3: "/register-3",
   forgotPassword: "/forgot-password",
-  forgotPassword2: "/forgot-password-2",
-  forgotPassword3: "/forgot-password-3",
-  twoStepVerification: "/two-step-verification",
-  twoStepVerification2: "/two-step-verification-2",
-  twoStepVerification3: "/two-step-verification-3",
-  emailVerification: "/email-verification",
-  emailVerification2: "/email-verification-2",
-  emailVerification3: "/email-verification-3",
-  lockScreen: "/lock-screen",
   resetPassword: "/reset-password",
-  resetPassword2: "/reset-password-2",
-  resetPassword3: "/reset-password-3",
-  resetPasswordSuccess: "/success",
-  resetPasswordSuccess2: "/success-2",
-  resetPasswordSuccess3: "/success-3",
-  error404: "/error-404",
-  error500: "/error-500",
-  underMaintenance: "/under-maintenance",
-  underConstruction: "/under-construction",
-  comingSoon: "/coming-soon",
-
-  // layout demo routes
-  layoutDefault: "/layout-default",
-  layoutMini: "/layout-mini",
-  layoutRtl: "/layout-rtl",
-  layoutDark: "/layout-dark",
-  Horizontal: "/layout-horizontal",
-  Detached: "/layout-detached",
-  Hovered: "/layout-hovered",
-  Boxed: "/layout-box",
-  Modern: "/layout-modern",
-  TwoColumn: "/layout-twocolumn",
-  HorizontalSingle: "/layout-horizontal-single",
-  HorizontalOverlay: "/layout-horizontal-overlay",
-  HorizontalBox: "/layout-horizontal-box",
-  MenuAside: "/layout-horizontal-sidemenu",
-  Transparent: "/layout-transparent",
-  WithoutHeader: "/layout-without-header",
-  RTL: "/layout-rtl",
-  Dark: "/layout-dark",
+  emailVerification: "/email-verification",
+  twoStepVerification: "/two-step-verification",
 };

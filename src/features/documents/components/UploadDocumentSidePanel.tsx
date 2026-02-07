@@ -10,6 +10,7 @@ import { adminApi } from "../../../app/adapter/api/admin.api";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 import { listFolders } from "../../folders/services/folders.api";
 import { createFolder } from "../../folders/services/folders.api";
+import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import type { Department } from "../../../app/adapter/api/admin.api";
 import type { DocumentType } from "../../../app/adapter/api/admin.api";
 import type { Tag } from "../../../app/adapter/api/admin.api";
@@ -39,19 +40,6 @@ export type UploadFormValues = {
 };
 
 export type UploadDocumentFormValues = UploadFormValues;
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64 ?? "");
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 export interface UploadDocumentSidePanelProps {
   isOpen: boolean;

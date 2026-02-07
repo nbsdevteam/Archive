@@ -1,404 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { useDocumentStore } from "../stores/documentStore";
-import { useSignatureStore } from "../../signatures/stores/signatureStore";
-import { documentsApi } from "../../../app/adapter/api/documents.api";
-import { adminApi } from "../../../app/adapter/api/admin.api";
-import { ocrApi } from "../../../app/adapter/api/ocr.api";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon } from "../../../shared/components/ui";
 import { UploadDocumentSidePanel } from "../components";
-import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/documents.api";
+import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
 import "../styles/documents.css";
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64 ?? "");
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-function formatDate(s: string | undefined): string {
-  if (!s) return "–";
-  try {
-    return new Date(s).toLocaleString(undefined, {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "–";
-  }
-}
-
 const DocumentDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
-
-  const docId = useMemo(() => {
-    if (!id) return null;
-    const n = parseInt(id, 10);
-    return Number.isFinite(n) ? n : null;
-  }, [id]);
-
-  const {
-    currentDocument,
-    isLoading,
-    fetchDocument,
-    downloadVersion,
-    uploadVersion,
-    archiveDocument,
-    unarchiveDocument,
-    error: storeError,
-  } = useDocumentStore();
-
-  const { requests, fetchRequests, createRequest, uploadSigned } = useSignatureStore();
-
-  const [attachments, setAttachments] = useState<
-    Array<{ id: number; name: string; file_name: string; file_size?: number }>
-  >([]);
-  const [relations, setRelations] = useState<{
-    parent?: { id: number; title: string; barcode?: string } | null;
-    related?: Array<{ id: number; title: string; barcode?: string; relation_type?: string; notes?: string }>;
-  }>({});
-  const [auditLogs, setAuditLogs] = useState<
-    Array<{ id: number; action: string; user_name: string; timestamp: string; document_title?: string }>
-  >([]);
-  const [activeTab, setActiveTab] = useState("preview");
-  const [loadingAttachments, setLoadingAttachments] = useState(false);
-  const [loadingRelations, setLoadingRelations] = useState(false);
-  const [loadingAudit, setLoadingAudit] = useState(false);
-  const [managers, setManagers] = useState<Array<{ id: number; name: string; login?: string }>>([]);
-
-  const [isAddAttachmentPanelOpen, setIsAddAttachmentPanelOpen] = useState(false);
-  const [modalUploadVersion, setModalUploadVersion] = useState(false);
-  const [uploadVersionFile, setUploadVersionFile] = useState<File | null>(null);
-  const [uploadVersionUnlockToken, setUploadVersionUnlockToken] = useState("");
-  const [uploadVersionDescription, setUploadVersionDescription] = useState("");
-  const [uploadingVersion, setUploadingVersion] = useState(false);
-  const uploadVersionInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [modalRequestSign, setModalRequestSign] = useState(false);
-  const [selectedSignerId, setSelectedSignerId] = useState<number | "">("");
-  const [signMessage, setSignMessage] = useState("");
-
-  const [modalUploadSigned, setModalUploadSigned] = useState(false);
-  const [selectedApprovedReqId, setSelectedApprovedReqId] = useState<number | null>(null);
-  const [signToken, setSignToken] = useState("");
-  const [signedFile, setSignedFile] = useState<File | null>(null);
-  const [uploadingSigned, setUploadingSigned] = useState(false);
-  const signedFileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [modalAddRelation, setModalAddRelation] = useState(false);
-  const [relatedDocId, setRelatedDocId] = useState("");
-  const [relationNotes, setRelationNotes] = useState("");
-  const [addingRelation, setAddingRelation] = useState(false);
-
-  const [runOcrLoading, setRunOcrLoading] = useState(false);
-
-  const handleClearUploadVersionFile = () => {
-    setUploadVersionFile(null);
-    if (uploadVersionInputRef.current) {
-      uploadVersionInputRef.current.value = "";
-    }
-  };
-
-  const handleClearSignedFile = () => {
-    setSignedFile(null);
-    if (signedFileInputRef.current) {
-      signedFileInputRef.current.value = "";
-    }
-  };
-
-  const doc = currentDocument as DocumentDetail | null;
-  const title = doc?.name ?? doc?.title ?? "–";
-  const documentTypeName =
-    (doc?.document_type as { name?: string })?.name ?? doc?.document_type_name ?? "–";
-  const departmentName = (doc?.department as { name?: string })?.name ?? doc?.department_name ?? "–";
-  const uploaderName = (doc?.uploader_name as string) ?? "–";
-  const versions: DocumentVersion[] = Array.isArray(doc?.versions) ? doc.versions : [];
-  const tags = Array.isArray(doc?.tags) ? doc.tags : [];
-  const ocr = doc?.ocr ?? {};
-  const ocrStatus = (doc?.ocr_status ?? (ocr as { ocr_status?: string })?.ocr_status) ?? "pending";
-  const fileName = doc?.file_name ?? "";
-  const fileExt = (fileName.split(".").pop() ?? "").toLowerCase();
-  const isOcrSupported = ["pdf", "jpg", "jpeg", "png", "tiff"].includes(fileExt);
-  const latestVersionId = versions.length > 0 ? versions[versions.length - 1]?.id : undefined;
-
-  const signatureRows = useMemo(() => {
-    if (!docId || !requests) return [];
-    return requests.filter((r: { document_id?: number }) => r.document_id === docId);
-  }, [requests, docId]);
-
-  const approvedRequests = useMemo(
-    () => signatureRows.filter((r: { state?: string }) => r.state === "approved"),
-    [signatureRows]
-  );
-
-  const isArchived = (doc?.status ?? "").toLowerCase() === "archived";
-  const canRequestSignature = true;
-
-  useEffect(() => {
-    if (docId) {
-      fetchDocument(docId);
-      fetchRequests({ document_id: docId });
-    }
-  }, [docId, fetchDocument, fetchRequests]);
-
-  useEffect(() => {
-    if (!doc?.department_id) return;
-    adminApi
-      .getManagers(doc.department_id)
-      .then((r) => setManagers(r.data ?? []))
-      .catch(() => setManagers([]));
-  }, [doc?.department_id]);
-
-  useEffect(() => {
-    if (!docId || activeTab !== "attachments") return;
-    setLoadingAttachments(true);
-    documentsApi
-      .listAttachments(docId)
-      .then((r) => setAttachments(r.data ?? []))
-      .catch(() => setAttachments([]))
-      .finally(() => setLoadingAttachments(false));
-  }, [docId, activeTab]);
-
-  useEffect(() => {
-    if (!docId || activeTab !== "relations") return;
-    setLoadingRelations(true);
-    documentsApi
-      .getRelations(docId)
-      .then((r) => {
-        const data = (r as { data?: typeof relations }).data;
-        setRelations(data ?? {});
-      })
-      .catch(() => setRelations({}))
-      .finally(() => setLoadingRelations(false));
-  }, [docId, activeTab]);
-
-  useEffect(() => {
-    if (!docId || activeTab !== "audit") return;
-    setLoadingAudit(true);
-    adminApi
-      .getAuditLogs({ document_id: docId, per_page: 50 })
-      .then((r) => setAuditLogs(r.data ?? []))
-      .catch(() => setAuditLogs([]))
-      .finally(() => setLoadingAudit(false));
-  }, [docId, activeTab]);
-
-  const handleDownloadVersion = async (versionId: number, fName: string) => {
-    if (!doc?.id) return;
-    try {
-      await downloadVersion(doc.id, versionId, fName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
-  };
-
-  const handleDownloadCurrent = async () => {
-    if (!doc?.id || !fileName) return;
-    try {
-      const blob = await documentsApi.downloadDocument(doc.id);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
-  };
-
-  const handleDownloadAttachment = async (attachmentId: number, fName: string) => {
-    if (!docId) return;
-    try {
-      const blob = await documentsApi.downloadAttachment(docId, attachmentId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
-  };
-
-  const handleArchive = async () => {
-    if (!doc?.id) return;
-    try {
-      await archiveDocument(doc.id);
-      toast.success(t("documents.archived", { defaultValue: "Document archived." }));
-    } catch (e) {
-      toast.error((e as Error)?.message ?? t("documents.archiveFailed", { defaultValue: "Archive failed." }));
-    }
-  };
-
-  const handleUnarchive = async () => {
-    if (!doc?.id) return;
-    try {
-      await unarchiveDocument(doc.id);
-      toast.success(t("documents.unarchived", { defaultValue: "Document unarchived." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." })
-      );
-    }
-  };
-
-  const handleRunOcr = async () => {
-    if (!docId) return;
-    setRunOcrLoading(true);
-    try {
-      await ocrApi.runOcr(docId);
-      await fetchDocument(docId);
-      toast.success(t("documents.ocrStarted", { defaultValue: "OCR started." }));
-    } catch (e) {
-      toast.error((e as Error)?.message ?? t("documents.ocrFailed", { defaultValue: "OCR failed." }));
-    } finally {
-      setRunOcrLoading(false);
-    }
-  };
-
-  const handleUploadVersionSubmit = async () => {
-    if (!doc?.id || !uploadVersionFile || !uploadVersionUnlockToken.trim()) return;
-    setUploadingVersion(true);
-    try {
-      const fileData = await fileToBase64(uploadVersionFile);
-      await uploadVersion(doc.id, {
-        file_data: fileData,
-        file_name: uploadVersionFile.name,
-        unlock_token: uploadVersionUnlockToken.trim(),
-        change_description: uploadVersionDescription.trim() || "New version",
-      });
-      toast.success(t("documents.versionUploaded", { defaultValue: "New version uploaded." }));
-      setModalUploadVersion(false);
-      setUploadVersionFile(null);
-      setUploadVersionUnlockToken("");
-      setUploadVersionDescription("");
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.versionUploadFailed", { defaultValue: "Upload failed." })
-      );
-    } finally {
-      setUploadingVersion(false);
-    }
-  };
-
-  const handleCreateSignatureRequest = async () => {
-    if (!doc?.id || !selectedSignerId) return;
-    try {
-      await createRequest({
-        document_id: doc.id,
-        signer_id: Number(selectedSignerId),
-        message: signMessage.trim() || undefined,
-      });
-      toast.success(t("documents.signatureRequestSent", { defaultValue: "Signature request sent." }));
-      setModalRequestSign(false);
-      setSelectedSignerId("");
-      setSignMessage("");
-      fetchRequests({ document_id: doc.id });
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ??
-          t("documents.signatureRequestFailed", { defaultValue: "Request failed." })
-      );
-    }
-  };
-
-  const handleUploadSignedSubmit = async () => {
-    if (!selectedApprovedReqId || !signedFile || !signToken.trim()) return;
-    setUploadingSigned(true);
-    try {
-      const fileData = await fileToBase64(signedFile);
-      await uploadSigned(selectedApprovedReqId, {
-        file_data: fileData,
-        file_name: signedFile.name,
-        sign_token: signToken.trim(),
-        notes: t("documents.signedVersionUploadNotes", { defaultValue: "Signed version uploaded from detail page." }),
-      });
-      toast.success(t("documents.signedVersionUploaded", { defaultValue: "Signed version uploaded." }));
-      setModalUploadSigned(false);
-      setSelectedApprovedReqId(null);
-      setSignToken("");
-      setSignedFile(null);
-      if (doc?.id) {
-        fetchDocument(doc.id);
-        fetchRequests({ document_id: doc.id });
-      }
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.signedVersionUploadFailed", { defaultValue: "Upload failed." })
-      );
-    } finally {
-      setUploadingSigned(false);
-    }
-  };
-
-  const handleAddRelationSubmit = async () => {
-    if (!docId || !relatedDocId.trim()) return;
-    const relatedId = parseInt(relatedDocId.trim(), 10);
-    if (!Number.isFinite(relatedId)) return;
-    setAddingRelation(true);
-    try {
-      await documentsApi.addRelation(docId, {
-        related_document_id: relatedId,
-        notes: relationNotes.trim() || undefined,
-      });
-      toast.success(t("documents.relationAdded", { defaultValue: "Relation added." }));
-      setModalAddRelation(false);
-      setRelatedDocId("");
-      setRelationNotes("");
-      const r = await documentsApi.getRelations(docId);
-      const data = (r as { data?: typeof relations }).data;
-      setRelations(data ?? {});
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.relationAddFailed", { defaultValue: "Failed to add relation." })
-      );
-    } finally {
-      setAddingRelation(false);
-    }
-  };
-
-  const handleSetParent = async (parentId: number | null) => {
-    if (!docId) return;
-    try {
-      await documentsApi.setParent(docId, parentId);
-      toast.success(t("documents.parentUpdated", { defaultValue: "Parent updated." }));
-      const r = await documentsApi.getRelations(docId);
-      const data = (r as { data?: typeof relations }).data;
-      setRelations(data ?? {});
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.parentUpdateFailed", { defaultValue: "Failed to update parent." })
-      );
-    }
-  };
-
   if (isLoading && !doc) {
     return (
       <div className="page-wrapper">
@@ -425,17 +36,6 @@ const DocumentDetailPage = () => {
       </div>
     );
   }
-
-  const tabs = [
-    { id: "preview", label: t("documents.preview", { defaultValue: "Preview" }) },
-    { id: "download", label: t("documents.download", { defaultValue: "Download" }) },
-    { id: "versions", label: t("documents.versionHistory", { defaultValue: "Version history" }) },
-    { id: "attachments", label: t("documents.attachments", { defaultValue: "Attachments" }) },
-    { id: "ocr", label: t("documents.ocr", { defaultValue: "OCR" }) },
-    { id: "signatures", label: t("documents.signatureRequests", { defaultValue: "Signature requests" }) },
-    { id: "relations", label: t("documents.relations", { defaultValue: "Relations" }) },
-    { id: "audit", label: t("documents.audit", { defaultValue: "Audit log" }) },
-  ];
 
   return (
     <div className="page-wrapper">
@@ -642,7 +242,7 @@ const DocumentDetailPage = () => {
                           <td>v{v.version_number}</td>
                           <td>{v.file_name}</td>
                           <td>{v.uploaded_by ?? "–"}</td>
-                          <td>{formatDate(v.upload_date)}</td>
+                        <td>{formatDate(v.upload_date)}</td>
                           <td>
                             <Button
                               variant="outline"
@@ -788,7 +388,7 @@ const DocumentDetailPage = () => {
                         <tr key={r.id}>
                           <td>{r.state ?? "–"}</td>
                           <td>{r.signer_name ?? "–"}</td>
-                          <td>{formatDate(r.request_date ?? undefined)}</td>
+                        <td>{formatDate(r.request_date ?? undefined)}</td>
                         </tr>
                       ))}
                       {signatureRows.length === 0 && (
@@ -876,7 +476,7 @@ const DocumentDetailPage = () => {
                           <tr key={log.id}>
                             <td>{log.action}</td>
                             <td>{log.user_name}</td>
-                            <td>{formatDate(log.timestamp)}</td>
+                        <td>{formatDate(log.timestamp)}</td>
                           </tr>
                         ))}
                         {auditLogs.length === 0 && (
@@ -902,8 +502,7 @@ const DocumentDetailPage = () => {
           onClose={() => setIsAddAttachmentPanelOpen(false)}
           onSuccess={() => {
             setIsAddAttachmentPanelOpen(false);
-            if (docId)
-              documentsApi.listAttachments(docId).then((r) => setAttachments(r.data ?? [])).catch(() => {});
+            refreshAttachments();
           }}
           initialValues={{
             upload_kind: "attachment",

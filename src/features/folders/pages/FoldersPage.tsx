@@ -1,97 +1,36 @@
-import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Icon, SearchInput, Card } from "../../../shared/components/ui";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
-import { useFolders } from "../hooks/useFolders";
-import type { Folder } from "../types/folders.types";
 import { CreateFolderSidePanel } from "../components";
+import { useFoldersPageContainer } from "../containers/useFoldersPageContainer";
 import "../styles/folders.css";
-
-type ViewMode = "grid" | "list";
-
-function filterFoldersBySearch(folders: Folder[], query: string): Folder[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return folders;
-  return folders.filter(
-    (f) =>
-      (f.name ?? "").toLowerCase().includes(q) ||
-      (f.code ?? "").toLowerCase().includes(q)
-  );
-}
 
 /**
  * FoldersPage - Folders management page with cards
  */
 const FoldersPage = () => {
   const { t } = useTranslation();
-  const routes = all_routes;
-  const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Stable options so useFolders doesn't see a new object every render (avoids infinite fetch loop)
-  const folderListParams = useMemo(() => ({ state: "active" as const }), []);
-  const { folders, loading, error, pagination, fetchFolders } = useFolders({
-    useApi: true,
-    initialParams: folderListParams,
-  });
-
-  const filteredFolders = useMemo(
-    () => filterFoldersBySearch(folders, searchQuery),
-    [folders, searchQuery]
-  );
-
-  const onSearchDebounced = useCallback((value: string) => {
-    setSearchQuery(value);
-  }, []);
-
-  const handleNavigateToFolder = useCallback(
-    (folderId: number) => {
-      navigate(`${routes.folderDetail.replace(":id", folderId.toString())}`);
-    },
-    [navigate, routes.folderDetail]
-  );
-
-  const handleOpenCreateFolder = useCallback(() => {
-    setIsCreateFolderOpen(true);
-  }, []);
-
-  const handleCreateSuccess = useCallback(() => {
-    fetchFolders();
-    setIsCreateFolderOpen(false);
-  }, [fetchFolders]);
-
-  const handleRefresh = useCallback(() => {
-    fetchFolders();
-  }, [fetchFolders]);
-
-  const foldersCountLabel = useMemo(() => {
-    if (loading) return "Loading...";
-    const count = filteredFolders.length;
-    return `${count} ${count === 1 ? "folder" : "folders"}`;
-  }, [filteredFolders.length, loading]);
-
-  const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "-";
-    try {
-      return formatRelativeTime(new Date(dateStr));
-    } catch {
-      return "-";
-    }
-  };
-
-  const getStatusBadgeVariant = (status?: string | null) => {
-    const s = (status ?? "").toLowerCase();
-    if (s === "active") return "success";
-    if (s === "inactive") return "secondary";
-    if (s === "archived") return "warning";
-    if (s === "deleted") return "danger";
-    return "light";
-  };
+  const {
+    routes,
+    viewMode,
+    setViewMode,
+    isCreateFolderOpen,
+    folders,
+    filteredFolders,
+    loading,
+    error,
+    foldersCountLabel,
+    handleSearchDebounced,
+    handleNavigateToFolder,
+    handleOpenCreateFolder,
+    handleCloseCreateFolder,
+    handleCreateSuccess,
+    handleRefresh,
+    formatDate,
+    handleGridKeyDown,
+    getFolderStatusBadgeVariant,
+  } = useFoldersPageContainer();
 
   return (
     <div className="page-wrapper">
@@ -129,7 +68,7 @@ const FoldersPage = () => {
               <SearchInput
                 placeholder={t("folders.searchPlaceholder", { defaultValue: "Search folders..." })}
                 debounceMs={300}
-                onDebouncedChange={onSearchDebounced}
+                onDebouncedChange={handleSearchDebounced}
                 icon="folder-search"
                 wide
                 highlight
@@ -138,7 +77,7 @@ const FoldersPage = () => {
                 aria-label="Search folders"
               />
               
-              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenCreateFolder}>
+                <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenCreateFolder}>
                 <Icon name="folder-plus" className="me-1" />
                 {t("folders.addFolder", { defaultValue: "Add Folder" })}
               </Button>
@@ -198,7 +137,7 @@ const FoldersPage = () => {
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}
-                <Button variant="outline" size="sm" className="btn-outline-secondary ms-2" onClick={() => fetchFolders()}>
+                <Button variant="outline" size="sm" className="btn-outline-secondary ms-2" onClick={handleRefresh}>
                   Retry
                 </Button>
               </Alert>
@@ -219,19 +158,14 @@ const FoldersPage = () => {
                         role="button"
                         tabIndex={0}
                         onClick={() => handleNavigateToFolder(folder.id)}
-                        onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleNavigateToFolder(folder.id);
-                          }
-                        }}
+                        onKeyDown={(e) => handleGridKeyDown(folder.id, e)}
                         style={{ cursor: "pointer" }}
                       >
                         <Card className="flex-fill" bordered={false}>
                           <div className="card-body">
                           <div className="d-flex align-items-center justify-content-between mb-3">
-                            <span className="p-2 br-10 bg-primary-transparent border border-primary d-flex align-items-center justify-content-center">
-                              <Icon name="folder" className="text-primary fs-18" />
+                            <span className="folders__folder-icon p-2 br-10 d-flex align-items-center justify-content-center">
+                              <Icon name="folder" className="folders__folder-icon-symbol fs-18" />
                             </span>
                             <span className="badge bg-light text-dark">
                               Updated {formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}
@@ -291,7 +225,7 @@ const FoldersPage = () => {
                             <td>{folder.department_name || "-"}</td>
                             <td>{folder.document_count ?? folder.docs ?? 0}</td>
                             <td>
-                              <span className={`badge bg-${getStatusBadgeVariant(folder.state)}`}>
+                              <span className={`badge bg-${getFolderStatusBadgeVariant(folder.state)}`}>
                                 {folder.state || "unknown"}
                               </span>
                             </td>
@@ -322,7 +256,7 @@ const FoldersPage = () => {
 
       <CreateFolderSidePanel
         isOpen={isCreateFolderOpen}
-        onClose={() => setIsCreateFolderOpen(false)}
+        onClose={handleCloseCreateFolder}
         onSuccess={handleCreateSuccess}
       />
     </div>

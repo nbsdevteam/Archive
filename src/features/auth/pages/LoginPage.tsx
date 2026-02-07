@@ -202,8 +202,8 @@ export default function LoginPage() {
                       </div>
                       <div className="text-center">
                         <h6 className="fw-normal text-dark mb-0">
-                          Don’t have an account?{" "}
-                          <Link to={all_routes.register} className="hover-a">
+                          Don’t have an account?
+                          <Link to={all_routes.register} className="hover-a ms-1">
                             Create Account
                           </Link>
                         </h6>

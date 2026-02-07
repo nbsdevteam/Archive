@@ -1062,9 +1062,9 @@
     background: variables.$white;
     @include mixins.rounded(6px);
     &:hover {
-        background: variables.$primary-transparent;
-        border-color: variables.$primary-transparent;
-        color: variables.$primary;
+        background: rgba(var(--primary-rgb), 0.12);
+        border-color: rgba(var(--primary-rgb), 0.12);
+        color: rgb(var(--primary-rgb));
         i {
             color: variables.$primary !important;
         }

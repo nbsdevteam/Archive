@@ -3,11 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../imageWithBasePath";
 import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
-import { setExpandMenu } from "../../data/redux/sidebarSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useLayoutStore } from "../../../shared/stores/layoutStore";
+import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { SidebarDataTest } from "../../data/json/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
-import type { AppDispatch } from "../../data/redux/store";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import {
   Sidebar as NbsSidebarImport,
@@ -26,8 +25,6 @@ import {
   Pencil,
   PenTool,
   Bell,
-  BarChart3,
-  Table,
   Shield,
   type LucideIcon,
 } from "lucide-react";
@@ -39,8 +36,6 @@ const iconMap: Record<string, LucideIcon> = {
   Pencil,
   PenTool,
   Bell,
-  BarChart3,
-  Table,
   Shield,
 };
 
@@ -85,11 +80,11 @@ function pickActiveHref(pathname: string, hrefs: string[]): string {
 }
 
 const Sidebar = memo(() => {
-  const dataLayout = useSelector((state: any) => state.themeSetting.dataLayout);
-  const useGlassEffect = dataLayout !== "modern";
+  const { layout } = useLayoutStore();
+  const useGlassEffect = layout !== "modern";
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
+  const { setExpandMenu } = useSidebarUiStore();
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -110,16 +105,16 @@ const Sidebar = memo(() => {
   }, [location.pathname, allHrefs]);
 
   const onMouseEnter = useCallback(() => {
-    dispatch(setExpandMenu(true));
+    setExpandMenu(true);
     if (document.body.classList.contains("mini-sidebar") || document.documentElement.getAttribute("data-size") === "hoverview") {
       document.body.classList.add("expand-menu");
     }
-  }, [dispatch]);
+  }, [setExpandMenu]);
 
   const onMouseLeave = useCallback(() => {
-    dispatch(setExpandMenu(false));
+    setExpandMenu(false);
     document.body.classList.remove("expand-menu");
-  }, [dispatch]);
+  }, [setExpandMenu]);
 
   const handleItemClick = useCallback(
     (href: string) => {
@@ -168,8 +163,9 @@ const Sidebar = memo(() => {
 
   return (
     <div
-      className="sidebar"
+      className={`sidebar${useGlassEffect ? " sidebar--glass" : " sidebar--solid"}`}
       id="sidebar"
+      data-glass={useGlassEffect ? "true" : "false"}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

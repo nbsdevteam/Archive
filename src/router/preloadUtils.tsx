@@ -6,38 +6,23 @@ const preloadComponent =
 
 // Preload critical components for better UX
 export const preloadCriticalComponents = (): void => {
-  preloadComponent(() => import("../feature-module/auth/login/login"))();
-  preloadComponent(() => import("../feature-module/mainMenu/adminDashboard"))();
-  preloadComponent(
-    () =>
-      import("../feature-module/mainMenu/employeeDashboard/employee-dashboard")
-  )();
+  preloadComponent(() => import("../features/auth/pages/LoginPage"))();
+  preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
 };
 
 // Preload components based on user role (archiving system: admin / employee only)
 export const preloadRoleBasedComponents = (userRole: string): void => {
   switch (userRole) {
     case "admin":
-      preloadComponent(
-        () => import("../feature-module/mainMenu/adminDashboard")
-      )();
+      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
       preloadComponent(() => import("../features/archive/pages/ArchiveFolders"))();
       break;
     case "employee":
-      preloadComponent(
-        () =>
-          import(
-            "../feature-module/mainMenu/employeeDashboard/employee-dashboard"
-          )
-      )();
+      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
       preloadComponent(() => import("../features/archive/pages/ArchiveDocuments"))();
       break;
     default:
-      preloadComponent(() => import("../feature-module/mainMenu/adminDashboard"))();
-      preloadComponent(
-        () =>
-          import("../feature-module/mainMenu/employeeDashboard/employee-dashboard")
-      )();
+      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
   }
 };
 
@@ -51,14 +36,6 @@ export const preloadRouteComponents = (currentPath: string): void => {
     preloadComponent(() => import("../features/archive/pages/ArchiveActivity"))();
   }
 
-  if (currentPath.includes("/reports") || currentPath.includes("/charts")) {
-    preloadComponent(
-      () => import("../feature-module/uiInterface/charts/apexcharts")
-    )();
-    preloadComponent(
-      () => import("../feature-module/uiInterface/table/data-tables")
-    )();
-  }
 };
 
 // Preload components on user interaction (hover, focus) – archive & reports only
@@ -75,15 +52,7 @@ export const preloadOnInteraction = (componentPath: string): void => {
     "/archive/activity": () =>
       preloadComponent(() => import("../features/archive/pages/ArchiveActivity"))(),
     "/dashboard": () =>
-      preloadComponent(() => import("../feature-module/mainMenu/adminDashboard"))(),
-    "/reports/charts": () =>
-      preloadComponent(
-        () => import("../feature-module/uiInterface/charts/apexcharts")
-      )(),
-    "/reports/tables": () =>
-      preloadComponent(
-        () => import("../feature-module/uiInterface/table/data-tables")
-      )(),
+      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))(),
   };
 
   const preloadFunc = preloadMap[componentPath];

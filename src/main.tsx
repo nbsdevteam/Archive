@@ -4,6 +4,10 @@ import React from "react";
 
 import "./i18n/config";
 
+// Run theme and layout stores at bootstrap so CSS vars and data-* are set before first paint
+import "./shared/stores/themeColorStore";
+import "./shared/stores/layoutStore";
+
 // Import all CSS and assets (required for styling)
 import "../src/assets/css/bootstrap.min.css";
 import "../src/assets/css/feather.css";

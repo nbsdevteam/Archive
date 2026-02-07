@@ -66,13 +66,13 @@
     &:hover,
     &:focus,
     &:active {
-      color: variables.$primary;
-      background-color: variables.$primary-transparent;
+      color: rgb(var(--primary-rgb));
+      background-color: rgba(var(--primary-rgb), 0.12);
     }
   }
   &.active {
-    background-color: variables.$primary-transparent;
-    color: variables.$primary;
+    background-color: rgba(var(--primary-rgb), 0.12);
+    color: rgb(var(--primary-rgb));
   }
 }
 .dropdown-toggle::after {

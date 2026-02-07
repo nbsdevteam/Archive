@@ -58,7 +58,7 @@ a.edit-icon {
 }
 .todo-item {
     &.todo-strike {
-        background: variables.$primary-transparent;
+        background: rgba(var(--primary-rgb), 0.12);
         .form-check-label {
             text-decoration: line-through;
         }

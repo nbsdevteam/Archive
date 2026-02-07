@@ -1,5 +1,4 @@
 import { type ReactNode, useEffect } from "react";
-import { useAppSelector } from "../../core/data/redux/store";
 import { usePrefersColorScheme } from "../../shared/hooks";
 
 type ThemeProviderProps = {
@@ -7,15 +6,12 @@ type ThemeProviderProps = {
 };
 
 /**
- * ThemeProvider - Thin wrapper around existing Redux theme behavior
- * This adapter maintains the current theme logic while providing a consistent
- * provider interface for the new architecture.
+ * ThemeProvider - Applies system theme preference
+ * Keeps DOM theme attributes in sync with the user's OS setting.
  */
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const dataTheme = useAppSelector((state) => state.themeSetting.dataTheme);
   const { prefersDark } = usePrefersColorScheme();
-  const resolvedTheme =
-    prefersDark || dataTheme === "dark" ? "dark" : "light";
+  const resolvedTheme = prefersDark ? "dark" : "light";
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", resolvedTheme);

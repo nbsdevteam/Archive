@@ -670,6 +670,39 @@
 
         .modern-profile {
             display: block;
+            position: relative;
+            z-index: 2;
+            opacity: 1 !important;
+            filter: none !important;
+
+            /* Ensure profile section is fully visible: clear background and strong text colors */
+            .user-profile {
+                position: relative;
+                z-index: 2;
+                opacity: 1 !important;
+                filter: none !important;
+                mix-blend-mode: normal !important;
+
+                /* Use concrete colors to avoid any variable override making it unreadable */
+                background-color: variables.$white !important;
+                color: variables.$title-color !important;
+
+                h6 {
+                    color: variables.$title-color !important;
+                    opacity: 1 !important;
+                }
+
+                p {
+                    color: variables.$gray-600 !important;
+                    opacity: 1 !important;
+                    filter: none !important;
+                }
+
+                img {
+                    opacity: 1 !important;
+                    filter: none !important;
+                }
+            }
         }
     }
 
@@ -5449,6 +5482,320 @@ body.data-layout-transparent {
     }
 }
 
+[data-color="creamy"] {
+    $primary: variables.$creamy;
+
+    .sidebar {
+        .sidebar-menu>ul {
+            &>li {
+                ul {
+                    li {
+                        a {
+                            &.active {
+                                color: $primary;
+                            }
+                        }
+                    }
+
+                    &>li {
+                        &.active a {
+                            .menu-arrow {
+                                &::before {
+                                    border-right: 2px solid $primary;
+                                    border-bottom: 2px solid $primary;
+                                }
+                            }
+
+                            &.subdrop {
+                                color: $primary;
+
+                                span {
+                                    color: $primary;
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            li {
+                .submenu> {
+                    ul {
+                        li {
+                            a {
+                                &:before {
+                                    background: $primary;
+                                }
+
+                                &.active {
+                                    color: $primary;
+                                }
+
+                                &:hover {
+                                    color: $primary;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .submenu.submenu-two {
+                    a {
+
+                        &.subdrop,
+                        &.active {
+                            color: $primary;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .sidebar-twocol {
+        &.sidebar {
+            .sidebar-right {
+                ul {
+                    li {
+                        &.submenu {
+                            ul {
+                                &>li {
+                                    &>a {
+
+                                        &:hover,
+                                        &.active {
+                                            color: $primary;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .btn-primary {
+        background-color: $primary;
+        border: 1px solid $primary;
+
+        &:hover,
+        &:focus,
+        &.focus,
+        &:active,
+        &.active {
+            background-color: color.adjust($primary, $lightness: -7%);
+            border: 1px solid color.adjust($primary, $lightness: -7%);
+        }
+    }
+
+    .btn-check:checked+.btn,
+    .btn.active,
+    .btn.show,
+    .btn.show:hover,
+    .btn:first-child:active,
+    :not(.btn-check)+.btn:active {
+        background-color: $primary;
+        border-color: $primary;
+    }
+
+    .link-primary {
+        color: $primary !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: color.adjust($primary, $lightness: -7%);
+        }
+    }
+
+    .text-primary {
+        color: $primary !important;
+    }
+
+    .badge {
+        &.badge-primary {
+            background: $primary;
+        }
+    }
+
+    .dataTables_paginate .pagination li.active a.page-link {
+        background: $primary;
+        border-color: $primary;
+    }
+
+    .bg-primary {
+        background-color: $primary !important;
+        border: 1px solid $primary !important;
+    }
+
+    .border-bottom.border-primary {
+        border-color: $primary !important;
+    }
+
+    .border-primary {
+        border-color: $primary !important;
+    }
+
+    .nav-tabs.nav-tabs-bottom li a.active,
+    .nav-tabs.nav-tabs-bottom li a:hover {
+        border-bottom-color: $primary;
+        color: $primary;
+    }
+
+    .badge {
+        &.badge-soft-primary {
+            background: rgba($primary, 0.1);
+            color: $primary;
+
+        }
+    }
+
+    a {
+        &:hover {
+            color: $primary;
+        }
+
+        &.video-expand {
+            &:hover {
+                color: variables.$white;
+            }
+        }
+    }
+
+    .btn-outline-primary {
+        border: 1px solid $primary !important;
+        color: $primary !important;
+
+        &:hover,
+        &:focus,
+        &.focus,
+        &:active,
+        &.active {
+            background-color: $primary !important;
+            border: 1px solid $primary !important;
+            color: variables.$white !important;
+        }
+    }
+
+    .select2-container--default {
+        &.select2-container--open.select2-container--below .select2-selection--single {
+            border-color: $primary;
+        }
+
+        .select2-results__option--highlighted[aria-selected] {
+            background: $primary;
+        }
+    }
+
+    .nav-tabs.nav-tabs-solid.nav-tabs-rounded-fill li a {
+        &.active {
+            background-color: $primary;
+            border-color: $primary;
+        }
+    }
+
+    .nav-tabs .nav-link {
+        &:hover {
+            color: $primary;
+        }
+    }
+
+    .form-check-input {
+        &:checked {
+            background-color: $primary;
+            border-color: $primary;
+        }
+    }
+
+    .sidebar-contact .toggle-theme {
+        background-color: $primary;
+
+        @include mixins.respond-below(lg) {
+            display: none;
+        }
+    }
+
+    .header .header-user .user-menu {
+        .profile-dropdown {
+            .dropdown-item:hover {
+                color: $primary;
+            }
+        }
+    }
+
+    #sales-income,
+    #revenue-income,
+    #leads_stage,
+    #s-col,
+    #s-col-stacked {
+        .apexcharts-bar-series {
+            .apexcharts-series:nth-child(1) path {
+                fill: $primary;
+            }
+        }
+    }
+
+    #deals_stage,
+    #emp-department,
+    #s-bar,
+    #mixed-chart {
+        .apexcharts-bar-series {
+            .apexcharts-series path {
+                fill: $primary;
+            }
+        }
+    }
+
+    #mixed-chart,
+    #s-col-stacked,
+    #s-col {
+        .apexcharts-legend-series:first-child .apexcharts-legend-marker {
+            fill: $primary;
+        }
+    }
+
+    #s-line {
+        .apexcharts-line-series {
+            .apexcharts-series path {
+                stroke: $primary;
+            }
+
+            .apexcharts-marker {
+                fill: $primary;
+            }
+        }
+    }
+
+    #chart-bar-stacked,
+    #chart-bar,
+    #chart-bar-rotated {
+        .c3-target-data2 .c3-bar {
+            fill: $primary !important;
+        }
+    }
+
+    #chart-spline-rotated .c3-target-data2 {
+        .c3-line {
+            stroke: $primary !important;
+        }
+
+        .c3-circle {
+            fill: $primary;
+        }
+    }
+
+    .nav.tab-style-1 .nav-link.active {
+        background-color: $primary !important;
+    }
+
+    .table tbody tr td a:hover {
+        color: $primary;
+    }
+}
+
 [data-color="primary"] {
     $primary: #F26522;
 
@@ -7678,7 +8025,7 @@ body.data-layout-transparent {
 }
 
 [data-color="all"] {
-    $primary: var(--primary-rgb-picr);
+    $primary: rgb(var(--primary-rgb-picr));
 
     .sidebar {
         .sidebar-menu>ul {
@@ -7687,7 +8034,7 @@ body.data-layout-transparent {
                     li {
                         a {
                             &.active {
-                                color: rgba($primary, 1);
+                                color: rgba(var(--primary-rgb-picr), 1);
                             }
                         }
 
@@ -7696,7 +8043,7 @@ body.data-layout-transparent {
 
                                 span,
                                 i {
-                                    color: rgba($primary, 1);
+                                    color: rgba(var(--primary-rgb-picr), 1);
                                 }
                             }
                         }
@@ -7706,16 +8053,16 @@ body.data-layout-transparent {
                         &.active a {
                             .menu-arrow {
                                 &::before {
-                                    border-right: 2px solid rgba($primary, 1);
-                                    border-bottom: 2px solid rgba($primary, 1);
+                                    border-right: 2px solid rgba(var(--primary-rgb-picr), 1);
+                                    border-bottom: 2px solid rgba(var(--primary-rgb-picr), 1);
                                 }
                             }
 
                             &.subdrop {
-                                color: rgba($primary, 1);
+                                color: rgba(var(--primary-rgb-picr), 1);
 
                                 span {
-                                    color: rgba($primary, 1);
+                                    color: rgba(var(--primary-rgb-picr), 1);
 
                                 }
                             }
@@ -7730,15 +8077,15 @@ body.data-layout-transparent {
                         li {
                             a {
                                 &:before {
-                                    background: rgba($primary, 1);
+                                    background: rgba(var(--primary-rgb-picr), 1);
                                 }
 
                                 &.active {
-                                    color: rgba($primary, 1);
+                                    color: rgba(var(--primary-rgb-picr), 1);
                                 }
 
                                 &:hover {
-                                    color: rgba($primary, 1);
+                                    color: rgba(var(--primary-rgb-picr), 1);
                                 }
                             }
                         }
@@ -7750,7 +8097,7 @@ body.data-layout-transparent {
 
                         &.subdrop,
                         &.active {
-                            color: rgba($primary, 1);
+                            color: rgba(var(--primary-rgb-picr), 1);
                         }
                     }
                 }
@@ -7759,7 +8106,7 @@ body.data-layout-transparent {
 
         .nav-link {
             &.active {
-                color: rgba($primary, 1);
+                color: rgba(var(--primary-rgb-picr), 1);
             }
         }
     }
@@ -7776,7 +8123,7 @@ body.data-layout-transparent {
 
                                         &:hover,
                                         &.active {
-                                            color: rgba($primary, 1);
+                                            color: rgba(var(--primary-rgb-picr), 1);
                                         }
                                     }
                                 }
@@ -7789,16 +8136,16 @@ body.data-layout-transparent {
     }
 
     .btn-primary {
-        background-color: rgba($primary, 1);
-        border: 1px solid rgba($primary, 1);
+        background-color: rgba(var(--primary-rgb-picr), 1);
+        border: 1px solid rgba(var(--primary-rgb-picr), 1);
 
         &:hover,
         &:focus,
         &.focus,
         &:active,
         &.active {
-            background-color: rgba($primary, 2);
-            border: 1px solid rgba($primary, 2);
+            background-color: rgba(var(--primary-rgb-picr), 0.9);
+            border: 1px solid rgba(var(--primary-rgb-picr), 0.9);
         }
     }
 
@@ -7808,120 +8155,120 @@ body.data-layout-transparent {
     .btn.show:hover,
     .btn:first-child:active,
     :not(.btn-check)+.btn:active {
-        background-color: rgba($primary, 1);
-        border-color: rgba($primary, 1);
+        background-color: rgba(var(--primary-rgb-picr), 1);
+        border-color: rgba(var(--primary-rgb-picr), 1);
     }
 
     .link-primary {
-        color: rgba($primary, 1) !important;
+        color: rgba(var(--primary-rgb-picr), 1) !important;
 
         &:hover,
         &:focus,
         &:active {
-            color: rgba($primary, 1);
+            color: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .text-primary {
-        color: rgba($primary, 1) !important;
+        color: rgba(var(--primary-rgb-picr), 1) !important;
     }
 
     .badge {
         &.badge-primary {
-            background: rgba($primary, 1);
+            background: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .dataTables_paginate .pagination li.active a.page-link {
-        background: rgba($primary, 1);
-        border-color: rgba($primary, 1);
+        background: rgba(var(--primary-rgb-picr), 1);
+        border-color: rgba(var(--primary-rgb-picr), 1);
     }
 
     .bg-primary {
-        background-color: rgba($primary, 1) !important;
-        border: 1px solid rgba($primary, 1) !important;
+        background-color: rgba(var(--primary-rgb-picr), 1) !important;
+        border: 1px solid rgba(var(--primary-rgb-picr), 1) !important;
     }
 
     .border-bottom.border-primary {
-        border-color: rgba($primary, 1) !important;
+        border-color: rgba(var(--primary-rgb-picr), 1) !important;
     }
 
     .border-primary {
-        border-color: rgba($primary, 1) !important;
+        border-color: rgba(var(--primary-rgb-picr), 1) !important;
     }
 
     .nav-tabs.nav-tabs-bottom li a.active,
     .nav-tabs.nav-tabs-bottom li a:hover {
-        border-bottom-color: rgba($primary, 1);
-        color: rgba($primary, 1);
+        border-bottom-color: rgba(var(--primary-rgb-picr), 1);
+        color: rgba(var(--primary-rgb-picr), 1);
     }
 
     .badge {
         &.badge-soft-primary {
-            background: rgba($primary, 0.1);
-            color: rgba($primary, 1);
+            background: rgba(var(--primary-rgb-picr), 0.1);
+            color: rgba(var(--primary-rgb-picr), 1);
 
         }
     }
 
     a {
         &:hover {
-            color: rgba($primary, 1);
+            color: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .btn-outline-primary {
-        border: 1px solid rgba($primary, 1) !important;
-        color: rgba($primary, 1) !important;
+        border: 1px solid rgba(var(--primary-rgb-picr), 1) !important;
+        color: rgba(var(--primary-rgb-picr), 1) !important;
 
         &:hover,
         &:focus,
         &.focus,
         &:active,
         &.active {
-            background-color: rgba($primary, 1) !important;
-            border: 1px solid rgba($primary, 1) !important;
+            background-color: rgba(var(--primary-rgb-picr), 1) !important;
+            border: 1px solid rgba(var(--primary-rgb-picr), 1) !important;
         }
     }
 
     .select2-container--default {
         &.select2-container--open.select2-container--below .select2-selection--single {
-            border-color: rgba($primary, 1);
+            border-color: rgba(var(--primary-rgb-picr), 1);
         }
 
         .select2-results__option--highlighted[aria-selected] {
-            background: rgba($primary, 1);
+            background: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .nav-tabs.nav-tabs-solid.nav-tabs-rounded-fill li a {
         &.active {
-            background-color: rgba($primary, 1);
-            border-color: rgba($primary, 1);
+            background-color: rgba(var(--primary-rgb-picr), 1);
+            border-color: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .nav-tabs .nav-link {
         &:hover {
-            color: rgba($primary, 1);
+            color: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .form-check-input {
         &:checked {
-            background-color: rgba($primary, 1);
-            border-color: rgba($primary, 1);
+            background-color: rgba(var(--primary-rgb-picr), 1);
+            border-color: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .sidebar-contact .toggle-theme {
-        background-color: rgba($primary, 1);
+        background-color: rgba(var(--primary-rgb-picr), 1);
     }
 
     .header .header-user .user-menu {
         .profile-dropdown {
             .dropdown-item:hover {
-                color: rgba($primary, 1);
+                color: rgba(var(--primary-rgb-picr), 1);
             }
         }
     }
@@ -7933,7 +8280,7 @@ body.data-layout-transparent {
     #s-col-stacked {
         .apexcharts-bar-series {
             .apexcharts-series:nth-child(1) path {
-                fill: rgba($primary, 1);
+                fill: rgba(var(--primary-rgb-picr), 1);
             }
         }
     }
@@ -7944,7 +8291,7 @@ body.data-layout-transparent {
     #mixed-chart {
         .apexcharts-bar-series {
             .apexcharts-series path {
-                fill: rgba($primary, 1);
+                fill: rgba(var(--primary-rgb-picr), 1);
             }
         }
     }
@@ -7953,18 +8300,18 @@ body.data-layout-transparent {
     #s-col-stacked,
     #s-col {
         .apexcharts-legend-series:first-child .apexcharts-legend-marker {
-            fill: rgba($primary, 1);
+            fill: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     #s-line {
         .apexcharts-line-series {
             .apexcharts-series path {
-                stroke: rgba($primary, 1);
+                stroke: rgba(var(--primary-rgb-picr), 1);
             }
 
             .apexcharts-marker {
-                fill: rgba($primary, 1);
+                fill: rgba(var(--primary-rgb-picr), 1);
             }
         }
     }
@@ -7973,26 +8320,26 @@ body.data-layout-transparent {
     #chart-bar,
     #chart-bar-rotated {
         .c3-target-data2 .c3-bar {
-            fill: rgba($primary, 1) !important;
+            fill: rgba(var(--primary-rgb-picr), 1) !important;
         }
     }
 
     #chart-spline-rotated .c3-target-data2 {
         .c3-line {
-            stroke: rgba($primary, 1) !important;
+            stroke: rgba(var(--primary-rgb-picr), 1) !important;
         }
 
         .c3-circle {
-            fill: rgba($primary, 1);
+            fill: rgba(var(--primary-rgb-picr), 1);
         }
     }
 
     .nav.tab-style-1 .nav-link.active {
-        background-color: rgba($primary, 1);
+        background-color: rgba(var(--primary-rgb-picr), 1);
     }
 
     .table tbody tr td a:hover {
-        color: rgba($primary, 1);
+        color: rgba(var(--primary-rgb-picr), 1);
     }
 }
 
@@ -8973,8 +9320,6 @@ body {
     .accordion-button {
         background-color: variables.$darkmode-white;
         color: $text-color;
-
-        &:not(.collapsed) {}
 
         &:after {
             content: "\f078";

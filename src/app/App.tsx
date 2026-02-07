@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { AppProviders } from "./providers/AppProviders";
 import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
-import { useAppSelector } from "../core/data/redux/store";
 import { usePrefersColorScheme } from "../shared/hooks";
 
 const RTL_BODY_CLASS = "layout-mode-rtl";
@@ -31,10 +30,8 @@ function RtlSync() {
  * ToastContainer with resolved theme from Redux + system preference.
  */
 const ThemedToastContainer = () => {
-  const dataTheme = useAppSelector((state) => state.themeSetting.dataTheme);
   const { prefersDark } = usePrefersColorScheme();
-  const resolvedTheme =
-    prefersDark || dataTheme === "dark" ? "dark" : "light";
+  const resolvedTheme = prefersDark ? "dark" : "light";
 
   return (
     <ToastContainer

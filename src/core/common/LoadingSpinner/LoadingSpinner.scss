@@ -30,8 +30,8 @@
   position: relative;
   width: 40px;
   height: 40px;
-  border: 3px solid #f0ebe3;
-  border-top: 3px solid var(--loading-spinner-color, #c9a86c);
+  border: 3px solid rgba(var(--primary-rgb), 0.12);
+  border-top: 3px solid rgb(var(--primary-rgb));
   border-radius: 50%;
   animation: spin 1s linear infinite;
 
@@ -42,7 +42,7 @@
     width: 40px;
     height: 40px;
     border: 3px solid transparent;
-    border-top: 3px solid rgba(201, 168, 108, 0.35);
+    border-top: 3px solid rgba(var(--primary-rgb), 0.35);
     border-radius: 50%;
     animation: spin 1.5s linear infinite reverse;
   }

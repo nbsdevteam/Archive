@@ -1,92 +1,31 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 import { Route, Routes } from "react-router-dom";
-import { authRoutes, publicRoutes, layoutRoutes } from "./router.link";
-import { LoadingSpinner } from "../core/common/LoadingSpinner";
+import { authRoutes, publicRoutes } from "./router.link";
 import { ProtectedRoute } from "../app/routes/ProtectedRoute";
-
-// Lazy load the main feature components
-const LazyFeature = lazy(() => import("../feature-module/feature"));
-const LazyAuthFeature = lazy(() => import("../feature-module/authFeature"));
-const LazyLayoutFeature = lazy(() => import("../feature-module/layoutFeature"));
+import { AppShell } from "../shared/layout/AppShell";
+import { AuthShell } from "../shared/layout/AuthShell";
 
 const ALLRoutes: React.FC = () => {
   return (
-    <>
-      <Routes>
-        {/* Main application routes - require authentication */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Suspense
-                fallback={<LoadingSpinner />}
-              >
-                <LazyFeature />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          {publicRoutes.map((route, idx) => (
-            <Route
-              path={route.path}
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  {route.element}
-                </Suspense>
-              }
-              key={idx}
-            />
-          ))}
-        </Route>
+    <Routes>
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
+        {publicRoutes.map((route, idx) => (
+          <Route path={route.path} element={route.element} key={`app-${idx}`} />
+        ))}
+      </Route>
 
-        {/* Layout demo routes - protected, same as main app */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Suspense
-                fallback={<LoadingSpinner />}
-              >
-                <LazyLayoutFeature />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          {layoutRoutes.map((route, idx) => (
-            <Route
-              path={route.path}
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  {route.element}
-                </Suspense>
-              }
-              key={`layout-${idx}`}
-            />
-          ))}
-        </Route>
-
-        {/* Authentication routes */}
-        <Route
-          element={
-            <Suspense
-              fallback={<LoadingSpinner />}
-            >
-              <LazyAuthFeature />
-            </Suspense>
-          }
-        >
-          {authRoutes.map((route, idx) => (
-            <Route
-              path={route.path}
-              element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  {route.element}
-                </Suspense>
-              }
-              key={idx}
-            />
-          ))}
-        </Route>
-      </Routes>
-    </>
+      <Route element={<AuthShell />}>
+        {authRoutes.map((route, idx) => (
+          <Route path={route.path} element={route.element} key={`auth-${idx}`} />
+        ))}
+      </Route>
+    </Routes>
   );
 };
 

@@ -1,6 +1,10 @@
 @use "variables";
 
 :root {
+  /* Theme primary (creamy default); JS themeColorStore overrides these on app bootstrap */
+  --primary-rgb: 201, 168, 108;
+  --primary-rgb-picr: 201, 168, 108;
+
   --app-body-bg: #{variables.$body-bg};
   --app-surface-bg: #{variables.$default-background};
   --app-border-color: #{variables.$border-color};
@@ -9,6 +13,7 @@
   --app-title-color: #{variables.$title-color};
   --app-link-color: #{variables.$link-color};
   --app-link-muted-color: #{variables.$gray-500};
+  --app-placeholder-color: rgba(var(--primary-rgb), 0.6);
 
   --bs-body-bg: var(--app-body-bg);
   --bs-body-color: var(--app-text-color);

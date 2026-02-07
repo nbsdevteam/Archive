@@ -1,94 +1,24 @@
-import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { useArchiveUpload } from "../hooks";
-import type { UploadDocumentParams } from "../types/archive.types";
 import { Button, Icon } from "../../../shared/components/ui";
+import { useArchiveUploadPageContainer } from "../containers/useArchiveUploadPageContainer";
 
 const ArchiveUpload = () => {
   const routes = all_routes;
-  const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [formData, setFormData] = useState({
-    title: "",
-    department_id: 1,
-    document_type_id: 1,
-    confidentiality_level: "internal",
-  });
-
-  // Use container with static data by default (useApi=false)
-  const { handleUpload, uploading, error, uploadedDocument } = useArchiveUpload({ useApi: false });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
-    } else {
-      setSelectedFiles([]);
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== index));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleClearAllFiles = () => {
-    setSelectedFiles([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove data URL prefix if present
-        const base64 = result.includes(",") ? result.split(",")[1] : result;
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (selectedFiles.length === 0) {
-      alert("Please select at least one file");
-      return;
-    }
-
-    try {
-      // Upload first file (can be extended to handle multiple files)
-      const file = selectedFiles[0];
-      const fileData = await convertFileToBase64(file);
-
-      const uploadParams: UploadDocumentParams = {
-        department_id: formData.department_id,
-        document_type_id: formData.document_type_id,
-        title: formData.title || file.name,
-        file_data: fileData,
-        file_name: file.name,
-        confidentiality_level: formData.confidentiality_level,
-      };
-
-      await handleUpload(uploadParams);
-      
-      // Navigate to documents page on success
-      if (uploadedDocument) {
-        navigate(routes.archiveDocuments);
-      }
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
-  };
+  const {
+    fileInputRef,
+    selectedFiles,
+    formData,
+    uploading,
+    error,
+    uploadedDocument,
+    setFormData,
+    handleFileChange,
+    handleRemoveFile,
+    handleClearAllFiles,
+    handleSubmit,
+  } = useArchiveUploadPageContainer();
 
   return (
     <div className="page-wrapper">

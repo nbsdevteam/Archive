@@ -1,40 +1,4 @@
 // ============================================================================
-// REDUX STORE TYPES
-// ============================================================================
-
-export interface ThemeSettingState {
-  dataLayout: string;
-  dataWidth: string;
-  dataCard: string;
-  dataSidebar: string;
-  dataSidebarAll: string;
-  dataTopbarAll: string;
-  dataTopBarColorAll: string;
-  dataColorAll: string;
-  dataTheme: string;
-  dataTopBar: string;
-  dataTopBarColor: string;
-  dataSidebarBg: string;
-  dataTopbarBg: string;
-  dataColor: string;
-  dataLoader: string;
-  isRtl: boolean | string;
-  headerCollapse: boolean;
-}
-
-export interface SidebarState {
-  mobileSidebar: boolean;
-  miniSidebar: boolean;
-  expandMenu: boolean;
-  resetMobileSidebar: boolean;
-}
-
-export interface RootState {
-  themeSetting: ThemeSettingState;
-  sidebarSlice: SidebarState;
-}
-
-// ============================================================================
 // MENU & NAVIGATION TYPES
 // ============================================================================
 

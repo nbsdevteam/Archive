@@ -213,9 +213,9 @@
                                 }
                             }
                             &.subdrop{
-                                background: variables.$primary-transparent;
+                                background: rgba(var(--primary-rgb), 0.12);
                                 border-radius: 5px;
-                                color: variables.$primary;
+                                color: rgb(var(--primary-rgb));
                                 i{
                                     color:variables.$white;
                                     background:variables.$white;

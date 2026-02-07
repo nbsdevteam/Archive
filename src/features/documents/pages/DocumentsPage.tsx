@@ -1,74 +1,30 @@
-import { useCallback, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { all_routes } from "../../../router/all_routes";
-import { useDocumentStore } from "../stores/documentStore";
 import { UploadDocumentSidePanel } from "../components";
-import { useRunOnceOnMount } from "../../../shared/hooks";
 import { Button, Spinner, Alert, Icon, SearchInput } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { useDocumentsPageContainer } from "../containers/useDocumentsPageContainer";
 import "../styles/documents.css";
 
 /**
  * DocumentsPage - Documents management page with search and table
  */
 const DocumentsPage = () => {
-  const routes = all_routes;
-  const navigate = useNavigate();
-  const { documents, isLoading, fetchDocuments, error, clearError, pagination } = useDocumentStore();
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const lastSearchRef = useRef<string>("");
-
-  useRunOnceOnMount(fetchDocuments);
-
-  const onSearchDebounced = useCallback((value: string) => {
-    const hadSearch = lastSearchRef.current.length >= 1;
-    lastSearchRef.current = value;
-    if (value.length >= 1) {
-      fetchDocuments({ search: value });
-    } else if (hadSearch) {
-      fetchDocuments();
-    }
-  }, [fetchDocuments]);
-
-  const handleNavigateToDocument = useCallback((documentId: number) => {
-    navigate(`${routes.documentDetail.replace(":id", documentId.toString())}`);
-  }, [navigate, routes.documentDetail]);
-
-  const handleOpenUpload = useCallback(() => {
-    setIsUploadOpen(true);
-  }, []);
-
-  const handleUploadSuccess = useCallback(() => {
-    if (lastSearchRef.current) {
-      fetchDocuments({ search: lastSearchRef.current });
-    } else {
-      fetchDocuments();
-    }
-    setIsUploadOpen(false);
-  }, [fetchDocuments]);
-
-  const handleRetry = useCallback(() => {
-    clearError();
-    fetchDocuments();
-  }, [clearError, fetchDocuments]);
-
-  const handleRefresh = useCallback(() => {
-    if (lastSearchRef.current.length >= 1) {
-      fetchDocuments({ search: lastSearchRef.current });
-    } else {
-      fetchDocuments();
-    }
-  }, [fetchDocuments]);
-
-  const getStatusBadgeVariant = (status?: string) => {
-    if (!status) return "secondary";
-    const s = status.toLowerCase();
-    if (s === "active") return "success";
-    if (s === "failed" || s === "error" || s === "rejected") return "danger";
-    if (s === "archived") return "secondary";
-    return "info";
-  };
+  const {
+    routes,
+    documents,
+    isLoading,
+    error,
+    isUploadOpen,
+    handleSearchDebounced,
+    handleNavigateToDocument,
+    handleOpenUpload,
+    handleCloseUpload,
+    handleUploadSuccess,
+    handleRetry,
+    handleRefresh,
+    getDocumentStatusBadgeVariant,
+  } = useDocumentsPageContainer();
 
   return (
     <div className="page-wrapper">
@@ -108,7 +64,7 @@ const DocumentsPage = () => {
               <SearchInput
                 placeholder="Search documents..."
                 debounceMs={300}
-                onDebouncedChange={onSearchDebounced}
+                onDebouncedChange={handleSearchDebounced}
                 icon="file-search-corner"
                 wide
                 highlight
@@ -180,7 +136,7 @@ const DocumentsPage = () => {
                               : "-"}
                           </td>
                           <td>
-                            <span className={`badge bg-${getStatusBadgeVariant(doc.status)}`}>
+                            <span className={`badge bg-${getDocumentStatusBadgeVariant(doc.status)}`}>
                               {doc.status || "unknown"}
                             </span>
                           </td>
@@ -210,7 +166,7 @@ const DocumentsPage = () => {
 
       <UploadDocumentSidePanel
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
+        onClose={handleCloseUpload}
         onSuccess={handleUploadSuccess}
       />
     </div>

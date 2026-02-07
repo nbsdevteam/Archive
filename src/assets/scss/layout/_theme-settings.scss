@@ -164,6 +164,11 @@
             transform: translate(-50%, -50%);
             border-radius: 50%;
         }
+        &.creamy-clr{
+            &::before {
+                background: variables.$creamy;
+            }
+        }
         &.primary-clr{
             &::before {
                 background: variables.$primary;
@@ -204,11 +209,11 @@
         display: none;
         &:checked{
             ~ label{
-                border-color: variables.$primary;
+                border-color: rgb(var(--primary-rgb-picr));
                 &:after{
                     content: "\f00c";
                     font-family: "Font Awesome 5 Free";
-                    color: variables.$primary;
+                    color: rgb(var(--primary-rgb-picr));
                     font-weight: 700;
                     font-size: variables.$font-size-8;
                     display: flex;

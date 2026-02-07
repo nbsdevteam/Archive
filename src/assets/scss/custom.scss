@@ -11,15 +11,15 @@ a {
   display: none;
 }
 
+/* Theme-based table row striping and hover – apply to all Ant Design tables */
+.ant-table-wrapper .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1),
+.data-table-card .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1) {
+  background-color: rgba(var(--primary-rgb), 0.04);
+}
+
 .data-table-card {
   .ant-table-content {
     .ant-table-tbody {
-      tr {
-        &:nth-of-type(2n + 1) {
-          background-color: #fff;
-        }
-      }
-
       td {
         padding: 0.5rem;
       }
@@ -28,8 +28,50 @@ a {
 }
 
 .ant-table-cell-row-hover {
-  background-color: #fff;
-  background: #fff;
+  background-color: rgba(var(--primary-rgb), 0.08);
+  background: rgba(var(--primary-rgb), 0.08);
+}
+
+[data-theme="dark"] .ant-table-wrapper .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1),
+[data-theme="dark"] .data-table-card .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1) {
+  background-color: rgba(var(--primary-rgb), 0.08);
+}
+
+[data-theme="dark"] .ant-table-cell-row-hover {
+  background-color: rgba(var(--primary-rgb), 0.16);
+  background: rgba(var(--primary-rgb), 0.16);
+}
+
+/* Theme-based row striping and hover for Bootstrap HTML tables */
+.table-striped > tbody > tr:nth-of-type(odd) > *,
+.table > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(var(--primary-rgb), 0.06) !important;
+}
+
+.table > tbody > tr:hover > * {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > *,
+[data-theme="dark"] .table > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+[data-theme="dark"] .table > tbody > tr:hover > * {
+  background-color: rgba(var(--primary-rgb), 0.2) !important;
+}
+
+/* Ensure Bootstrap table variables use the theme color */
+.table {
+  --bs-table-striped-bg: rgba(var(--primary-rgb), 0.06);
+  --bs-table-striped-color: inherit;
+  --bs-table-hover-bg: rgba(var(--primary-rgb), 0.12);
+  --bs-table-hover-color: inherit;
+}
+
+[data-theme="dark"] .table {
+  --bs-table-striped-bg: rgba(var(--primary-rgb), 0.12);
+  --bs-table-hover-bg: rgba(var(--primary-rgb), 0.2);
 }
 
 .ant-pagination .ant-pagination-item {
@@ -45,8 +87,8 @@ a {
 //ant datatable pagination
 .ant-pagination-item.ant-pagination-item-1.ant-pagination-item-active {
   color: #fff;
-  background-color: #f26522;
-  border-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
+  border-color: rgb(var(--primary-rgb));
 }
 
 // manage columns in datatable page
@@ -1279,7 +1321,7 @@ th.ant-table-cell {
 .ant-table-wrapper .ant-table-thead > tr > td {
   color: #111827;
   font-weight: 400;
-  background: #e5e7eb;
+  background: rgba(var(--primary-rgb), 0.1);
   border-bottom: 1px solid #e9edf4;
   font-size: 14px;
 }
@@ -1775,8 +1817,8 @@ span.p-dropdown-label.p-inputtext span {
   .ant-table-wrapper .ant-table-thead > tr > td {
     color: #e5e7eb;
     font-weight: 400;
-    background: #101010;
-    border-bottom: 1px solid #101010;
+    background: rgba(var(--primary-rgb), 0.12);
+    border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
     font-size: 14px;
   }
   .ant-table-wrapper .ant-table-column-sorter {
@@ -1930,7 +1972,55 @@ span.p-dropdown-label.p-inputtext span {
   color: #6b7280;
 }
 .sidebar .sidebar-menu > ul li .submenu > ul li a.active span {
-  color: #f26522;
+  color: rgb(var(--primary-rgb));
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a.active,
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a.subdrop {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a:hover {
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul li .submenu > ul li a.active,
+.sidebar[data-glass="false"] .sidebar-menu > ul li .submenu > ul li a:hover {
+  color: rgb(var(--primary-rgb)) !important;
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] {
+  --nbs-sidebar-active-bg: rgba(var(--primary-rgb), 0.12);
+  --nbs-sidebar-active-text: rgb(var(--primary-rgb));
+  --nbs-sidebar-active-border: rgba(var(--primary-rgb), 0.2);
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] button:hover {
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] button[class*="activePrimary"] {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+  color: rgb(var(--primary-rgb)) !important;
+  border-color: rgba(var(--primary-rgb), 0.2) !important;
+}
+
+.select-details .css-1jqq78o-placeholder,
+.select-priority .css-1jqq78o-placeholder,
+.form-sort .css-1jqq78o-placeholder,
+.form-sort.select-bluk.space-not-select .css-1jqq78o-placeholder,
+div.css-1jqq78o-placeholder,
+.react-select__placeholder.css-1jqq78o-placeholder,
+.form-sort .css-1jqq78o-placeholder,
+.react-select__placeholder,
+span.p-dropdown-label.p-inputtext.p-placeholder,
+.ant-picker-input > input::placeholder,
+[data-theme="dark"].ant-picker-input > input::placeholder,
+[data-theme="dark"]div.css-1jqq78o-placeholder {
+  color: var(--app-placeholder-color);
 }
 
 //New Proper Style
@@ -1964,7 +2054,7 @@ span.p-dropdown-label.p-inputtext span {
     }
   }
   .in-range {
-    background-color: #fef1eb !important;
+    background-color: rgba(var(--primary-rgb), 0.12) !important;
   }
 }
 [data-size="hoverview"] {

@@ -1,16 +1,13 @@
 
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { setHeaderCollapse } from "../../data/redux/themeSettingSlice";
+import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 
 const CollapseHeader = () => {
-  const dispatch = useDispatch();
-  const headerCollapse = useSelector((state: any) => state.themeSetting.headerCollapse);
+  const { headerCollapse, setHeaderCollapse } = useSidebarUiStore();
 
   const toggleHeaderCollapse = () => {
-    dispatch(setHeaderCollapse(!headerCollapse));
-    
+    setHeaderCollapse(!headerCollapse);
   };
 
   return (

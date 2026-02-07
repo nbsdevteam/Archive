@@ -1,54 +1,17 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { searchApi } from "../../../app/adapter/api/search.api";
 import type { SearchResult } from "../../../app/adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
-import { setDataLayout } from "../../data/redux/themeSettingSlice";
 import ImageWithBasePath from "../imageWithBasePath";
-import {
-  setMobileSidebar,
-  toggleMiniSidebar,
-} from "../../data/redux/sidebarSlice";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ThemeToggleButton } from "../../../shared/components/ui";
+import { Button } from "../../../shared/components/ui";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
-import { HorizontalSidebarData } from "../../data/json/horizontalSidebar";
 import React from "react";
-import type {
-  AppRootState as RootState,
-  AppDispatch,
-} from "../../data/redux/store";
-import type {
-  HorizontalMainMenu,
-  HorizontalMenuItem,
-  HorizontalSubMenu,
-} from "../../data/types";
+import type { HorizontalMenuItem, HorizontalSubMenu } from "../../data/types";
 
-// Helper to get all routes from a menu item recursively
-const getAllRoutes = (item: HorizontalSubMenu): string[] => {
-  const routes: string[] = [];
-  if (item.route) routes.push(item.route);
-  if (item.subMenusTwo) {
-    item.subMenusTwo.forEach((sub) => {
-      routes.push(...getAllRoutes(sub));
-    });
-  }
-  if (item.subMenusThree) {
-    item.subMenusThree.forEach((sub: HorizontalSubMenu) => {
-      routes.push(...getAllRoutes(sub));
-    });
-  }
-  if (item.subMenusFour) {
-    item.subMenusFour.forEach((sub: HorizontalSubMenu) => {
-      routes.push(...getAllRoutes(sub));
-    });
-  }
-  return routes;
-};
-
-// Helper to check if any child has the active route
 const hasActiveChild = (
   subMenus: HorizontalSubMenu[] | undefined,
   currentPath: string
@@ -69,11 +32,7 @@ const hasActiveChild = (
 const Header = React.memo(() => {
   const { t } = useTranslation();
   const routes = all_routes;
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const dataLayout = useSelector(
-    (state: RootState) => state.themeSetting.dataLayout
-  );
   const Location = useLocation();
   const headerSearchRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
@@ -84,8 +43,6 @@ const Header = React.memo(() => {
     });
   }, [logout, navigate]);
 
-  // Multi-level menu open states (using Set for multiple open menus)
-  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [openSubMenus, setOpenSubMenus] = useState<Set<string>>(new Set());
   const [openSubMenusTwo, setOpenSubMenusTwo] = useState<Set<string>>(
     new Set()
@@ -93,19 +50,6 @@ const Header = React.memo(() => {
   const [openSubMenusThree, setOpenSubMenusThree] = useState<Set<string>>(
     new Set()
   );
-
-  // Toggle functions for each level
-  const toggleMenu = useCallback((menuValue: string) => {
-    setOpenMenus((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(menuValue)) {
-        newSet.delete(menuValue);
-      } else {
-        newSet.add(menuValue);
-      }
-      return newSet;
-    });
-  }, []);
 
   const toggleSubMenu = useCallback((menuValue: string) => {
     setOpenSubMenus((prev) => {
@@ -143,24 +87,21 @@ const Header = React.memo(() => {
     });
   }, []);
 
-  const mobileSidebar = useSelector(
-    (state: RootState) => state.sidebarSlice.mobileSidebar
-  );
+  const {
+    mobileSidebar,
+    setMobileSidebar,
+    toggleMiniSidebar,
+  } = useSidebarUiStore();
 
   // Memoize the toggle mobile sidebar function
   const toggleMobileSidebar = useCallback(() => {
-    dispatch(setMobileSidebar(!mobileSidebar));
-  }, [dispatch, mobileSidebar]);
+    setMobileSidebar(!mobileSidebar);
+  }, [setMobileSidebar, mobileSidebar]);
 
   // Memoize the toggle mini sidebar function
   const handleToggleMiniSidebar = useCallback(() => {
-    if (dataLayout === "mini_layout") {
-      dispatch(setDataLayout("default_layout"));
-      localStorage.setItem("dataLayout", "default_layout");
-    } else {
-      dispatch(toggleMiniSidebar());
-    }
-  }, [dataLayout, dispatch]);
+    toggleMiniSidebar();
+  }, [toggleMiniSidebar]);
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -302,20 +243,6 @@ const Header = React.memo(() => {
     }
   }, [isFullscreen]);
 
-  // Check if a menu item or any of its children is active
-  const isMenuActive = useCallback(
-    (data: HorizontalMenuItem): boolean => {
-      if (!data.subMenus) return false;
-      return data.subMenus.some((sub) => {
-        if (sub.route === Location.pathname) return true;
-        const allRoutes = getAllRoutes(sub);
-        return allRoutes.includes(Location.pathname);
-      });
-    },
-    [Location.pathname]
-  );
-
-  // Render Level 4 submenu items
   const renderSubMenusFour = useCallback(
     (items: HorizontalSubMenu[] | undefined) => {
       if (!items) return null;
@@ -333,7 +260,6 @@ const Header = React.memo(() => {
     [Location.pathname]
   );
 
-  // Render Level 3 submenu items
   const renderSubMenusThree = useCallback(
     (items: HorizontalSubMenu[] | undefined, parentKey: string) => {
       if (!items) return null;
@@ -441,8 +367,6 @@ const Header = React.memo(() => {
     },
     [
       Location.pathname,
-      openSubMenusTwo,
-      toggleSubMenuTwo,
       renderSubMenusThree,
       renderSubMenusFour,
     ]
@@ -508,51 +432,11 @@ const Header = React.memo(() => {
     },
     [
       Location.pathname,
-      openSubMenus,
-      toggleSubMenu,
+
       renderSubMenusTwo,
       renderSubMenusThree,
       renderSubMenusFour,
     ]
-  );
-
-  // Memoize the menu items rendering
-  const menuItems = useMemo(
-    () =>
-      HorizontalSidebarData?.map(
-        (mainMenu: HorizontalMainMenu, index: number) => (
-          <React.Fragment key={`main-${index}`}>
-            {mainMenu?.menu?.map((data: HorizontalMenuItem, i: number) => {
-              const menuKey = `menu-${index}-${i}-${data.menuValue}`;
-              const active = isMenuActive(data);
-              const isOpen = openMenus.has(menuKey);
-
-              return (
-                <li className="submenu" key={menuKey}>
-                  <Link
-                    to="#"
-                    className={`${active ? "active" : ""} ${
-                      isOpen ? "subdrop" : ""
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleMenu(menuKey);
-                    }}
-                  >
-                    <i className={`ti ti-${data.icon}`}></i>
-                    <span>{data.menuValue}</span>
-                    <span className="menu-arrow"></span>
-                  </Link>
-                  <ul style={{ display: isOpen ? "block" : "none" }}>
-                    {renderSubMenus(data, menuKey)}
-                  </ul>
-                </li>
-              );
-            })}
-          </React.Fragment>
-        )
-      ),
-    [HorizontalSidebarData, isMenuActive, openMenus, toggleMenu, renderSubMenus]
   );
 
   return (
@@ -688,25 +572,8 @@ const Header = React.memo(() => {
                   )}
                 </div>
                 <span className="d-inline-flex flex-shrink-0 px-4">
-                  <ThemeToggleButton />
                 </span>
               
-              </div>
-
-              <div
-                className="sidebar sidebar-horizontal"
-                id="horizontal-single"
-              >
-                <div className="sidebar-menu">
-                  <div className="main-menu">
-                    <ul className="nav-menu">
-                      <li className="menu-title">
-                        <span>Main</span>
-                      </li>
-                      {menuItems}
-                    </ul>
-                  </div>
-                </div>
               </div>
 
               <div className="d-flex align-items-center">

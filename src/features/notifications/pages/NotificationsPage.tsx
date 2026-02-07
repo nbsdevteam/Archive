@@ -1,46 +1,26 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { all_routes } from "../../../router/all_routes";
-import { useNotificationStore } from "../stores/notificationStore";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { useNotificationsPageContainer } from "../containers/useNotificationsPageContainer";
 import "../styles/notifications.css";
 
 /**
  * NotificationsPage - Notifications management page
  */
 const NotificationsPage = () => {
-  const routes = all_routes;
-  const { notifications, unreadCount, isLoading, error, fetchNotifications, markAsRead, markAllAsRead, clearError } = useNotificationStore();
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
-  const didRunRef = useRef(false);
-  const lastFilterRef = useRef<'all' | 'unread' | null>(null);
-
-  useEffect(() => {
-    if (didRunRef.current && lastFilterRef.current === filter) return;
-    didRunRef.current = true;
-    lastFilterRef.current = filter;
-    fetchNotifications(filter === 'unread');
-    return () => {
-      setTimeout(() => {
-        didRunRef.current = false;
-      }, 0);
-    };
-  }, [filter, fetchNotifications]);
-
-  const handleMarkAsRead = async (id: number) => {
-    await markAsRead(id);
-  };
-
-  const handleMarkAllAsRead = async () => {
-    await markAllAsRead();
-  };
-
-  const handleRetry = () => {
-    clearError();
-    fetchNotifications(filter === 'unread');
-  };
+  const {
+    routes,
+    notifications,
+    unreadCount,
+    isLoading,
+    error,
+    filter,
+    setFilter,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleRetry,
+  } = useNotificationsPageContainer();
 
   return (
     <div className="page-wrapper">
@@ -74,17 +54,17 @@ const NotificationsPage = () => {
             <div className="notifications__headerRight btn-list d-flex flex-wrap align-items-center">
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setFilter('all')}
+                onClick={() => setFilter("all")}
               >
                 All
               </button>
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'unread' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setFilter('unread')}
+                onClick={() => setFilter("unread")}
               >
                 Unread ({unreadCount})
               </button>
-              {filter === 'all' && notifications.length > 0 && (
+              {filter === "all" && notifications.length > 0 && (
                 <button
                   className="btn btn-sm control-height-sm btn-outline-secondary d-inline-flex align-items-center"
                   onClick={handleMarkAllAsRead}

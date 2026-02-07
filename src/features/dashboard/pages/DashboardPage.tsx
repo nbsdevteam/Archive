@@ -1,23 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { adminApi } from "../../../app/adapter/api/admin.api";
-import { handleApiError } from "../../../app/adapter/api/client";
 import { Button, Spinner, Alert, Icon, Card } from "../../../shared/components/ui";
-import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
-import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { CreateFolderSidePanel } from "../../folders/components";
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
-import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
+import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
 import "../styles/dashboard.css";
-
-const DOCUMENT_PARAMS_ACTIVE = { status: "active" as const, per_page: 1, page: 1 };
-const DOCUMENT_PARAMS_ARCHIVED = { status: "archived" as const, per_page: 1, page: 1 };
-const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 
 /**
  * DashboardPage - Unified dashboard (canonical /dashboard).
@@ -26,82 +16,30 @@ const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 const DashboardPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
-  const [stats, setStats] = useState<{
-    total_documents?: number;
-    by_department?: Array<{ department: string; count: number }>;
-  } | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
-  const [folderPanelOpen, setFolderPanelOpen] = useState(false);
-  const [uploadPanelOpen, setUploadPanelOpen] = useState(false);
-
-  const { folders, loading: foldersLoading, error: foldersError, pagination: foldersPagination, fetchFolders } = useFolders({
-    useApi: true,
-  });
-  const { count: activeDocumentsCount, loading: docsActiveLoading } = useDocumentCount({
-    useApi: true,
-   });
-  const { count: archivedDocumentsCount } = useDocumentCount({
-    useApi: true,
-   });
   const {
+    stats,
+    statsError,
+    folderPanelOpen,
+    uploadPanelOpen,
+    foldersLoading,
     notifications,
     unreadCount,
-    loading: notificationsLoading,
-    error: notificationsError,
-  } = useNotifications({
-    useApi: true,
-    initialParams: NOTIFICATION_PARAMS,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const response = await adminApi.getDashboardStats();
-        if (cancelled) return;
-        // Backend may return { success, stats } or the stats object directly as result
-        const statsPayload =
-          response?.stats ??
-          (response &&
-          typeof response === "object" &&
-          ("total_documents" in response || "by_department" in response)
-            ? (response as { total_documents?: number; by_department?: Array<{ department: string; count: number }> })
-            : null);
-        if (statsPayload) setStats(statsPayload);
-        else setStats({});
-      } catch (err) {
-        if (!cancelled) {
-          setStatsError(handleApiError(err));
-          setStats({});
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const totalFolders = foldersPagination?.total ?? folders.length;
-  const totalDocuments = stats?.total_documents ?? 0;
-  const activeDocuments = activeDocumentsCount;
-  const archivedDocuments = archivedDocumentsCount;
-
-  const documentsByDepartment = useMemo(
-    () => stats?.by_department ?? [],
-    [stats?.by_department]
-  );
-  const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
-  const foldersByDepartmentItems = useMemo(
-    () =>
-      chartData.categories.map((department, i) => ({
-        department,
-        count: chartData.data[i] ?? 0,
-      })),
-    [chartData]
-  );
-
-  const loading = foldersLoading;
-  const hasError = statsError || foldersError || notificationsError;
+    notificationsLoading,
+    notificationsError,
+    activeDocumentsCount,
+    archivedDocumentsCount,
+    totalFolders,
+    totalDocuments,
+    documentsByDepartment,
+    foldersByDepartmentItems,
+    loading,
+    hasError,
+    handleOpenFolderPanel,
+    handleCloseFolderPanel,
+    handleOpenUploadPanel,
+    handleCloseUploadPanel,
+    handleFolderCreated,
+  } = useDashboardPageContainer();
 
   return (
     <div className="page-wrapper">
@@ -148,11 +86,11 @@ const DashboardPage = () => {
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2 align-items-center">
-              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={() => setFolderPanelOpen(true)}>
+              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenFolderPanel}>
                 <Icon name="folder-plus" className="me-1" />
                 Add Folder
               </Button>
-              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={() => setUploadPanelOpen(true)}>
+              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel}>
                 <Icon name="file-up" className="me-1" />
                 Upload Document
               </Button>
@@ -166,12 +104,12 @@ const DashboardPage = () => {
 
         <CreateFolderSidePanel
           isOpen={folderPanelOpen}
-          onClose={() => setFolderPanelOpen(false)}
-          onSuccess={() => fetchFolders()}
+          onClose={handleCloseFolderPanel}
+          onSuccess={handleFolderCreated}
         />
         <UploadDocumentSidePanel
           isOpen={uploadPanelOpen}
-          onClose={() => setUploadPanelOpen(false)}
+          onClose={handleCloseUploadPanel}
         />
 
         {/* Cards + Chart on same row (compact cards) */}
@@ -211,7 +149,7 @@ const DashboardPage = () => {
                         <Icon name="file-check" className="fs-16" />
                       </span>
                       <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
-                      <h3 className="mb-2 Num">{activeDocuments.toLocaleString()}</h3>
+                      <h3 className="mb-2 Num">{activeDocumentsCount.toLocaleString()}</h3>
                       <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
                     </Card>
                   </div>
@@ -221,7 +159,7 @@ const DashboardPage = () => {
                         <Icon name="archive" className="fs-16" />
                       </span>
                       <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
-                      <h3 className="mb-2 Num">{archivedDocuments.toLocaleString()}</h3>
+                      <h3 className="mb-2 Num">{archivedDocumentsCount.toLocaleString()}</h3>
                       <Link to={routes.documents} className="link-default">View Details</Link>
                     </Card>
                   </div>

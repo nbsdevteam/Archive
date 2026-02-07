@@ -5,10 +5,7 @@ class LazyErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
   { hasError: boolean }
 > {
-  constructor(props: {
-    children: React.ReactNode;
-    fallback?: React.ReactNode;
-  }) {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -34,7 +31,6 @@ class LazyErrorBoundary extends React.Component<
         )
       );
     }
-
     return this.props.children;
   }
 }
@@ -65,137 +61,34 @@ export const Login = createLazyComponent(
   <LoadingSpinner text="Loading login..." />,
   true
 );
-export const Login2 = createLazyComponent(
-  () => import("../feature-module/auth/login/login-2"),
-  <LoadingSpinner text="Loading login..." />
-);
-export const Login3 = createLazyComponent(
-  () => import("../feature-module/auth/login/login-3"),
-  <LoadingSpinner text="Loading login..." />
-);
 export const Register = createLazyComponent(
-  () => import("../feature-module/auth/register/register"),
-  <LoadingSpinner text="Loading registration..." />
-);
-export const Register2 = createLazyComponent(
-  () => import("../feature-module/auth/register/register-2"),
-  <LoadingSpinner text="Loading registration..." />
-);
-export const Register3 = createLazyComponent(
-  () => import("../feature-module/auth/register/register-3"),
-  <LoadingSpinner text="Loading registration..." />
-);
-export const TwoStepVerification = createLazyComponent(
-  () =>
-    import("../feature-module/auth/twoStepVerification/twoStepVerification"),
-  <LoadingSpinner text="Loading verification..." />
-);
-export const TwoStepVerification2 = createLazyComponent(
-  () =>
-    import("../feature-module/auth/twoStepVerification/twoStepVerification-2"),
-  <LoadingSpinner text="Loading verification..." />
-);
-export const TwoStepVerification3 = createLazyComponent(
-  () =>
-    import("../feature-module/auth/twoStepVerification/twoStepVerification-3"),
-  <LoadingSpinner text="Loading verification..." />
-);
-export const EmailVerification = createLazyComponent(
-  () => import("../feature-module/auth/emailVerification/emailVerification"),
-  <LoadingSpinner text="Loading email verification..." />
-);
-export const EmailVerification2 = createLazyComponent(
-  () => import("../feature-module/auth/emailVerification/emailVerification-2"),
-  <LoadingSpinner text="Loading email verification..." />
-);
-export const EmailVerification3 = createLazyComponent(
-  () => import("../feature-module/auth/emailVerification/emailVerification-3"),
-  <LoadingSpinner text="Loading email verification..." />
-);
-export const ResetPassword = createLazyComponent(
-  () => import("../feature-module/auth/resetPassword/resetPassword"),
-  <LoadingSpinner text="Loading password reset..." />
-);
-export const ResetPassword2 = createLazyComponent(
-  () => import("../feature-module/auth/resetPassword/resetPassword-2"),
-  <LoadingSpinner text="Loading password reset..." />
-);
-export const ResetPassword3 = createLazyComponent(
-  () => import("../feature-module/auth/resetPassword/resetPassword-3"),
-  <LoadingSpinner text="Loading password reset..." />
+  () => import("../features/auth/pages/RegisterPage"),
+  <LoadingSpinner text="Loading sign up..." />
 );
 export const ForgotPassword = createLazyComponent(
-  () => import("../feature-module/auth/forgotPassword/forgotPassword"),
+  () => import("../features/auth/pages/ForgotPasswordPage"),
   <LoadingSpinner text="Loading password reset..." />
 );
-export const ForgotPassword2 = createLazyComponent(
-  () => import("../feature-module/auth/forgotPassword/forgotPassword-2"),
-  <LoadingSpinner text="Loading password reset..." />
+export const ResetPassword = createLazyComponent(
+  () => import("../features/auth/pages/ResetPasswordPage"),
+  <LoadingSpinner text="Loading reset..." />
 );
-export const ForgotPassword3 = createLazyComponent(
-  () => import("../feature-module/auth/forgotPassword/forgotPassword-3"),
-  <LoadingSpinner text="Loading password reset..." />
+export const EmailVerification = createLazyComponent(
+  () => import("../features/auth/pages/EmailVerificationPage"),
+  <LoadingSpinner text="Loading verification..." />
 );
-export const ResetPasswordSuccess = createLazyComponent(
-  () =>
-    import("../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess"),
-  <LoadingSpinner text="Loading success..." />
-);
-export const ResetPasswordSuccess2 = createLazyComponent(
-  () =>
-    import(
-      "../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-2"
-    ),
-  <LoadingSpinner text="Loading success..." />
-);
-export const ResetPasswordSuccess3 = createLazyComponent(
-  () =>
-    import(
-      "../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-3"
-    ),
-  <LoadingSpinner text="Loading success..." />
-);
-export const LockScreen = createLazyComponent(
-  () => import("../feature-module/auth/lockScreen"),
-  <LoadingSpinner text="Loading lock screen..." />
-);
-export const Error404 = createLazyComponent(
-  () => import("../feature-module/pages/error/error-404"),
-  <LoadingSpinner text="Loading page..." />
-);
-export const Error500 = createLazyComponent(
-  () => import("../feature-module/pages/error/error-500"),
-  <LoadingSpinner text="Loading page..." />
-);
-export const UnderMaintenance = createLazyComponent(
-  () => import("../feature-module/pages/underMaintenance"),
-  <LoadingSpinner text="Loading page..." />
-);
-export const UnderConstruction = createLazyComponent(
-  () => import("../feature-module/pages/underConstruction"),
-  <LoadingSpinner text="Loading page..." />
-);
-export const ComingSoon = createLazyComponent(
-  () => import("../feature-module/pages/coming-soon"),
-  <LoadingSpinner text="Loading page..." />
+export const TwoStepVerification = createLazyComponent(
+  () => import("../features/auth/pages/TwoStepVerificationPage"),
+  <LoadingSpinner text="Loading verification..." />
 );
 
-// Dashboards
-export const AdminDashboard = createLazyComponent(
-  () => import("../feature-module/mainMenu/adminDashboard"),
-  <LoadingSpinner text="Loading dashboard..." />
-);
-export const EmployeeDashboard = createLazyComponent(
-  () =>
-    import("../feature-module/mainMenu/employeeDashboard/employee-dashboard"),
-  <LoadingSpinner text="Loading dashboard..." />
-);
+// Dashboard
 export const DashboardPage = createLazyComponent(
   () => import("../features/dashboard/pages/DashboardPage"),
   <LoadingSpinner text="Loading dashboard..." />
 );
 
-// Archive module
+// Archive
 export const ArchiveFolders = createLazyComponent(
   () => import("../features/archive/pages/ArchiveFolders"),
   <LoadingSpinner text="Loading folders..." />
@@ -217,7 +110,7 @@ export const ArchiveActivity = createLazyComponent(
   <LoadingSpinner text="Loading activity..." />
 );
 
-// Legacy feature pages (aliases or new features)
+// Documents + folders
 export const DocumentsPage = createLazyComponent(
   () => import("../features/documents/pages/DocumentsPage"),
   <LoadingSpinner text="Loading documents..." />
@@ -238,6 +131,8 @@ export const FolderDetailPage = createLazyComponent(
   () => import("../features/folders/pages/FolderDetailPage"),
   <LoadingSpinner text="Loading folder..." />
 );
+
+// Requests + notifications
 export const EditRequestsPage = createLazyComponent(
   () => import("../features/edit-requests/pages/EditRequestsPage"),
   <LoadingSpinner text="Loading edit requests..." />
@@ -257,36 +152,4 @@ export const PermissionsPage = createLazyComponent(
 export const SearchPage = createLazyComponent(
   () => import("../features/search/pages/SearchPage"),
   <LoadingSpinner text="Loading search..." />
-);
-
-// Reports tools
-export const DataTables = createLazyComponent(
-  () => import("../feature-module/uiInterface/table/data-tables"),
-  <LoadingSpinner text="Loading tables..." />
-);
-export const TablesBasic = createLazyComponent(
-  () => import("../feature-module/uiInterface/table/tables-basic"),
-  <LoadingSpinner text="Loading tables..." />
-);
-export const Apexchart = createLazyComponent(
-  () => import("../feature-module/uiInterface/charts/apexcharts"),
-  <LoadingSpinner text="Loading charts..." />
-);
-export const PrimeReactChart = createLazyComponent(
-  () => import("../feature-module/uiInterface/charts/prime-react-chart"),
-  <LoadingSpinner text="Loading charts..." />
-);
-export const ChartJSExample = createLazyComponent(
-  () => import("../feature-module/uiInterface/charts/chartjs"),
-  <LoadingSpinner text="Loading charts..." />
-);
-
-// Layout demo
-export const LayoutDemo = createLazyComponent(
-  () => import("../feature-module/mainMenu/layout-dashoard"),
-  <LoadingSpinner text="Loading layout..." />
-);
-export const LayoutModernDashboard = createLazyComponent(
-  () => import("../features/dashboard/pages/LayoutModernDashboardPage"),
-  <LoadingSpinner text="Loading dashboard..." />
 );
