@@ -1,0 +1,32 @@
+/* Placeholders and form controls. Use var(--app-placeholder-color) and theme vars. */
+
+.select-details .css-1jqq78o-placeholder,
+.select-priority .css-1jqq78o-placeholder,
+.form-sort .css-1jqq78o-placeholder,
+.form-sort.select-bluk.space-not-select .css-1jqq78o-placeholder,
+div.css-1jqq78o-placeholder,
+.react-select__placeholder.css-1jqq78o-placeholder,
+.form-sort .css-1jqq78o-placeholder,
+.react-select__placeholder,
+span.p-dropdown-label.p-inputtext.p-placeholder,
+.ant-picker-input > input::placeholder,
+[data-theme="dark"].ant-picker-input > input::placeholder,
+[data-theme="dark"]div.css-1jqq78o-placeholder {
+  color: var(--app-placeholder-color);
+}
+
+.p-datepicker {
+  background-color: #fff;
+  padding: 14px;
+}
+
+.p-yearpicker {
+  margin-top: 14px;
+  .p-yearpicker-year {
+    padding: 10px;
+    &.p-highlight {
+      background-color: rgb(var(--primary-rgb));
+      color: #fff;
+    }
+  }
+}

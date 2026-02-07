@@ -1,0 +1,38 @@
+/* Sidebar active/hover from theme. NBS overrides use --nbs-sidebar-* (third-party override). */
+
+.sidebar .sidebar-menu > ul li .submenu > ul li a.active span {
+  color: rgb(var(--primary-rgb));
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a.active,
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a.subdrop {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul > li > a:hover {
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+
+.sidebar[data-glass="false"] .sidebar-menu > ul li .submenu > ul li a.active,
+.sidebar[data-glass="false"] .sidebar-menu > ul li .submenu > ul li a:hover {
+  color: rgb(var(--primary-rgb)) !important;
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] {
+  --nbs-sidebar-active-bg: rgba(var(--primary-rgb), 0.12);
+  --nbs-sidebar-active-text: rgb(var(--primary-rgb));
+  --nbs-sidebar-active-border: rgba(var(--primary-rgb), 0.2);
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] button:hover {
+  background-color: rgba(var(--primary-rgb), 0.08) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+
+.sidebar[data-glass="false"] [class*="sidebar-module__sidebar"] button[class*="activePrimary"] {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+  color: rgb(var(--primary-rgb)) !important;
+  border-color: rgba(var(--primary-rgb), 0.2) !important;
+}

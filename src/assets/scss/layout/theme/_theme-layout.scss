@@ -1,0 +1,355 @@
+// Layout rules for default and modern only. Used by layoutStore (data-layout="default" | "modern").
+@use "../../utils/mixins";
+@use "../../utils/variables";
+
+[data-layout="default"][data-width="box"],
+[data-layout="mini"][data-width="box"] {
+    .layout-box-mode {
+        .mini-sidebar {
+            .header {
+                max-width: 1320px;
+                left: 0;
+
+                @include mixins.respond-below(xxl) {
+                    max-width: 1170px;
+                }
+
+                @include mixins.respond-below(xl) {
+                    max-width: 950px;
+                }
+
+                @include mixins.respond-below(lg) {
+                    max-width: 100%;
+                }
+            }
+
+            &.expand-menu {
+                .header {
+                    max-width: 1320px;
+                    left: 0;
+
+                    @include mixins.respond-below(xxl) {
+                        max-width: 1170px;
+                    }
+
+                    @include mixins.respond-below(xl) {
+                        max-width: 950px;
+                    }
+
+                    @include mixins.respond-below(lg) {
+                        max-width: 100%;
+                    }
+                }
+            }
+        }
+
+        .header {
+            margin: auto;
+            max-width: 1320px;
+            left: 0;
+
+            @include mixins.respond-below(xxl) {
+                max-width: 1170px;
+            }
+
+            @include mixins.respond-below(xl) {
+                max-width: 950px;
+            }
+
+            @include mixins.respond-below(lg) {
+                max-width: 100%;
+                left: 0;
+            }
+
+            .header-left {
+                display: block;
+                padding-left: 24px;
+
+                @include mixins.respond-below(lg) {
+                    padding-left: 0;
+                }
+            }
+        }
+
+        .sidebar {
+            left: unset;
+            top: 50px;
+
+            .sidebar-logo {
+                display: none;
+            }
+
+            .slimScrollDiv {
+                top: 0;
+            }
+        }
+    }
+}
+
+[data-layout="twocolumn"][data-width="box"],
+[data-layout="modern"][data-width="box"],
+[data-layout="stacked"][data-width="box"] {
+    .layout-box-mode {
+        .sidebar {
+            left: unset;
+
+            .sidebar-logo {
+                display: none;
+            }
+        }
+
+        .header {
+            margin: 0 auto;
+            max-width: calc(1320px - 252px);
+
+            @include mixins.respond-above(lg) {
+                left: 252px;
+            }
+
+            @include mixins.respond-below(xxl) {
+                max-width: calc(1170px - 252px);
+            }
+
+            @include mixins.respond-below(xl) {
+                max-width: calc(950px - 252px);
+            }
+
+            @include mixins.respond-below(lg) {
+                max-width: 100%;
+                left: 0;
+            }
+        }
+
+        &.mini-sidebar {
+            .header {
+                max-width: calc(1320px - 72px);
+
+                @include mixins.respond-above(lg) {
+                    left: 72px;
+                }
+
+                @include mixins.respond-below(xxl) {
+                    max-width: calc(1170px - 72px);
+                }
+
+                @include mixins.respond-below(xl) {
+                    max-width: calc(950px - 72px);
+                }
+
+                @include mixins.respond-below(lg) {
+                    max-width: 100%;
+                    left: 0;
+                }
+            }
+
+            &.expand-menu {
+                .header {
+                    max-width: calc(1320px - 252px);
+
+                    @include mixins.respond-above(lg) {
+                        left: 252px;
+                    }
+
+                    @include mixins.respond-below(xxl) {
+                        max-width: calc(1170px - 252px);
+                    }
+
+                    @include mixins.respond-below(xl) {
+                        max-width: calc(950px - 252px);
+                    }
+
+                    @include mixins.respond-below(lg) {
+                        max-width: 100%;
+                        left: 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+[data-layout="modern"] {
+    .header {
+        background-color: variables.$white;
+        border-color: rgba(variables.$white, 0.8);
+
+        .bar-icon {
+            span {
+                background-color: variables.$white;
+            }
+        }
+
+        .input-group {
+            @include mixins.respond-below(xl) {
+                width: 200px;
+            }
+        }
+
+        .header-left {
+            display: block;
+            padding-left: 24px;
+
+            .logo {
+                display: block;
+            }
+
+            .dark-logo {
+                display: none;
+            }
+        }
+
+        .header-user {
+            .user-menu {
+                .btn-menubar {
+                    color: variables.$gray-500;
+
+                    &:hover,
+                    &:active,
+                    &.active {
+                        background-color: variables.$dark-transparent;
+                        border-color: variables.$dark-transparent;
+                        color: variables.$gray-900 !important;
+                    }
+                }
+            }
+        }
+    }
+
+    .sidebar {
+        display: block;
+        border-right: 1px solid variables.$gray-200;
+
+        [class*="sidebar-module__sidebar"] {
+            border-right: 0;
+            border-left: 0;
+        }
+
+        .sidebar-logo {
+            display: none;
+        }
+
+        .slimScrollDiv {
+            top: 0;
+            height: calc(100% - 220px) !important;
+        }
+
+        .sidebar-inner {
+            height: 100% !important;
+        }
+
+        .sidebar-menu {
+            margin-top: 0;
+        }
+
+        .modern-profile {
+            display: block;
+            position: relative;
+            z-index: 2;
+            opacity: 1 !important;
+            filter: none !important;
+
+            .user-profile {
+                position: relative;
+                z-index: 2;
+                opacity: 1 !important;
+                filter: none !important;
+                mix-blend-mode: normal !important;
+
+                background-color: variables.$white !important;
+                color: variables.$title-color !important;
+
+                h6 {
+                    color: variables.$title-color !important;
+                    opacity: 1 !important;
+                }
+
+                p {
+                    color: variables.$gray-600 !important;
+                    opacity: 1 !important;
+                    filter: none !important;
+                }
+
+                img {
+                    opacity: 1 !important;
+                    filter: none !important;
+                }
+            }
+        }
+    }
+
+    .page-wrapper {
+        &::before {
+            content: "";
+            height: 168px;
+            background: variables.$white;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        &::after {
+            content: none;
+            height: 168px;
+            background: url('/src/assets/img/bg/modern-bg.png');
+            background-repeat: no-repeat;
+            width: 60%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: -1;
+        }
+    }
+
+    .mini-sidebar {
+        .modern-profile {
+            .user-profile {
+                padding: 0 !important;
+                margin-bottom: 0 !important;
+                background: transparent !important;
+                border-color: transparent !important;
+
+                .avatar {
+                    width: 40px;
+                    height: 40px;
+                }
+            }
+
+            h6,
+            p,
+            .sidebar-nav {
+                display: none;
+            }
+        }
+
+        .slimScrollDiv {
+            height: calc(100% - 70px) !important;
+        }
+
+        &.expand-menu {
+            .modern-profile {
+                .user-profile {
+                    padding: 16px !important;
+                    margin-bottom: 24px !important;
+                    background: variables.$light !important;
+
+                    .avatar {
+                        width: 40px;
+                        height: 40px;
+                    }
+                }
+
+                h6,
+                p,
+                .sidebar-nav {
+                    display: block;
+                }
+            }
+
+            .slimScrollDiv {
+                height: calc(100% - 220px) !important;
+            }
+        }
+    }
+}

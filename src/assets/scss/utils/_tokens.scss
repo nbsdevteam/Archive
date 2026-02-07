@@ -1,3 +1,5 @@
+// Theme color comes from CSS vars (--primary-rgb). Use SCSS variables only for non-theme values (e.g. success, danger, spacing).
+// Design tokens: src/shared/design-tokens/theme.ts (themeColorStore applies them at runtime).
 @use "variables";
 
 :root {

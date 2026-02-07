@@ -1,0 +1,63 @@
+/* Theme-based table overrides. Use var(--primary-rgb) from design tokens. */
+
+/* Ant Design tables */
+.ant-table-wrapper .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1),
+.data-table-card .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1) {
+  background-color: rgba(var(--primary-rgb), 0.04);
+}
+
+.data-table-card {
+  .ant-table-content {
+    .ant-table-tbody {
+      td {
+        padding: 0.5rem;
+      }
+    }
+  }
+}
+
+.ant-table-cell-row-hover {
+  background-color: rgba(var(--primary-rgb), 0.08);
+  background: rgba(var(--primary-rgb), 0.08);
+}
+
+[data-theme="dark"] .ant-table-wrapper .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1),
+[data-theme="dark"] .data-table-card .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1) {
+  background-color: rgba(var(--primary-rgb), 0.08);
+}
+
+[data-theme="dark"] .ant-table-cell-row-hover {
+  background-color: rgba(var(--primary-rgb), 0.16);
+  background: rgba(var(--primary-rgb), 0.16);
+}
+
+/* Bootstrap HTML tables */
+.table-striped > tbody > tr:nth-of-type(odd) > *,
+.table > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(var(--primary-rgb), 0.06) !important;
+}
+
+.table > tbody > tr:hover > * {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > *,
+[data-theme="dark"] .table > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+[data-theme="dark"] .table > tbody > tr:hover > * {
+  background-color: rgba(var(--primary-rgb), 0.2) !important;
+}
+
+.table {
+  --bs-table-striped-bg: rgba(var(--primary-rgb), 0.06);
+  --bs-table-striped-color: inherit;
+  --bs-table-hover-bg: rgba(var(--primary-rgb), 0.12);
+  --bs-table-hover-color: inherit;
+}
+
+[data-theme="dark"] .table {
+  --bs-table-striped-bg: rgba(var(--primary-rgb), 0.12);
+  --bs-table-hover-bg: rgba(var(--primary-rgb), 0.2);
+}

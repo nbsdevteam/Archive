@@ -1,4 +1,7 @@
 @use "sass:color";
+// Theme color comes from CSS vars (--primary-rgb). Use SCSS variables only for non-theme values (e.g. success, danger, spacing).
+// Design tokens: src/shared/design-tokens/theme.ts
+
 // Font imports - Inter for UI text, Roboto for numeric surfaces
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Roboto:wght@400;500&display=swap');
 

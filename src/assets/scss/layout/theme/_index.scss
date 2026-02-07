@@ -1,0 +1,4 @@
+// Theme split: vars (CSS vars + layout-box-mode), layout (default/modern), rest (other layouts + [data-color]).
+@forward "theme-vars";
+@forward "theme-layout";
+@forward "theme-rest";

@@ -1,57 +1,43 @@
 import { create } from "zustand";
+import {
+  THEME_PRIMARY_RGB,
+  DEFAULT_THEME_COLOR,
+  type ThemeColorId,
+} from "../design-tokens";
 
-export type ThemeColor =
-  | "creamy"
-  | "primary"
-  | "brightblue"
-  | "lunargreen"
-  | "lavendar"
-  | "magenta"
-  | "chromeyellow"
-  | "lavared"
-  | "all";
+export type ThemeColor = ThemeColorId;
 
 const COLOR_STORAGE_KEY = "dataColor";
 const COLOR_ALL_STORAGE_KEY = "dataColorAll";
 
+const VALID_THEME_IDS: ThemeColorId[] = [
+  "creamy",
+  "primary",
+  "brightblue",
+  "lunargreen",
+  "lavendar",
+  "magenta",
+  "chromeyellow",
+  "lavared",
+  "all",
+];
+
 const getInitialColor = (): ThemeColor => {
   const saved = localStorage.getItem(COLOR_STORAGE_KEY);
-  if (
-    saved === "creamy" ||
-    saved === "primary" ||
-    saved === "brightblue" ||
-    saved === "lunargreen" ||
-    saved === "lavendar" ||
-    saved === "magenta" ||
-    saved === "chromeyellow" ||
-    saved === "lavared" ||
-    saved === "all"
-  ) {
-    return saved;
+  if (saved !== null && VALID_THEME_IDS.includes(saved as ThemeColorId)) {
+    return saved as ThemeColor;
   }
-  return "creamy";
+  return DEFAULT_THEME_COLOR;
 };
 
 const getInitialCustomColor = (): string => {
   return localStorage.getItem(COLOR_ALL_STORAGE_KEY) || "";
 };
 
-const THEME_RGB_MAP: Record<ThemeColor, string> = {
-  creamy: "201, 168, 108",
-  primary: "242, 101, 34",
-  brightblue: "70, 128, 255",
-  lunargreen: "54, 94, 50",
-  lavendar: "103, 58, 183",
-  magenta: "232, 62, 140",
-  chromeyellow: "255, 155, 4",
-  lavared: "220, 38, 38",
-  all: "",
-};
-
 const applyThemeColor = (color: ThemeColor, customColor: string) => {
   document.documentElement.setAttribute("data-color", color);
   const rgbValue =
-    color === "all" && customColor ? customColor : THEME_RGB_MAP[color];
+    color === "all" && customColor ? customColor : THEME_PRIMARY_RGB[color];
   if (rgbValue) {
     document.documentElement.style.setProperty("--primary-rgb", rgbValue);
     document.documentElement.style.setProperty("--primary-rgb-picr", rgbValue);

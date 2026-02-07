@@ -8,7 +8,7 @@ import "./i18n/config";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Import all CSS and assets (required for styling)
+// Global CSS: Bootstrap, app SCSS, icon fonts (Tabler + Font Awesome used in UI; others auditable for removal)
 import "../src/assets/css/bootstrap.min.css";
 import "../src/assets/css/feather.css";
 import "../src/assets/scss/custom.scss";

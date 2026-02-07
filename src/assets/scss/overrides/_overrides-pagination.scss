@@ -1,0 +1,17 @@
+/* Pagination overrides. */
+
+.ant-pagination .ant-pagination-item {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ant-pagination-item.ant-pagination-item-1.ant-pagination-item-active {
+  color: #fff;
+  background-color: rgb(var(--primary-rgb));
+  border-color: rgb(var(--primary-rgb));
+}

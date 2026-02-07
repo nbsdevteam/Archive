@@ -1,0 +1,35 @@
+// Theme CSS variable definitions. Theme color comes from CSS vars (--primary-rgb).
+// Design tokens: src/shared/design-tokens/theme.ts
+@use "sass:color";
+@use "../../utils/mixins";
+@use "../../utils/variables";
+
+.layout-box-mode {
+    .main-wrapper {
+        max-width: 1320px;
+        margin: auto;
+
+        @include mixins.respond-below(xxl) {
+            max-width: 1170px;
+        }
+
+        @include mixins.respond-below(xl) {
+            max-width: 950px;
+        }
+
+        @include mixins.respond-below(lg) {
+            max-width: 100%;
+        }
+    }
+}
+
+@mixin use-css-variable($variable-name) {
+    #{$variable-name}: var(#{$variable-name});
+}
+
+:root {
+    --primary-rgb-picr: var(--primary-rgb);
+    --sidebar--rgb-picr: var(--sidebar-rgb);
+    --topbar--rgb-picr: var(--topbar-rgb);
+    --topbarcolor--rgb-picr: var(--topbarcolor-rgb);
+}
