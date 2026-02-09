@@ -33,6 +33,9 @@ interface DocumentState {
   downloadVersion: (documentId: number, versionId: number, fileName: string) => Promise<void>;
   archiveDocument: (documentId: number) => Promise<void>;
   unarchiveDocument: (documentId: number) => Promise<void>;
+  trashDocument: (documentId: number, reason?: string) => Promise<void>;
+  restoreDocument: (documentId: number) => Promise<void>;
+  permanentDeleteDocument: (documentId: number, confirmation?: string) => Promise<void>;
   clearError: () => void;
   clearCurrentDocument: () => void;
 }
@@ -197,6 +200,60 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       await documentsApi.unarchiveDocument(documentId);
       if (get().currentDocument?.id === documentId) {
         await get().fetchDocument(documentId);
+      }
+      await get().fetchDocuments();
+      set({ isLoading: false });
+    } catch (error) {
+      set({
+        error: handleApiError(error),
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  trashDocument: async (documentId: number, reason?: string): Promise<void> => {
+    set({ isLoading: true, error: null });
+    try {
+      await documentsApi.trashDocument(documentId, reason);
+      if (get().currentDocument?.id === documentId) {
+        set({ currentDocument: null });
+      }
+      await get().fetchDocuments();
+      set({ isLoading: false });
+    } catch (error) {
+      set({
+        error: handleApiError(error),
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  restoreDocument: async (documentId: number): Promise<void> => {
+    set({ isLoading: true, error: null });
+    try {
+      await documentsApi.restoreDocument(documentId);
+      if (get().currentDocument?.id === documentId) {
+        await get().fetchDocument(documentId);
+      }
+      await get().fetchDocuments();
+      set({ isLoading: false });
+    } catch (error) {
+      set({
+        error: handleApiError(error),
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  permanentDeleteDocument: async (documentId: number, confirmation?: string): Promise<void> => {
+    set({ isLoading: true, error: null });
+    try {
+      await documentsApi.permanentDeleteDocument(documentId, confirmation);
+      if (get().currentDocument?.id === documentId) {
+        set({ currentDocument: null });
       }
       await get().fetchDocuments();
       set({ isLoading: false });

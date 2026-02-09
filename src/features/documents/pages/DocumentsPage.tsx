@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { UploadDocumentSidePanel } from "../components";
-import { Button, Spinner, Alert, Icon, SearchInput, ListFilter } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, SearchInput, ListFilter, ConfirmModal } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useDocumentsPageContainer } from "../containers/useDocumentsPageContainer";
 import "../styles/documents.css";
@@ -37,6 +37,11 @@ const DocumentsPage = () => {
     handleApplyFilter,
     handleClearFilter,
     filterApplyDisabled,
+    trashTargetId,
+    isTrashing,
+    handleOpenTrashConfirm,
+    handleCloseTrashConfirm,
+    handleConfirmTrash,
   } = useDocumentsPageContainer();
 
   return (
@@ -125,6 +130,10 @@ const DocumentsPage = () => {
                 <Icon name="file-up" className="me-2" />
                 Upload Documents
               </Button>
+              <Link to={routes.documentsTrash} className="btn btn-outline-secondary btn-md d-inline-flex align-items-center">
+                <Icon name="trash" className="me-2" />
+                {t("documents.trashView", { defaultValue: "Trash" })}
+              </Link>
               <Button
                 variant="outline"
                 size="md"
@@ -200,6 +209,18 @@ const DocumentsPage = () => {
                             >
                               View
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="btn-outline-danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenTrashConfirm(doc.id);
+                              }}
+                            >
+                              <Icon name="trash" className="me-1" />
+                              {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+                            </Button>
                           </td>
                         </tr>
                       ))
@@ -216,6 +237,18 @@ const DocumentsPage = () => {
         isOpen={isUploadOpen}
         onClose={handleCloseUpload}
         onSuccess={handleUploadSuccess}
+      />
+
+      <ConfirmModal
+        isOpen={trashTargetId != null}
+        onClose={handleCloseTrashConfirm}
+        onConfirm={handleConfirmTrash}
+        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        message={t("documents.confirmMoveToTrash", { defaultValue: "Are you sure you want to move this document to trash?" })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isTrashing}
       />
     </div>
   );

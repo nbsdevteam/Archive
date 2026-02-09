@@ -29,6 +29,7 @@ export const SidebarDataTest = [
         base: routes.documents,
         base2: routes.documentsUpload,
         base3: routes.documentDetail,
+        base4: routes.documentsTrash,
       },
       {
         label: "Folders",

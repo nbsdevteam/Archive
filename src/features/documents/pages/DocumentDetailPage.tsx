@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { FilePreview } from "../../../shared/components/FilePreview";
-import { Alert, Button, Spinner, Modal, ModalFooter, Icon } from "../../../shared/components/ui";
+import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
 import { UploadDocumentSidePanel } from "../components";
 import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, isTrashing, isRestoring, isPermanentDeleting, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -71,6 +71,27 @@ const DocumentDetailPage = () => {
             ) : (
               <Button variant="danger" size="sm" onClick={handleArchive}>
                 {t("documents.archive", { defaultValue: "Archive" })}
+              </Button>
+            )}
+            {isTrashed ? (
+              <Button variant="secondary" size="sm" onClick={handleRestoreDocument} disabled={isRestoring}>
+                {t("documents.restore", { defaultValue: "Restore" })}
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="btn-outline-danger" onClick={() => setModalTrashConfirm(true)}>
+                <Icon name="trash" className="me-1" />
+                {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-danger"
+                onClick={() => setModalPermanentDelete(true)}
+              >
+                <Icon name="trash" className="me-1" />
+                {t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
               </Button>
             )}
             <CollapseHeader />
@@ -714,6 +735,30 @@ const DocumentDetailPage = () => {
           </Button>
         </ModalFooter>
       </Modal>
+
+      <ConfirmModal
+        isOpen={modalTrashConfirm}
+        onClose={() => setModalTrashConfirm(false)}
+        onConfirm={handleTrashDocument}
+        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        message={t("documents.confirmMoveToTrash", { defaultValue: "Are you sure you want to move this document to trash?" })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isTrashing}
+      />
+
+      <ConfirmModal
+        isOpen={modalPermanentDelete}
+        onClose={() => setModalPermanentDelete(false)}
+        onConfirm={handlePermanentDelete}
+        title={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
+        message={t("documents.confirmPermanentDelete", { defaultValue: "This will permanently delete the document. This action cannot be undone." })}
+        confirmLabel={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isPermanentDeleting}
+      />
     </div>
   );
 };

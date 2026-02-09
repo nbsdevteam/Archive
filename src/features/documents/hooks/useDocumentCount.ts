@@ -37,8 +37,8 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
       try {
         setLoading(true);
         const response = await documentsApi.getDocuments({
-          ...initialParams,
-          per_page: 1,
+          status:"",
+          per_page: 20,
           page: 1,
         });
         const total = response.pagination?.total ?? (response.data?.length ?? 0);

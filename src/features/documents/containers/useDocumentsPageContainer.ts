@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { useRunOnceOnMount } from "../../../shared/hooks";
 import type { SelectOption } from "../../../shared/components/ui";
 import { useDocumentStore } from "../stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "../utils/getDocumentStatusBadgeVariant";
+import { toast } from "react-toastify";
+import { handleApiError } from "../../../app/adapter/api/client";
 
 export interface DocumentsFilterState {
   department_id?: number;
@@ -13,14 +16,17 @@ export interface DocumentsFilterState {
 }
 
 export const useDocumentsPageContainer = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
-  const { documents, isLoading, fetchDocuments, error, clearError, pagination } =
+  const { documents, isLoading, fetchDocuments, error, clearError, pagination, trashDocument } =
     useDocumentStore();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<DocumentsFilterState>({});
   const [draftFilters, setDraftFilters] = useState<DocumentsFilterState>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [trashTargetId, setTrashTargetId] = useState<number | null>(null);
+  const [isTrashing, setIsTrashing] = useState(false);
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [documentTypes, setDocumentTypes] = useState<Array<{ id: number; name: string; code: string; department_id: number; department_name: string }>>([]);
   const lastSearchRef = useRef<string>("");
@@ -134,6 +140,31 @@ export const useDocumentsPageContainer = () => {
     fetchDocuments(getFetchParams());
   }, [fetchDocuments, getFetchParams]);
 
+  const handleOpenTrashConfirm = useCallback((documentId: number) => {
+    setTrashTargetId(documentId);
+  }, []);
+
+  const handleCloseTrashConfirm = useCallback(() => {
+    if (!isTrashing) setTrashTargetId(null);
+  }, [isTrashing]);
+
+  const handleConfirmTrash = useCallback(async () => {
+    if (!trashTargetId) return;
+    setIsTrashing(true);
+    try {
+      await trashDocument(trashTargetId);
+      toast.success(t("documents.trashed", { defaultValue: "Document moved to trash." }));
+      fetchDocuments(getFetchParams());
+      setTrashTargetId(null);
+    } catch (e: unknown) {
+      const apiMessage = handleApiError(e);
+      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e instanceof Error ? e.message : null);
+      toast.error(message || t("documents.trashFailed", { defaultValue: "Failed to move to trash." }));
+    } finally {
+      setIsTrashing(false);
+    }
+  }, [trashTargetId, trashDocument, fetchDocuments, getFetchParams]);
+
   const handleOpenFilter = useCallback(() => {
     setDraftFilters(appliedFilters);
     setIsFilterOpen(true);
@@ -203,5 +234,10 @@ export const useDocumentsPageContainer = () => {
     handleApplyFilter,
     handleClearFilter,
     filterApplyDisabled,
+    trashTargetId,
+    isTrashing,
+    handleOpenTrashConfirm,
+    handleCloseTrashConfirm,
+    handleConfirmTrash,
   };
 };

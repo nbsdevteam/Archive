@@ -10,6 +10,7 @@ import {
   DashboardPage,
   DocumentDetailPage,
   DocumentsPage,
+  DocumentsTrashPage,
   EditRequestsPage,
   EmailVerification,
   ForgotPassword,
@@ -67,6 +68,10 @@ export const publicRoutes = [
   {
     path: routes.documents,
     element: <DocumentsPage />,
+  },
+  {
+    path: routes.documentsTrash,
+    element: <DocumentsTrashPage />,
   },
   {
     path: routes.documentsUpload,

@@ -13,6 +13,7 @@ export const all_routes: Record<string, string> = {
   // documents + folders
   documents: "/documents",
   documentsUpload: "/documents/upload",
+  documentsTrash: "/documents/trash",
   documentDetail: "/documents/:id",
   folders: "/folders",
   folderDetail: "/folders/:id",

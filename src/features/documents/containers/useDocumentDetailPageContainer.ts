@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useDocumentStore } from "../stores/documentStore";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
+import { all_routes } from "../../../router/all_routes";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { ocrApi } from "../../../app/adapter/api/ocr.api";
 import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/documents.api";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { handleApiError } from "../../../app/adapter/api/client";
 
 export const useDocumentDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const routes = all_routes;
 
   const docId = useMemo(() => {
     if (!id) return null;
@@ -29,10 +34,15 @@ export const useDocumentDetailPageContainer = () => {
     uploadVersion,
     archiveDocument,
     unarchiveDocument,
+    trashDocument,
+    restoreDocument,
+    permanentDeleteDocument,
     error: storeError,
   } = useDocumentStore();
 
   const { requests, fetchRequests, createRequest, uploadSigned } = useSignatureStore();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
 
   const [attachments, setAttachments] = useState<
     Array<{ id: number; name: string; file_name: string; file_size?: number }>
@@ -75,6 +85,11 @@ export const useDocumentDetailPageContainer = () => {
   const [addingRelation, setAddingRelation] = useState(false);
 
   const [runOcrLoading, setRunOcrLoading] = useState(false);
+  const [modalTrashConfirm, setModalTrashConfirm] = useState(false);
+  const [modalPermanentDelete, setModalPermanentDelete] = useState(false);
+  const [isTrashing, setIsTrashing] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isPermanentDeleting, setIsPermanentDeleting] = useState(false);
 
   const handleClearUploadVersionFile = () => {
     setUploadVersionFile(null);
@@ -108,6 +123,10 @@ export const useDocumentDetailPageContainer = () => {
   const fileExt = (fileName.split(".").pop() ?? "").toLowerCase();
   const isOcrSupported = ["pdf", "jpg", "jpeg", "png", "tiff"].includes(fileExt);
   const latestVersionId = latestVersion?.id;
+  const isTrashed = useMemo(() => {
+    const status = String(doc?.status ?? "").toLowerCase();
+    return status.includes("trash") || status.includes("deleted");
+  }, [doc?.status]);
 
   const signatureRows = useMemo(() => {
     if (!docId || !requests) return [];
@@ -254,6 +273,55 @@ export const useDocumentDetailPageContainer = () => {
       toast.error((e as Error)?.message ?? t("documents.ocrFailed", { defaultValue: "OCR failed." }));
     } finally {
       setRunOcrLoading(false);
+    }
+  };
+
+  const handleTrashDocument = async () => {
+    if (!doc?.id) return;
+    setIsTrashing(true);
+    try {
+      await trashDocument(doc.id);
+      toast.success(t("documents.trashed", { defaultValue: "Document moved to trash." }));
+      setModalTrashConfirm(false);
+      navigate(routes.documents);
+    } catch (e) {
+      const apiMessage = handleApiError(e);
+      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
+      toast.error(message || t("documents.trashFailed", { defaultValue: "Failed to move to trash." }));
+    } finally {
+      setIsTrashing(false);
+    }
+  };
+
+  const handleRestoreDocument = async () => {
+    if (!doc?.id) return;
+    setIsRestoring(true);
+    try {
+      await restoreDocument(doc.id);
+      toast.success(t("documents.restored", { defaultValue: "Document restored." }));
+    } catch (e) {
+      const apiMessage = handleApiError(e);
+      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
+      toast.error(message || t("documents.restoreFailed", { defaultValue: "Failed to restore." }));
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!doc?.id) return;
+    setIsPermanentDeleting(true);
+    try {
+      await permanentDeleteDocument(doc.id);
+      toast.success(t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }));
+      setModalPermanentDelete(false);
+      navigate(routes.documentsTrash);
+    } catch (e) {
+      const apiMessage = handleApiError(e);
+      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
+      toast.error(message || t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }));
+    } finally {
+      setIsPermanentDeleting(false);
     }
   };
 
@@ -419,6 +487,8 @@ export const useDocumentDetailPageContainer = () => {
     signatureRows,
     approvedRequests,
     isArchived,
+    isTrashed,
+    isAdmin,
     canRequestSignature,
     attachments,
     relations,
@@ -449,6 +519,11 @@ export const useDocumentDetailPageContainer = () => {
     relationNotes,
     addingRelation,
     runOcrLoading,
+    modalTrashConfirm,
+    modalPermanentDelete,
+    isTrashing,
+    isRestoring,
+    isPermanentDeleting,
     tabs,
     formatDate,
     refreshAttachments,
@@ -468,6 +543,8 @@ export const useDocumentDetailPageContainer = () => {
     setModalAddRelation,
     setRelatedDocId,
     setRelationNotes,
+    setModalTrashConfirm,
+    setModalPermanentDelete,
     handleClearUploadVersionFile,
     handleClearSignedFile,
     handleDownloadVersion,
@@ -476,6 +553,9 @@ export const useDocumentDetailPageContainer = () => {
     handleArchive,
     handleUnarchive,
     handleRunOcr,
+    handleTrashDocument,
+    handleRestoreDocument,
+    handlePermanentDelete,
     handleUploadVersionSubmit,
     handleCreateSignatureRequest,
     handleUploadSignedSubmit,

@@ -115,6 +115,10 @@ export const DocumentsPage = createLazyComponent(
   () => import("../features/documents/pages/DocumentsPage"),
   <LoadingSpinner text="Loading documents..." />
 );
+export const DocumentsTrashPage = createLazyComponent(
+  () => import("../features/documents/pages/DocumentsTrashPage"),
+  <LoadingSpinner text="Loading trash..." />
+);
 export const UploadDocumentPage = createLazyComponent(
   () => import("../features/documents/pages/UploadDocumentPage"),
   <LoadingSpinner text="Loading upload..." />

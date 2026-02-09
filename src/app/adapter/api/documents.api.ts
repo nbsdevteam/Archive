@@ -85,6 +85,17 @@ export interface DocumentDetailResponse {
   data: DocumentDetail;
 }
 
+export interface TrashDocumentsResponse {
+  success: boolean;
+  data: Array<Document & { deleted_at?: string; restore_deadline?: string }>;
+  pagination?: {
+    total: number;
+    page: number;
+    per_page: number;
+    total_pages: number;
+  };
+}
+
 export interface GetDocumentsParams {
   department_id?: number;
   document_type_id?: number;
@@ -123,6 +134,12 @@ export interface UploadDocumentResponse {
   success: boolean;
   data: { id: number; barcode: string };
   error?: string;
+}
+
+export interface DeleteLikeResponse {
+  success?: boolean;
+  error?: string;
+  message?: string;
 }
 
 export const documentsApi = {
@@ -281,6 +298,77 @@ export const documentsApi = {
       throw new Error(result.error);
     }
     return result as { success: boolean };
+  },
+
+  /**
+   * Move document to trash (soft delete)
+   */
+  trashDocument: async (
+    documentId: number,
+    reason?: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    const response = await apiClient.post(`/api/documents/${documentId}/trash`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: reason ? { reason } : {},
+    });
+    const result = (response.data.result ?? response.data) as DeleteLikeResponse;
+    if (result && result.success === false) {
+      throw new Error(result.error || result.message || 'Failed to move document to trash');
+    }
+    return result as { success: boolean; message?: string };
+  },
+
+  /**
+   * Restore document from trash
+   */
+  restoreDocument: async (documentId: number): Promise<{ success: boolean; message?: string }> => {
+    const response = await apiClient.post(`/api/documents/${documentId}/restore`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {},
+    });
+    const result = (response.data.result ?? response.data) as DeleteLikeResponse;
+    if (result && result.success === false) {
+      throw new Error(result.error || result.message || 'Failed to restore document');
+    }
+    return result as { success: boolean; message?: string };
+  },
+
+  /**
+   * List trashed documents
+   */
+  listTrashDocuments: async (params?: { page?: number; per_page?: number; search?: string }): Promise<TrashDocumentsResponse> => {
+    const response = await apiClient.post(`/api/documents/trash`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: params || {},
+    });
+    const result = response.data.result || response.data;
+    if (result && result.success === false) {
+      throw new Error(result.error || result.message || "Failed to load trash");
+    }
+    return result as TrashDocumentsResponse;
+  },
+
+  /**
+   * Permanently delete a document (admin only)
+   */
+  permanentDeleteDocument: async (
+    documentId: number,
+    confirmation?: string
+  ): Promise<{ ok: true }> => {
+    const response = await apiClient.delete(`/api/documents/${documentId}/permanent`, {
+      data: confirmation ? { confirmation } : undefined,
+    });
+    const result = (response.data ?? {}) as DeleteLikeResponse;
+    if (result && result.success === false) {
+      throw new Error(result.error || result.message || 'Failed to permanently delete document');
+    }
+    if (result && (result.error || result.message) && result.success !== true) {
+      throw new Error(result.error || result.message || 'Failed to permanently delete document');
+    }
+    return { ok: true };
   },
 
   /**
