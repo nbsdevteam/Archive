@@ -131,3 +131,16 @@ export const httpGet = async <T = unknown>(
   const response = await httpClient.get<T>(endpoint, config);
   return response.data;
 };
+
+/**
+ * Make a DELETE request
+ * @param endpoint - API endpoint
+ * @param config - Additional axios config
+ */
+export const httpDelete = async <T = unknown>(
+  endpoint: string,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  const response = await httpClient.delete<T>(endpoint, config);
+  return response.data;
+};

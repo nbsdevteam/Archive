@@ -19,8 +19,8 @@ h4,
 
 .applyBtn.btn.btn-sm.btn-primary {
   color: #fff;
-  background-color: #f26522;
-  border: 1px solid #f26522;
+  background-color: rgb(var(--primary-rgb));
+  border: 1px solid rgb(var(--primary-rgb));
 }
 
 // react-select plugin
@@ -176,12 +176,12 @@ span.form-icon {
 }
 
 .select__control {
-  background-color: #f26522 !important;
-  border-color: #f26522 !important;
+  background-color: rgb(var(--primary-rgb)) !important;
+  border-color: rgb(var(--primary-rgb)) !important;
 }
 
 .select__control:hover {
-  border-color: #f26522 !important;
+  border-color: rgb(var(--primary-rgb)) !important;
 }
 
 // .slick-slide {
@@ -344,35 +344,35 @@ div.popover {
 
 div.rc-slider-track,
 .rc-slider-tracks {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
 }
 
 div.rc-slider-handle {
-  border: solid 2px #f26522;
+  border: solid 2px rgb(var(--primary-rgb));
 }
 
 span.rc-slider-dot-active {
-  border-color: #f26522;
+  border-color: rgb(var(--primary-rgb));
 }
 
 div.rc-slider-handle:active {
-  border-color: #f26522;
-  box-shadow: 0 0 5px #f26522;
+  border-color: rgb(var(--primary-rgb));
+  box-shadow: 0 0 5px rgb(var(--primary-rgb));
   cursor: grabbing;
 }
 
 .rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
-  border-color: #f26522;
-  box-shadow: 0 0 0 5px #f26522;
+  border-color: rgb(var(--primary-rgb));
+  box-shadow: 0 0 0 5px rgb(var(--primary-rgb));
 }
 
 div.rc-slider-handle:hover {
-  border-color: #f26522;
+  border-color: rgb(var(--primary-rgb));
 }
 
 div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
-  border-color: #f26522;
-  box-shadow: 0 0 0 5px #f26522;
+  border-color: rgb(var(--primary-rgb));
+  box-shadow: 0 0 0 5px rgb(var(--primary-rgb));
 }
 
 [data-theme="dark"] {
@@ -423,7 +423,7 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
   }
 
   .react-select-29-listbox {
-    background-color: #f26522;
+    background-color: rgb(var(--primary-rgb));
   }
 
   .react-select-29-listbox {
@@ -530,12 +530,12 @@ div.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-draggin
 }
 
 div.css-b62m3t-container .react-select__option--is-focused {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
   color: #fff;
 }
 
 div.css-b62m3t-container .react-select__option--is-selected {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
   color: #fff;
 }
 
@@ -715,7 +715,7 @@ div.sidebar-themesettings
     }
 
     table td.p-datepicker-today > span {
-      background-color: #f26522;
+      background-color: rgb(var(--primary-rgb));
       color: #fff;
     }
   }
@@ -874,7 +874,7 @@ div.sidebar-themesettings
 }
 
 .theme-layout.active .layout-img img {
-  border: 1px solid #f26522;
+  border: 1px solid rgb(var(--primary-rgb));
   border-radius: 5px;
 }
 
@@ -886,7 +886,7 @@ div.sidebar-themesettings
 .theme-layout.active .layout-type:after {
   content: "\f058";
   font-family: "Fontawesome";
-  color: #f26522;
+  color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
   display: flex;
@@ -904,11 +904,11 @@ div.sidebar-themesettings
 }
 
 .theme-colorselect.active label {
-  outline: 1px solid #f26522;
+  outline: 1px solid rgb(var(--primary-rgb));
 }
 
 .theme-colorselect.active label.primary-topbar {
-  background: #f26522;
+  background: rgb(var(--primary-rgb));
 }
 
 .theme-colorselect.active label.primary-topbar:after,
@@ -919,7 +919,7 @@ div.sidebar-themesettings
 .theme-colorselect.active label:after {
   content: "\f058";
   font-family: "Fontawesome";
-  color: #f26522;
+  color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
   display: flex;
@@ -936,11 +936,11 @@ div.sidebar-themesettings
 }
 
 .theme-mode.active label {
-  border: 1px solid #f26522;
+  border: 1px solid rgb(var(--primary-rgb));
 }
 
 .theme-mode.active label .avatar {
-  color: #f26522;
+  color: rgb(var(--primary-rgb));
   background-color: #f2f5ff;
 }
 
@@ -949,14 +949,14 @@ div.sidebar-themesettings
 }
 
 .theme-sidebarcolor.active label {
-  border-color: #f26522 !important;
+  border-color: rgb(var(--primary-rgb)) !important;
   position: relative;
 }
 
 .theme-sidebarcolor.active label:after {
   content: "\f058";
   font-family: "Fontawesome";
-  color: #f26522;
+  color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
   display: flex;
@@ -977,7 +977,7 @@ div.sidebar-themesettings
 }
 
 .theme-sidebarbg.active label img {
-  border-color: #f26522 !important;
+  border-color: rgb(var(--primary-rgb)) !important;
 }
 
 .theme-colorsset.active label:after {
@@ -1083,8 +1083,8 @@ div.sidebar-themesettings
 }
 
 .fc .fc-customButton-button.fc-button.fc-button-primary {
-  background-color: #f26522;
-  border-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
+  border-color: rgb(var(--primary-rgb));
   color: #fff;
   font-size: 15px;
   font-weight: 400;
@@ -1284,12 +1284,12 @@ div.ant-picker-date-panel {
 }
 
 div.css-b62m3t-container .react-select__option--is-focused {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
   color: #fff;
 }
 
 div.css-b62m3t-container .react-select__option--is-selected {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
   color: #fff;
 }
 
@@ -1402,7 +1402,7 @@ body.app-chat {
 }
 
 .theme-colorselect.active .ant-color-picker-trigger {
-  border-color: #f26522 !important;
+  border-color: rgb(var(--primary-rgb)) !important;
 }
 
 .ant-color-picker-trigger {
@@ -1451,7 +1451,7 @@ body.app-chat {
 
 .btn {
   &.show {
-    background-color: #f26522 !important;
+    background-color: rgb(var(--primary-rgb)) !important;
   }
 }
 
@@ -1877,7 +1877,7 @@ span.p-dropdown-label.p-inputtext span {
     background: transparent;
     &:hover {
       background: #e9edf4;
-      color: #f26522;
+      color: rgb(var(--primary-rgb));
     }
   }
 }
@@ -1889,15 +1889,15 @@ span.p-dropdown-label.p-inputtext span {
 
 .daterangepicker {
   .ranges li.active {
-    background-color: #f26522 !important;
+    background-color: rgb(var(--primary-rgb)) !important;
     color: #fff !important;
   }
   td.active,
   .daterangepicker td.active {
-    background-color: #f26522 !important;
+    background-color: rgb(var(--primary-rgb)) !important;
     color: #fff !important;
     :hover {
-      background-color: #f26522 !important;
+      background-color: rgb(var(--primary-rgb)) !important;
       color: #fff !important;
     }
   }
@@ -1943,19 +1943,19 @@ span.p-dropdown-label.p-inputtext span {
   color: #0d0d0d;
 }
 .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #f26522;
-  border-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
+  border-color: rgb(var(--primary-rgb));
 }
 .ant-checkbox:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
-  border-color: #f26522;
+  border-color: rgb(var(--primary-rgb));
 }
 .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover
   .ant-checkbox-checked:not(.ant-checkbox-disabled)
   .ant-checkbox-inner {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
 }
 .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-  background-color: #f26522;
+  background-color: rgb(var(--primary-rgb));
 }
 //Custom Select
 [data-theme="dark"] {
@@ -1998,7 +1998,7 @@ span.p-dropdown-label.p-inputtext span {
   }
 
   .react-select__option--is-selected {
-    background-color: #f26522 !important;
+    background-color: rgb(var(--primary-rgb)) !important;
     color: #fff !important;
   }
   .custome-tag-input {

@@ -108,9 +108,11 @@
     "uploadNewDocument": "رفع مستند جديد",
     "basicDocumentInfo": "معلومات المستند الأساسية",
     "uploadType": "نوع الرفع",
+    "uploadTypeMainDocumentInfo": "المستندات الرئيسية تُخزَّن دائمًا داخل مجلد جديد. املأ معلومات المجلد أدناه لإنشاء المجلد لهذا المستند.",
     "mainDocument": "مستند رئيسي",
     "subDocument": "مستند فرعي",
     "attachment": "مرفق",
+    "uploadWhatDocument": "رفع {{type}}",
     "targetDocumentId": "معرف المستند المستهدف",
     "department": "القسم",
     "documentType": "نوع المستند",
@@ -140,7 +142,9 @@
       "departmentRequired": "القسم مطلوب",
       "documentTypeRequired": "نوع المستند مطلوب",
       "folderNameRequired": "اسم المجلد مطلوب",
-      "folderCodeRequired": "رمز المجلد مطلوب"
+      "folderCodeRequired": "رمز المجلد مطلوب",
+      "folderRequiredForSubDocument": "الرابط إلى المجلد مطلوب للمستند الفرعي",
+      "folderRequiredForMainDocument": "حدد مجلدًا موجودًا أو أنشئ مجلدًا جديدًا للمستند الرئيسي"
     },
     "confidentiality": {
       "internal": "داخلي",
@@ -204,6 +208,15 @@
     "creating": "جاري الإنشاء...",
     "failedToCreateFolder": "فشل إنشاء المجلد",
     "createSuccess": "تم إنشاء المجلد بنجاح.",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "editFolder": "تعديل المجلد",
+    "deleteFolder": "حذف المجلد",
+    "confirmDeleteFolder": "هل أنت متأكد من حذف هذا المجلد؟ قد تتأثر المستندات.",
+    "folderUpdated": "تم تحديث المجلد.",
+    "folderDeleted": "تم حذف المجلد.",
+    "updateFailed": "فشل تحديث المجلد.",
+    "deleteFailed": "فشل حذف المجلد.",
     "validation": {
       "nameRequired": "الاسم مطلوب",
       "codeRequired": "الرمز مطلوب",

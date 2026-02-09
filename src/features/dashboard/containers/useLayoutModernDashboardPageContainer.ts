@@ -5,10 +5,19 @@ import { handleApiError } from "../../../app/adapter/api/client";
 import { useFolders } from "../../folders/hooks/useFolders";
 import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
+import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 
 const DOCUMENT_PARAMS = { status: "active" as const, per_page: 1, page: 1 };
 const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
+
+/** Primary color from theme (--primary-rgb) for charts; fallback to default orange if not set */
+function getThemePrimaryColor(): string {
+  if (typeof document === "undefined") return "rgb(242, 101, 34)";
+  const rgb = getComputedStyle(document.documentElement).getPropertyValue("--primary-rgb").trim();
+  if (rgb) return `rgb(${rgb})`;
+  return "rgb(242, 101, 34)";
+}
 
 type DashboardStats = {
   total_documents?: number;
@@ -17,6 +26,7 @@ type DashboardStats = {
 export const useLayoutModernDashboardPageContainer = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const themeColor = useThemeColorStore((s) => s.color);
 
   const {
     folders,
@@ -81,7 +91,7 @@ export const useLayoutModernDashboardPageContainer = () => {
         },
       },
       dataLabels: { enabled: false },
-      colors: ["#F26522"],
+      colors: [getThemePrimaryColor()],
       grid: {
         borderColor: "#E5E7EB",
         strokeDashArray: 5,
@@ -93,7 +103,7 @@ export const useLayoutModernDashboardPageContainer = () => {
       },
       series: [{ name: "Folders", data: chartData.data }],
     }),
-    [chartData]
+    [chartData, themeColor]
   );
 
   const loading = foldersLoading || notificationsLoading;

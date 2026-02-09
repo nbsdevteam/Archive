@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import styles from "../styles/login.page.module.css";
 
 const ForgotPasswordPage = () => {
   const routes = all_routes;
@@ -16,24 +17,21 @@ const ForgotPasswordPage = () => {
       <div className="w-100 overflow-hidden position-relative flex-wrap d-block vh-100">
         <div className="row">
           <div className="col-lg-5">
-            <div className="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
-              <div className="bg-overlay-img">
-                <ImageWithBasePath src="assets/img/bg/bg-01.png" className="bg-1" alt="Background pattern 1" />
-                <ImageWithBasePath src="assets/img/bg/bg-02.png" className="bg-2" alt="Background pattern 2" />
-                <ImageWithBasePath src="assets/img/bg/bg-03.png" className="bg-3" alt="Background pattern 3" />
-              </div>
+            <div className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}>
               <div className="authentication-card w-100">
-                <div className="authen-overlay-item border w-100">
-                  <h1 className="text-white display-1">
-                    Empowering people <br /> through seamless HR <br /> management.
+                <div className={`authen-overlay-item border w-100 ${styles.leftCard}`}>
+                  <h1 className={`text-white display-1 ${styles.leftTitle}`}>
+                    NBS Archive
                   </h1>
-                  <div className="my-4 mx-auto authen-overlay-img">
-                    <ImageWithBasePath src="assets/img/bg/authentication-bg-01.png" alt="Authentication illustration" />
-                  </div>
-                  <div>
-                    <p className="text-white fs-20 fw-semibold text-center">
-                      Efficiently manage your workforce, streamline <br /> operations effortlessly.
-                    </p>
+                  <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
+                    Recover access to your archive workspace. We'll send reset instructions to your email.
+                  </p>
+                  <div className={styles.leftVisual}>
+                    <ImageWithBasePath
+                      src="assets/img/bg/archive-user.svg"
+                      alt="Archive workspace"
+                      className={`${styles.leftImage} ${styles.leftImageActive}`}
+                    />
                   </div>
                 </div>
               </div>
@@ -55,8 +53,7 @@ const ForgotPasswordPage = () => {
                       <div className="text-center mb-3">
                         <h2 className="mb-2">Forgot Password?</h2>
                         <p className="mb-0">
-                          If you forgot your password, well, then we'll email you
-                          instructions to reset your password.
+                          Enter your email and we'll send instructions to reset your password and regain access to the archive.
                         </p>
                       </div>
                       <div className="mb-3">
@@ -90,7 +87,7 @@ const ForgotPasswordPage = () => {
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2024 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
                     </div>
                   </div>
                 </form>

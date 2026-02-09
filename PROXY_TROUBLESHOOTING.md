@@ -3,7 +3,7 @@
 ## Current Configuration
 
 - **Frontend Port**: `3002` (configured in `vite.config.ts`)
-- **Backend Target**: `http://192.168.116.211:8069` (configured in proxy)
+- **Backend Target**: `http://192.168.116.15:8070` (configured in proxy)
 - **API Base URL**: Empty string (uses relative URLs for proxy)
 
 ## Common Issues and Solutions
@@ -14,7 +14,7 @@
 
 **Possible Causes**:
 - Dev server not restarted after proxy config changes
-- Backend not running or not accessible at `http://192.168.116.211:8069`
+- Backend not running or not accessible at `http://192.168.116.15:8070`
 - Wrong backend IP/port in proxy config
 
 **Solutions**:
@@ -27,11 +27,11 @@
 2. **Verify backend is accessible**:
    ```bash
    # Test if backend is reachable
-   curl http://192.168.116.211:8069/api/health
+   curl http://192.168.116.15:8070/api/health
    ```
 
 3. **Check proxy target in `vite.config.ts`**:
-   - Ensure `target: 'http://192.168.116.211:8069'` matches your backend
+   - Ensure `target: 'http://192.168.116.15:8070'` matches your backend
    - If your backend is on a different IP/port, update the target
 
 ### 2. CORS Errors
@@ -84,7 +84,7 @@ VITE_API_BASE_URL=http://your-backend-url:port
 
 1. Check if backend is running:
    ```bash
-   curl http://192.168.116.211:8069/api/health
+   curl http://192.168.116.15:8070/api/health
    ```
 
 2. Check proxy configuration in `vite.config.ts`:
@@ -103,11 +103,11 @@ VITE_API_BASE_URL=http://your-backend-url:port
 
 If you're still getting 404 errors:
 
-1. **Verify backend is running** at `http://192.168.116.211:8069`
+1. **Verify backend is running** at `http://192.168.116.15:8070`
 2. **Check backend logs** to see if requests are reaching it
 3. **Test backend directly** with curl:
    ```bash
-   curl -X POST http://192.168.116.211:8069/api/stats/dashboard \
+   curl -X POST http://192.168.116.15:8070/api/stats/dashboard \
      -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","method":"call","params":{},"id":1}'
    ```

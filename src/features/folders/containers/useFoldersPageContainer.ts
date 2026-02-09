@@ -1,24 +1,54 @@
-import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import { all_routes } from "../../../router/all_routes";
+import { adminApi } from "../../../app/adapter/api/admin.api";
+import { handleApiError } from "../../../app/adapter/api/client";
+import type { SelectOption } from "../../../shared/components/ui";
+import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { deleteFolder } from "../services/folders.api";
 import { useFolders } from "../hooks/useFolders";
+import type { Folder } from "../types/folders.types";
 import { filterFoldersBySearch } from "../utils/filterFoldersBySearch";
 import { getFolderStatusBadgeVariant } from "../utils/getFolderStatusBadgeVariant";
 
-type ViewMode = "grid" | "list";
+const VIEW_MODE = { grid: "grid", list: "list" } as const;
+type ViewMode = (typeof VIEW_MODE)[keyof typeof VIEW_MODE];
 
-export const useFoldersPageContainer = () => {
-  const routes = all_routes;
+export interface FoldersFilterState {
+  department_id?: number;
+  folder_type?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  const apiMessage = handleApiError(error);
+  return apiMessage !== "An unexpected error occurred" ? apiMessage : fallback;
+}
+
+export function useFoldersPageContainer() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const folderListParams = useMemo(() => ({ state: "active" as const }), []);
+  // ─── View & list state ─────────────────────────────────────────────────────
+  const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState<FoldersFilterState>({});
+
+  const listParams = useMemo(
+    () => ({
+      state: "active" as const,
+      department_id: appliedFilters.department_id,
+      folder_type: appliedFilters.folder_type,
+    }),
+    [appliedFilters.department_id, appliedFilters.folder_type]
+  );
+
   const { folders, loading, error, pagination, fetchFolders } = useFolders({
     useApi: true,
-    initialParams: folderListParams,
+    initialParams: listParams,
   });
 
   const filteredFolders = useMemo(
@@ -26,75 +56,224 @@ export const useFoldersPageContainer = () => {
     [folders, searchQuery]
   );
 
+  // ─── Filter UI state ───────────────────────────────────────────────────────
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<FoldersFilterState>({});
+  const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
+
+  const departmentOptions: SelectOption<number>[] = useMemo(
+    () => departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
+    [departments]
+  );
+
+  const folderTypeOptions: SelectOption<string>[] = useMemo(
+    () =>
+      FOLDER_TYPE_VALUES.map((value) => ({
+        value,
+        label: t(`folders.folderTypeOptions.${value}`, { defaultValue: value }),
+      })),
+    [t]
+  );
+
+  const filterApplyDisabled = useMemo(
+    () =>
+      draftFilters.department_id === appliedFilters.department_id &&
+      draftFilters.folder_type === appliedFilters.folder_type,
+    [
+      draftFilters.department_id,
+      draftFilters.folder_type,
+      appliedFilters.department_id,
+      appliedFilters.folder_type,
+    ]
+  );
+
+  // ─── Delete confirmation state ─────────────────────────────────────────────
+  const [deleteFolderId, setDeleteFolderId] = useState<number | null>(null);
+  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
+
+  // ─── Edit panel state ──────────────────────────────────────────────────────
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+
+  // ─── Data loading: departments ─────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .getDepartments()
+      .then((res) => {
+        if (!cancelled && res?.data) setDepartments(res.data);
+      })
+      .catch(() => {
+        if (!cancelled) setDepartments([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ─── Navigation & search ──────────────────────────────────────────────────
+  const handleNavigateToFolder = useCallback(
+    (folderId: number) => {
+      navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`);
+    },
+    [navigate]
+  );
+
   const handleSearchDebounced = useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
-
-  const handleNavigateToFolder = useCallback(
-    (folderId: number) => {
-      navigate(`${routes.folderDetail.replace(":id", folderId.toString())}`);
-    },
-    [navigate, routes.folderDetail]
-  );
-
-  const handleOpenCreateFolder = useCallback(() => {
-    setIsCreateFolderOpen(true);
-  }, []);
-
-  const handleCloseCreateFolder = useCallback(() => {
-    setIsCreateFolderOpen(false);
-  }, []);
-
-  const handleCreateSuccess = useCallback(() => {
-    fetchFolders();
-    setIsCreateFolderOpen(false);
-  }, [fetchFolders]);
 
   const handleRefresh = useCallback(() => {
     fetchFolders();
   }, [fetchFolders]);
 
-  const foldersCountLabel = useMemo(() => {
-    if (loading) return "Loading...";
-    const count = filteredFolders.length;
-    return `${count} ${count === 1 ? "folder" : "folders"}`;
-  }, [filteredFolders.length, loading]);
-
-  const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "-";
+  const formatDate = useCallback((dateStr?: string | null) => {
+    if (!dateStr) return "–";
     try {
       return formatRelativeTime(new Date(dateStr));
     } catch {
-      return "-";
+      return "–";
     }
-  };
+  }, []);
 
-  const handleGridKeyDown = (folderId: number, e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleNavigateToFolder(folderId);
+  const handleGridKeyDown = useCallback(
+    (folderId: number, e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleNavigateToFolder(folderId);
+      }
+    },
+    [handleNavigateToFolder]
+  );
+
+  // ─── Filter handlers ──────────────────────────────────────────────────────
+  const handleOpenFilter = useCallback(() => {
+    setDraftFilters(appliedFilters);
+    setIsFilterOpen(true);
+  }, [appliedFilters]);
+
+  const handleCloseFilter = useCallback(() => {
+    setIsFilterOpen(false);
+  }, []);
+
+  const handlePrimaryFilterChange = useCallback((value: number | string | null) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      department_id: value != null && typeof value === "number" ? value : undefined,
+    }));
+  }, []);
+
+  const handleSecondaryFilterChange = useCallback((value: number | string | null) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      folder_type: value != null && typeof value === "string" ? value : undefined,
+    }));
+  }, []);
+
+  const handleApplyFilter = useCallback(() => {
+    setAppliedFilters(draftFilters);
+    fetchFolders({
+      department_id: draftFilters.department_id,
+      folder_type: draftFilters.folder_type,
+    });
+    setIsFilterOpen(false);
+  }, [draftFilters, fetchFolders]);
+
+  const handleClearFilter = useCallback(() => {
+    setDraftFilters({});
+    setAppliedFilters({});
+    fetchFolders({});
+    setIsFilterOpen(false);
+  }, [fetchFolders]);
+
+  // ─── Delete handlers ───────────────────────────────────────────────────────
+  const handleOpenDeleteFolder = useCallback((id: number) => {
+    setDeleteFolderId(id);
+  }, []);
+
+  const handleCloseDeleteConfirm = useCallback(() => {
+    if (!isDeletingFolder) setDeleteFolderId(null);
+  }, [isDeletingFolder]);
+
+  const handleConfirmDeleteFolder = useCallback(async () => {
+    const id = deleteFolderId;
+    if (id == null) return;
+
+    setIsDeletingFolder(true);
+    try {
+      const result = await deleteFolder(id);
+      if (!result?.ok) {
+        toast.error(t("folders.deleteFailed"));
+        return;
+      }
+      toast.success(t("folders.folderDeleted"));
+      setDeleteFolderId(null);
+      fetchFolders();
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, t("folders.deleteFailed")));
+    } finally {
+      setIsDeletingFolder(false);
     }
-  };
+  }, [deleteFolderId, t, fetchFolders]);
 
+  // ─── Edit panel handlers ───────────────────────────────────────────────────
+  const handleOpenEditFolder = useCallback((folder: Folder) => {
+    setEditingFolder(folder);
+  }, []);
+
+  const handleCloseEditFolder = useCallback(() => {
+    setEditingFolder(null);
+  }, []);
+
+  const handleEditFolderSuccess = useCallback(() => {
+    fetchFolders();
+    setEditingFolder(null);
+  }, [fetchFolders]);
+
+  // ─── Derived labels ───────────────────────────────────────────────────────
+  const foldersCountLabel = useMemo(() => {
+    if (loading) return t("common.loading", { defaultValue: "Loading..." });
+    const count = filteredFolders.length;
+    const singular = t("folders.folder", { defaultValue: "folder" });
+    const plural = t("folders.folders", { defaultValue: "folders" });
+    return `${count} ${count === 1 ? singular : plural}`;
+  }, [filteredFolders.length, loading, t]);
+
+  // ─── Return (grouped for consumers) ─────────────────────────────────────────
   return {
-    routes,
+    routes: all_routes,
     viewMode,
     setViewMode,
-    isCreateFolderOpen,
     folders,
     filteredFolders,
     loading,
     error,
     pagination,
     foldersCountLabel,
+    formatDate,
     handleSearchDebounced,
     handleNavigateToFolder,
-    handleOpenCreateFolder,
-    handleCloseCreateFolder,
-    handleCreateSuccess,
     handleRefresh,
-    formatDate,
     handleGridKeyDown,
     getFolderStatusBadgeVariant,
+    isFilterOpen,
+    draftFilters,
+    departmentOptions,
+    folderTypeOptions,
+    filterApplyDisabled,
+    handleOpenFilter,
+    handleCloseFilter,
+    handlePrimaryFilterChange,
+    handleSecondaryFilterChange,
+    handleApplyFilter,
+    handleClearFilter,
+    deleteFolderId,
+    isDeletingFolder,
+    handleOpenDeleteFolder,
+    handleCloseDeleteConfirm,
+    handleConfirmDeleteFolder,
+    editingFolder,
+    handleOpenEditFolder,
+    handleCloseEditFolder,
+    handleEditFolderSuccess,
   };
-};
+}

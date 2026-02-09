@@ -32,6 +32,22 @@ export const THEME_PRIMARY_RGB: Record<ThemeColorId, string> = {
 export const DEFAULT_THEME_COLOR: ThemeColorId = "creamy";
 
 /**
+ * Dark-mode inner profile background (sidebar .user-profile) per theme.
+ * Set as --app-profile-inner-bg so the inner card is theme-dependent, not hardcoded.
+ */
+export const THEME_PROFILE_INNER_BG: Record<ThemeColorId, string> = {
+  creamy: "#2c2419",
+  primary: "#2c1a0f",
+  brightblue: "#1b2844",
+  lunargreen: "#1a2819",
+  lavendar: "#1e1a2c",
+  magenta: "#2c1a24",
+  chromeyellow: "#2c2410",
+  lavared: "#2c1515",
+  all: "#171724",
+};
+
+/**
  * Opacity values for theme-tinted backgrounds (used in tables, sidebar, content, etc.).
  * Use in CSS as rgba(var(--primary-rgb), <value>).
  */

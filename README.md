@@ -63,15 +63,41 @@ Create a `.env` file in the root directory:
 ```env
 # API Configuration
 # Base URL for the NBS Archive API
-# Defaults to http://192.168.116.204:8070 if not set
-VITE_API_BASE_URL=http://192.168.116.204:8070
+# For development: leave VITE_API_BASE_URL unset so the Vite proxy is used (proxy target: http://192.168.116.15:8070)
+# For production: set to your backend URL, e.g. http://192.168.116.15:8070
+# VITE_API_BASE_URL=http://192.168.116.15:8070
 
 # Optional: App configuration
 VITE_APP_NAME=SmartHR
 VITE_ENABLE_PERFORMANCE_MONITORING=true
 ```
 
-**Note**: The `VITE_API_BASE_URL` environment variable is used by the API client to connect to the backend. If not set, it defaults to `http://192.168.116.204:8070` as specified in the API documentation. All API endpoints are prefixed with `/api/`.
+**Note**: The `VITE_API_BASE_URL` environment variable is used by the API client. **Leave it unset in development** so requests go to `/api/...` and the Vite proxy forwards them to the backend (e.g. `http://192.168.116.15:8070`). If you set it to a full URL, the app will call that URL directly (no proxy). All API endpoints are prefixed with `/api/`.
+
+### Trigger NBS Archive APIs (login, upload, create folder)
+
+A script triggers the login, upload document, and create folder APIs so you can verify success or errors without using the UI.
+
+**Usage:**
+
+```bash
+# Backend must be reachable at the base URL (default: http://localhost:8070)
+npm run trigger-apis
+```
+
+**Environment (optional):** Set `API_BASE_URL` or `VITE_API_BASE_URL` when the backend is not on `http://localhost:8070` (e.g. when using the same host as the Vite proxy):
+
+```bash
+# Windows (PowerShell)
+$env:API_BASE_URL="http://192.168.116.15:8070"; npm run trigger-apis
+
+# Linux/macOS
+API_BASE_URL=http://192.168.116.15:8070 npm run trigger-apis
+```
+
+**What it does:** Logs in with `admin` / `admin`, then calls upload document (plain JSON) and create folder (JSON-RPC). It fetches the first department and document type for the upload.
+
+**Success/error reporting:** For each step the script prints HTTP status, `success`/`error`, and `data.id` when present. Login failure (e.g. 401 or missing `access_token`) exits with code 1; upload and folder steps always run and report success or error in the output.
 
 ### Performance Settings
 

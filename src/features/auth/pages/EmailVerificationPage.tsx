@@ -128,7 +128,7 @@ const EmailVerificationPage = () => {
                       </div>
                     </div>
                     <div className="mt-5 text-center">
-                      <p className="mb-0 ">Copyright © 2024 - NBS Archive System</p>
+                      <p className="mb-0 ">Copyright © 2026 - NBS Archive System</p>
                     </div>
                   </div>
                 </form>

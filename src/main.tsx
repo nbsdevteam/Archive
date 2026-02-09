@@ -22,6 +22,7 @@ import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
 import "@nbs/component-library/dist/styles.css";
 import "../src/shared/styles/nbs-sidebar-overrides.css";
 import "../src/shared/styles/nbs-theme-bridge.css";
+import "../src/shared/styles/theme-primary-overrides.css";
 import "../src/shared/styles/control-heights.css";
 import "../src/assets/js/bootstrap.bundle.min.js";
 

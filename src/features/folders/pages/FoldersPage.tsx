@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Button, Spinner, Alert, Icon, SearchInput, Card } from "../../../shared/components/ui";
-import { CreateFolderSidePanel } from "../components";
+import { Button, Spinner, Alert, Icon, SearchInput, Card, ListFilter, ConfirmModal } from "../../../shared/components/ui";
+import { EditFolderSidePanel } from "../components";
 import { useFoldersPageContainer } from "../containers/useFoldersPageContainer";
 import "../styles/folders.css";
 
@@ -15,7 +15,6 @@ const FoldersPage = () => {
     routes,
     viewMode,
     setViewMode,
-    isCreateFolderOpen,
     folders,
     filteredFolders,
     loading,
@@ -23,13 +22,30 @@ const FoldersPage = () => {
     foldersCountLabel,
     handleSearchDebounced,
     handleNavigateToFolder,
-    handleOpenCreateFolder,
-    handleCloseCreateFolder,
-    handleCreateSuccess,
     handleRefresh,
     formatDate,
     handleGridKeyDown,
     getFolderStatusBadgeVariant,
+    isFilterOpen,
+    draftFilters,
+    departmentOptions,
+    folderTypeOptions,
+    handleOpenFilter,
+    handleCloseFilter,
+    handlePrimaryFilterChange,
+    handleSecondaryFilterChange,
+    handleApplyFilter,
+    handleClearFilter,
+    filterApplyDisabled,
+    deleteFolderId,
+    isDeletingFolder,
+    handleOpenDeleteFolder,
+    handleCloseDeleteConfirm,
+    handleConfirmDeleteFolder,
+    editingFolder,
+    handleOpenEditFolder,
+    handleCloseEditFolder,
+    handleEditFolderSuccess,
   } = useFoldersPageContainer();
 
   return (
@@ -76,11 +92,42 @@ const FoldersPage = () => {
                 inputClassName="folders__search-input"
                 aria-label="Search folders"
               />
-              
-                <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenCreateFolder}>
-                <Icon name="folder-plus" className="me-1" />
-                {t("folders.addFolder", { defaultValue: "Add Folder" })}
-              </Button>
+              <div className="position-relative d-inline-block">
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="btn-outline-secondary"
+                  onClick={handleOpenFilter}
+                  aria-label={t("folders.filter", { defaultValue: "Filter" })}
+                  aria-expanded={isFilterOpen}
+                >
+                  <Icon name="filter" className="me-1" />
+                  {t("folders.filter", { defaultValue: "Filter" })}
+                </Button>
+                <ListFilter
+                  isOpen={isFilterOpen}
+                  onClose={handleCloseFilter}
+                  primaryFilter={{
+                    label: t("folders.department", { defaultValue: "Department" }),
+                    value: draftFilters.department_id ?? null,
+                    options: departmentOptions,
+                    onChange: handlePrimaryFilterChange,
+                  }}
+                  secondaryFilter={{
+                    label: t("folders.folderType", { defaultValue: "Folder type" }),
+                    value: draftFilters.folder_type ?? null,
+                    options: folderTypeOptions,
+                    onChange: handleSecondaryFilterChange,
+                  }}
+                  onApply={handleApplyFilter}
+                  onClear={handleClearFilter}
+                  applyDisabled={filterApplyDisabled}
+                  applyLabel={t("common.apply", { defaultValue: "Apply" })}
+                  clearLabel={t("common.clear", { defaultValue: "Clear" })}
+                  closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
+                  ariaLabel={t("folders.filterOptions", { defaultValue: "Filter options" })}
+                />
+              </div>
               <div
                 className="folders__view-toggle"
                 role="group"
@@ -179,13 +226,29 @@ const FoldersPage = () => {
                             {folder.document_count ?? folder.docs ?? 0} documents
                             {folder.department_name && ` • ${folder.department_name}`}
                           </p>
-                          <Link
-                            to={routes.folderDetail.replace(":id", String(folder.id))}
-                            className="link-primary fs-13"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View documents
-                          </Link>
+                          <div className="d-flex flex-wrap gap-2 align-items-center" onClick={(e) => e.stopPropagation()}>
+                            <Link
+                              to={routes.folderDetail.replace(":id", String(folder.id))}
+                              className="link-primary fs-13"
+                            >
+                              {t("common.view", { defaultValue: "View" })}
+                            </Link>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-link p-0 text-primary"
+                              onClick={(e) => { e.preventDefault(); handleOpenEditFolder(folder); }}
+                            >
+                              {t("folders.edit", { defaultValue: "Edit" })}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-link p-0 text-danger"
+                              onClick={(e) => { e.preventDefault(); handleOpenDeleteFolder(folder.id); }}
+                              aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+                            >
+                              {t("folders.delete", { defaultValue: "Delete" })}
+                            </button>
+                          </div>
                           </div>
                         </Card>
                       </div>
@@ -231,16 +294,41 @@ const FoldersPage = () => {
                             </td>
                             <td>{formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}</td>
                             <td className="text-end">
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-light"
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleNavigateToFolder(folder.id);
                                 }}
                               >
-                                View
-                              </button>
+                                {t("common.view", { defaultValue: "View" })}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditFolder(folder);
+                                }}
+                              >
+                                {t("folders.edit", { defaultValue: "Edit" })}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-danger"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDeleteFolder(folder.id);
+                                }}
+                                aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+                              >
+                                <Icon name="trash" className="me-1" />
+                                {t("folders.delete", { defaultValue: "Delete" })}
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -252,13 +340,26 @@ const FoldersPage = () => {
             )}
           </div>
         </div>
-      </div>
 
-      <CreateFolderSidePanel
-        isOpen={isCreateFolderOpen}
-        onClose={handleCloseCreateFolder}
-        onSuccess={handleCreateSuccess}
-      />
+        <ConfirmModal
+          isOpen={deleteFolderId != null}
+          onClose={handleCloseDeleteConfirm}
+          onConfirm={handleConfirmDeleteFolder}
+          title={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+          message={t("folders.confirmDeleteFolder", { defaultValue: "Are you sure you want to delete this folder? Documents may be affected." })}
+          confirmLabel={t("folders.delete", { defaultValue: "Delete" })}
+          cancelLabel={t("common.cancel")}
+          confirmVariant="danger"
+          isLoading={isDeletingFolder}
+        />
+
+        <EditFolderSidePanel
+          isOpen={editingFolder != null}
+          onClose={handleCloseEditFolder}
+          folder={editingFolder}
+          onSuccess={handleEditFolderSuccess}
+        />
+      </div>
     </div>
   );
 };

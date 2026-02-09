@@ -1,17 +1,24 @@
 /**
  * useDocumentCount - Lightweight hook for document count only (no search/debounce).
  * Use on Dashboard etc. to avoid useDebounce and prevent hooks order issues.
+ * Uses app/adapter API (same HTTP client with token refresh).
  */
 
 import { useState, useEffect, useRef } from "react";
-import * as documentsApi from "../services/documents.api";
-import type { DocumentListParams, DocumentListResponse } from "../types/documents.types";
+import { documentsApi } from "../../../app/adapter/api/documents.api";
 
-const EMPTY_PARAMS: DocumentListParams = {};
+interface UseDocumentCountParams {
+  status?: string;
+  department_id?: number;
+  document_type_id?: number;
+  search?: string;
+}
 
 interface UseDocumentCountOptions {
-  initialParams?: DocumentListParams;
+  initialParams?: UseDocumentCountParams;
 }
+
+const EMPTY_PARAMS: UseDocumentCountParams = {};
 
 export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
   const { initialParams = EMPTY_PARAMS } = options;
@@ -29,17 +36,17 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
     (async () => {
       try {
         setLoading(true);
-        const response: DocumentListResponse = await documentsApi.listDocuments({
+        const response = await documentsApi.getDocuments({
           ...initialParams,
           per_page: 1,
           page: 1,
         });
-        const total = response.pagination?.total ?? (response.documents?.length ?? 0);
-        setCount(total);
+        const total = response.pagination?.total ?? (response.data?.length ?? 0);
+        if (!cancelled) setCount(total);
       } catch (err) {
         if (!cancelled) setCount(0);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
 

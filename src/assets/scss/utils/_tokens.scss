@@ -6,6 +6,8 @@
   /* Theme primary (creamy default); JS themeColorStore overrides these on app bootstrap */
   --primary-rgb: 201, 168, 108;
   --primary-rgb-picr: 201, 168, 108;
+  /* Dark-mode inner profile background; themeColorStore sets per theme (THEME_PROFILE_INNER_BG) */
+  --app-profile-inner-bg: #2c2419;
 
   --app-body-bg: #{variables.$body-bg};
   --app-surface-bg: #{variables.$default-background};

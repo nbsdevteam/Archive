@@ -100,10 +100,14 @@ export const useDocumentDetailPageContainer = () => {
   const tags = Array.isArray(doc?.tags) ? doc.tags : [];
   const ocr = doc?.ocr ?? {};
   const ocrStatus = (doc?.ocr_status ?? (ocr as { ocr_status?: string })?.ocr_status) ?? "pending";
-  const fileName = doc?.file_name ?? "";
+  const latestVersion = versions.length > 0 ? versions[versions.length - 1] : null;
+  const fileName =
+    (doc?.file_name && doc.file_name.trim() !== "")
+      ? doc.file_name
+      : (latestVersion?.file_name ?? "");
   const fileExt = (fileName.split(".").pop() ?? "").toLowerCase();
   const isOcrSupported = ["pdf", "jpg", "jpeg", "png", "tiff"].includes(fileExt);
-  const latestVersionId = versions.length > 0 ? versions[versions.length - 1]?.id : undefined;
+  const latestVersionId = latestVersion?.id;
 
   const signatureRows = useMemo(() => {
     if (!docId || !requests) return [];

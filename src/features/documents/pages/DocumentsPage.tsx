@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { UploadDocumentSidePanel } from "../components";
-import { Button, Spinner, Alert, Icon, SearchInput } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, SearchInput, ListFilter } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useDocumentsPageContainer } from "../containers/useDocumentsPageContainer";
 import "../styles/documents.css";
@@ -10,6 +11,7 @@ import "../styles/documents.css";
  * DocumentsPage - Documents management page with search and table
  */
 const DocumentsPage = () => {
+  const { t } = useTranslation();
   const {
     routes,
     documents,
@@ -24,6 +26,17 @@ const DocumentsPage = () => {
     handleRetry,
     handleRefresh,
     getDocumentStatusBadgeVariant,
+    isFilterOpen,
+    draftFilters,
+    departmentOptions,
+    documentTypeOptions,
+    handleOpenFilter,
+    handleCloseFilter,
+    handlePrimaryFilterChange,
+    handleSecondaryFilterChange,
+    handleApplyFilter,
+    handleClearFilter,
+    filterApplyDisabled,
   } = useDocumentsPageContainer();
 
   return (
@@ -72,7 +85,42 @@ const DocumentsPage = () => {
                 inputClassName="documents__search-input"
                 aria-label="Search documents"
               />
-           
+              <div className="position-relative d-inline-block">
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="d-inline-flex align-items-center btn-outline-secondary"
+                  onClick={handleOpenFilter}
+                  aria-label={t("documents.filter", { defaultValue: "Filter" })}
+                  aria-expanded={isFilterOpen}
+                >
+                  <Icon name="filter" className="me-1" />
+                  {t("documents.filter", { defaultValue: "Filter" })}
+                </Button>
+                <ListFilter
+                  isOpen={isFilterOpen}
+                  onClose={handleCloseFilter}
+                  primaryFilter={{
+                    label: t("documents.department", { defaultValue: "Department" }),
+                    value: draftFilters.department_id ?? null,
+                    options: departmentOptions,
+                    onChange: handlePrimaryFilterChange,
+                  }}
+                  secondaryFilter={{
+                    label: t("documents.documentType", { defaultValue: "Document type" }),
+                    value: draftFilters.document_type_id ?? null,
+                    options: documentTypeOptions,
+                    onChange: handleSecondaryFilterChange,
+                  }}
+                  onApply={handleApplyFilter}
+                  onClear={handleClearFilter}
+                  applyDisabled={filterApplyDisabled}
+                  applyLabel={t("common.apply", { defaultValue: "Apply" })}
+                  clearLabel={t("common.clear", { defaultValue: "Clear" })}
+                  closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
+                  ariaLabel={t("documents.filterOptions", { defaultValue: "Filter options" })}
+                />
+              </div>
               <Button variant="outline" size="md" className="d-inline-flex align-items-center btn-outline-secondary" onClick={handleOpenUpload}>
                 <Icon name="file-up" className="me-2" />
                 Upload Documents

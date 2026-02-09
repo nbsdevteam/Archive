@@ -20,6 +20,8 @@ interface SelectFieldProps<T extends FieldValues, Name extends FieldPath<T>> {
   isStringValue?: boolean;
   /** When true, 0 is a valid selection (e.g. folder "None") */
   allowZero?: boolean;
+  /** When false, hides the clear (X) button; use for required single-choice dropdowns. Default true. */
+  isClearable?: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
   className = "",
   isStringValue = false,
   allowZero = false,
+  isClearable = true,
 }: SelectFieldProps<T, Name>) {
   return (
     <div className={`mb-3 ${className}`}>
@@ -58,7 +61,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
             : (options.find((o) => o.value === raw) ?? null);
           return (
             <Select<SelectOption>
-              isClearable
+              isClearable={isClearable}
               placeholder={placeholder}
               options={options}
               value={selectedOption}

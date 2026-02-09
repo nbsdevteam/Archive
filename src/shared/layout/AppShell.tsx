@@ -29,6 +29,16 @@ export const AppShell = () => {
 
   return (
     <div className={`main-wrapper ${mobileSidebar ? "slide-nav" : ""}`}>
+      {/* Backdrop when sidebar is open; click does not close sidebar (outside click disabled) */}
+      {mobileSidebar && (
+        <div
+          className="sidebar-overlay opened"
+          aria-hidden="true"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{ pointerEvents: "auto", cursor: "default" }}
+        />
+      )}
       <Header />
       <Sidebar />
       <Outlet />

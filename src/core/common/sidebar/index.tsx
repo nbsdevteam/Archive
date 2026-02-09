@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../imageWithBasePath";
 import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
-import { useLayoutStore } from "../../../shared/stores/layoutStore";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { SidebarDataTest } from "../../data/json/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
@@ -80,8 +79,7 @@ function pickActiveHref(pathname: string, hrefs: string[]): string {
 }
 
 const Sidebar = memo(() => {
-  const { layout } = useLayoutStore();
-  const useGlassEffect = layout !== "modern";
+  const useGlassEffect = true;
   const location = useLocation();
   const navigate = useNavigate();
   const { setExpandMenu } = useSidebarUiStore();

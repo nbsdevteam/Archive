@@ -57,6 +57,18 @@ export interface DocumentDetail extends Document {
   };
 }
 
+/** NBS 8.1 attachment object; upload_date kept for backward compat */
+export interface Attachment {
+  id: number;
+  name: string;
+  file_name: string;
+  description?: string | null;
+  attachment_type?: string;
+  created_date?: string;
+  file_size?: number;
+  upload_date?: string;
+}
+
 export interface DocumentsResponse {
   success: boolean;
   data: Document[];
@@ -284,11 +296,9 @@ export const documentsApi = {
   },
 
   /**
-   * List attachments for a document
+   * List attachments for a document (NBS 8.1)
    */
-  listAttachments: async (
-    documentId: number
-  ): Promise<{ success: boolean; data: Array<{ id: number; name: string; file_name: string; file_size?: number; attachment_type?: string; upload_date?: string }> }> => {
+  listAttachments: async (documentId: number): Promise<{ success: boolean; data: Attachment[] }> => {
     const response = await apiClient.post(`/api/documents/${documentId}/attachments`, {
       jsonrpc: '2.0',
       method: 'call',
@@ -296,7 +306,7 @@ export const documentsApi = {
       id: 1,
     });
     const result = response.data.result ?? response.data;
-    return result as { success: boolean; data: Array<{ id: number; name: string; file_name: string; file_size?: number; attachment_type?: string; upload_date?: string }> };
+    return result as { success: boolean; data: Attachment[] };
   },
 
   /**

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Icon, Card } from "../../../shared/components/ui";
-import { CreateFolderSidePanel } from "../../folders/components";
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
@@ -19,9 +18,9 @@ const DashboardPage = () => {
   const {
     stats,
     statsError,
-    folderPanelOpen,
     uploadPanelOpen,
     foldersLoading,
+    foldersError,
     notifications,
     unreadCount,
     notificationsLoading,
@@ -34,11 +33,8 @@ const DashboardPage = () => {
     foldersByDepartmentItems,
     loading,
     hasError,
-    handleOpenFolderPanel,
-    handleCloseFolderPanel,
     handleOpenUploadPanel,
     handleCloseUploadPanel,
-    handleFolderCreated,
   } = useDashboardPageContainer();
 
   return (
@@ -86,10 +82,6 @@ const DashboardPage = () => {
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2 align-items-center">
-              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenFolderPanel}>
-                <Icon name="folder-plus" className="me-1" />
-                Add Folder
-              </Button>
               <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel}>
                 <Icon name="file-up" className="me-1" />
                 Upload Document
@@ -102,11 +94,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <CreateFolderSidePanel
-          isOpen={folderPanelOpen}
-          onClose={handleCloseFolderPanel}
-          onSuccess={handleFolderCreated}
-        />
         <UploadDocumentSidePanel
           isOpen={uploadPanelOpen}
           onClose={handleCloseUploadPanel}

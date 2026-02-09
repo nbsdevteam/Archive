@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   THEME_PRIMARY_RGB,
+  THEME_PROFILE_INNER_BG,
   DEFAULT_THEME_COLOR,
   type ThemeColorId,
 } from "../design-tokens";
@@ -44,6 +45,12 @@ const applyThemeColor = (color: ThemeColor, customColor: string) => {
   } else {
     document.documentElement.style.removeProperty("--primary-rgb");
     document.documentElement.style.removeProperty("--primary-rgb-picr");
+  }
+  const profileInnerBg = THEME_PROFILE_INNER_BG[color];
+  if (profileInnerBg) {
+    document.documentElement.style.setProperty("--app-profile-inner-bg", profileInnerBg);
+  } else {
+    document.documentElement.style.setProperty("--app-profile-inner-bg", THEME_PROFILE_INNER_BG.all);
   }
 };
 

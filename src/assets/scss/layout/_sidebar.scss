@@ -111,8 +111,8 @@
                     }
                     
                     &.active{
-                        background: rgba(254, 159, 67, 0.08);
-                        color: #FE9F43;
+                        background: rgba(var(--primary-rgb), 0.08);
+                        color: rgb(var(--primary-rgb));
                         border-radius: 5px;
                         svg{
                             color: variables.$white;
@@ -121,12 +121,12 @@
                             filter: invert(72%) sepia(76%) saturate(1430%) hue-rotate(327deg) brightness(103%) contrast(101%);
                         }
                         span{
-                            color: #FE9F43;
+                            color: rgb(var(--primary-rgb));
                         }
                         .menu-arrow{
-                            background: #FFEDDC;
+                            background: rgba(var(--primary-rgb), 0.12);
                             &::before{
-                                border-color: #FE9F43;
+                                border-color: rgb(var(--primary-rgb));
                             }
                         }
                     }
@@ -138,13 +138,13 @@
                 }
                 &.active{
                     a{
-                        background: rgba(254, 159, 67, 0.08);
+                        background: rgba(var(--primary-rgb), 0.08);
                         border-radius: 5px;
                         img{
                             filter: invert(72%) sepia(76%) saturate(1430%) hue-rotate(327deg) brightness(103%) contrast(101%);
                         }
                         span{
-                            color: #FE9F43;
+                            color: rgb(var(--primary-rgb));
                         }
                     }
                 }
@@ -403,7 +403,7 @@
         &.subdrop{
             .menu-arrow {
                 transform: translateY(-50%) rotate(90deg);                          
-                background: #FFEDDC;
+                background: rgba(var(--primary-rgb), 0.12);
             }
         }
     }
@@ -539,6 +539,12 @@
     }
 }
 
+/* Theme-aware background so profile block is differentiable from sidebar (light and dark) */
+.sidebar .modern-profile {
+    background-color: var(--app-surface-bg);
+    border-radius: 6px;
+    margin: 0 8px 8px;
+}
 
 @include mixins.respond-above(lg) {
     .mini-sidebar {

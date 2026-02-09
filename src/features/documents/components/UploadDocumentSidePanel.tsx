@@ -4,8 +4,9 @@ import { toast } from "react-toastify";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SidePanel, Input, SelectField, MultiSelectField, Icon, Button } from "../../../shared/components/ui";
+import { SidePanel, Input, SelectField, MultiSelectField, Icon, Button, InfoWrapper } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
+import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 import { listFolders } from "../../folders/services/folders.api";
@@ -93,6 +94,10 @@ export const UploadDocumentSidePanel = ({
       folder_description: z.string().optional(),
       ...baseOptional,
     });
+    const optionalTargetDocumentId = z.preprocess(
+      (val) => (val === "" || val === undefined || (typeof val === "number" && Number.isNaN(val)) ? undefined : val),
+      z.number().optional()
+    );
     const mainSubSchema = z
       .object({
         upload_kind: z.enum(["main", "sub"]),
@@ -100,7 +105,7 @@ export const UploadDocumentSidePanel = ({
         document_type_id: z.coerce.number().min(1, t("documents.validation.documentTypeRequired")),
         title: z.string().min(1, t("documents.validation.titleRequired")),
         file: fileRequired,
-        target_document_id: z.coerce.number().optional(),
+        target_document_id: optionalTargetDocumentId,
         folder_id: z.coerce.number().optional(),
         create_folder: z.boolean().optional(),
         folder_name: z.string().optional(),
@@ -110,12 +115,18 @@ export const UploadDocumentSidePanel = ({
         ...baseOptional,
       })
       .superRefine((data, ctx) => {
-        if (data.create_folder) {
+        if (data.upload_kind === "main") {
           if (!(data.folder_name ?? "").trim()) {
             ctx.addIssue({ path: ["folder_name"], message: t("documents.validation.folderNameRequired"), code: z.ZodIssueCode.custom });
           }
           if (!(data.folder_code ?? "").trim()) {
             ctx.addIssue({ path: ["folder_code"], message: t("documents.validation.folderCodeRequired"), code: z.ZodIssueCode.custom });
+          }
+        }
+        if (data.upload_kind === "sub") {
+          const fid = data.folder_id;
+          if (fid == null || Number(fid) < 1) {
+            ctx.addIssue({ path: ["folder_id"], message: t("documents.validation.folderRequiredForSubDocument"), code: z.ZodIssueCode.custom });
           }
         }
       });
@@ -142,16 +153,11 @@ export const UploadDocumentSidePanel = ({
   );
 
   const FOLDER_TYPE_OPTIONS: SelectOption<string>[] = useMemo(
-    () => [
-      { value: "other", label: t("documents.folderTypeOptions.other") },
-      { value: "official", label: t("documents.folderTypeOptions.official") },
-      { value: "invoice", label: t("documents.folderTypeOptions.invoice") },
-      { value: "shipment", label: t("documents.folderTypeOptions.shipment") },
-      { value: "project", label: t("documents.folderTypeOptions.project") },
-      { value: "client", label: t("documents.folderTypeOptions.client") },
-      { value: "contract", label: t("documents.folderTypeOptions.contract") },
-      { value: "inbox", label: t("documents.folderTypeOptions.inbox") },
-    ],
+    () =>
+      FOLDER_TYPE_VALUES.map((value) => ({
+        value,
+        label: t(`documents.folderTypeOptions.${value}`, { defaultValue: value }),
+      })),
     [t]
   );
 
@@ -195,11 +201,21 @@ export const UploadDocumentSidePanel = ({
   const departmentId = watch("department_id");
   const documentTypeId = watch("document_type_id");
   const title = watch("title");
-  const createFolderEnabled = watch("create_folder");
   const folderName = watch("folder_name");
   const folderCode = watch("folder_code");
   const targetDocumentId = watch("target_document_id");
+  const folderId = watch("folder_id");
   const selectedFile = watch("file");
+
+  // Clear new-folder fields when switching away from main document so they stay hidden and don't carry over
+  useEffect(() => {
+    if (uploadKind !== "main") {
+      setValue("folder_name", "");
+      setValue("folder_code", "");
+      setValue("folder_type", "other");
+      setValue("folder_description", "");
+    }
+  }, [uploadKind, setValue]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -329,7 +345,7 @@ export const UploadDocumentSidePanel = ({
 
       let finalFolderId: number | undefined = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
 
-      if (data.upload_kind === "main" && data.create_folder && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
+      if (data.upload_kind === "main" && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
         const newFolder = await createFolder({
           name: data.folder_name.trim(),
           code: data.folder_code.trim(),
@@ -386,6 +402,16 @@ export const UploadDocumentSidePanel = ({
   const folderOptions: SelectOption[] = [{ value: 0, label: t("common.none") }, ...folders.map((f) => ({ value: f.id, label: `${f.name} — ${f.code}` }))];
   const tagOptions: SelectOption[] = tags.map((tag) => ({ value: tag.id, label: tag.name }));
 
+  const uploadWhatDocumentLabel = useMemo(() => {
+    const typeKey =
+      uploadKind === "main"
+        ? "documents.mainDocument"
+        : uploadKind === "sub"
+          ? "documents.subDocument"
+          : "documents.attachment";
+    return t("documents.uploadWhatDocument", { type: t(typeKey) });
+  }, [uploadKind, t]);
+
   // Enable Upload when all required (*) fields are filled, including file.
   const hasRequiredTitle = typeof title === "string" && title.trim().length > 0;
   const hasFile = selectedFile instanceof File;
@@ -396,7 +422,9 @@ export const UploadDocumentSidePanel = ({
       ? Number(targetDocumentId) >= 1
       : Number(departmentId) >= 1 &&
         Number(documentTypeId) >= 1 &&
-        (!createFolderEnabled || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0)));
+        (uploadKind !== "sub" || Number(folderId) >= 1) &&
+        (uploadKind !== "main" ||
+          ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0)));
 
   const submitDisabled = !canSubmit || isUploading;
 
@@ -447,15 +475,24 @@ export const UploadDocumentSidePanel = ({
 
         <h6 className="fw-semibold mb-2">{t("documents.basicDocumentInfo")}</h6>
 
-        <SelectField
-          control={control}
-          name="upload_kind"
-          options={UPLOAD_KIND_OPTIONS}
-          label={t("documents.uploadType")}
-          isStringValue
-          isDisabled={lockFolderContext || uploadKind === "attachment"}
-          error={errors.upload_kind?.message as string | undefined}
-        />
+        <div className="d-flex flex-column gap-2">
+          <label className="form-label d-flex align-items-center gap-1">
+            {t("documents.uploadType")}
+            <InfoWrapper
+              content={t("documents.uploadTypeMainDocumentInfo")}
+              triggerClassName="text-muted"
+            />
+          </label>
+          <SelectField
+            control={control}
+            name="upload_kind"
+            options={UPLOAD_KIND_OPTIONS}
+            isStringValue
+            isDisabled={lockFolderContext}
+            isClearable={false}
+            error={errors.upload_kind?.message as string | undefined}
+          />
+        </div>
 
         {uploadKind === "attachment" && (
           <Input
@@ -464,6 +501,7 @@ export const UploadDocumentSidePanel = ({
             {...register("target_document_id", { valueAsNumber: true })}
             error={errors.target_document_id?.message}
             required
+            disabled={initialValues?.target_document_id != null && Number(initialValues.target_document_id) >= 1}
           />
         )}
 
@@ -502,71 +540,58 @@ export const UploadDocumentSidePanel = ({
 
         {uploadKind !== "attachment" && (
           <>
-            <SelectField
-              control={control}
-              name="folder_id"
-              options={folderOptions}
-              label="Link to folder (optional)"
-              placeholder="None"
-              isDisabled={lockFolderContext || !departmentId || departmentId < 1}
-              allowZero
-              error={errors.folder_id?.message as string | undefined}
-            />
+            {uploadKind === "sub" && (
+              <SelectField
+                control={control}
+                name="folder_id"
+                options={folderOptions}
+                label={t("documents.linkToFolder")}
+                placeholder="None"
+                required
+                isDisabled={lockFolderContext || !departmentId || departmentId < 1}
+                allowZero
+                error={errors.folder_id?.message as string | undefined}
+              />
+            )}
 
             {uploadKind === "main" && (
               <>
-                <div className="form-check form-switch mb-3">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="createFolderSwitch"
-                    {...register("create_folder")}
-                    disabled={lockFolderContext || !departmentId || departmentId < 1}
+                <Input
+                  label={t("documents.newFolderName")}
+                  {...register("folder_name")}
+                  error={errors.folder_name?.message}
+                  autoComplete="off"
+                  required={!lockFolderContext}
+                  disabled={lockFolderContext}
+                />
+                <Input
+                  label={t("documents.newFolderCode")}
+                  {...register("folder_code")}
+                  error={errors.folder_code?.message}
+                  autoComplete="off"
+                  required={!lockFolderContext}
+                  disabled={lockFolderContext}
+                />
+                <SelectField
+                  control={control}
+                  name="folder_type"
+                  options={FOLDER_TYPE_OPTIONS}
+                  label={t("documents.folderType")}
+                  placeholder={t("common.other")}
+                  isStringValue
+                  isDisabled={lockFolderContext}
+                  error={errors.folder_type?.message as string | undefined}
+                />
+                <div className="mb-3">
+                  <label className="form-label">Folder description</label>
+                  <textarea
+                    className="form-control"
+                    {...register("folder_description")}
+                    rows={2}
+                    autoComplete="off"
+                    disabled={lockFolderContext}
                   />
-                  <label className="form-check-label" htmlFor="createFolderSwitch">
-                    {t("documents.createNewFolderAutomatically")}
-                  </label>
                 </div>
-                {createFolderEnabled && (
-                  <>
-                    <Input
-                      label={t("documents.newFolderName")}
-                      {...register("folder_name")}
-                      error={errors.folder_name?.message}
-                      autoComplete="off"
-                      required={!lockFolderContext}
-                      disabled={lockFolderContext}
-                    />
-                    <Input
-                      label={t("documents.newFolderCode")}
-                      {...register("folder_code")}
-                      error={errors.folder_code?.message}
-                      autoComplete="off"
-                      required={!lockFolderContext}
-                      disabled={lockFolderContext}
-                    />
-                    <SelectField
-                      control={control}
-                      name="folder_type"
-                      options={FOLDER_TYPE_OPTIONS}
-                      label={t("documents.folderType")}
-                      placeholder={t("common.other")}
-                      isStringValue
-                      isDisabled={lockFolderContext}
-                      error={errors.folder_type?.message as string | undefined}
-                    />
-                    <div className="mb-3">
-                      <label className="form-label">Folder description</label>
-                      <textarea
-                        className="form-control"
-                        {...register("folder_description")}
-                        rows={2}
-                        autoComplete="off"
-                        disabled={lockFolderContext}
-                      />
-                    </div>
-                  </>
-                )}
               </>
             )}
 
@@ -583,7 +608,7 @@ export const UploadDocumentSidePanel = ({
 
         <div className="mb-3">
           <label className="form-label">
-            {t("documents.file")}
+            {uploadWhatDocumentLabel}
             <span className="text-danger ms-1">*</span>
           </label>
           <input

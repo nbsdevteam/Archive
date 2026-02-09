@@ -1,36 +1,16 @@
 /**
  * Archive feature types
- * Based on API_DOCUMENTATION.md and current static data structure
+ * Aligned with canonical API types (NBS); legacy fields kept for archive UI and static data
  */
 
-export interface Document {
-  id?: number;
-  name: string;
-  type: string;
-  updated: string;
-  title?: string;
-  department_id?: number;
-  document_type_id?: number;
-  status?: "active" | "archived";
-  file_name?: string;
-  confidentiality_level?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import type { Document as AdapterDocument } from "../../../app/adapter/api/documents.api";
+import type { Folder as FoldersFolder } from "../../folders/types/folders.types";
 
-export interface Folder {
-  id?: number;
-  name: string;
-  docs: number;
-  updated: string;
-  code?: string;
-  department_id?: number;
-  folder_type?: string;
-  state?: "active" | "archived";
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+/** Canonical document + legacy archive fields (type, updated) for backward compat */
+export type Document = AdapterDocument & { type?: string; updated?: string };
+
+/** Canonical folder (NBS 6.1); re-exported so archive API and UI use same shape */
+export type Folder = FoldersFolder;
 
 export interface FolderStats {
   totalFolders: number;

@@ -449,10 +449,7 @@ const Header = React.memo(() => {
               {/* <ImageWithBasePath src="assets/img/logo.svg" alt="NBS Archive System" /> */}
               <span className="logo-text">NBS Archive System</span>
             </Link>
-            <Link to={routes.dashboard} className="dark-logo">
-              {/* <ImageWithBasePath src="assets/img/logo-white.svg" alt="NBS Archive System" /> */}
-              <span className="logo-text">NBS Archive System</span>
-            </Link>
+           
           </div>
 
           <Link

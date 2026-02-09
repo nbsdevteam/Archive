@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { UploadDocumentSidePanel } from "../../documents/components";
-import { Alert, Button, Spinner, Modal, ModalFooter, Icon } from "../../../shared/components/ui";
+import { EditFolderSidePanel } from "../components";
+import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
 
 const FolderDetailPage = () => {
@@ -31,6 +32,15 @@ const FolderDetailPage = () => {
     signatureMessage,
     editOpen,
     editReason,
+    isEditFolderOpen,
+    isDeleteConfirmOpen,
+    isDeletingFolder,
+    handleOpenEditFolder,
+    handleCloseEditFolder,
+    handleEditFolderSuccess,
+    handleOpenDeleteFolder,
+    handleCloseDeleteConfirm,
+    handleConfirmDeleteFolder,
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
@@ -51,12 +61,15 @@ const FolderDetailPage = () => {
     setSignatureOpen,
     setSignatureSignerId,
     setSignatureMessage,
+    openSignature,
     submitSignature,
     setEditOpen,
     setEditReason,
+    openEditRequest,
     submitEditRequest,
     loadFolderDocuments,
     handleCloseUploadPanel,
+    refreshAttachmentsForCurrentDocument,
   } = useFolderDetailPageContainer();
 
   if (!folderId) {
@@ -111,7 +124,7 @@ const FolderDetailPage = () => {
                   <Link to={routes.folders}>{t("folders.title", { defaultValue: "Folders" })}</Link>
                 </li>
                 <li className="breadcrumb-item active" aria-current="page">
-                  {folder.name || `Folder #${id}`}
+                  {folder.name || `Folder #${folderId}`}
                 </li>
               </ol>
             </nav>
@@ -120,6 +133,20 @@ const FolderDetailPage = () => {
             <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
               <Icon name="upload" className="me-1" />
               {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
+            </Button>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenEditFolder}>
+              <Icon name="edit" className="me-1" />
+              {t("folders.editFolder", { defaultValue: "Edit folder" })}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="btn-outline-danger"
+              onClick={handleOpenDeleteFolder}
+              aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+            >
+              <Icon name="trash" className="me-1" />
+              {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
             </Button>
             <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
               {t("common.back", { defaultValue: "Back" })}
@@ -142,7 +169,7 @@ const FolderDetailPage = () => {
 
         <div className="card mb-3">
           <div className="card-header d-flex align-items-center justify-content-between">
-            <h5 className="card-title mb-0">{folder.name || `Folder #${id}`}</h5>
+            <h5 className="card-title mb-0">{folder.name || `Folder #${folderId}`}</h5>
             <span className="text-muted small">
               {documents.length} {documents.length === 1 ? t("documents.document", { defaultValue: "document" }) : t("documents.documents", { defaultValue: "documents" })}
             </span>
@@ -167,7 +194,7 @@ const FolderDetailPage = () => {
               </div>
               <div className="col-md-4">
                 <div className="text-muted small">{t("folders.updated", { defaultValue: "Updated" })}</div>
-                <div className="fw-medium">{formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}</div>
+                <div className="fw-medium">{formatDate(folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated) || "–"}</div>
               </div>
               <div className="col-12">
                 <div className="text-muted small">{t("folders.description", { defaultValue: "Description" })}</div>
@@ -479,11 +506,31 @@ const FolderDetailPage = () => {
         </ModalFooter>
       </Modal>
 
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={handleCloseDeleteConfirm}
+        onConfirm={handleConfirmDeleteFolder}
+        title={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+        message={t("folders.confirmDeleteFolder", { defaultValue: "Are you sure you want to delete this folder? Documents may be affected." })}
+        confirmLabel={t("folders.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel")}
+        confirmVariant="danger"
+        isLoading={isDeletingFolder}
+      />
+
+      <EditFolderSidePanel
+        isOpen={isEditFolderOpen}
+        onClose={handleCloseEditFolder}
+        folder={folder}
+        onSuccess={handleEditFolderSuccess}
+      />
+
       <UploadDocumentSidePanel
         isOpen={isUploadOpen}
         onClose={handleCloseUploadPanel}
         onSuccess={() => {
           loadFolderDocuments();
+          refreshAttachmentsForCurrentDocument();
           handleCloseUploadPanel();
         }}
         initialValues={uploadPanelInitialValues}

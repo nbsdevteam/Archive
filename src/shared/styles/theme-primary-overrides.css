@@ -1,0 +1,65 @@
+/**
+ * Theme primary overrides: ensure no hardcoded orange; all primary accents use --primary-rgb.
+ * Load after app SCSS so theme colors apply regardless of compiled output.
+ */
+
+/* Sidebar menu active / hover – use theme primary */
+.sidebar .sidebar-menu ul li a.active,
+.sidebar .sidebar-menu ul li.active a {
+  background: rgba(var(--primary-rgb), 0.08) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+.sidebar .sidebar-menu ul li a.active span,
+.sidebar .sidebar-menu ul li.active a span {
+  color: rgb(var(--primary-rgb)) !important;
+}
+.sidebar .sidebar-menu ul li a.active .menu-arrow,
+.sidebar .sidebar-menu ul li.active a .menu-arrow {
+  background: rgba(var(--primary-rgb), 0.12) !important;
+}
+.sidebar .sidebar-menu ul li a.active .menu-arrow::before,
+.sidebar .sidebar-menu ul li.active a .menu-arrow::before {
+  border-color: rgb(var(--primary-rgb)) !important;
+}
+.sidebar .sidebar-menu .menu-arrow.subdrop,
+.sidebar .sidebar-menu .subdrop .menu-arrow {
+  background: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+/* React-select dropdown options */
+div.css-b62m3t-container .react-select__option--is-focused,
+div[class*="react-select"] [class*="option--is-focused"] {
+  background-color: rgba(var(--primary-rgb), 0.12) !important;
+  color: rgb(var(--primary-rgb)) !important;
+}
+div.css-b62m3t-container .react-select__option--is-selected,
+div[class*="react-select"] [class*="option--is-selected"] {
+  background-color: rgb(var(--primary-rgb)) !important;
+  color: #fff !important;
+}
+
+/* Generic primary accents – override any leftover orange */
+.btn-primary,
+.applyBtn.btn-primary {
+  background-color: rgb(var(--primary-rgb)) !important;
+  border-color: rgb(var(--primary-rgb)) !important;
+}
+.btn-primary:hover,
+.applyBtn.btn-primary:hover {
+  background-color: rgba(var(--primary-rgb), 0.9) !important;
+  border-color: rgba(var(--primary-rgb), 0.9) !important;
+}
+.form-control:focus,
+.input-group .form-control:focus {
+  border-color: rgb(var(--primary-rgb)) !important;
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25) !important;
+}
+.form-check-input:checked {
+  background-color: rgb(var(--primary-rgb)) !important;
+  border-color: rgb(var(--primary-rgb)) !important;
+}
+.theme-colorselect.active label:after,
+.theme-colorselect.active label.primary-topbar:after {
+  background: rgb(var(--primary-rgb)) !important;
+  border-color: rgb(var(--primary-rgb)) !important;
+}

@@ -168,6 +168,23 @@
     }
 }
 
+/* Header logo: show in both default and modern; only one logo visible (light vs dark) */
+[data-layout="default"],
+[data-layout="modern"] {
+    .header .header-left {
+        display: block;
+        padding-left: 24px;
+
+        .logo {
+            display: inline-block;
+        }
+
+        .dark-logo {
+            display: none !important;
+        }
+    }
+}
+
 [data-layout="modern"] {
     .header {
         background-color: variables.$white;
@@ -182,19 +199,6 @@
         .input-group {
             @include mixins.respond-below(xl) {
                 width: 200px;
-            }
-        }
-
-        .header-left {
-            display: block;
-            padding-left: 24px;
-
-            .logo {
-                display: block;
-            }
-
-            .dark-logo {
-                display: none;
             }
         }
 

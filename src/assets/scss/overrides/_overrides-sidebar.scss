@@ -36,3 +36,28 @@
   color: rgb(var(--primary-rgb)) !important;
   border-color: rgba(var(--primary-rgb), 0.2) !important;
 }
+
+/* Dark mode: modern-profile outer = theme table odd-row color; inner = dark surface with white/muted text (overrides theme-layout) */
+[data-theme="dark"] .sidebar .modern-profile {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  border-radius: 6px;
+}
+
+/* Blue theme in dark: outer uses same solid blue as table view (#1b2844) */
+[data-theme="dark"][data-color="brightblue"] .sidebar .modern-profile {
+  background-color: #1b2844;
+}
+
+[data-theme="dark"] .sidebar .modern-profile .user-profile {
+  background-color: var(--app-profile-inner-bg, #171724) !important;
+  border-radius: 6px;
+  color: #e5e7eb !important;
+}
+
+[data-theme="dark"] .sidebar .modern-profile .user-profile h6 {
+  color: #e5e7eb !important;
+}
+
+[data-theme="dark"] .sidebar .modern-profile .user-profile p {
+  color: #a3a6a6 !important;
+}

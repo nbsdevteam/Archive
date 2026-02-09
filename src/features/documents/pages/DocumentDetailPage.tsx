@@ -173,7 +173,7 @@ const DocumentDetailPage = () => {
           <div className="card-body">
             {activeTab === "preview" && (
               <div className="row">
-                <div className="col-12 col-lg-6" style={{ minHeight: 300 }}>
+                <div className="col-12 col-lg-6" style={{ minHeight: 200 }}>
                   <FilePreview
                     documentId={doc.id}
                     versionId={latestVersionId}

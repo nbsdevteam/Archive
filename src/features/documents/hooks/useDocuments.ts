@@ -1,12 +1,23 @@
 /**
  * useDocuments - Hook for documents
- * Provides data fetching and state management for documents
+ * Provides data fetching and state management for documents.
+ * Uses app/adapter API (same HTTP client with token refresh).
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import * as documentsApi from "../services/documents.api";
+import { documentsApi } from "../../../app/adapter/api/documents.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
-import type { Document, DocumentListParams, DocumentListResponse } from "../types/documents.types";
+import type { Document } from "../types/documents.types";
+import type { GetDocumentsParams } from "../../../app/adapter/api/documents.api";
+
+interface DocumentListParams {
+  department_id?: number;
+  document_type_id?: number;
+  status?: string;
+  search?: string;
+  page?: number;
+  per_page?: number;
+}
 
 const EMPTY_PARAMS: DocumentListParams = {};
 
@@ -15,13 +26,20 @@ interface UseDocumentsOptions {
   initialParams?: DocumentListParams;
 }
 
+interface PaginationShape {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+}
+
 export const useDocuments = (options: UseDocumentsOptions = {}) => {
   const { useApi = true, initialParams = EMPTY_PARAMS } = options;
 
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<DocumentListResponse["pagination"]>(undefined);
+  const [pagination, setPagination] = useState<PaginationShape | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>(initialParams.search || "");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -30,24 +48,23 @@ export const useDocuments = (options: UseDocumentsOptions = {}) => {
       try {
         setLoading(true);
         setError(null);
-        let response: DocumentListResponse;
         if (useApi) {
           try {
-            response = await documentsApi.listDocuments({ ...initialParams, ...params });
+            const requestParams: GetDocumentsParams = { ...initialParams, ...params };
+            const response = await documentsApi.getDocuments(requestParams);
+            setDocuments(response.data || []);
+            setPagination(response.pagination);
           } catch (err) {
             console.error("Failed to fetch documents from API:", err);
             setError(err instanceof Error ? err.message : "Failed to load documents");
             setDocuments([]);
-            return;
           }
         } else {
-          // Static fallback
-          response = { documents: [] };
+          setDocuments([]);
+          setPagination(undefined);
         }
-        setDocuments(response.documents || []);
-        setPagination(response.pagination);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load documents");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load documents");
         setDocuments([]);
       } finally {
         setLoading(false);

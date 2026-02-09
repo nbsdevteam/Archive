@@ -21,6 +21,9 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
+  Filter,
+  Info,
+  Pencil,
 } from "lucide-react";
 
 /**
@@ -51,6 +54,10 @@ const iconMap = {
   "eye-off": EyeOff,
   eyeOff: EyeOff,
   "refresh-cw": RefreshCw,
+  filter: Filter,
+  info: Info,
+  edit: Pencil,
+  pencil: Pencil,
 } as const;
 
 export type IconName = keyof typeof iconMap;

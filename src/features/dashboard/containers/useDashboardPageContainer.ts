@@ -42,7 +42,6 @@ function getDashboardStatsOnce(): Promise<StatsResult> {
 export const useDashboardPageContainer = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
-  const [folderPanelOpen, setFolderPanelOpen] = useState(false);
   const [uploadPanelOpen, setUploadPanelOpen] = useState(false);
 
   const {
@@ -108,16 +107,12 @@ export const useDashboardPageContainer = () => {
   const loading = foldersLoading;
   const hasError = statsError || foldersError || notificationsError;
 
-  const handleOpenFolderPanel = () => setFolderPanelOpen(true);
-  const handleCloseFolderPanel = () => setFolderPanelOpen(false);
   const handleOpenUploadPanel = () => setUploadPanelOpen(true);
   const handleCloseUploadPanel = () => setUploadPanelOpen(false);
-  const handleFolderCreated = () => fetchFolders();
 
   return {
     stats,
     statsError,
-    folderPanelOpen,
     uploadPanelOpen,
     folders,
     foldersLoading,
@@ -134,10 +129,7 @@ export const useDashboardPageContainer = () => {
     foldersByDepartmentItems,
     loading,
     hasError,
-    handleOpenFolderPanel,
-    handleCloseFolderPanel,
     handleOpenUploadPanel,
     handleCloseUploadPanel,
-    handleFolderCreated,
   };
 };

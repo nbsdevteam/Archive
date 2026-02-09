@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
+import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { createFolder } from "../services/folders.api";
 import type { Department } from "../../../app/adapter/api/admin.api";
@@ -46,16 +47,11 @@ export const CreateFolderSidePanel = ({
   );
 
   const FOLDER_TYPE_OPTIONS: SelectOption<string>[] = useMemo(
-    () => [
-      { value: "other", label: t("folders.folderTypeOptions.other") },
-      { value: "official", label: t("folders.folderTypeOptions.official") },
-      { value: "invoice", label: t("folders.folderTypeOptions.invoice") },
-      { value: "shipment", label: t("folders.folderTypeOptions.shipment") },
-      { value: "project", label: t("folders.folderTypeOptions.project") },
-      { value: "client", label: t("folders.folderTypeOptions.client") },
-      { value: "contract", label: t("folders.folderTypeOptions.contract") },
-      { value: "inbox", label: t("folders.folderTypeOptions.inbox") },
-    ],
+    () =>
+      FOLDER_TYPE_VALUES.map((value) => ({
+        value,
+        label: t(`folders.folderTypeOptions.${value}`, { defaultValue: value }),
+      })),
     [t]
   );
 

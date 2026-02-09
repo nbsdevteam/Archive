@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import apiClient, { handleApiError } from "../../../app/adapter/api/client";
-import { documentsApi } from "../../../app/adapter/api/documents.api";
+import { handleApiError } from "../../../app/adapter/api/client";
+import { documentsApi, type Document, type Attachment } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
-import { getFolderWorkflow, applyFolderTransition } from "../services/folders.api";
+import { getFolderDocuments, getFolderWorkflow, applyFolderTransition, deleteFolder } from "../services/folders.api";
 import type { FolderWorkflowInfo } from "../services/folders.api";
+import type { FolderDetail } from "../types/folders.types";
 import { useDocumentStore } from "../../documents/stores/documentStore";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
 import { all_routes } from "../../../router/all_routes";
@@ -15,52 +16,19 @@ import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 
-type FolderDoc = {
-  id: number;
-  title: string;
-  name?: string;
-  barcode: string;
-  document_type_name?: string;
-  document_type?: { name?: string };
-  upload_date?: string;
-  status?: string;
-};
-
-type AttachmentRow = {
-  id: number;
-  name: string;
-  file_name: string;
-  file_size?: number;
-  upload_date?: string;
-};
-
-type FolderState = {
-  id: number;
-  name: string;
-  code?: string;
-  description?: string;
-  department_id?: number;
-  department_name?: string;
-  folder_type?: string;
-  state?: string;
-  create_date?: string;
-  updated_at?: string;
-  updated?: string;
-};
-
 export const useFolderDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
 
-  const [folder, setFolder] = useState<FolderState | null>(null);
-  const [documents, setDocuments] = useState<FolderDoc[]>([]);
+  const [folder, setFolder] = useState<FolderDetail | null>(null);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [attachmentsDocId, setAttachmentsDocId] = useState<number | "">("");
-  const [attachments, setAttachments] = useState<AttachmentRow[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
 
   const [workflowInfo, setWorkflowInfo] = useState<FolderWorkflowInfo | null>(null);
@@ -77,6 +45,10 @@ export const useFolderDetailPageContainer = () => {
   const [signatureMessage, setSignatureMessage] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editReason, setEditReason] = useState("");
+
+  const [isEditFolderOpen, setIsEditFolderOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadPanelLockFolderContext, setUploadPanelLockFolderContext] = useState(false);
@@ -110,14 +82,9 @@ export const useFolderDetailPageContainer = () => {
     setLoading(true);
     setError(null);
     try {
-      const resp = await apiClient.post(`/api/folders/${folderId}/documents`, {
-        jsonrpc: "2.0",
-        method: "call",
-        params: {},
-      });
-      const result = resp.data?.result ?? resp.data;
-      setFolder(result?.folder ?? null);
-      const docs = Array.isArray(result?.data) ? result.data : [];
+      const result = await getFolderDocuments(folderId);
+      setFolder(result.folder ?? null);
+      const docs = result.data ?? [];
       setDocuments(docs);
 
       if (docs.length > 0) {
@@ -224,10 +191,7 @@ export const useFolderDetailPageContainer = () => {
     try {
       const blob = await documentsApi.downloadDocument(mainDoc.id);
       const fileName =
-        (mainDoc as { file_name?: string }).file_name ??
-        mainDoc.title ??
-        mainDoc.name ??
-        "document";
+        mainDoc.file_name ?? mainDoc.title ?? mainDoc.name ?? "document";
       downloadBlobAsFile(blob, fileName);
       toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
     } catch (e: unknown) {
@@ -323,6 +287,42 @@ export const useFolderDetailPageContainer = () => {
   const previewFileName = previewDoc?.file_name ?? "";
   const handleCloseUploadPanel = () => setIsUploadOpen(false);
 
+  const refreshAttachmentsForCurrentDocument = () => {
+    if (typeof attachmentsDocId === "number") {
+      loadAttachmentsForDocument(attachmentsDocId);
+    }
+  };
+
+  const handleOpenEditFolder = useCallback(() => setIsEditFolderOpen(true), []);
+  const handleCloseEditFolder = useCallback(() => setIsEditFolderOpen(false), []);
+  const handleEditFolderSuccess = useCallback(() => {
+    loadFolderDocuments();
+  }, [folderId]);
+
+  const handleOpenDeleteFolder = useCallback(() => setIsDeleteConfirmOpen(true), []);
+  const handleCloseDeleteConfirm = useCallback(() => {
+    if (!isDeletingFolder) setIsDeleteConfirmOpen(false);
+  }, [isDeletingFolder]);
+  const handleConfirmDeleteFolder = useCallback(async () => {
+    if (!folderId) return;
+    setIsDeletingFolder(true);
+    try {
+      const result = await deleteFolder(folderId);
+      if (!result?.ok) {
+        toast.error(t("folders.deleteFailed"));
+        return;
+      }
+      toast.success(t("folders.folderDeleted"));
+      setIsDeleteConfirmOpen(false);
+      navigate(routes.folders);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : handleApiError(e);
+      toast.error(message || t("folders.deleteFailed"));
+    } finally {
+      setIsDeletingFolder(false);
+    }
+  }, [folderId, t, navigate, routes.folders]);
+
   return {
     t,
     routes,
@@ -349,6 +349,15 @@ export const useFolderDetailPageContainer = () => {
     signatureMessage,
     editOpen,
     editReason,
+    isEditFolderOpen,
+    isDeleteConfirmOpen,
+    isDeletingFolder,
+    handleOpenEditFolder,
+    handleCloseEditFolder,
+    handleEditFolderSuccess,
+    handleOpenDeleteFolder,
+    handleCloseDeleteConfirm,
+    handleConfirmDeleteFolder,
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
@@ -369,12 +378,15 @@ export const useFolderDetailPageContainer = () => {
     setSignatureOpen,
     setSignatureSignerId,
     setSignatureMessage,
+    openSignature,
     submitSignature,
     setEditOpen,
     setEditReason,
+    openEditRequest,
     submitEditRequest,
     loadFolderDocuments,
     handleCloseUploadPanel,
+    refreshAttachmentsForCurrentDocument,
     setIsUploadOpen,
   };
 };
