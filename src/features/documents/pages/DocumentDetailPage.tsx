@@ -75,25 +75,9 @@ const DocumentDetailPage = () => {
                 {t("documents.archive", { defaultValue: "Archive" })}
               </Button>
             )}
-            {isTrashed ? (
+            {isTrashed && (
               <Button variant="secondary" size="sm" onClick={handleRestoreDocument} disabled={isRestoring}>
                 {t("documents.restore", { defaultValue: "Restore" })}
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" className="btn-outline-danger" onClick={() => setModalTrashConfirm(true)}>
-                <Icon name="trash-2" className="me-1" />
-                {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-              </Button>
-            )}
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-outline-danger"
-                onClick={() => setModalPermanentDelete(true)}
-              >
-                <Icon name="trash" className="me-1" />
-                {t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
               </Button>
             )}
             <CollapseHeader />
@@ -798,30 +782,6 @@ const DocumentDetailPage = () => {
           </Button>
         </ModalFooter>
       </Modal>
-
-      <ConfirmModal
-        isOpen={modalTrashConfirm}
-        onClose={() => setModalTrashConfirm(false)}
-        onConfirm={handleTrashDocument}
-        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        message={t("documents.confirmMoveToTrash", { defaultValue: "Are you sure you want to move this document to trash?" })}
-        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
-        confirmVariant="danger"
-        isLoading={isTrashing}
-      />
-
-      <ConfirmModal
-        isOpen={modalPermanentDelete}
-        onClose={() => setModalPermanentDelete(false)}
-        onConfirm={handlePermanentDelete}
-        title={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
-        message={t("documents.confirmPermanentDelete", { defaultValue: "This will permanently delete the document. This action cannot be undone." })}
-        confirmLabel={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
-        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
-        confirmVariant="danger"
-        isLoading={isPermanentDeleting}
-      />
 
       <ConfirmModal
         isOpen={attachmentTrashTargetId != null}

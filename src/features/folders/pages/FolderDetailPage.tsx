@@ -462,19 +462,6 @@ const FolderDetailPage = () => {
                             {t("documents.archive", { defaultValue: "Archive" })}
                           </Button>
                         )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="btn-outline-danger me-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenSubDocTrashConfirm(mainDoc.id);
-                          }}
-                          disabled={isSubDocTrashing}
-                        >
-                          <Icon name="trash-2" className="me-1" />
-                          {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-                        </Button>
                         <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
                           {t("common.view", { defaultValue: "View" })}
                         </Button>
