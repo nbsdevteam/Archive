@@ -91,7 +91,7 @@ export const UploadDocumentSidePanel = ({
     const attachmentSchema = z.object({
       upload_kind: z.literal("attachment"),
       target_document_id: z.coerce.number().min(1, t("documents.validation.targetDocumentIdRequired")),
-      title: z.string().min(1, t("documents.validation.titleRequired")),
+      title: z.string().optional(),
       file: fileRequired,
       department_id: z.coerce.number().optional(),
       document_type_id: z.coerce.number().optional(),
@@ -485,11 +485,11 @@ export const UploadDocumentSidePanel = ({
   const hasRequiredTitle = typeof title === "string" && title.trim().length > 0;
   const hasFile = selectedFile instanceof File;
   const canSubmit =
-    hasRequiredTitle &&
-    hasFile &&
     (uploadKind === "attachment"
-      ? Number(targetDocumentId) >= 1
-      : Number(departmentId) >= 1 &&
+      ? hasFile && Number(targetDocumentId) >= 1
+      : hasRequiredTitle &&
+        hasFile &&
+        Number(departmentId) >= 1 &&
         Number(documentTypeId) >= 1 &&
         (uploadKind !== "sub" || Number(folderId) >= 1) &&
         (uploadKind !== "main" ||
@@ -668,17 +668,19 @@ export const UploadDocumentSidePanel = ({
           </>
         )}
 
-        <Input
-          label={t("documents.documentTitle")}
-          {...titleRegistration}
-          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-            titleRegistration.onBlur(e);
-            fillFolderNameFromTitle(e.target.value ?? "");
-          }}
-          error={errors.title?.message}
-          required
-          autoComplete="off"
-        />
+        {uploadKind !== "attachment" && (
+          <Input
+            label={t("documents.documentTitle")}
+            {...titleRegistration}
+            onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+              titleRegistration.onBlur(e);
+              fillFolderNameFromTitle(e.target.value ?? "");
+            }}
+            error={errors.title?.message}
+            required
+            autoComplete="off"
+          />
+        )}
 
         {uploadKind !== "attachment" && (
           <>
