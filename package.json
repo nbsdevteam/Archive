@@ -19,11 +19,17 @@
     "trigger-apis": "node scripts/trigger-archive-apis.js"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.9.4",
     "@jridgewell/sourcemap-codec": "^1.5.5",
+    "@mui/icons-material": "^7.3.7",
+    "@mui/lab": "^7.0.1-beta.21",
+    "@mui/material": "^7.3.7",
     "@nbs/component-library": "github:syednaqvi98nibras/StoryBook#latest",
+    "@xyflow/react": "^12.10.0",
     "axios": "^1.13.4",
     "clsx": "^2.1.1",
     "i18next": "^24.2.0",
