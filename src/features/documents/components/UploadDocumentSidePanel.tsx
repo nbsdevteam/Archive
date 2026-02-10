@@ -66,6 +66,7 @@ export const UploadDocumentSidePanel = ({
   const [tags, setTags] = useState<Tag[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -305,6 +306,7 @@ export const UploadDocumentSidePanel = ({
         file: undefined,
       };
       reset(values);
+      setSelectedFiles([]);
       setSubmitError(null);
     }
   }, [isOpen, reset, initialValues, lockFolderContext]);
@@ -319,7 +321,6 @@ export const UploadDocumentSidePanel = ({
         setIsUploading(false);
         return;
       }
-      const fileData = await fileToBase64(file);
 
       if (data.upload_kind === "attachment") {
         const docId = Number(data.target_document_id);
@@ -329,19 +330,26 @@ export const UploadDocumentSidePanel = ({
           toast.error(msg);
           return;
         }
-        const result = await documentsApi.addAttachment(docId, {
-          name: data.title.trim(),
-          file_name: file.name,
-          file_data: fileData,
-          description: null,
-          attachment_type: "supporting",
-        });
-        if (!result.success) throw new Error(result.error ?? "Add attachment failed");
+        const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [file];
+        /** Build JSON-RPC 8.6 payload items from each selected attachment file. */
+        const attachmentsPayload = await Promise.all(
+          filesToUpload.map(async (attachmentFile) => ({
+            name: attachmentFile.name,
+            file_name: attachmentFile.name,
+            file_data: await fileToBase64(attachmentFile),
+            description: null,
+            attachment_type: "supporting",
+          }))
+        );
+        const result = await documentsApi.uploadMultipleAttachments(docId, attachmentsPayload);
+        if (!result.success) throw new Error(result.error ?? "Upload attachments failed");
         toast.success(t("documents.uploadSuccess") || "Document uploaded successfully.");
         onSuccess?.();
         onClose();
         return;
       }
+
+      const fileData = await fileToBase64(file);
 
       let finalFolderId: number | undefined = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
 
@@ -452,6 +460,7 @@ export const UploadDocumentSidePanel = ({
   );
 
   const handleClearFile = () => {
+    setSelectedFiles([]);
     setValue("file", undefined, { shouldValidate: true });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -644,8 +653,11 @@ export const UploadDocumentSidePanel = ({
             id="upload-doc-file"
             accept="*/*"
             ref={fileInputRef}
+            multiple={uploadKind === "attachment"}
             onChange={(e) => {
-              const file = e.target.files?.[0];
+              const files = Array.from(e.target.files ?? []);
+              setSelectedFiles(files);
+              const file = files[0];
               if (file) {
                 setValue("file", file, { shouldValidate: true });
               } else {
@@ -661,9 +673,13 @@ export const UploadDocumentSidePanel = ({
               onClick={() => fileInputRef.current?.click()}
             >
               <Icon name="paperclip" className="me-1" />
-              {selectedFile instanceof File ? `Selected: ${selectedFile.name}` : "Select File"}
+              {selectedFile instanceof File
+                ? uploadKind === "attachment" && selectedFiles.length > 1
+                  ? `Selected: ${selectedFiles.length} files`
+                  : `Selected: ${selectedFile.name}`
+                : "Select File"}
             </Button>
-            {selectedFile instanceof File && (
+            {(selectedFile instanceof File || selectedFiles.length > 0) && (
               <Button type="button" variant="outline" className="btn-outline-secondary" onClick={handleClearFile}>
                 <Icon name="x" className="me-1" />
                 {t("common.remove", { defaultValue: "Remove" })}
