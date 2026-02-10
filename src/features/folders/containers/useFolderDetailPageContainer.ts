@@ -14,7 +14,6 @@ import { useSignatureStore } from "../../signatures/stores/signatureStore";
 import { all_routes } from "../../../router/all_routes";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
-import { blobToDataUrl } from "../../../shared/utils/files/blobToDataUrl";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 
@@ -476,20 +475,33 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [attachmentSelectedIds, clearAttachmentsSelection, trashAttachmentsByIds]);
 
+  /** Opens transfer modal for selected sub-documents. Uses folder/mainDoc department when doc.department_id is missing (e.g. folder documents API may omit it). */
   const openTransferDocs = useCallback(
     (ids: number[]) => {
       if (ids.length === 0) return;
-      const depts = [...new Set(ids.map((id) => subDocs.find((d) => d.id === id)?.department_id).filter((x): x is number => x != null))];
-      if (depts.length !== 1) {
+      const folderDeptId = folder?.department_id ?? mainDoc?.department_id;
+      const depts = [
+        ...new Set(
+          ids
+            .map((id) => subDocs.find((d) => d.id === id)?.department_id ?? folderDeptId)
+            .filter((x): x is number => x != null && x > 0)
+        ),
+      ];
+      if (depts.length > 1) {
         toast.error(t("folders.transferSameDepartment", { defaultValue: "Selected documents must be from the same department." }));
         return;
       }
+      const departmentId = depts[0] ?? folderDeptId ?? 0;
+      if (!departmentId) {
+        toast.error(t("folders.transferFailed", { defaultValue: "Transfer failed." }));
+        return;
+      }
       setTransferDocIds(ids);
-      setTransferDepartmentId(depts[0]);
+      setTransferDepartmentId(departmentId);
       setTransferMode("docs");
       setTransferModalOpen(true);
     },
-    [subDocs, t]
+    [subDocs, folder?.department_id, mainDoc?.department_id, t]
   );
 
   const openTransferAttachments = useCallback(
@@ -536,56 +548,10 @@ export const useFolderDetailPageContainer = () => {
             toast.error(t("folders.transferFailed", { defaultValue: "Transfer failed." }));
             return;
           }
-          const destResult = await getFolderDocuments(targetFolderId);
-          const destDocs = destResult?.data ?? [];
-          const sorted = sortFolderDocumentsByUploadDate(destDocs);
-          const destinationMainDocId = sorted[0]?.id;
-          if (!destinationMainDocId) {
-            toast.error(t("folders.destinationHasNoMain", { defaultValue: "Destination folder has no main document." }));
-            return;
-          }
-          const selectedAttachments = attachments.filter((a) => transferAttachmentIds.includes(a.id));
-          const payloads = await Promise.all(
-            selectedAttachments.map(async (a) => {
-              const blob = await documentsApi.downloadAttachment(sourceDocId, a.id);
-              const file_data = await blobToDataUrl(blob);
-              return {
-                name: a.name,
-                file_name: a.file_name,
-                file_data,
-                description: a.description ?? undefined,
-                attachment_type: a.attachment_type ?? "supporting",
-              };
-            })
-          );
-          if (payloads.length === 0) {
-            throw new Error(
-              t("folders.transferFailed", { defaultValue: "Transfer failed." })
-            );
-          }
-          if (payloads.length === 1) {
-            await documentsApi.addAttachment(destinationMainDocId, payloads[0]);
-          } else {
-            await documentsApi.uploadMultipleAttachments(destinationMainDocId, payloads);
-          }
-          let deleteFailCount = 0;
-          for (const id of transferAttachmentIds) {
-            try {
-              await documentsApi.deleteAttachment(sourceDocId, id);
-            } catch {
-              deleteFailCount += 1;
-            }
-          }
-          if (deleteFailCount > 0) {
-            toast.warning(
-              t("folders.transferDeleteWarning", {
-                defaultValue: "{{count}} attachment(s) could not be removed from source.",
-                count: deleteFailCount,
-              })
-            );
-          } else {
-            toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
-          }
+
+          // Attachments/sub-docs now use the same official batch move endpoint.
+          await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
+          toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearAttachmentsSelection();
           refreshAttachmentsForCurrentDocument();
         }
@@ -606,7 +572,6 @@ export const useFolderDetailPageContainer = () => {
       transferDocIds,
       transferAttachmentIds,
       attachmentsDocId,
-      attachments,
       t,
       clearSubDocsSelection,
       clearAttachmentsSelection,
