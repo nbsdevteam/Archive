@@ -446,6 +446,7 @@ export const UploadDocumentSidePanel = ({
       const sanitizedTitle = trimmed.replace(/\s+/g, "_");
       const random = getRandom1To1000;
       setValue("folder_name", `${dept.code}-${docType.code}-${sanitizedTitle}_${random}`, { shouldValidate: true });
+      setValue("folder_code", String(random), { shouldValidate: true });
     },
     [uploadKind, departmentId, documentTypeId, departments, documentTypes, getRandom1To1000, setValue]
   );
