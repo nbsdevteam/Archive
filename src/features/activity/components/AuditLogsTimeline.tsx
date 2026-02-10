@@ -113,6 +113,11 @@ const AuditLogsTimelineComponent = ({
     });
 
     return [...actionSet].sort((left, right) => {
+      const leftHiddenRank = hiddenActionSet.has(left) ? 0 : 1;
+      const rightHiddenRank = hiddenActionSet.has(right) ? 0 : 1;
+      if (leftHiddenRank !== rightHiddenRank) {
+        return leftHiddenRank - rightHiddenRank;
+      }
       const leftLabel = t(`activity.actions.${left}`, {
         defaultValue: humanizeAction(left),
       });
@@ -121,7 +126,7 @@ const AuditLogsTimelineComponent = ({
       });
       return leftLabel.localeCompare(rightLabel);
     });
-  }, [logs, t]);
+  }, [hiddenActionSet, logs, t]);
   const filteredLogs = useMemo(
     () => logs.filter((log) => !hiddenActionSet.has(String(log.action))),
     [logs, hiddenActionSet]
