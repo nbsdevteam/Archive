@@ -26,7 +26,11 @@ function secondaryDocsColumns(
 function secondaryDocsRowActions(
   t: (key: string, opts?: { defaultValue?: string }) => string,
   handleNavigateToDocument: (id: number) => void,
-  openTransferDocs: (ids: number[]) => void
+  openTransferDocs: (ids: number[]) => void,
+  handleOpenSubDocTrashConfirm: (documentId: number) => void,
+  handleDownloadDocument: (documentId: number) => void,
+  handleArchiveFolderDocument: (documentId: number) => void,
+  handleUnarchiveFolderDocument: (documentId: number) => void
 ): RowAction<Document>[] {
   return [
     {
@@ -35,6 +39,16 @@ function secondaryDocsRowActions(
       variant: "outline",
       className: "btn-outline-secondary me-1",
       onClick: (d) => handleNavigateToDocument(d.id),
+    },
+    {
+      id: "download",
+      label: t("documents.download", { defaultValue: "Download" }),
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      onClick: (d, e) => {
+        e.stopPropagation();
+        handleDownloadDocument(d.id);
+      },
     },
     {
       id: "transfer",
@@ -52,6 +66,41 @@ function secondaryDocsRowActions(
         openTransferDocs([d.id]);
       },
     },
+    {
+      id: "archive",
+      label: t("documents.archive", { defaultValue: "Archive" }),
+      icon: "archive",
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      visible: (d) => (d.status ?? "").toLowerCase() !== "archived",
+      onClick: (d, e) => {
+        e.stopPropagation();
+        handleArchiveFolderDocument(d.id);
+      },
+    },
+    {
+      id: "unarchive",
+      label: t("documents.unarchive", { defaultValue: "Unarchive" }),
+      icon: "archive",
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      visible: (d) => (d.status ?? "").toLowerCase() === "archived",
+      onClick: (d, e) => {
+        e.stopPropagation();
+        handleUnarchiveFolderDocument(d.id);
+      },
+    },
+    {
+      id: "trash",
+      label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
+      icon: "trash",
+      variant: "outline",
+      className: "btn-outline-danger",
+      onClick: (d, e) => {
+        e.stopPropagation();
+        handleOpenSubDocTrashConfirm(d.id);
+      },
+    },
   ];
 }
 
@@ -65,7 +114,8 @@ function attachmentsColumns(t: (key: string, opts?: { defaultValue?: string }) =
 function attachmentsRowActions(
   t: (key: string, opts?: { defaultValue?: string }) => string,
   handleDownloadAttachment: (attachmentId: number, fileName: string) => void,
-  openTransferAttachments: (ids: number[]) => void
+  openTransferAttachments: (ids: number[]) => void,
+  handleOpenAttachmentTrashConfirm: (attachmentId: number) => void
 ): RowAction<Attachment>[] {
   return [
     {
@@ -89,6 +139,17 @@ function attachmentsRowActions(
       onClick: (a, e) => {
         e.stopPropagation();
         openTransferAttachments([a.id]);
+      },
+    },
+    {
+      id: "trash",
+      label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
+      icon: "trash",
+      variant: "outline",
+      className: "btn-outline-danger",
+      onClick: (a, e) => {
+        e.stopPropagation();
+        handleOpenAttachmentTrashConfirm(a.id);
       },
     },
   ];
@@ -141,7 +202,10 @@ const FolderDetailPage = () => {
     handleAttachmentsDocIdChange,
     handleAddAttachment,
     handleDownloadMainDocument,
+    handleDownloadDocument,
     handleDownloadAttachment,
+    handleArchiveFolderDocument,
+    handleUnarchiveFolderDocument,
     setTransitionOpen,
     openTransition,
     setTransitionMessage,
@@ -161,10 +225,31 @@ const FolderDetailPage = () => {
     subDocsSelectionConfig,
     subDocSelectedIds,
     clearSubDocsSelection,
+    subDocTrashTargetId,
+    isSubDocArchiving,
+    isSubDocUnarchiving,
+    isSubDocTrashing,
+    isBatchSubDocTrashConfirmOpen,
+    isBatchSubDocTrashing,
+    handleOpenSubDocTrashConfirm,
+    handleCloseSubDocTrashConfirm,
+    handleConfirmSubDocTrash,
+    handleOpenBatchSubDocTrashConfirm,
+    handleCloseBatchSubDocTrashConfirm,
+    handleConfirmBatchSubDocTrash,
     openTransferDocs,
     attachmentsSelectionConfig,
     attachmentSelectedIds,
     clearAttachmentsSelection,
+    attachmentTrashTargetId,
+    isAttachmentTrashing,
+    isBatchAttachmentTrashConfirmOpen,
+    handleOpenAttachmentTrashConfirm,
+    handleCloseAttachmentTrashConfirm,
+    handleConfirmAttachmentTrash,
+    handleOpenBatchAttachmentTrashConfirm,
+    handleCloseBatchAttachmentTrashConfirm,
+    handleConfirmBatchAttachmentTrash,
     openTransferAttachments,
     transferModalOpen,
     transferMode,
@@ -350,6 +435,46 @@ const FolderDetailPage = () => {
                           <Icon name="download" className="me-1" />
                           {t("documents.download", { defaultValue: "Download" })}
                         </Button>
+                        {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="btn-outline-secondary me-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUnarchiveFolderDocument(mainDoc.id);
+                            }}
+                            disabled={isSubDocUnarchiving}
+                          >
+                            {t("documents.unarchive", { defaultValue: "Unarchive" })}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="btn-outline-secondary me-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleArchiveFolderDocument(mainDoc.id);
+                            }}
+                            disabled={isSubDocArchiving}
+                          >
+                            {t("documents.archive", { defaultValue: "Archive" })}
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="btn-outline-danger me-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenSubDocTrashConfirm(mainDoc.id);
+                          }}
+                          disabled={isSubDocTrashing}
+                        >
+                          <Icon name="trash" className="me-1" />
+                          {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+                        </Button>
                         <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
                           {t("common.view", { defaultValue: "View" })}
                         </Button>
@@ -371,11 +496,26 @@ const FolderDetailPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="btn-outline-danger"
+                  onClick={handleOpenBatchSubDocTrashConfirm}
+                  disabled={isBatchSubDocTrashing}
+                >
+                  <Icon name="trash" className="me-1" />
+                  {t("documents.moveSelectedToTrash", {
+                    defaultValue: "Move selected to trash",
+                  })}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="btn-outline-secondary"
                   onClick={() => openTransferDocs(subDocSelectedIds as number[])}
                 >
                   <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
-                  {t("folders.transferSelected", { count: subDocSelectedIds.length, defaultValue: "Transfer selected ({{count}})" })}
+                  {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
+                  {subDocSelectedIds.length > 0 && (
+                    <span className="badge bg-secondary ms-1">{subDocSelectedIds.length}</span>
+                  )}
                 </Button>
                 <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearSubDocsSelection}>
                   {t("common.clearSelection", { defaultValue: "Clear selection" })}
@@ -390,7 +530,15 @@ const FolderDetailPage = () => {
               columns={secondaryDocsColumns(t, formatDate)}
               emptyMessage={t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
               onRowClick={(d) => handleNavigateToDocument(d.id)}
-              rowActions={secondaryDocsRowActions(t, handleNavigateToDocument, openTransferDocs)}
+              rowActions={secondaryDocsRowActions(
+                t,
+                handleNavigateToDocument,
+                openTransferDocs,
+                handleOpenSubDocTrashConfirm,
+                handleDownloadDocument,
+                handleArchiveFolderDocument,
+                handleUnarchiveFolderDocument
+              )}
               selection={subDocsSelectionConfig}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
               tableClassName="table table-sm mb-0"
@@ -422,11 +570,26 @@ const FolderDetailPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="btn-outline-danger"
+                    onClick={handleOpenBatchAttachmentTrashConfirm}
+                    disabled={isAttachmentTrashing}
+                  >
+                    <Icon name="trash" className="me-1" />
+                    {t("documents.moveSelectedToTrash", {
+                      defaultValue: "Move selected to trash",
+                    })}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="btn-outline-secondary"
                     onClick={() => openTransferAttachments(attachmentSelectedIds as number[])}
                   >
                     <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
-                    {t("folders.transferSelected", { count: attachmentSelectedIds.length, defaultValue: "Transfer selected ({{count}})" })}
+                    {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
+                    {attachmentSelectedIds.length > 0 && (
+                      <span className="badge bg-secondary ms-1">{attachmentSelectedIds.length}</span>
+                    )}
                   </Button>
                   <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearAttachmentsSelection}>
                     {t("common.clearSelection", { defaultValue: "Clear selection" })}
@@ -445,7 +608,12 @@ const FolderDetailPage = () => {
               columns={attachmentsColumns(t)}
               loading={loadingAttachments}
               emptyMessage={t("common.noData", { defaultValue: "No data" })}
-              rowActions={attachmentsRowActions(t, handleDownloadAttachment, openTransferAttachments)}
+              rowActions={attachmentsRowActions(
+                t,
+                handleDownloadAttachment,
+                openTransferAttachments,
+                handleOpenAttachmentTrashConfirm
+              )}
               selection={attachmentsSelectionConfig}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
               tableClassName="table table-sm mb-0"
@@ -605,6 +773,68 @@ const FolderDetailPage = () => {
         cancelLabel={t("common.cancel")}
         confirmVariant="danger"
         isLoading={isDeletingFolder}
+      />
+
+      <ConfirmModal
+        isOpen={subDocTrashTargetId != null}
+        onClose={handleCloseSubDocTrashConfirm}
+        onConfirm={handleConfirmSubDocTrash}
+        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        message={t("documents.confirmMoveToTrash", {
+          defaultValue: "Are you sure you want to move this document to trash?",
+        })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isSubDocTrashing}
+      />
+
+      <ConfirmModal
+        isOpen={isBatchSubDocTrashConfirmOpen}
+        onClose={handleCloseBatchSubDocTrashConfirm}
+        onConfirm={handleConfirmBatchSubDocTrash}
+        title={t("documents.moveSelectedToTrash", {
+          defaultValue: "Move selected to trash",
+        })}
+        message={t("documents.confirmBatchMoveToTrash", {
+          defaultValue: "Move {{count}} document(s) to trash?",
+          count: subDocSelectedIds.length,
+        })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isBatchSubDocTrashing}
+      />
+
+      <ConfirmModal
+        isOpen={attachmentTrashTargetId != null}
+        onClose={handleCloseAttachmentTrashConfirm}
+        onConfirm={handleConfirmAttachmentTrash}
+        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        message={t("documents.confirmMoveToTrash", {
+          defaultValue: "Are you sure you want to move this document to trash?",
+        })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isAttachmentTrashing}
+      />
+
+      <ConfirmModal
+        isOpen={isBatchAttachmentTrashConfirmOpen}
+        onClose={handleCloseBatchAttachmentTrashConfirm}
+        onConfirm={handleConfirmBatchAttachmentTrash}
+        title={t("documents.moveSelectedToTrash", {
+          defaultValue: "Move selected to trash",
+        })}
+        message={t("documents.confirmBatchMoveToTrash", {
+          defaultValue: "Move {{count}} document(s) to trash?",
+          count: attachmentSelectedIds.length,
+        })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isAttachmentTrashing}
       />
 
       <TransferToFolderModal
