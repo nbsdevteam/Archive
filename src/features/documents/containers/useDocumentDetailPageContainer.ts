@@ -319,9 +319,8 @@ export const useDocumentDetailPageContainer = () => {
     if (!docId || transferAttachmentIds.length === 0) return;
     setIsAttachmentTransferSubmitting(true);
     try {
-      // TEMPORARY TEST: hardcode target_folder_id as 48 to verify attachment transfer flow.
-      const effectiveTargetFolderId = 48;
-      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, effectiveTargetFolderId);
+      // Attachments now use the same batch move API as secondary documents.
+      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
 
       clearAttachmentSelection();
       setIsAttachmentTransferModalOpen(false);

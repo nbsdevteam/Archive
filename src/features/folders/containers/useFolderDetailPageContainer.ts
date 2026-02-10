@@ -566,9 +566,7 @@ export const useFolderDetailPageContainer = () => {
             return;
           }
 
-          // TEMPORARY TEST: hardcode target_folder_id as 48 to verify attachment transfer flow.
-          const effectiveTargetFolderId = 48;
-          await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, effectiveTargetFolderId);
+          await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
           toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearAttachmentsSelection();
           refreshAttachmentsForCurrentDocument();
