@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm, type Resolver } from "react-hook-form";
@@ -397,6 +397,7 @@ export const UploadDocumentSidePanel = ({
     await handleSubmit(onSubmit)();
   };
 
+  const titleRegistration = register("title");
   const departmentOptions: SelectOption[] = departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
   const documentTypeOptions: SelectOption[] = documentTypes.map((dt) => ({ value: dt.id, label: `${dt.name} (${dt.code})` }));
   const folderOptions: SelectOption[] = [{ value: 0, label: t("common.none") }, ...folders.map((f) => ({ value: f.id, label: `${f.name} — ${f.code}` }))];
@@ -427,6 +428,27 @@ export const UploadDocumentSidePanel = ({
           ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0)));
 
   const submitDisabled = !canSubmit || isUploading;
+
+  /** Memoized random integer 1–1000; only invoked on title blur to avoid running on every render. */
+  const getRandom1To1000 = useMemo(() => Math.floor(Math.random() * 1000) + 1, []);
+
+  /**
+   * Builds suggested folder name for main-document upload: DeptCode-DocTypeCode-Title_Random.
+   * Runs on title blur when department and document type are selected.
+   */
+  const fillFolderNameFromTitle = useCallback(
+    (titleValue: string) => {
+      if (uploadKind !== "main" || !departmentId || departmentId < 1 || !documentTypeId || documentTypeId < 1) return;
+      const dept = departments.find((d) => d.id === Number(departmentId));
+      const docType = documentTypes.find((dt) => dt.id === Number(documentTypeId));
+      const trimmed = (titleValue ?? "").trim();
+      if (!dept?.code || !docType?.code || !trimmed) return;
+      const sanitizedTitle = trimmed.replace(/\s+/g, "_");
+      const random = getRandom1To1000;
+      setValue("folder_name", `${dept.code}-${docType.code}-${sanitizedTitle}_${random}`, { shouldValidate: true });
+    },
+    [uploadKind, departmentId, documentTypeId, departments, documentTypes, getRandom1To1000, setValue]
+  );
 
   const handleClearFile = () => {
     setValue("file", undefined, { shouldValidate: true });
@@ -532,7 +554,11 @@ export const UploadDocumentSidePanel = ({
 
         <Input
           label={t("documents.documentTitle")}
-          {...register("title")}
+          {...titleRegistration}
+          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+            titleRegistration.onBlur(e);
+            fillFolderNameFromTitle(e.target.value ?? "");
+          }}
           error={errors.title?.message}
           required
           autoComplete="off"
