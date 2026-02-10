@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { FilePreview } from "../../../shared/components/FilePreview";
-import { TransferToFolderModal } from "../../folders/components";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { UploadDocumentSidePanel } from "../components";
@@ -11,7 +10,7 @@ import { AuditActivityPanel } from "../../../shared/components/Activity";
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, auditError, auditRefresh, activityViewMode, setActivityViewMode, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, isAttachmentTransferModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, isAttachmentTransferSubmitting, transferAttachmentIds, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleViewAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleOpenSingleAttachmentTransfer, handleOpenBatchAttachmentTransfer, handleCloseAttachmentTransfer, handleConfirmAttachmentTransfer, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, auditError, auditRefresh, activityViewMode, setActivityViewMode, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleViewAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -286,16 +285,6 @@ const DocumentDetailPage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="btn-outline-secondary"
-                          onClick={handleOpenBatchAttachmentTransfer}
-                          disabled={isAttachmentTransferSubmitting}
-                        >
-                          <Icon name="arrow-right-left" className="me-1" />
-                          {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
                           className="btn-outline-danger"
                           onClick={handleOpenBatchAttachmentTrashConfirm}
                           disabled={isDeletingAttachment}
@@ -360,17 +349,6 @@ const DocumentDetailPage = () => {
                         onClick: (row, e) => {
                           e.stopPropagation();
                           handleDownloadAttachment(row.id, row.file_name);
-                        },
-                      },
-                      {
-                        id: "transfer",
-                        label: t("folders.transfer", { defaultValue: "Transfer" }),
-                        icon: "arrow-right-left",
-                        variant: "outline",
-                        className: "btn-outline-secondary me-1",
-                        onClick: (row, e) => {
-                          e.stopPropagation();
-                          handleOpenSingleAttachmentTransfer(row.id);
                         },
                       },
                       {
@@ -845,20 +823,6 @@ const DocumentDetailPage = () => {
           </Button>
         </ModalFooter>
       </Modal>
-
-      <TransferToFolderModal
-        isOpen={isAttachmentTransferModalOpen}
-        onClose={handleCloseAttachmentTransfer}
-        departmentId={doc.department_id ?? 0}
-        title={t("folders.selectDestinationFolder", { defaultValue: "Select destination folder" })}
-        subtitle={t("folders.transferSubtitleAttachments", {
-          count: transferAttachmentIds.length,
-          defaultValue:
-            "Transfer {{count}} attachment(s) to a folder in the same department.",
-        })}
-        onConfirm={handleConfirmAttachmentTransfer}
-        isSubmitting={isAttachmentTransferSubmitting}
-      />
     </div>
   );
 };

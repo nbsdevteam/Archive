@@ -104,9 +104,6 @@ export const useDocumentDetailPageContainer = () => {
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
-  const [isAttachmentTransferModalOpen, setIsAttachmentTransferModalOpen] = useState(false);
-  const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
-  const [isAttachmentTransferSubmitting, setIsAttachmentTransferSubmitting] = useState(false);
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("table");
 
   const {
@@ -296,43 +293,6 @@ export const useDocumentDetailPageContainer = () => {
   const handleOpenBatchAttachmentTrashConfirm = () => {
     if (attachmentSelectedIds.length > 0) {
       setIsBatchAttachmentTrashConfirmOpen(true);
-    }
-  };
-
-  const handleOpenSingleAttachmentTransfer = (attachmentId: number) => {
-    setTransferAttachmentIds([attachmentId]);
-    setIsAttachmentTransferModalOpen(true);
-  };
-
-  const handleOpenBatchAttachmentTransfer = () => {
-    const selected = attachmentSelectedIds.map((id) => Number(id));
-    if (selected.length === 0) return;
-    setTransferAttachmentIds(selected);
-    setIsAttachmentTransferModalOpen(true);
-  };
-
-  const handleCloseAttachmentTransfer = () => {
-    if (!isAttachmentTransferSubmitting) {
-      setIsAttachmentTransferModalOpen(false);
-      setTransferAttachmentIds([]);
-    }
-  };
-
-  const handleConfirmAttachmentTransfer = async (targetFolderId: number) => {
-    if (!docId || transferAttachmentIds.length === 0) return;
-    setIsAttachmentTransferSubmitting(true);
-    try {
-      // Attachments now use the same batch move API as secondary documents.
-      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
-
-      clearAttachmentSelection();
-      setIsAttachmentTransferModalOpen(false);
-      setTransferAttachmentIds([]);
-      toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
-    } catch (error) {
-      toast.error(handleApiError(error));
-    } finally {
-      setIsAttachmentTransferSubmitting(false);
     }
   };
 
@@ -657,7 +617,6 @@ export const useDocumentDetailPageContainer = () => {
     attachmentTrashTargetId,
     isBatchAttachmentTrashConfirmOpen,
     isEditAttachmentModalOpen,
-    isAttachmentTransferModalOpen,
     editAttachmentName,
     editAttachmentDescription,
     isTrashing: isTrashingSingle,
@@ -665,8 +624,6 @@ export const useDocumentDetailPageContainer = () => {
     isPermanentDeleting,
     isDeletingAttachment,
     isUpdatingAttachment,
-    isAttachmentTransferSubmitting,
-    transferAttachmentIds,
     tabs,
     formatDate,
     refreshAttachments,
@@ -704,10 +661,6 @@ export const useDocumentDetailPageContainer = () => {
     handleOpenEditAttachment,
     handleCloseEditAttachment,
     handleConfirmEditAttachment,
-    handleOpenSingleAttachmentTransfer,
-    handleOpenBatchAttachmentTransfer,
-    handleCloseAttachmentTransfer,
-    handleConfirmAttachmentTransfer,
     handleViewAttachment,
     handleArchive,
     handleUnarchive,
