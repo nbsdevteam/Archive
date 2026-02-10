@@ -9,10 +9,14 @@ import { all_routes } from "../../../router/all_routes";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { ocrApi } from "../../../app/adapter/api/ocr.api";
+import { handleApiError } from "../../../app/adapter/api/client";
 import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/documents.api";
+import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
-import { handleApiError } from "../../../app/adapter/api/client";
+import { blobToDataUrl } from "../../../shared/utils/files/blobToDataUrl";
+import { getFolderDocuments } from "../../folders/services/folders.api";
+import { sortFolderDocumentsByUploadDate } from "../../folders/utils/sortFolderDocumentsByUploadDate";
 
 export const useDocumentDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,20 +36,32 @@ export const useDocumentDetailPageContainer = () => {
     fetchDocument,
     downloadVersion,
     uploadVersion,
-    archiveDocument,
-    unarchiveDocument,
-    trashDocument,
-    restoreDocument,
-    permanentDeleteDocument,
     error: storeError,
   } = useDocumentStore();
+  const {
+    isTrashingSingle,
+    isRestoring,
+    isPermanentDeleting,
+    archiveSingle,
+    unarchiveSingle,
+    trashSingle,
+    restoreSingle,
+    permanentDeleteSingle,
+  } = useDocumentOperations();
 
   const { requests, fetchRequests, createRequest, uploadSigned } = useSignatureStore();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
 
   const [attachments, setAttachments] = useState<
-    Array<{ id: number; name: string; file_name: string; file_size?: number }>
+    Array<{
+      id: number;
+      name: string;
+      file_name: string;
+      file_size?: number;
+      description?: string | null;
+      attachment_type?: string;
+    }>
   >([]);
   const [relations, setRelations] = useState<{
     parent?: { id: number; title: string; barcode?: string } | null;
@@ -87,9 +103,21 @@ export const useDocumentDetailPageContainer = () => {
   const [runOcrLoading, setRunOcrLoading] = useState(false);
   const [modalTrashConfirm, setModalTrashConfirm] = useState(false);
   const [modalPermanentDelete, setModalPermanentDelete] = useState(false);
-  const [isTrashing, setIsTrashing] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(false);
-  const [isPermanentDeleting, setIsPermanentDeleting] = useState(false);
+  const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
+  const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
+  const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
+  const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
+  const [editAttachmentName, setEditAttachmentName] = useState("");
+  const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
+  const [isAttachmentTransferModalOpen, setIsAttachmentTransferModalOpen] = useState(false);
+  const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
+  const [isAttachmentTransferSubmitting, setIsAttachmentTransferSubmitting] = useState(false);
+
+  const {
+    selectedIds: attachmentSelectedIds,
+    selectionConfig: attachmentSelectionConfig,
+    clear: clearAttachmentSelection,
+  } = useSelection(attachments, (a) => a.id);
 
   const handleClearUploadVersionFile = () => {
     setUploadVersionFile(null);
@@ -179,6 +207,18 @@ export const useDocumentDetailPageContainer = () => {
     }
   };
 
+  const attachmentDocumentId = docId ?? null;
+  const {
+    isDeletingAttachment,
+    isUpdatingAttachment,
+    downloadAttachment,
+    deleteAttachment,
+    deleteAttachments,
+    updateAttachment,
+  } = useAttachmentOperations(attachmentDocumentId, {
+    onSuccess: refreshAttachments,
+  });
+
   useEffect(() => {
     if (!docId || activeTab !== "relations") return;
     setLoadingRelations(true);
@@ -228,38 +268,172 @@ export const useDocumentDetailPageContainer = () => {
   };
 
   const handleDownloadAttachment = async (attachmentId: number, fName: string) => {
-    if (!docId) return;
+    await downloadAttachment(
+      attachmentId,
+      fName,
+      t("documents.downloadSuccess", { defaultValue: "Download started." })
+    );
+  };
+
+  const handleOpenAttachmentTrashConfirm = (attachmentId: number) => {
+    setAttachmentTrashTargetId(attachmentId);
+  };
+
+  const handleCloseAttachmentTrashConfirm = () => {
+    if (!isDeletingAttachment) {
+      setAttachmentTrashTargetId(null);
+    }
+  };
+
+  const handleConfirmAttachmentTrash = async () => {
+    if (!attachmentTrashTargetId) return;
+    const didDelete = await deleteAttachment(attachmentTrashTargetId);
+    if (didDelete) {
+      clearAttachmentSelection();
+      setAttachmentTrashTargetId(null);
+    }
+  };
+
+  const handleOpenBatchAttachmentTrashConfirm = () => {
+    if (attachmentSelectedIds.length > 0) {
+      setIsBatchAttachmentTrashConfirmOpen(true);
+    }
+  };
+
+  const handleOpenSingleAttachmentTransfer = (attachmentId: number) => {
+    setTransferAttachmentIds([attachmentId]);
+    setIsAttachmentTransferModalOpen(true);
+  };
+
+  const handleOpenBatchAttachmentTransfer = () => {
+    const selected = attachmentSelectedIds.map((id) => Number(id));
+    if (selected.length === 0) return;
+    setTransferAttachmentIds(selected);
+    setIsAttachmentTransferModalOpen(true);
+  };
+
+  const handleCloseAttachmentTransfer = () => {
+    if (!isAttachmentTransferSubmitting) {
+      setIsAttachmentTransferModalOpen(false);
+      setTransferAttachmentIds([]);
+    }
+  };
+
+  const handleConfirmAttachmentTransfer = async (targetFolderId: number) => {
+    if (!docId || transferAttachmentIds.length === 0) return;
+    setIsAttachmentTransferSubmitting(true);
     try {
-      const blob = await documentsApi.downloadAttachment(docId, attachmentId);
-      downloadBlobAsFile(blob, fName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
+      const destinationResult = await getFolderDocuments(targetFolderId);
+      const destinationDocs = destinationResult?.data ?? [];
+      const sortedDocs = sortFolderDocumentsByUploadDate(destinationDocs);
+      const destinationMainDocId = sortedDocs[0]?.id;
+      if (!destinationMainDocId) {
+        toast.error(
+          t("folders.destinationHasNoMain", {
+            defaultValue: "Destination folder has no main document.",
+          })
+        );
+        return;
+      }
+
+      const selectedAttachments = attachments.filter((attachment) =>
+        transferAttachmentIds.includes(attachment.id)
       );
+      const payloads = await Promise.all(
+        selectedAttachments.map(async (attachment) => {
+          const blob = await documentsApi.downloadAttachment(docId, attachment.id);
+          const file_data = await blobToDataUrl(blob);
+          return {
+            name: attachment.name,
+            file_name: attachment.file_name,
+            file_data,
+            description: attachment.description ?? undefined,
+            attachment_type: attachment.attachment_type ?? "supporting",
+          };
+        })
+      );
+
+      if (payloads.length === 1) {
+        await documentsApi.addAttachment(destinationMainDocId, payloads[0]);
+      } else {
+        await documentsApi.uploadMultipleAttachments(destinationMainDocId, payloads);
+      }
+
+      const didDelete = await deleteAttachments(transferAttachmentIds);
+      if (!didDelete) return;
+
+      clearAttachmentSelection();
+      setIsAttachmentTransferModalOpen(false);
+      setTransferAttachmentIds([]);
+      toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
+    } catch (error) {
+      toast.error(handleApiError(error));
+    } finally {
+      setIsAttachmentTransferSubmitting(false);
+    }
+  };
+
+  const handleCloseBatchAttachmentTrashConfirm = () => {
+    if (!isDeletingAttachment) {
+      setIsBatchAttachmentTrashConfirmOpen(false);
+    }
+  };
+
+  const handleConfirmBatchAttachmentTrash = async () => {
+    const selected = attachmentSelectedIds.map((id) => Number(id));
+    if (selected.length === 0) return;
+    const didDelete = await deleteAttachments(selected);
+    if (didDelete) {
+      clearAttachmentSelection();
+      setIsBatchAttachmentTrashConfirmOpen(false);
+    }
+  };
+
+  const handleOpenEditAttachment = (attachmentId: number) => {
+    const target = attachments.find((attachment) => attachment.id === attachmentId);
+    if (!target) return;
+    setEditAttachmentId(target.id);
+    setEditAttachmentName(target.name ?? "");
+    setEditAttachmentDescription(target.description ?? "");
+    setIsEditAttachmentModalOpen(true);
+  };
+
+  const handleCloseEditAttachment = () => {
+    if (!isUpdatingAttachment) {
+      setIsEditAttachmentModalOpen(false);
+      setEditAttachmentId(null);
+      setEditAttachmentName("");
+      setEditAttachmentDescription("");
+    }
+  };
+
+  const handleConfirmEditAttachment = async () => {
+    if (!editAttachmentId) return;
+    const didUpdate = await updateAttachment(editAttachmentId, {
+      name: editAttachmentName.trim() || undefined,
+      description: editAttachmentDescription.trim() || null,
+    });
+    if (didUpdate) {
+      handleCloseEditAttachment();
     }
   };
 
   const handleArchive = async () => {
     if (!doc?.id) return;
-    try {
-      await archiveDocument(doc.id);
-      toast.success(t("documents.archived", { defaultValue: "Document archived." }));
-    } catch (e) {
-      toast.error((e as Error)?.message ?? t("documents.archiveFailed", { defaultValue: "Archive failed." }));
-    }
+    await archiveSingle(doc.id, {
+      successMessage: t("documents.archived", { defaultValue: "Document archived." }),
+      errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
+      onSuccess: () => fetchDocument(doc.id),
+    });
   };
 
   const handleUnarchive = async () => {
     if (!doc?.id) return;
-    try {
-      await unarchiveDocument(doc.id);
-      toast.success(t("documents.unarchived", { defaultValue: "Document unarchived." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." })
-      );
-    }
+    await unarchiveSingle(doc.id, {
+      successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
+      errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
+      onSuccess: () => fetchDocument(doc.id),
+    });
   };
 
   const handleRunOcr = async () => {
@@ -278,50 +452,34 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleTrashDocument = async () => {
     if (!doc?.id) return;
-    setIsTrashing(true);
-    try {
-      await trashDocument(doc.id);
-      toast.success(t("documents.trashed", { defaultValue: "Document moved to trash." }));
+    const didTrash = await trashSingle(doc.id, {
+      successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
+      errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
+    });
+    if (didTrash) {
       setModalTrashConfirm(false);
       navigate(routes.documents);
-    } catch (e) {
-      const apiMessage = handleApiError(e);
-      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
-      toast.error(message || t("documents.trashFailed", { defaultValue: "Failed to move to trash." }));
-    } finally {
-      setIsTrashing(false);
     }
   };
 
   const handleRestoreDocument = async () => {
     if (!doc?.id) return;
-    setIsRestoring(true);
-    try {
-      await restoreDocument(doc.id);
-      toast.success(t("documents.restored", { defaultValue: "Document restored." }));
-    } catch (e) {
-      const apiMessage = handleApiError(e);
-      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
-      toast.error(message || t("documents.restoreFailed", { defaultValue: "Failed to restore." }));
-    } finally {
-      setIsRestoring(false);
-    }
+    await restoreSingle(doc.id, {
+      successMessage: t("documents.restored", { defaultValue: "Document restored." }),
+      errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
+      onSuccess: () => fetchDocument(doc.id),
+    });
   };
 
   const handlePermanentDelete = async () => {
     if (!doc?.id) return;
-    setIsPermanentDeleting(true);
-    try {
-      await permanentDeleteDocument(doc.id);
-      toast.success(t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }));
+    const didDelete = await permanentDeleteSingle(doc.id, {
+      successMessage: t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }),
+      errorMessage: t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }),
+    });
+    if (didDelete) {
       setModalPermanentDelete(false);
       navigate(routes.documentsTrash);
-    } catch (e) {
-      const apiMessage = handleApiError(e);
-      const message = apiMessage !== "An unexpected error occurred" ? apiMessage : (e as Error)?.message;
-      toast.error(message || t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }));
-    } finally {
-      setIsPermanentDeleting(false);
     }
   };
 
@@ -491,6 +649,8 @@ export const useDocumentDetailPageContainer = () => {
     isAdmin,
     canRequestSignature,
     attachments,
+    attachmentSelectedIds,
+    attachmentSelectionConfig,
     relations,
     auditLogs,
     activeTab,
@@ -521,9 +681,19 @@ export const useDocumentDetailPageContainer = () => {
     runOcrLoading,
     modalTrashConfirm,
     modalPermanentDelete,
-    isTrashing,
+    attachmentTrashTargetId,
+    isBatchAttachmentTrashConfirmOpen,
+    isEditAttachmentModalOpen,
+    isAttachmentTransferModalOpen,
+    editAttachmentName,
+    editAttachmentDescription,
+    isTrashing: isTrashingSingle,
     isRestoring,
     isPermanentDeleting,
+    isDeletingAttachment,
+    isUpdatingAttachment,
+    isAttachmentTransferSubmitting,
+    transferAttachmentIds,
     tabs,
     formatDate,
     refreshAttachments,
@@ -545,11 +715,26 @@ export const useDocumentDetailPageContainer = () => {
     setRelationNotes,
     setModalTrashConfirm,
     setModalPermanentDelete,
+    setEditAttachmentName,
+    setEditAttachmentDescription,
     handleClearUploadVersionFile,
     handleClearSignedFile,
     handleDownloadVersion,
     handleDownloadCurrent,
     handleDownloadAttachment,
+    handleOpenAttachmentTrashConfirm,
+    handleCloseAttachmentTrashConfirm,
+    handleConfirmAttachmentTrash,
+    handleOpenBatchAttachmentTrashConfirm,
+    handleCloseBatchAttachmentTrashConfirm,
+    handleConfirmBatchAttachmentTrash,
+    handleOpenEditAttachment,
+    handleCloseEditAttachment,
+    handleConfirmEditAttachment,
+    handleOpenSingleAttachmentTransfer,
+    handleOpenBatchAttachmentTransfer,
+    handleCloseAttachmentTransfer,
+    handleConfirmAttachmentTransfer,
     handleArchive,
     handleUnarchive,
     handleRunOcr,

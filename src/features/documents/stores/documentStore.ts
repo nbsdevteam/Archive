@@ -32,8 +32,10 @@ interface DocumentState {
   ) => Promise<void>;
   downloadVersion: (documentId: number, versionId: number, fileName: string) => Promise<void>;
   archiveDocument: (documentId: number) => Promise<void>;
+  batchArchiveDocuments: (documentIds: number[]) => Promise<void>;
   unarchiveDocument: (documentId: number) => Promise<void>;
   trashDocument: (documentId: number, reason?: string) => Promise<void>;
+  batchTrashDocuments: (documentIds: number[], reason?: string) => Promise<void>;
   restoreDocument: (documentId: number) => Promise<void>;
   permanentDeleteDocument: (documentId: number, confirmation?: string) => Promise<void>;
   clearError: () => void;
@@ -193,6 +195,18 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
+  batchArchiveDocuments: async (documentIds: number[]): Promise<void> => {
+    if (documentIds.length === 0) return;
+    set({ error: null });
+    try {
+      await documentsApi.batchArchiveDocuments(documentIds);
+      await get().fetchDocuments();
+    } catch (error) {
+      set({ error: handleApiError(error) });
+      throw error;
+    }
+  },
+
   unarchiveDocument: async (documentId) => {
     set({ isLoading: true, error: null });
 
@@ -226,6 +240,17 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         error: handleApiError(error),
         isLoading: false,
       });
+      throw error;
+    }
+  },
+
+  batchTrashDocuments: async (documentIds: number[], reason?: string): Promise<void> => {
+    if (documentIds.length === 0) return;
+    set({ error: null });
+    try {
+      await documentsApi.batchTrashDocuments(documentIds, reason);
+    } catch (error) {
+      set({ error: handleApiError(error) });
       throw error;
     }
   },

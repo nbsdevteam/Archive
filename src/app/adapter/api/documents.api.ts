@@ -142,6 +142,32 @@ export interface DeleteLikeResponse {
   message?: string;
 }
 
+/** Value required by the backend to confirm permanent delete. */
+const PERMANENT_DELETE_CONFIRMATION = 'DELETE_PERMANENT' as const;
+
+const getRpcResult = <T>(payload: unknown): T => {
+  const maybeWrapped = payload as { result?: T } | T;
+  if (
+    maybeWrapped &&
+    typeof maybeWrapped === 'object' &&
+    'result' in maybeWrapped &&
+    (maybeWrapped as { result?: T }).result !== undefined
+  ) {
+    return (maybeWrapped as { result: T }).result;
+  }
+  return maybeWrapped as T;
+};
+
+const assertSuccess = (
+  result: { success?: boolean; error?: string; message?: string } | undefined,
+  fallbackMessage: string
+): void => {
+  if (!result) return;
+  if (result.success === false) {
+    throw new Error(result.error || result.message || fallbackMessage);
+  }
+};
+
 export const documentsApi = {
   /**
    * Get list of documents
@@ -188,8 +214,9 @@ export const documentsApi = {
       params: { ...params, attachment_type: params.attachment_type ?? 'supporting' },
       id: 1,
     });
-    const result = response.data.result ?? response.data;
-    return result as { success: boolean; data?: unknown; error?: string };
+    const result = getRpcResult<{ success?: boolean; data?: unknown; error?: string; message?: string }>(response.data);
+    assertSuccess(result, 'Failed to add attachment');
+    return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
   },
 
   /**
@@ -320,6 +347,74 @@ export const documentsApi = {
   },
 
   /**
+   * Batch archive documents
+   * POST /api/documents/batch/archive (JSON-RPC)
+   */
+  batchArchiveDocuments: async (documentIds: number[]): Promise<{ success: boolean; error?: string }> => {
+    if (documentIds.length === 0) {
+      return { success: true };
+    }
+    const response = await apiClient.post('/api/documents/batch/archive', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: { document_ids: documentIds },
+      id: 1,
+    });
+    const result = (response.data.result ?? response.data) as { success?: boolean; error?: string };
+    if (result && result.success === false && result.error) {
+      throw new Error(result.error);
+    }
+    return (result ?? { success: true }) as { success: boolean; error?: string };
+  },
+
+  /**
+   * Batch move documents to trash (soft delete)
+   * POST /api/documents/batch/trash (JSON-RPC)
+   */
+  batchTrashDocuments: async (
+    documentIds: number[],
+    reason?: string
+  ): Promise<{ success: boolean; error?: string; message?: string }> => {
+    if (documentIds.length === 0) {
+      return { success: true };
+    }
+    const response = await apiClient.post('/api/documents/batch/trash', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: reason ? { document_ids: documentIds, reason } : { document_ids: documentIds },
+      id: 1,
+    });
+    const result = (response.data.result ?? response.data) as DeleteLikeResponse;
+    if (result && result.success === false) {
+      throw new Error(result.error || result.message || 'Failed to move documents to trash');
+    }
+    return (result ?? { success: true }) as { success: boolean; error?: string; message?: string };
+  },
+
+  /**
+   * Batch move documents to a folder.
+   * POST /api/documents/batch/move-folder (JSON-RPC)
+   * Only use for secondary/sub documents; do not move the main document of a folder.
+   */
+  batchMoveDocumentsToFolder: async (
+    documentIds: number[],
+    targetFolderId: number
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (documentIds.length === 0) {
+      return { success: true };
+    }
+    const response = await apiClient.post('/api/documents/batch/move-folder', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: { document_ids: documentIds, target_folder_id: targetFolderId },
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; error?: string; message?: string }>(response.data);
+    assertSuccess(result, 'Failed to move documents to destination folder');
+    return (result ?? { success: true }) as { success: boolean; error?: string };
+  },
+
+  /**
    * Restore document from trash
    */
   restoreDocument: async (documentId: number): Promise<{ success: boolean; message?: string }> => {
@@ -352,14 +447,16 @@ export const documentsApi = {
   },
 
   /**
-   * Permanently delete a document (admin only)
+   * Permanently delete a document (admin only).
+   * Backend requires confirmation in body or query: use "DELETE_PERMANENT".
    */
   permanentDeleteDocument: async (
     documentId: number,
     confirmation?: string
   ): Promise<{ ok: true }> => {
+    const value = confirmation ?? PERMANENT_DELETE_CONFIRMATION;
     const response = await apiClient.delete(`/api/documents/${documentId}/permanent`, {
-      data: confirmation ? { confirmation } : undefined,
+      data: { confirmation: value },
     });
     const result = (response.data ?? {}) as DeleteLikeResponse;
     if (result && result.success === false) {
@@ -406,6 +503,112 @@ export const documentsApi = {
       { responseType: 'blob' }
     );
     return response.data;
+  },
+
+  /**
+   * Upload multiple attachments to a document (NBS 8.6).
+   * POST /api/documents/<document_id>/attachments/multiple (JSON-RPC)
+   */
+  uploadMultipleAttachments: async (
+    documentId: number,
+    attachments: Array<{
+      name: string;
+      file_name: string;
+      file_data: string;
+      description?: string | null;
+      attachment_type?: string;
+    }>
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> => {
+    const response = await apiClient.post(
+      `/api/documents/${documentId}/attachments/multiple`,
+      {
+        jsonrpc: '2.0',
+        method: 'call',
+        params: {
+          attachments: attachments.map((a) => ({
+            ...a,
+            attachment_type: a.attachment_type ?? 'supporting',
+          })),
+        },
+        id: 1,
+      }
+    );
+    const result = (response.data.result ?? response.data) as {
+      success?: boolean;
+      data?: unknown;
+      error?: string;
+      message?: string;
+    };
+    assertSuccess(result, 'Failed to upload attachments');
+    return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
+  },
+
+  /**
+   * Delete an attachment from a document (NBS 8.5).
+   * Tries JSON-RPC POST first; falls back to HTTP DELETE if backend expects it.
+   */
+  deleteAttachment: async (
+    documentId: number,
+    attachmentId: number
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await apiClient.post(
+        `/api/documents/${documentId}/attachments/${attachmentId}`,
+        {
+          jsonrpc: '2.0',
+          method: 'call',
+          params: {},
+          id: 1,
+        }
+      );
+      const result = getRpcResult<{ success?: boolean; error?: string; message?: string }>(response.data);
+      assertSuccess(result, 'Failed to delete attachment');
+      return (result ?? { success: true }) as { success: boolean; error?: string };
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404 || status === 405) {
+        const deleteResponse = await apiClient.delete(
+          `/api/documents/${documentId}/attachments/${attachmentId}`
+        );
+        const deleteResult = (deleteResponse.data ?? {}) as {
+          success?: boolean;
+          error?: string;
+          message?: string;
+        };
+        assertSuccess(deleteResult, 'Failed to delete attachment');
+        return { success: true };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Update attachment metadata.
+   * POST /api/documents/<document_id>/attachments/<attachment_id>/update (JSON-RPC)
+   */
+  updateAttachment: async (
+    documentId: number,
+    attachmentId: number,
+    params: {
+      name?: string;
+      description?: string | null;
+      attachment_type?: string;
+    }
+  ): Promise<{ success: boolean; error?: string }> => {
+    const response = await apiClient.post(
+      `/api/documents/${documentId}/attachments/${attachmentId}/update`,
+      {
+        jsonrpc: '2.0',
+        method: 'call',
+        params,
+        id: 1,
+      }
+    );
+    const result = getRpcResult<{ success?: boolean; error?: string; message?: string }>(
+      response.data
+    );
+    assertSuccess(result, 'Failed to update attachment');
+    return (result ?? { success: true }) as { success: boolean; error?: string };
   },
 
   /**

@@ -10,4 +10,5 @@ export * from "./Select";
 export * from "./Icon";
 export * from "./SearchInput";
 export * from "./ListFilter";
+export * from "./DataTable";
 export * from "./InfoWrapper";

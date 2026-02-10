@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ReactApexChart from "react-apexcharts";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
@@ -8,20 +9,22 @@ import "../styles/dashboard.css";
 
 /**
  * LayoutModernDashboardPage - Default landing page (layout-modern).
- * Cards: Total Folders, Total Documents, Active Documents, Unread Notifications.
+ * Cards: Total Folders, Active Documents, Archived Documents, Unread Notifications.
  * Notifications list from API + Folders by Department chart.
  */
 const LayoutModernDashboardPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const {
     statsError,
+    foldersError,
     notifications,
     unreadCount,
     notificationsLoading,
     notificationsError,
     totalFolders,
-    totalDocuments,
     activeDocuments,
+    archivedDocuments,
     chartData,
     chartOptions,
     loading,
@@ -110,11 +113,11 @@ const LayoutModernDashboardPage = () => {
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
                   <div className="card-body">
-                    <span className="avatar rounded-circle bg-secondary mb-2">
-                      <Icon name="file-text" className="fs-16" />
+                    <span className="avatar rounded-circle bg-info mb-2">
+                      <Icon name="file-check" className="fs-16" />
                     </span>
-                    <h6 className="fs-13 fw-medium text-default mb-1">Total Documents</h6>
-                    <h4 className="mb-0 Num">{totalDocuments.toLocaleString()}</h4>
+                    <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
+                    <h4 className="mb-0 Num">{activeDocuments.toLocaleString()}</h4>
                     <Link to={routes.documents} className="link-default mt-2 d-inline-block">
                       View documents
                     </Link>
@@ -124,12 +127,12 @@ const LayoutModernDashboardPage = () => {
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
                   <div className="card-body">
-                    <span className="avatar rounded-circle bg-info mb-2">
-                      <Icon name="file-check" className="fs-16" />
+                    <span className="avatar rounded-circle bg-secondary mb-2">
+                      <Icon name="archive" className="fs-16" />
                     </span>
-                    <h6 className="fs-13 fw-medium text-default mb-1">Active Documents</h6>
-                    <h4 className="mb-0 Num">{activeDocuments.toLocaleString()}</h4>
-                    <Link to={routes.documents} className="link-default mt-2 d-inline-block">
+                    <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h6>
+                    <h4 className="mb-0 Num">{archivedDocuments.toLocaleString()}</h4>
+                    <Link to={routes.archiveDocuments} className="link-default mt-2 d-inline-block">
                       View documents
                     </Link>
                   </div>

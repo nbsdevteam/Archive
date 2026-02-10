@@ -28,7 +28,6 @@ const DashboardPage = () => {
     activeDocumentsCount,
     archivedDocumentsCount,
     totalFolders,
-    totalDocuments,
     documentsByDepartment,
     foldersByDepartmentItems,
     loading,
@@ -122,16 +121,6 @@ const DashboardPage = () => {
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
                     <Card className="flex-fill" glassEffect>
-                      <span className="avatar rounded-circle bg-secondary mb-2">
-                        <Icon name="file-text" className="fs-16" />
-                      </span>
-                      <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalDocuments")}</h6>
-                      <h3 className="mb-2 Num">{totalDocuments.toLocaleString()}</h3>
-                      <Link to={routes.documents} className="link-default">{t("dashboard.viewDetails")}</Link>
-                    </Card>
-                  </div>
-                  <div className="dashboard-stat-grid__item d-flex">
-                    <Card className="flex-fill" glassEffect>
                       <span className="avatar rounded-circle bg-info mb-2">
                         <Icon name="file-check" className="fs-16" />
                       </span>
@@ -147,7 +136,7 @@ const DashboardPage = () => {
                       </span>
                       <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
                       <h3 className="mb-2 Num">{archivedDocumentsCount.toLocaleString()}</h3>
-                      <Link to={routes.documents} className="link-default">View Details</Link>
+                      <Link to={routes.archiveDocuments} className="link-default">View Details</Link>
                     </Card>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">

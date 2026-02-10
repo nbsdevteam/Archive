@@ -1,10 +1,14 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Button, Spinner, Alert, Icon, ConfirmModal } from "../../../shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useDocumentsTrashPageContainer } from "../containers/useDocumentsTrashPageContainer";
+import type { Document } from "../../../app/adapter/api/documents.api";
 import "../styles/documents.css";
+
+type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();
@@ -22,6 +26,90 @@ const DocumentsTrashPage = () => {
     handleClosePermanentDelete,
     handleConfirmPermanentDelete,
   } = useDocumentsTrashPageContainer();
+
+  const columns = useMemo(
+    () => [
+      {
+        id: "name",
+        header: t("documents.name", { defaultValue: "Document name" }),
+        render: (row: TrashDoc) => row.name || row.title || "-",
+      },
+      {
+        id: "barcode",
+        header: t("documents.barcode", { defaultValue: "Barcode" }),
+        render: (row: TrashDoc) => (
+          <span className="Num">{row.barcode || "-"}</span>
+        ),
+      },
+      {
+        id: "type",
+        header: t("documents.type", { defaultValue: "Type" }),
+        render: (row: TrashDoc) =>
+          row.document_type_name || row.document_type?.name || "-",
+      },
+      {
+        id: "department",
+        header: t("documents.department", { defaultValue: "Department" }),
+        render: (row: TrashDoc) =>
+          row.department_name || row.department?.name || "-",
+      },
+      {
+        id: "deletedAt",
+        header: t("documents.deletedAt", { defaultValue: "Deleted at" }),
+        render: (row: TrashDoc) =>
+          row.deleted_at
+            ? formatRelativeTime(new Date(row.deleted_at))
+            : "–",
+      },
+      {
+        id: "restoreDeadline",
+        header: t("documents.restoreDeadline", { defaultValue: "Restore deadline" }),
+        render: (row: TrashDoc) =>
+          row.restore_deadline
+            ? formatRelativeTime(new Date(row.restore_deadline))
+            : "–",
+      },
+    ],
+    [t]
+  );
+
+  const rowActions = useMemo(
+    () => [
+      {
+        id: "restore",
+        label: t("documents.restore", { defaultValue: "Restore" }),
+        variant: "outline" as const,
+        className: "btn-outline-secondary me-1",
+        disabled: (row: TrashDoc) => restoreLoadingId === row.id,
+        renderLabel: (row: TrashDoc) =>
+          restoreLoadingId === row.id ? (
+            <>
+              <Spinner size="sm" />
+              {t("documents.restore", { defaultValue: "Restore" })}
+            </>
+          ) : (
+            t("documents.restore", { defaultValue: "Restore" })
+          ),
+        onClick: (row: TrashDoc, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handleRestore(row.id);
+        },
+      },
+      {
+        id: "permanentDelete",
+        label: t("documents.permanentDelete", { defaultValue: "Permanent delete" }),
+        icon: "trash",
+        variant: "outline" as const,
+        className: "btn-outline-danger",
+        visible: () => isAdmin,
+        onClick: (row: TrashDoc, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handleOpenPermanentDelete(row.id);
+        },
+      },
+    ],
+    [t, isAdmin, restoreLoadingId, handleRestore, handleOpenPermanentDelete]
+  );
 
   return (
     <div className="page-wrapper">
@@ -76,69 +164,15 @@ const DocumentsTrashPage = () => {
                 {error}
               </Alert>
             )}
-            {loading ? (
-              <div className="text-center py-4">
-                <Spinner size="md" />
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-striped mb-0">
-                  <thead>
-                    <tr>
-                      <th>{t("documents.name", { defaultValue: "Document name" })}</th>
-                      <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
-                      <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                      <th>{t("documents.department", { defaultValue: "Department" })}</th>
-                      <th>{t("documents.deletedAt", { defaultValue: "Deleted at" })}</th>
-                      <th>{t("documents.restoreDeadline", { defaultValue: "Restore deadline" })}</th>
-                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documents.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="text-center py-4 text-muted">
-                          {t("common.noData", { defaultValue: "No data" })}
-                        </td>
-                      </tr>
-                    ) : (
-                      documents.map((doc) => (
-                        <tr key={doc.id}>
-                          <td>{doc.name || doc.title || "-"}</td>
-                          <td className="Num">{doc.barcode || "-"}</td>
-                          <td>{doc.document_type_name || doc.document_type?.name || "-"}</td>
-                          <td>{doc.department_name || doc.department?.name || "-"}</td>
-                          <td>{doc.deleted_at ? formatRelativeTime(new Date(doc.deleted_at)) : "–"}</td>
-                          <td>{doc.restore_deadline ? formatRelativeTime(new Date(doc.restore_deadline)) : "–"}</td>
-                          <td className="text-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="btn-outline-secondary me-1"
-                              onClick={() => handleRestore(doc.id)}
-                              disabled={restoreLoadingId === doc.id}
-                            >
-                              {restoreLoadingId === doc.id ? <Spinner size="sm" /> : t("documents.restore", { defaultValue: "Restore" })}
-                            </Button>
-                            {isAdmin && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="btn-outline-danger"
-                                onClick={() => handleOpenPermanentDelete(doc.id)}
-                              >
-                                <Icon name="trash" className="me-1" />
-                                {t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <DataTable<TrashDoc>
+              data={documents}
+              getRowId={(row) => row.id}
+              columns={columns}
+              loading={loading}
+              emptyMessage={t("common.noData", { defaultValue: "No data" })}
+              rowActions={rowActions}
+              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+            />
           </div>
         </div>
 

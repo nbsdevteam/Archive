@@ -6,7 +6,6 @@ import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 
-const DOCUMENT_PARAMS_ACTIVE = { status: "active" as const, per_page: 1, page: 1 };
 const DOCUMENT_PARAMS_ARCHIVED = { status: "archived" as const, per_page: 1, page: 1 };
 const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 
@@ -52,9 +51,6 @@ export const useDashboardPageContainer = () => {
     fetchFolders,
   } = useFolders({ useApi: true });
 
-  const { count: activeDocumentsCount } = useDocumentCount({
-    initialParams: DOCUMENT_PARAMS_ACTIVE,
-  });
   const { count: archivedDocumentsCount } = useDocumentCount({
     initialParams: DOCUMENT_PARAMS_ARCHIVED,
   });
@@ -87,7 +83,7 @@ export const useDashboardPageContainer = () => {
   }, []);
 
   const totalFolders = foldersPagination?.total ?? folders.length;
-  const totalDocuments = stats?.total_documents ?? 0;
+  const activeDocumentsCount = stats?.total_documents ?? 0;
 
   const documentsByDepartment = useMemo(
     () => stats?.by_department ?? [],
@@ -124,7 +120,6 @@ export const useDashboardPageContainer = () => {
     activeDocumentsCount,
     archivedDocumentsCount,
     totalFolders,
-    totalDocuments,
     documentsByDepartment,
     foldersByDepartmentItems,
     loading,

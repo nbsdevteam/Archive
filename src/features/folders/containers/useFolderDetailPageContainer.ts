@@ -14,6 +14,8 @@ import { useSignatureStore } from "../../signatures/stores/signatureStore";
 import { all_routes } from "../../../router/all_routes";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { blobToDataUrl } from "../../../shared/utils/files/blobToDataUrl";
+import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 
 export const useFolderDetailPageContainer = () => {
@@ -62,6 +64,16 @@ export const useFolderDetailPageContainer = () => {
   >({});
 
   const { currentDocument, fetchDocument } = useDocumentStore();
+  const {
+    isArchivingSingle,
+    isUnarchiving,
+    isTrashingSingle,
+    isTrashingBatch,
+    archiveSingle,
+    unarchiveSingle,
+    trashSingle,
+    trashBatch,
+  } = useDocumentOperations();
   const { createRequest } = useSignatureStore();
 
   const folderId = useMemo(() => {
@@ -76,6 +88,29 @@ export const useFolderDetailPageContainer = () => {
 
   const mainDoc = docsSorted[0] ?? null;
   const subDocs = docsSorted.slice(1);
+
+  const {
+    selectedIds: subDocSelectedIds,
+    selectionConfig: subDocsSelectionConfig,
+    clear: clearSubDocsSelection,
+  } = useSelection<Document>(subDocs, (d) => d.id);
+
+  const {
+    selectedIds: attachmentSelectedIds,
+    selectionConfig: attachmentsSelectionConfig,
+    clear: clearAttachmentsSelection,
+  } = useSelection<Attachment>(attachments, (a) => a.id);
+
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState<"docs" | "attachments" | null>(null);
+  const [transferDocIds, setTransferDocIds] = useState<number[]>([]);
+  const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
+  const [transferDepartmentId, setTransferDepartmentId] = useState(0);
+  const [transferSubmitting, setTransferSubmitting] = useState(false);
+  const [subDocTrashTargetId, setSubDocTrashTargetId] = useState<number | null>(null);
+  const [isBatchSubDocTrashConfirmOpen, setIsBatchSubDocTrashConfirmOpen] = useState(false);
+  const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
+  const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
 
   const loadFolderDocuments = async () => {
     if (!folderId) return;
@@ -199,15 +234,28 @@ export const useFolderDetailPageContainer = () => {
     }
   };
 
-  const handleDownloadAttachment = async (attachmentId: number, fileName: string) => {
-    if (typeof attachmentsDocId !== "number") return;
+  const handleDownloadDocument = async (documentId: number) => {
+    const target = documents.find((document) => document.id === documentId);
+    if (!target) return;
     try {
-      const blob = await documentsApi.downloadAttachment(attachmentsDocId, attachmentId);
+      const blob = await documentsApi.downloadDocument(target.id);
+      const fileName = target.file_name ?? target.title ?? target.name ?? "document";
       downloadBlobAsFile(blob, fileName);
       toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
     } catch (e: unknown) {
-      toast.error((e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." }));
+      toast.error(
+        (e as Error)?.message ??
+          t("documents.downloadFailed", { defaultValue: "Download failed." })
+      );
     }
+  };
+
+  const handleDownloadAttachment = async (attachmentId: number, fileName: string) => {
+    await downloadAttachment(
+      attachmentId,
+      fileName,
+      t("documents.downloadSuccess", { defaultValue: "Download started." })
+    );
   };
 
   const openTransition = (transitionId: number, label: string) => {
@@ -287,11 +335,283 @@ export const useFolderDetailPageContainer = () => {
   const previewFileName = previewDoc?.file_name ?? "";
   const handleCloseUploadPanel = () => setIsUploadOpen(false);
 
-  const refreshAttachmentsForCurrentDocument = () => {
+  const refreshAttachmentsForCurrentDocument = useCallback(() => {
     if (typeof attachmentsDocId === "number") {
       loadAttachmentsForDocument(attachmentsDocId);
     }
-  };
+  }, [attachmentsDocId]);
+  const {
+    isDeletingAttachment: isAttachmentTrashing,
+    downloadAttachment,
+    deleteAttachments,
+  } = useAttachmentOperations(
+    typeof attachmentsDocId === "number" ? attachmentsDocId : null,
+    {
+      onSuccess: refreshAttachmentsForCurrentDocument,
+    }
+  );
+
+  const handleArchiveFolderDocument = useCallback(
+    async (documentId: number) => {
+      await archiveSingle(documentId, {
+        successMessage: t("documents.archived", { defaultValue: "Document archived." }),
+        errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
+        onSuccess: loadFolderDocuments,
+      });
+    },
+    [archiveSingle, loadFolderDocuments, t]
+  );
+
+  const handleUnarchiveFolderDocument = useCallback(
+    async (documentId: number) => {
+      await unarchiveSingle(documentId, {
+        successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
+        errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
+        onSuccess: loadFolderDocuments,
+      });
+    },
+    [loadFolderDocuments, t, unarchiveSingle]
+  );
+
+  const handleOpenSubDocTrashConfirm = useCallback((documentId: number) => {
+    setSubDocTrashTargetId(documentId);
+  }, []);
+
+  const handleCloseSubDocTrashConfirm = useCallback(() => {
+    if (!isTrashingSingle) {
+      setSubDocTrashTargetId(null);
+    }
+  }, [isTrashingSingle]);
+
+  const handleConfirmSubDocTrash = useCallback(async () => {
+    if (!subDocTrashTargetId) return;
+    const didTrash = await trashSingle(subDocTrashTargetId, {
+      successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
+      errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
+      onSuccess: loadFolderDocuments,
+    });
+    if (didTrash) {
+      clearSubDocsSelection();
+      setSubDocTrashTargetId(null);
+    }
+  }, [clearSubDocsSelection, loadFolderDocuments, subDocTrashTargetId, t, trashSingle]);
+
+  const handleOpenBatchSubDocTrashConfirm = useCallback(() => {
+    if (subDocSelectedIds.length > 0) {
+      setIsBatchSubDocTrashConfirmOpen(true);
+    }
+  }, [subDocSelectedIds.length]);
+
+  const handleCloseBatchSubDocTrashConfirm = useCallback(() => {
+    if (!isTrashingBatch) {
+      setIsBatchSubDocTrashConfirmOpen(false);
+    }
+  }, [isTrashingBatch]);
+
+  const handleConfirmBatchSubDocTrash = useCallback(async () => {
+    const ids = subDocSelectedIds.map((id) => Number(id));
+    if (ids.length === 0) return;
+    const didTrash = await trashBatch(ids, {
+      successMessage: t("documents.batchTrashed", {
+        defaultValue: "{{count}} document(s) moved to trash.",
+        count: ids.length,
+      }),
+      errorMessage: t("documents.batchTrashFailed", {
+        defaultValue: "Failed to move documents to trash.",
+      }),
+      onSuccess: loadFolderDocuments,
+    });
+    if (didTrash) {
+      clearSubDocsSelection();
+      setIsBatchSubDocTrashConfirmOpen(false);
+    }
+  }, [clearSubDocsSelection, loadFolderDocuments, subDocSelectedIds, t, trashBatch]);
+
+  const trashAttachmentsByIds = useCallback(
+    async (attachmentIds: number[]) => {
+      if (attachmentIds.length === 0) return false;
+      return deleteAttachments(attachmentIds);
+    },
+    [deleteAttachments]
+  );
+
+  const handleOpenAttachmentTrashConfirm = useCallback((attachmentId: number) => {
+    setAttachmentTrashTargetId(attachmentId);
+  }, []);
+
+  const handleCloseAttachmentTrashConfirm = useCallback(() => {
+    if (!isAttachmentTrashing) {
+      setAttachmentTrashTargetId(null);
+    }
+  }, [isAttachmentTrashing]);
+
+  const handleConfirmAttachmentTrash = useCallback(async () => {
+    if (!attachmentTrashTargetId) return;
+    const didTrash = await trashAttachmentsByIds([attachmentTrashTargetId]);
+    if (didTrash) {
+      clearAttachmentsSelection();
+      setAttachmentTrashTargetId(null);
+    }
+  }, [attachmentTrashTargetId, clearAttachmentsSelection, trashAttachmentsByIds]);
+
+  const handleOpenBatchAttachmentTrashConfirm = useCallback(() => {
+    if (attachmentSelectedIds.length > 0) {
+      setIsBatchAttachmentTrashConfirmOpen(true);
+    }
+  }, [attachmentSelectedIds.length]);
+
+  const handleCloseBatchAttachmentTrashConfirm = useCallback(() => {
+    if (!isAttachmentTrashing) {
+      setIsBatchAttachmentTrashConfirmOpen(false);
+    }
+  }, [isAttachmentTrashing]);
+
+  const handleConfirmBatchAttachmentTrash = useCallback(async () => {
+    const ids = attachmentSelectedIds.map((id) => Number(id));
+    if (ids.length === 0) return;
+    const didTrash = await trashAttachmentsByIds(ids);
+    if (didTrash) {
+      clearAttachmentsSelection();
+      setIsBatchAttachmentTrashConfirmOpen(false);
+    }
+  }, [attachmentSelectedIds, clearAttachmentsSelection, trashAttachmentsByIds]);
+
+  const openTransferDocs = useCallback(
+    (ids: number[]) => {
+      if (ids.length === 0) return;
+      const depts = [...new Set(ids.map((id) => subDocs.find((d) => d.id === id)?.department_id).filter((x): x is number => x != null))];
+      if (depts.length !== 1) {
+        toast.error(t("folders.transferSameDepartment", { defaultValue: "Selected documents must be from the same department." }));
+        return;
+      }
+      setTransferDocIds(ids);
+      setTransferDepartmentId(depts[0]);
+      setTransferMode("docs");
+      setTransferModalOpen(true);
+    },
+    [subDocs, t]
+  );
+
+  const openTransferAttachments = useCallback(
+    (ids: number[]) => {
+      if (ids.length === 0) return;
+      const deptId = mainDoc?.department_id ?? folder?.department_id ?? 0;
+      setTransferDepartmentId(deptId);
+      setTransferAttachmentIds(ids);
+      setTransferMode("attachments");
+      setTransferModalOpen(true);
+    },
+    [mainDoc?.department_id, folder?.department_id]
+  );
+
+  const closeTransferModal = useCallback(() => {
+    if (!transferSubmitting) {
+      setTransferModalOpen(false);
+      setTransferMode(null);
+      setTransferDocIds([]);
+      setTransferAttachmentIds([]);
+      setTransferDepartmentId(0);
+    }
+  }, [transferSubmitting]);
+
+  const handleTransferConfirm = useCallback(
+    async (targetFolderId: number) => {
+      setTransferSubmitting(true);
+      try {
+        if (transferMode === "docs") {
+          if (mainDoc && transferDocIds.includes(mainDoc.id)) {
+            throw new Error(
+              t("folders.transferMainDocumentNotAllowed", {
+                defaultValue: "Main document cannot be transferred.",
+              })
+            );
+          }
+          await documentsApi.batchMoveDocumentsToFolder(transferDocIds, targetFolderId);
+          toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
+          clearSubDocsSelection();
+          await loadFolderDocuments();
+        } else if (transferMode === "attachments") {
+          const sourceDocId = typeof attachmentsDocId === "number" ? attachmentsDocId : 0;
+          if (!sourceDocId) {
+            toast.error(t("folders.transferFailed", { defaultValue: "Transfer failed." }));
+            return;
+          }
+          const destResult = await getFolderDocuments(targetFolderId);
+          const destDocs = destResult?.data ?? [];
+          const sorted = sortFolderDocumentsByUploadDate(destDocs);
+          const destinationMainDocId = sorted[0]?.id;
+          if (!destinationMainDocId) {
+            toast.error(t("folders.destinationHasNoMain", { defaultValue: "Destination folder has no main document." }));
+            return;
+          }
+          const selectedAttachments = attachments.filter((a) => transferAttachmentIds.includes(a.id));
+          const payloads = await Promise.all(
+            selectedAttachments.map(async (a) => {
+              const blob = await documentsApi.downloadAttachment(sourceDocId, a.id);
+              const file_data = await blobToDataUrl(blob);
+              return {
+                name: a.name,
+                file_name: a.file_name,
+                file_data,
+                description: a.description ?? undefined,
+                attachment_type: a.attachment_type ?? "supporting",
+              };
+            })
+          );
+          if (payloads.length === 0) {
+            throw new Error(
+              t("folders.transferFailed", { defaultValue: "Transfer failed." })
+            );
+          }
+          if (payloads.length === 1) {
+            await documentsApi.addAttachment(destinationMainDocId, payloads[0]);
+          } else {
+            await documentsApi.uploadMultipleAttachments(destinationMainDocId, payloads);
+          }
+          let deleteFailCount = 0;
+          for (const id of transferAttachmentIds) {
+            try {
+              await documentsApi.deleteAttachment(sourceDocId, id);
+            } catch {
+              deleteFailCount += 1;
+            }
+          }
+          if (deleteFailCount > 0) {
+            toast.warning(
+              t("folders.transferDeleteWarning", {
+                defaultValue: "{{count}} attachment(s) could not be removed from source.",
+                count: deleteFailCount,
+              })
+            );
+          } else {
+            toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
+          }
+          clearAttachmentsSelection();
+          refreshAttachmentsForCurrentDocument();
+        }
+        setTransferModalOpen(false);
+        setTransferMode(null);
+        setTransferDocIds([]);
+        setTransferAttachmentIds([]);
+        setTransferDepartmentId(0);
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : handleApiError(e);
+        toast.error(message || t("folders.transferFailed", { defaultValue: "Transfer failed." }));
+      } finally {
+        setTransferSubmitting(false);
+      }
+    },
+    [
+      transferMode,
+      transferDocIds,
+      transferAttachmentIds,
+      attachmentsDocId,
+      attachments,
+      t,
+      clearSubDocsSelection,
+      clearAttachmentsSelection,
+    ]
+  );
 
   const handleOpenEditFolder = useCallback(() => setIsEditFolderOpen(true), []);
   const handleCloseEditFolder = useCallback(() => setIsEditFolderOpen(false), []);
@@ -370,7 +690,10 @@ export const useFolderDetailPageContainer = () => {
     handleAttachmentsDocIdChange,
     handleAddAttachment,
     handleDownloadMainDocument,
+    handleDownloadDocument,
     handleDownloadAttachment,
+    handleArchiveFolderDocument,
+    handleUnarchiveFolderDocument,
     setTransitionOpen,
     openTransition,
     setTransitionMessage,
@@ -388,5 +711,42 @@ export const useFolderDetailPageContainer = () => {
     handleCloseUploadPanel,
     refreshAttachmentsForCurrentDocument,
     setIsUploadOpen,
+    subDocsSelectionConfig,
+    subDocSelectedIds,
+    clearSubDocsSelection,
+    subDocTrashTargetId,
+    isSubDocArchiving: isArchivingSingle,
+    isSubDocUnarchiving: isUnarchiving,
+    isSubDocTrashing: isTrashingSingle,
+    isBatchSubDocTrashConfirmOpen,
+    isBatchSubDocTrashing: isTrashingBatch,
+    handleOpenSubDocTrashConfirm,
+    handleCloseSubDocTrashConfirm,
+    handleConfirmSubDocTrash,
+    handleOpenBatchSubDocTrashConfirm,
+    handleCloseBatchSubDocTrashConfirm,
+    handleConfirmBatchSubDocTrash,
+    openTransferDocs,
+    attachmentsSelectionConfig,
+    attachmentSelectedIds,
+    clearAttachmentsSelection,
+    attachmentTrashTargetId,
+    isAttachmentTrashing,
+    isBatchAttachmentTrashConfirmOpen,
+    handleOpenAttachmentTrashConfirm,
+    handleCloseAttachmentTrashConfirm,
+    handleConfirmAttachmentTrash,
+    handleOpenBatchAttachmentTrashConfirm,
+    handleCloseBatchAttachmentTrashConfirm,
+    handleConfirmBatchAttachmentTrash,
+    openTransferAttachments,
+    transferModalOpen,
+    transferMode,
+    transferDocIds,
+    transferAttachmentIds,
+    transferDepartmentId,
+    transferSubmitting,
+    closeTransferModal,
+    handleTransferConfirm,
   };
 };

@@ -12,6 +12,8 @@ interface UseDocumentCountParams {
   department_id?: number;
   document_type_id?: number;
   search?: string;
+  page?: number;
+  per_page?: number;
 }
 
 interface UseDocumentCountOptions {
@@ -31,29 +33,32 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    let cancelled = false;
-
     (async () => {
       try {
         setLoading(true);
         const response = await documentsApi.getDocuments({
-          status:"",
-          per_page: 20,
-          page: 1,
+          status: initialParams.status ?? "active",
+          per_page: initialParams.per_page ?? 1,
+          page: initialParams.page ?? 1,
+          department_id: initialParams.department_id,
+          document_type_id: initialParams.document_type_id,
+          search: initialParams.search,
         });
-        const total = response.pagination?.total ?? (response.data?.length ?? 0);
-        if (!cancelled) setCount(total);
+        const total = response.pagination?.total ?? response.data?.length ?? 0;
+        setCount(total);
       } catch (err) {
-        if (!cancelled) setCount(0);
+        setCount(0);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialParams.status, initialParams.department_id, initialParams.document_type_id]);
+  }, [
+    initialParams.status,
+    initialParams.department_id,
+    initialParams.document_type_id,
+    initialParams.page,
+    initialParams.per_page,
+  ]);
 
   return { count, loading };
 };

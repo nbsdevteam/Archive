@@ -1,0 +1,7 @@
+---
+description: 
+alwaysApply: true
+---
+
+After every AI code completion make a git commit with proper git message.
+Add a proper brief comment on each functions and complex hook usages.

@@ -8,7 +8,7 @@ import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 
-const DOCUMENT_PARAMS = { status: "active" as const, per_page: 1, page: 1 };
+const ARCHIVED_DOCUMENT_PARAMS = { status: "archived" as const, per_page: 1, page: 1 };
 const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 
 /** Primary color from theme (--primary-rgb) for charts; fallback to default orange if not set */
@@ -35,8 +35,8 @@ export const useLayoutModernDashboardPageContainer = () => {
     pagination: foldersPagination,
   } = useFolders({ useApi: true });
 
-  const { count: activeDocumentsCount } = useDocumentCount({
-    initialParams: DOCUMENT_PARAMS,
+  const { count: archivedDocumentsCount } = useDocumentCount({
+    initialParams: ARCHIVED_DOCUMENT_PARAMS,
   });
 
   const {
@@ -71,8 +71,8 @@ export const useLayoutModernDashboardPageContainer = () => {
   }, []);
 
   const totalFolders = foldersPagination?.total ?? folders.length;
-  const totalDocuments = stats?.total_documents ?? 0;
-  const activeDocuments = activeDocumentsCount;
+  const activeDocuments = stats?.total_documents ?? 0;
+  const archivedDocuments = archivedDocumentsCount;
 
   const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
   const chartOptions = useMemo<ApexOptions>(
@@ -113,13 +113,14 @@ export const useLayoutModernDashboardPageContainer = () => {
     stats,
     statsError,
     folders,
+    foldersError,
     notifications,
     unreadCount,
     notificationsLoading,
     notificationsError,
     totalFolders,
-    totalDocuments,
     activeDocuments,
+    archivedDocuments,
     chartData,
     chartOptions,
     loading,
