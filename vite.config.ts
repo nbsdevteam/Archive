@@ -7,6 +7,8 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    /** Ensures a single React instance so MUI and app share the same hooks (avoids Invalid hook call). */
+    dedupe: ["react", "react-dom"],
     alias: {
       global: "globalthis", // 👈 critical for "global is not defined"
       "@": path.resolve(__dirname, "src"),
@@ -14,6 +16,8 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    /** Pre-bundle React so MUI and other deps resolve to this copy (single React instance). */
+    include: ["react", "react-dom"],
     esbuildOptions: {
       define: {
         global: "globalThis",
