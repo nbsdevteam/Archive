@@ -397,6 +397,7 @@ export const useDocumentsPageContainer = () => {
     }
   }, [isMoveSubmitting]);
 
+  /** Moves selected docs to target folder, then refetches list so UI no longer shows them in current view. */
   const handleConfirmBatchMove = useCallback(
     async (targetFolderId: number) => {
       if (moveDocumentIds.length === 0) return;
@@ -412,7 +413,7 @@ export const useDocumentsPageContainer = () => {
         setIsMoveModalOpen(false);
         setMoveDocumentIds([]);
         setMoveDepartmentId(0);
-        fetchDocuments(getFetchParams());
+        await fetchDocuments(getFetchParams());
       } catch (error) {
         toast.error(handleApiError(error));
       } finally {

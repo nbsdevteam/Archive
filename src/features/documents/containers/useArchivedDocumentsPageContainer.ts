@@ -373,6 +373,7 @@ export const useArchivedDocumentsPageContainer = () => {
     }
   }, [isMoveSubmitting]);
 
+  /** Moves selected archived docs to target folder, then refetches list so UI reflects the move. */
   const handleConfirmBatchMove = useCallback(
     async (targetFolderId: number) => {
       if (moveDocumentIds.length === 0) return;
@@ -388,7 +389,7 @@ export const useArchivedDocumentsPageContainer = () => {
         setIsMoveModalOpen(false);
         setMoveDocumentIds([]);
         setMoveDepartmentId(0);
-        fetchDocuments({ ...getFetchParams(), page: 1, per_page: 20 });
+        await fetchDocuments({ ...getFetchParams(), page: 1, per_page: 20 });
       } catch (error) {
         toast.error(handleApiError(error));
       } finally {

@@ -111,7 +111,8 @@ export const useFolderDetailPageContainer = () => {
   const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
   const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
 
-  const loadFolderDocuments = async () => {
+  /** Fetches folder and its documents from API and updates local state. Call after move/trash/archive so UI matches backend. */
+  const loadFolderDocuments = useCallback(async () => {
     if (!folderId) return;
     setLoading(true);
     setError(null);
@@ -135,7 +136,7 @@ export const useFolderDetailPageContainer = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [folderId, attachmentsDocId]);
 
   const loadWorkflow = async (fId: number) => {
     setWorkflowError(null);
@@ -526,6 +527,7 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [transferSubmitting]);
 
+  /** After batch move, refreshes source folder list from API so UI no longer shows moved docs in the current folder. */
   const handleTransferConfirm = useCallback(
     async (targetFolderId: number) => {
       setTransferSubmitting(true);
@@ -549,11 +551,11 @@ export const useFolderDetailPageContainer = () => {
             return;
           }
 
-          // Attachments/sub-docs now use the same official batch move endpoint.
           await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
           toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearAttachmentsSelection();
           refreshAttachmentsForCurrentDocument();
+          await loadFolderDocuments();
         }
         setTransferModalOpen(false);
         setTransferMode(null);
@@ -572,9 +574,12 @@ export const useFolderDetailPageContainer = () => {
       transferDocIds,
       transferAttachmentIds,
       attachmentsDocId,
+      mainDoc,
       t,
       clearSubDocsSelection,
       clearAttachmentsSelection,
+      loadFolderDocuments,
+      refreshAttachmentsForCurrentDocument,
     ]
   );
 
