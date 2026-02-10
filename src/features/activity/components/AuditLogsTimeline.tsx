@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   Timeline,
   TimelineItem,
@@ -12,7 +12,6 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
-import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
@@ -24,7 +23,10 @@ import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import type { SvgIconComponent } from "@mui/icons-material";
+import { Button, Checkbox, Modal, ModalFooter } from "../../../shared/components/ui";
 import type { AuditLogEntry } from "../types/auditLogs.types";
+import { AUDIT_ACTION_OPTIONS } from "../types/auditLogs.types";
+import { useActivityTimelineFilterStore } from "../stores/useActivityTimelineFilterStore";
 import { formatAuditTimestamp, groupLogsByDay, humanizeAction } from "../utils/activity.utils";
 
 interface Translator {
@@ -89,15 +91,42 @@ const AuditLogsTimelineComponent = ({
   onDocumentClick,
   className,
 }: AuditLogsTimelineProps) => {
-  if (loading) {
-    return <div className="text-muted small">{t("common.loading", { defaultValue: "Loading..." })}</div>;
-  }
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const hiddenActions = useActivityTimelineFilterStore((state) => state.hiddenActions);
+  const toggleActionVisibility = useActivityTimelineFilterStore(
+    (state) => state.toggleActionVisibility
+  );
+  const showAllActions = useActivityTimelineFilterStore((state) => state.showAllActions);
 
-  if (error) {
-    return <div className="alert alert-danger mb-0">{error}</div>;
-  }
+  const hiddenActionSet = useMemo(() => new Set(hiddenActions), [hiddenActions]);
+  const actionEventCounts = useMemo(() => {
+    return logs.reduce<Record<string, number>>((acc, log) => {
+      const actionKey = String(log.action);
+      acc[actionKey] = (acc[actionKey] ?? 0) + 1;
+      return acc;
+    }, {});
+  }, [logs]);
+  const availableActions = useMemo(() => {
+    const actionSet = new Set<string>(AUDIT_ACTION_OPTIONS.map((action) => String(action)));
+    logs.forEach((log) => {
+      actionSet.add(String(log.action));
+    });
 
-  const groups = useMemo(() => groupLogsByDay(logs), [logs]);
+    return [...actionSet].sort((left, right) => {
+      const leftLabel = t(`activity.actions.${left}`, {
+        defaultValue: humanizeAction(left),
+      });
+      const rightLabel = t(`activity.actions.${right}`, {
+        defaultValue: humanizeAction(right),
+      });
+      return leftLabel.localeCompare(rightLabel);
+    });
+  }, [logs, t]);
+  const filteredLogs = useMemo(
+    () => logs.filter((log) => !hiddenActionSet.has(String(log.action))),
+    [logs, hiddenActionSet]
+  );
+  const groups = useMemo(() => groupLogsByDay(filteredLogs), [filteredLogs]);
   const dayKeys = useMemo(
     () => Object.keys(groups).sort((left, right) => (left < right ? 1 : -1)),
     [groups]
@@ -111,14 +140,24 @@ const AuditLogsTimelineComponent = ({
   );
   const documentClickHandlers = useMemo(() => {
     const handlers = new Map<number, () => void>();
-    logs.forEach((log) => {
+    filteredLogs.forEach((log) => {
       if (typeof log.document_id !== "number") return;
       handlers.set(log.id, () => {
         handleDocumentClick(log.document_id as number, log);
       });
     });
     return handlers;
-  }, [handleDocumentClick, logs]);
+  }, [filteredLogs, handleDocumentClick]);
+  const openFilterModal = useCallback(() => setIsFilterModalOpen(true), []);
+  const closeFilterModal = useCallback(() => setIsFilterModalOpen(false), []);
+
+  if (loading) {
+    return <div className="text-muted small">{t("common.loading", { defaultValue: "Loading..." })}</div>;
+  }
+
+  if (error) {
+    return <div className="alert alert-danger mb-0">{error}</div>;
+  }
 
   if (logs.length === 0) {
     return <p className="text-muted mb-0">{t("activity.noData", { defaultValue: "No activity found." })}</p>;
@@ -126,6 +165,35 @@ const AuditLogsTimelineComponent = ({
 
   return (
     <div className={`activity-timeline ${className ?? ""}`}>
+      <div className="d-flex justify-content-end mb-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="btn-outline-secondary"
+          onClick={openFilterModal}
+        >
+          {t("activity.timeline.showActivities", { defaultValue: "Show activities" })}
+        </Button>
+      </div>
+      {filteredLogs.length === 0 && (
+        <div className="alert alert-info d-flex align-items-center justify-content-between gap-2">
+          <span>
+            {t("activity.timeline.noVisibleActivities", {
+              defaultValue: "No activities are visible with current filters.",
+            })}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="btn-outline-secondary"
+            onClick={showAllActions}
+          >
+            {t("activity.timeline.showAll", { defaultValue: "Show all" })}
+          </Button>
+        </div>
+      )}
       {dayKeys.map((dayKey) => (
         <section className="activity-timeline-day" key={dayKey}>
           <Typography variant="subtitle2" className="activity-timeline-day-title">
@@ -155,34 +223,54 @@ const AuditLogsTimelineComponent = ({
                     </TimelineDot>
                     {!isLast && <TimelineConnector />}
                   </TimelineSeparator>
-                  <TimelineContent sx={{ py: 0.5, px: 2 }}>
+                  <TimelineContent sx={{ py: 0.5, px: 2, mt: "4px" }}>
                     <Paper elevation={0} variant="outlined" sx={{ p: 1.5 }}>
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" mb={0.5}>
                         <Chip size="small" color={visual.color} label={actionLabel} />
-                        <Typography variant="body2" fontWeight={600}>
-                          {log.user_name || "–"}
-                        </Typography>
                       </Stack>
 
-                      {showDocument && (
-                        <Box mt={1}>
-                          {isDocumentClickable ? (
-                            <Tooltip title={t("common.view", { defaultValue: "View" })}>
-                              <button
-                                type="button"
-                                className="activity-timeline-doc-button"
-                                onClick={documentClickHandler}
-                              >
-                                {log.document_title || `#${log.document_id}`}
-                              </button>
-                            </Tooltip>
+                      <div className="activity-timeline-label-grid">
+                        <Typography variant="body2" className="activity-timeline-label-row">
+                          <span className="activity-timeline-label-key">
+                            {t("activity.columns.action", { defaultValue: "Action" })}:
+                          </span>{" "}
+                          <span className="activity-timeline-label-value">{actionLabel}</span>
+                        </Typography>
+                        <Typography variant="body2" className="activity-timeline-label-row">
+                          <span className="activity-timeline-label-key">
+                            {t("activity.columns.user", { defaultValue: "User" })}:
+                          </span>{" "}
+                          <span className="activity-timeline-label-value">{log.user_name || "–"}</span>
+                        </Typography>
+                        <Typography variant="body2" className="activity-timeline-label-row">
+                          <span className="activity-timeline-label-key">
+                            {t("activity.columns.document", { defaultValue: "Document" })}:
+                          </span>{" "}
+                          {showDocument ? (
+                            isDocumentClickable ? (
+                              <Tooltip title={t("common.view", { defaultValue: "View" })}>
+                                <button
+                                  type="button"
+                                  className="activity-timeline-doc-button"
+                                  onClick={documentClickHandler}
+                                >
+                                  {log.document_title || `#${log.document_id}`}
+                                </button>
+                              </Tooltip>
+                            ) : (
+                              <span className="activity-timeline-label-value">
+                                {log.document_title ||
+                                  t("activity.noDocument", { defaultValue: "No related document" })}
+                              </span>
+                            )
                           ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              {log.document_title || t("activity.noDocument", { defaultValue: "No related document" })}
-                            </Typography>
+                            <span className="activity-timeline-label-value">
+                              {log.document_title ||
+                                t("activity.noDocument", { defaultValue: "No related document" })}
+                            </span>
                           )}
-                        </Box>
-                      )}
+                        </Typography>
+                      </div>
 
                       {showMetadata && log.metadata && (
                         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
@@ -197,6 +285,55 @@ const AuditLogsTimelineComponent = ({
           </Timeline>
         </section>
       ))}
+
+      <Modal
+        isOpen={isFilterModalOpen}
+        onClose={closeFilterModal}
+        title={t("activity.timeline.showActivities", { defaultValue: "Show activities" })}
+        size="md"
+      >
+        <p className="text-muted small mb-2">
+          {t("activity.timeline.filterHint", {
+            defaultValue: "Select which activity types should appear in timeline view.",
+          })}
+        </p>
+        <div className="activity-timeline-filter-list">
+          {availableActions.map((action) => {
+            const isVisible = !hiddenActionSet.has(action);
+            const actionLabel = t(`activity.actions.${action}`, {
+              defaultValue: humanizeAction(action),
+            });
+            const actionCount = actionEventCounts[action] ?? 0;
+            return (
+              <Checkbox
+                key={action}
+                id={`activity-action-${action}`}
+                label={actionLabel}
+                description={t("activity.timeline.eventCount", {
+                  defaultValue: "{{count}} events",
+                  count: actionCount,
+                })}
+                checked={isVisible}
+                onChange={(checked) => toggleActionVisibility(action, checked)}
+                className="activity-timeline-filter-item"
+              />
+            );
+          })}
+        </div>
+        <ModalFooter className="d-flex justify-content-between flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="btn-outline-secondary"
+            onClick={showAllActions}
+          >
+            {t("activity.timeline.showAll", { defaultValue: "Show all" })}
+          </Button>
+          <Button type="button" variant="secondary" onClick={closeFilterModal}>
+            {t("common.save", { defaultValue: "Save" })}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
