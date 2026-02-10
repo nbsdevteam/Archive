@@ -114,10 +114,10 @@ function attachmentsColumns(t: (key: string, opts?: { defaultValue?: string }) =
   ];
 }
 
+/** Row actions for the folder attachments table (view, download, delete only; transfer removed). */
 function attachmentsRowActions(
   t: (key: string, opts?: { defaultValue?: string }) => string,
   handleDownloadAttachment: (attachmentId: number, fileName: string) => void,
-  openTransferAttachments: (ids: number[]) => void,
   handleOpenAttachmentTrashConfirm: (attachmentId: number) => void,
   handleViewAttachment: (attachmentId: number) => void
 ): RowAction<Attachment>[] {
@@ -138,22 +138,6 @@ function attachmentsRowActions(
       variant: "outline",
       className: "btn-outline-secondary me-1",
       onClick: (a) => handleDownloadAttachment(a.id, a.file_name),
-    },
-    {
-      id: "transfer",
-      label: t("folders.transfer", { defaultValue: "Transfer" }),
-      variant: "outline",
-      className: "btn-outline-secondary",
-      renderLabel: () => (
-        <>
-          <ArrowRightLeft className="me-1" style={{ width: 14, height: 14, verticalAlign: "text-bottom" }} />
-          {t("folders.transfer", { defaultValue: "Transfer" })}
-        </>
-      ),
-      onClick: (a, e) => {
-        e.stopPropagation();
-        openTransferAttachments([a.id]);
-      },
     },
     {
       id: "delete",
@@ -264,7 +248,6 @@ const FolderDetailPage = () => {
     handleOpenBatchAttachmentTrashConfirm,
     handleCloseBatchAttachmentTrashConfirm,
     handleConfirmBatchAttachmentTrash,
-    openTransferAttachments,
     handleViewAttachment,
     transferModalOpen,
     transferMode,
@@ -603,18 +586,6 @@ const FolderDetailPage = () => {
                       defaultValue: "Delete selected",
                     })}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-secondary"
-                    onClick={() => openTransferAttachments(attachmentSelectedIds as number[])}
-                  >
-                    <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
-                    {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
-                    {attachmentSelectedIds.length > 0 && (
-                      <span className="badge bg-secondary ms-1">{attachmentSelectedIds.length}</span>
-                    )}
-                  </Button>
                   <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearAttachmentsSelection}>
                     {t("common.clearSelection", { defaultValue: "Clear selection" })}
                   </Button>
@@ -635,7 +606,6 @@ const FolderDetailPage = () => {
               rowActions={attachmentsRowActions(
                 t,
                 handleDownloadAttachment,
-                openTransferAttachments,
                 handleOpenAttachmentTrashConfirm,
                 handleViewAttachment
               )}
