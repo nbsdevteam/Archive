@@ -276,11 +276,9 @@
     "selectDestinationFolder": "Select destination folder",
     "transferSuccess": "Transferred successfully.",
     "transferFailed": "Transfer failed.",
-    "destinationHasNoMain": "Destination folder has no main document.",
     "transferSubtitleDocs": "Transfer {{count}} document(s) to a folder in the same department.",
     "transferSubtitleAttachments": "Transfer {{count}} attachment(s) to a folder in the same department.",
     "transferSameDepartment": "Selected documents must be from the same department.",
-    "transferDeleteWarning": "{{count}} attachment(s) could not be removed from source.",
     "noOtherFoldersInDepartment": "No other folders in this department."
   },
   "dashboard": {

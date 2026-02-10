@@ -276,11 +276,9 @@
     "selectDestinationFolder": "اختر مجلد الوجهة",
     "transferSuccess": "تم النقل بنجاح.",
     "transferFailed": "فشل النقل.",
-    "destinationHasNoMain": "مجلد الوجهة لا يحتوي على مستند رئيسي.",
     "transferSubtitleDocs": "نقل {{count}} مستند(ات) إلى مجلد في نفس القسم.",
     "transferSubtitleAttachments": "نقل {{count}} مرفق(ات) إلى مجلد في نفس القسم.",
     "transferSameDepartment": "يجب أن تكون المستندات المحددة من نفس القسم.",
-    "transferDeleteWarning": "تعذر إزالة {{count}} مرفق(ات) من المصدر.",
     "noOtherFoldersInDepartment": "لا توجد مجلدات أخرى في هذا القسم."
   },
   "dashboard": {

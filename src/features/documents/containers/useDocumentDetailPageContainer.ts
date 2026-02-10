@@ -14,9 +14,6 @@ import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/d
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
-import { blobToDataUrl } from "../../../shared/utils/files/blobToDataUrl";
-import { getFolderDocuments } from "../../folders/services/folders.api";
-import { sortFolderDocumentsByUploadDate } from "../../folders/utils/sortFolderDocumentsByUploadDate";
 
 export const useDocumentDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -323,44 +320,8 @@ export const useDocumentDetailPageContainer = () => {
     if (!docId || transferAttachmentIds.length === 0) return;
     setIsAttachmentTransferSubmitting(true);
     try {
-      const destinationResult = await getFolderDocuments(targetFolderId);
-      const destinationDocs = destinationResult?.data ?? [];
-      const sortedDocs = sortFolderDocumentsByUploadDate(destinationDocs);
-      const destinationMainDocId = sortedDocs[0]?.id;
-      if (!destinationMainDocId) {
-        toast.error(
-          t("folders.destinationHasNoMain", {
-            defaultValue: "Destination folder has no main document.",
-          })
-        );
-        return;
-      }
-
-      const selectedAttachments = attachments.filter((attachment) =>
-        transferAttachmentIds.includes(attachment.id)
-      );
-      const payloads = await Promise.all(
-        selectedAttachments.map(async (attachment) => {
-          const blob = await documentsApi.downloadAttachment(docId, attachment.id);
-          const file_data = await blobToDataUrl(blob);
-          return {
-            name: attachment.name,
-            file_name: attachment.file_name,
-            file_data,
-            description: attachment.description ?? undefined,
-            attachment_type: attachment.attachment_type ?? "supporting",
-          };
-        })
-      );
-
-      if (payloads.length === 1) {
-        await documentsApi.addAttachment(destinationMainDocId, payloads[0]);
-      } else {
-        await documentsApi.uploadMultipleAttachments(destinationMainDocId, payloads);
-      }
-
-      const didDelete = await deleteAttachments(transferAttachmentIds);
-      if (!didDelete) return;
+      // Attachments now use the same batch move API as secondary documents.
+      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
 
       clearAttachmentSelection();
       setIsAttachmentTransferModalOpen(false);
