@@ -9,6 +9,7 @@ import type { SelectOption } from "../../../shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
+import type { BulkUploadProgressData } from "../../../app/adapter/api/documents.api";
 import { listFolders } from "../../folders/services/folders.api";
 import { createFolder } from "../../folders/services/folders.api";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
@@ -67,6 +68,10 @@ export const UploadDocumentSidePanel = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [bulkJobId, setBulkJobId] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<BulkUploadProgressData | null>(null);
+  const [isCancellingBulkJob, setIsCancellingBulkJob] = useState(false);
+  const bulkCancelRequestedRef = useRef(false);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -307,6 +312,10 @@ export const UploadDocumentSidePanel = ({
       };
       reset(values);
       setSelectedFiles([]);
+      setBulkJobId(null);
+      setBulkProgress(null);
+      setIsCancellingBulkJob(false);
+      bulkCancelRequestedRef.current = false;
       setSubmitError(null);
     }
   }, [isOpen, reset, initialValues, lockFolderContext]);
@@ -344,6 +353,57 @@ export const UploadDocumentSidePanel = ({
         const result = await documentsApi.uploadMultipleAttachments(docId, attachmentsPayload);
         if (!result.success) throw new Error(result.error ?? "Upload attachments failed");
         toast.success(t("documents.uploadSuccess") || "Document uploaded successfully.");
+        onSuccess?.();
+        onClose();
+        return;
+      }
+
+      const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [file];
+      if (data.upload_kind === "sub" && filesToUpload.length > 1) {
+        const folderIdForJob = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
+        if (!folderIdForJob) {
+          const msg = t("documents.validation.folderRequiredForSubDocument");
+          setSubmitError(msg);
+          toast.error(msg);
+          return;
+        }
+
+        const startResponse = await documentsApi.startBulkUpload({
+          department_id: Number(data.department_id),
+          document_type_id: Number(data.document_type_id),
+          folder_id: folderIdForJob,
+          confidentiality_level: data.confidentiality_level,
+          auto_ocr: false,
+          auto_barcode: false,
+        });
+        const jobId = startResponse.data?.job_id;
+        if (!jobId) {
+          throw new Error("Bulk upload job id is missing.");
+        }
+
+        setBulkJobId(jobId);
+        setBulkProgress({ status: "starting", total: filesToUpload.length, processed: 0, failed: 0 });
+
+        const bulkFilesPayload = await Promise.all(
+          filesToUpload.map(async (subFile) => ({
+            file_name: subFile.name,
+            file_data: await fileToBase64(subFile),
+            name: subFile.name,
+            description: "",
+          }))
+        );
+        await documentsApi.uploadFilesToBulkJob(jobId, bulkFilesPayload);
+
+        const finalProgress = await pollBulkJobUntilFinished(jobId);
+        const finalStatus = (finalProgress.status ?? "").toLowerCase();
+        if (finalStatus === "cancelled" || finalStatus === "canceled" || bulkCancelRequestedRef.current) {
+          return;
+        }
+        if (Number(finalProgress.failed ?? 0) > 0) {
+          toast.warning(t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." }));
+        } else {
+          toast.success(t("documents.uploadSuccess") || "Document uploaded successfully.");
+        }
         onSuccess?.();
         onClose();
         return;
@@ -466,6 +526,52 @@ export const UploadDocumentSidePanel = ({
       fileInputRef.current.value = "";
     }
   };
+
+  /** Returns true when a bulk-upload status indicates the job has finished. */
+  const isBulkTerminalStatus = useCallback((status?: string) => {
+    const normalized = (status ?? "").toLowerCase();
+    return normalized === "completed" || normalized === "done" || normalized === "failed" || normalized === "cancelled" || normalized === "canceled";
+  }, []);
+
+  /** Polls job progress until backend reports completion/cancel/failure or user requests cancel. */
+  const pollBulkJobUntilFinished = useCallback(
+    async (jobId: string) => {
+      while (true) {
+        const progressResponse = await documentsApi.getBulkUploadProgress(jobId);
+        const progress = progressResponse.data ?? {};
+        setBulkProgress(progress);
+
+        const total = Number(progress.total ?? 0);
+        const processed = Number(progress.processed ?? 0);
+        const failed = Number(progress.failed ?? 0);
+        const finishedByCounts = total > 0 && processed + failed >= total;
+
+        if (bulkCancelRequestedRef.current || finishedByCounts || isBulkTerminalStatus(progress.status)) {
+          return progress;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    },
+    [isBulkTerminalStatus]
+  );
+
+  /** Requests cancellation for an in-flight bulk-upload job and updates local progress state. */
+  const handleCancelBulkJob = useCallback(async () => {
+    if (!bulkJobId) return;
+    setIsCancellingBulkJob(true);
+    bulkCancelRequestedRef.current = true;
+    try {
+      await documentsApi.cancelBulkUploadJob(bulkJobId);
+      setBulkProgress((prev) => ({ ...(prev ?? {}), status: "cancelled" }));
+      toast.info(t("documents.uploadCancelled", { defaultValue: "Upload cancelled." }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t("common.unexpectedError", { defaultValue: "Unexpected error" });
+      setSubmitError(msg);
+      toast.error(msg);
+    } finally {
+      setIsCancellingBulkJob(false);
+    }
+  }, [bulkJobId, t]);
 
   const footer = (
     <div className="d-flex gap-2 justify-content-end">
@@ -653,7 +759,7 @@ export const UploadDocumentSidePanel = ({
             id="upload-doc-file"
             accept="*/*"
             ref={fileInputRef}
-            multiple={uploadKind === "attachment"}
+            multiple={uploadKind === "attachment" || uploadKind === "sub"}
             onChange={(e) => {
               const files = Array.from(e.target.files ?? []);
               setSelectedFiles(files);
@@ -674,7 +780,7 @@ export const UploadDocumentSidePanel = ({
             >
               <Icon name="paperclip" className="me-1" />
               {selectedFile instanceof File
-                ? uploadKind === "attachment" && selectedFiles.length > 1
+                ? selectedFiles.length > 1
                   ? `Selected: ${selectedFiles.length} files`
                   : `Selected: ${selectedFile.name}`
                 : "Select File"}
@@ -688,6 +794,23 @@ export const UploadDocumentSidePanel = ({
           </div>
           {errors.file && <div className="invalid-feedback d-block">{errors.file.message as string}</div>}
         </div>
+
+        {uploadKind === "sub" && isUploading && bulkJobId && bulkProgress && (
+          <div className="alert alert-info py-2 mb-3" role="status">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <div className="fw-semibold">Bulk upload in progress</div>
+                <div className="small">
+                  Job: {bulkJobId} | Status: {bulkProgress.status ?? "processing"} | Processed: {bulkProgress.processed ?? 0}/
+                  {bulkProgress.total ?? 0} | Failed: {bulkProgress.failed ?? 0}
+                </div>
+              </div>
+              <Button type="button" variant="outline" className="btn-outline-danger" onClick={handleCancelBulkJob} disabled={isCancellingBulkJob}>
+                {isCancellingBulkJob ? "Cancelling..." : "Cancel job"}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {uploadKind !== "attachment" && (
           <>

@@ -136,6 +136,40 @@ export interface UploadDocumentResponse {
   error?: string;
 }
 
+export interface StartBulkUploadParams {
+  department_id: number;
+  document_type_id: number;
+  folder_id?: number;
+  confidentiality_level?: ConfidentialityLevel;
+  auto_ocr?: boolean;
+  auto_barcode?: boolean;
+}
+
+export interface BulkUploadStartData {
+  job_id: string;
+  id?: number;
+}
+
+export interface BulkUploadFilePayload {
+  file_name: string;
+  file_data: string;
+  name: string;
+  description?: string;
+}
+
+export interface BulkUploadProgressData {
+  status?: string;
+  total?: number;
+  processed?: number;
+  failed?: number;
+}
+
+export interface ListBulkUploadJobsParams {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface DeleteLikeResponse {
   success?: boolean;
   error?: string;
@@ -540,6 +574,104 @@ export const documentsApi = {
       message?: string;
     };
     assertSuccess(result, 'Failed to upload attachments');
+    return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
+  },
+
+  /**
+   * Start a bulk upload job (NBS 11.1).
+   * POST /api/documents/bulk-upload/start (JSON-RPC)
+   */
+  startBulkUpload: async (
+    params: StartBulkUploadParams
+  ): Promise<{ success: boolean; data?: BulkUploadStartData; error?: string }> => {
+    const response = await apiClient.post('/api/documents/bulk-upload/start', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {
+        ...params,
+        confidentiality_level: params.confidentiality_level ?? 'internal',
+        auto_ocr: params.auto_ocr ?? false,
+        auto_barcode: params.auto_barcode ?? false,
+      },
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; data?: BulkUploadStartData; error?: string; message?: string }>(
+      response.data
+    );
+    assertSuccess(result, 'Failed to start bulk upload job');
+    return (result ?? { success: true }) as { success: boolean; data?: BulkUploadStartData; error?: string };
+  },
+
+  /**
+   * Upload one or more files to a bulk upload job (NBS 11.2).
+   * POST /api/documents/bulk-upload/<job_id>/upload (JSON-RPC)
+   */
+  uploadFilesToBulkJob: async (
+    jobId: string,
+    files: BulkUploadFilePayload[]
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> => {
+    const response = await apiClient.post(`/api/documents/bulk-upload/${jobId}/upload`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: { files },
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; data?: unknown; error?: string; message?: string }>(response.data);
+    assertSuccess(result, 'Failed to upload files to bulk job');
+    return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
+  },
+
+  /**
+   * Get bulk upload job progress (NBS 11.3).
+   * POST /api/documents/bulk-upload/<job_id>/progress (JSON-RPC)
+   */
+  getBulkUploadProgress: async (
+    jobId: string
+  ): Promise<{ success: boolean; data?: BulkUploadProgressData; error?: string }> => {
+    const response = await apiClient.post(`/api/documents/bulk-upload/${jobId}/progress`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {},
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; data?: BulkUploadProgressData; error?: string; message?: string }>(
+      response.data
+    );
+    assertSuccess(result, 'Failed to get bulk upload progress');
+    return (result ?? { success: true }) as { success: boolean; data?: BulkUploadProgressData; error?: string };
+  },
+
+  /**
+   * Cancel a bulk upload job (NBS 11.4).
+   * POST /api/documents/bulk-upload/<job_id>/cancel (JSON-RPC)
+   */
+  cancelBulkUploadJob: async (jobId: string): Promise<{ success: boolean; data?: unknown; error?: string }> => {
+    const response = await apiClient.post(`/api/documents/bulk-upload/${jobId}/cancel`, {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {},
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; data?: unknown; error?: string; message?: string }>(response.data);
+    assertSuccess(result, 'Failed to cancel bulk upload job');
+    return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
+  },
+
+  /**
+   * List bulk upload jobs (NBS 11.5).
+   * POST /api/documents/bulk-upload/jobs (JSON-RPC)
+   */
+  listBulkUploadJobs: async (
+    params?: ListBulkUploadJobsParams
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> => {
+    const response = await apiClient.post('/api/documents/bulk-upload/jobs', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: params ?? {},
+      id: 1,
+    });
+    const result = getRpcResult<{ success?: boolean; data?: unknown; error?: string; message?: string }>(response.data);
+    assertSuccess(result, 'Failed to list bulk upload jobs');
     return (result ?? { success: true }) as { success: boolean; data?: unknown; error?: string };
   },
 
