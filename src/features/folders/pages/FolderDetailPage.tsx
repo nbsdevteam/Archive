@@ -93,7 +93,7 @@ function secondaryDocsRowActions(
     {
       id: "trash",
       label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
-      icon: "trash",
+      icon: "trash-2",
       variant: "outline",
       className: "btn-outline-danger",
       onClick: (d, e) => {
@@ -142,8 +142,8 @@ function attachmentsRowActions(
       },
     },
     {
-      id: "trash",
-      label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
+      id: "delete",
+      label: t("documents.deleteAttachment", { defaultValue: "Delete" }),
       icon: "trash",
       variant: "outline",
       className: "btn-outline-danger",
@@ -472,7 +472,7 @@ const FolderDetailPage = () => {
                           }}
                           disabled={isSubDocTrashing}
                         >
-                          <Icon name="trash" className="me-1" />
+                          <Icon name="trash-2" className="me-1" />
                           {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
                         </Button>
                         <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
@@ -500,7 +500,7 @@ const FolderDetailPage = () => {
                   onClick={handleOpenBatchSubDocTrashConfirm}
                   disabled={isBatchSubDocTrashing}
                 >
-                  <Icon name="trash" className="me-1" />
+                  <Icon name="trash-2" className="me-1" />
                   {t("documents.moveSelectedToTrash", {
                     defaultValue: "Move selected to trash",
                   })}
@@ -575,8 +575,8 @@ const FolderDetailPage = () => {
                     disabled={isAttachmentTrashing}
                   >
                     <Icon name="trash" className="me-1" />
-                    {t("documents.moveSelectedToTrash", {
-                      defaultValue: "Move selected to trash",
+                    {t("documents.deleteSelectedAttachments", {
+                      defaultValue: "Delete selected",
                     })}
                   </Button>
                   <Button
@@ -810,11 +810,11 @@ const FolderDetailPage = () => {
         isOpen={attachmentTrashTargetId != null}
         onClose={handleCloseAttachmentTrashConfirm}
         onConfirm={handleConfirmAttachmentTrash}
-        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        message={t("documents.confirmMoveToTrash", {
-          defaultValue: "Are you sure you want to move this document to trash?",
+        title={t("documents.deleteAttachment", { defaultValue: "Delete" })}
+        message={t("documents.confirmDeleteAttachment", {
+          defaultValue: "Are you sure you want to delete this attachment? This cannot be undone.",
         })}
-        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
         isLoading={isAttachmentTrashing}
@@ -824,14 +824,14 @@ const FolderDetailPage = () => {
         isOpen={isBatchAttachmentTrashConfirmOpen}
         onClose={handleCloseBatchAttachmentTrashConfirm}
         onConfirm={handleConfirmBatchAttachmentTrash}
-        title={t("documents.moveSelectedToTrash", {
-          defaultValue: "Move selected to trash",
+        title={t("documents.deleteSelectedAttachments", {
+          defaultValue: "Delete selected",
         })}
-        message={t("documents.confirmBatchMoveToTrash", {
-          defaultValue: "Move {{count}} document(s) to trash?",
+        message={t("documents.confirmBatchDeleteAttachments", {
+          defaultValue: "Delete {{count}} attachment(s)? This cannot be undone.",
           count: attachmentSelectedIds.length,
         })}
-        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
         isLoading={isAttachmentTrashing}

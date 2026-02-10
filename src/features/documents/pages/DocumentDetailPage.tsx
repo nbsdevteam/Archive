@@ -2,13 +2,15 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { FilePreview } from "../../../shared/components/FilePreview";
-import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
+import { TransferToFolderModal } from "../../folders/components";
+import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
+import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { UploadDocumentSidePanel } from "../components";
 import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, isTrashing, isRestoring, isPermanentDeleting, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, isAttachmentTransferModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, isAttachmentTransferSubmitting, transferAttachmentIds, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleOpenSingleAttachmentTransfer, handleOpenBatchAttachmentTransfer, handleCloseAttachmentTransfer, handleConfirmAttachmentTransfer, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -79,7 +81,7 @@ const DocumentDetailPage = () => {
               </Button>
             ) : (
               <Button variant="outline" size="sm" className="btn-outline-danger" onClick={() => setModalTrashConfirm(true)}>
-                <Icon name="trash" className="me-1" />
+                <Icon name="trash-2" className="me-1" />
                 {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
               </Button>
             )}
@@ -293,54 +295,115 @@ const DocumentDetailPage = () => {
               <div>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="btn-secondary btn-sm"
-                    onClick={() => setIsAddAttachmentPanelOpen(true)}
-                  >
-                    {t("documents.addAttachment", { defaultValue: "Add attachment" })}
-                  </Button>
+                  <div className="d-flex align-items-center gap-2">
+                    {attachmentSelectedIds.length > 0 && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="btn-outline-secondary"
+                          onClick={handleOpenBatchAttachmentTransfer}
+                          disabled={isAttachmentTransferSubmitting}
+                        >
+                          <Icon name="arrow-right-left" className="me-1" />
+                          {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="btn-outline-danger"
+                          onClick={handleOpenBatchAttachmentTrashConfirm}
+                          disabled={isDeletingAttachment}
+                        >
+                          <Icon name="trash" className="me-1" />
+                          {t("documents.deleteSelectedAttachments", {
+                            defaultValue: "Delete selected",
+                          })}
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="btn-secondary btn-sm"
+                      onClick={() => setIsAddAttachmentPanelOpen(true)}
+                    >
+                      {t("documents.addAttachment", { defaultValue: "Add attachment" })}
+                    </Button>
+                  </div>
                 </div>
                 {loadingAttachments ? (
                   <Spinner />
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-sm">
-                      <thead>
-                        <tr>
-                          <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                          <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
-                          <th>{t("common.actions", { defaultValue: "Actions" })}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {attachments.map((a) => (
-                          <tr key={a.id}>
-                            <td>{a.name}</td>
-                            <td>{a.file_name}</td>
-                            <td>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="me-1 btn-outline-secondary"
-                                onClick={() => handleDownloadAttachment(a.id, a.file_name)}
-                              >
-                                {t("documents.download", { defaultValue: "Download" })}
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                        {attachments.length === 0 && (
-                          <tr>
-                            <td colSpan={3} className="text-center text-muted">
-                              {t("common.noData", { defaultValue: "No data" })}
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                  <DataTable<Attachment>
+                    data={attachments}
+                    getRowId={(row) => row.id}
+                    columns={[
+                      {
+                        id: "name",
+                        header: t("documents.name", { defaultValue: "Name" }),
+                        render: (row) => row.name,
+                      },
+                      {
+                        id: "fileName",
+                        header: t("documents.fileName", { defaultValue: "File name" }),
+                        render: (row) => row.file_name,
+                      },
+                      {
+                        id: "description",
+                        header: t("documents.description", { defaultValue: "Description" }),
+                        render: (row) => row.description ?? "–",
+                      },
+                    ]}
+                    rowActions={[
+                      {
+                        id: "download",
+                        label: t("documents.download", { defaultValue: "Download" }),
+                        variant: "outline",
+                        className: "btn-outline-secondary me-1",
+                        onClick: (row, e) => {
+                          e.stopPropagation();
+                          handleDownloadAttachment(row.id, row.file_name);
+                        },
+                      },
+                      {
+                        id: "transfer",
+                        label: t("folders.transfer", { defaultValue: "Transfer" }),
+                        icon: "arrow-right-left",
+                        variant: "outline",
+                        className: "btn-outline-secondary me-1",
+                        onClick: (row, e) => {
+                          e.stopPropagation();
+                          handleOpenSingleAttachmentTransfer(row.id);
+                        },
+                      },
+                      {
+                        id: "edit",
+                        label: t("common.edit", { defaultValue: "Edit" }),
+                        variant: "outline",
+                        className: "btn-outline-secondary me-1",
+                        onClick: (row, e) => {
+                          e.stopPropagation();
+                          handleOpenEditAttachment(row.id);
+                        },
+                      },
+                      {
+                        id: "delete",
+                        label: t("documents.deleteAttachment", { defaultValue: "Delete" }),
+                        icon: "trash",
+                        variant: "outline",
+                        className: "btn-outline-danger",
+                        onClick: (row, e) => {
+                          e.stopPropagation();
+                          handleOpenAttachmentTrashConfirm(row.id);
+                        },
+                      },
+                    ]}
+                    selection={attachmentSelectionConfig}
+                    actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+                    emptyMessage={t("common.noData", { defaultValue: "No data" })}
+                    tableClassName="table table-sm mb-0"
+                  />
                 )}
               </div>
             )}
@@ -758,6 +821,90 @@ const DocumentDetailPage = () => {
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
         isLoading={isPermanentDeleting}
+      />
+
+      <ConfirmModal
+        isOpen={attachmentTrashTargetId != null}
+        onClose={handleCloseAttachmentTrashConfirm}
+        onConfirm={handleConfirmAttachmentTrash}
+        title={t("documents.deleteAttachment", { defaultValue: "Delete" })}
+        message={t("documents.confirmDeleteAttachment", {
+          defaultValue: "Are you sure you want to delete this attachment? This cannot be undone.",
+        })}
+        confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isDeletingAttachment}
+      />
+
+      <ConfirmModal
+        isOpen={isBatchAttachmentTrashConfirmOpen}
+        onClose={handleCloseBatchAttachmentTrashConfirm}
+        onConfirm={handleConfirmBatchAttachmentTrash}
+        title={t("documents.deleteSelectedAttachments", { defaultValue: "Delete selected" })}
+        message={t("documents.confirmBatchDeleteAttachments", {
+          defaultValue: "Delete {{count}} attachment(s)? This cannot be undone.",
+          count: attachmentSelectedIds.length,
+        })}
+        confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isDeletingAttachment}
+      />
+
+      <Modal
+        isOpen={isEditAttachmentModalOpen}
+        onClose={handleCloseEditAttachment}
+        title={t("common.edit", { defaultValue: "Edit" })}
+        size="md"
+      >
+        <div className="mb-3">
+          <label className="form-label">{t("documents.name", { defaultValue: "Name" })}</label>
+          <input
+            type="text"
+            className="form-control"
+            value={editAttachmentName}
+            onChange={(e) => setEditAttachmentName(e.target.value)}
+            maxLength={255}
+          />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">
+            {t("documents.description", { defaultValue: "Description" })}
+          </label>
+          <textarea
+            className="form-control"
+            rows={3}
+            value={editAttachmentDescription}
+            onChange={(e) => setEditAttachmentDescription(e.target.value)}
+          />
+        </div>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
+          <Button variant="outline" className="btn-outline-secondary" onClick={handleCloseEditAttachment}>
+            {t("common.cancel", { defaultValue: "Cancel" })}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleConfirmEditAttachment}
+            disabled={!editAttachmentName.trim() || isUpdatingAttachment}
+          >
+            {isUpdatingAttachment ? <Spinner /> : t("common.save", { defaultValue: "Save" })}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      <TransferToFolderModal
+        isOpen={isAttachmentTransferModalOpen}
+        onClose={handleCloseAttachmentTransfer}
+        departmentId={doc.department_id ?? 0}
+        title={t("folders.selectDestinationFolder", { defaultValue: "Select destination folder" })}
+        subtitle={t("folders.transferSubtitleAttachments", {
+          count: transferAttachmentIds.length,
+          defaultValue:
+            "Transfer {{count}} attachment(s) to a folder in the same department.",
+        })}
+        onConfirm={handleConfirmAttachmentTransfer}
+        isSubmitting={isAttachmentTransferSubmitting}
       />
     </div>
   );
