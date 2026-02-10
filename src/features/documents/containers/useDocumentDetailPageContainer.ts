@@ -11,6 +11,7 @@ import { adminApi } from "../../../app/adapter/api/admin.api";
 import { ocrApi } from "../../../app/adapter/api/ocr.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/documents.api";
+import { useAuditLogs } from "../../activity/hooks/useAuditLogs";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
@@ -64,13 +65,9 @@ export const useDocumentDetailPageContainer = () => {
     parent?: { id: number; title: string; barcode?: string } | null;
     related?: Array<{ id: number; title: string; barcode?: string; relation_type?: string; notes?: string }>;
   }>({});
-  const [auditLogs, setAuditLogs] = useState<
-    Array<{ id: number; action: string; user_name: string; timestamp: string; document_title?: string }>
-  >([]);
   const [activeTab, setActiveTab] = useState("preview");
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [loadingRelations, setLoadingRelations] = useState(false);
-  const [loadingAudit, setLoadingAudit] = useState(false);
   const [managers, setManagers] = useState<Array<{ id: number; name: string; login?: string }>>([]);
 
   const [isAddAttachmentPanelOpen, setIsAddAttachmentPanelOpen] = useState(false);
@@ -165,6 +162,18 @@ export const useDocumentDetailPageContainer = () => {
 
   const isArchived = (doc?.status ?? "").toLowerCase() === "archived";
   const canRequestSignature = true;
+  const {
+    logs: auditLogs,
+    loading: loadingAudit,
+    error: auditError,
+  } = useAuditLogs({
+    enabled: Boolean(docId && activeTab === "audit"),
+    initialParams: {
+      document_id: docId ?? undefined,
+      page: 1,
+      per_page: 50,
+    },
+  });
 
   useEffect(() => {
     if (docId) {
@@ -227,16 +236,6 @@ export const useDocumentDetailPageContainer = () => {
       })
       .catch(() => setRelations({}))
       .finally(() => setLoadingRelations(false));
-  }, [docId, activeTab]);
-
-  useEffect(() => {
-    if (!docId || activeTab !== "audit") return;
-    setLoadingAudit(true);
-    adminApi
-      .getAuditLogs({ document_id: docId, per_page: 50 })
-      .then((r) => setAuditLogs(r.data ?? []))
-      .catch(() => setAuditLogs([]))
-      .finally(() => setLoadingAudit(false));
   }, [docId, activeTab]);
 
   const handleDownloadVersion = async (versionId: number, fName: string) => {
@@ -320,8 +319,9 @@ export const useDocumentDetailPageContainer = () => {
     if (!docId || transferAttachmentIds.length === 0) return;
     setIsAttachmentTransferSubmitting(true);
     try {
-      // Attachments now use the same batch move API as secondary documents.
-      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
+      // TEMPORARY TEST: hardcode target_folder_id as 48 to verify attachment transfer flow.
+      const effectiveTargetFolderId = 48;
+      await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, effectiveTargetFolderId);
 
       clearAttachmentSelection();
       setIsAttachmentTransferModalOpen(false);
@@ -618,6 +618,7 @@ export const useDocumentDetailPageContainer = () => {
     loadingAttachments,
     loadingRelations,
     loadingAudit,
+    auditError,
     managers,
     isAddAttachmentPanelOpen,
     modalUploadVersion,

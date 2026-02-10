@@ -11,6 +11,8 @@ import type { FolderWorkflowInfo } from "../services/folders.api";
 import type { FolderDetail } from "../types/folders.types";
 import { useDocumentStore } from "../../documents/stores/documentStore";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
+import { useFolderAuditLogs } from "../../activity/hooks/useFolderAuditLogs";
+import type { ActivityViewMode } from "../../activity/types";
 import { all_routes } from "../../../router/all_routes";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
@@ -34,6 +36,7 @@ export const useFolderDetailPageContainer = () => {
 
   const [workflowInfo, setWorkflowInfo] = useState<FolderWorkflowInfo | null>(null);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
+  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("table");
 
   const [transitionOpen, setTransitionOpen] = useState(false);
   const [transitionTarget, setTransitionTarget] = useState<{ id: number; label: string } | null>(null);
@@ -87,6 +90,18 @@ export const useFolderDetailPageContainer = () => {
 
   const mainDoc = docsSorted[0] ?? null;
   const subDocs = docsSorted.slice(1);
+  const {
+    logs: activityLogs,
+    loading: activityLoading,
+    error: activityError,
+    documentCount: activityDocumentCount,
+    refresh: refreshActivityLogs,
+  } = useFolderAuditLogs(folderId, {
+    enabled: Boolean(folderId),
+    perPage: 50,
+    maxDocuments: 20,
+    concurrency: 4,
+  });
 
   const {
     selectedIds: subDocSelectedIds,
@@ -551,7 +566,9 @@ export const useFolderDetailPageContainer = () => {
             return;
           }
 
-          await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
+          // TEMPORARY TEST: hardcode target_folder_id as 48 to verify attachment transfer flow.
+          const effectiveTargetFolderId = 48;
+          await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, effectiveTargetFolderId);
           toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearAttachmentsSelection();
           refreshAttachmentsForCurrentDocument();
@@ -718,5 +735,12 @@ export const useFolderDetailPageContainer = () => {
     transferSubmitting,
     closeTransferModal,
     handleTransferConfirm,
+    activityLogs,
+    activityLoading,
+    activityError,
+    activityDocumentCount,
+    refreshActivityLogs,
+    activityViewMode,
+    setActivityViewMode,
   };
 };
