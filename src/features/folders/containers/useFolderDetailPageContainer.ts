@@ -532,6 +532,20 @@ export const useFolderDetailPageContainer = () => {
     [mainDoc?.department_id, folder?.department_id]
   );
 
+  /** Navigate to the dedicated attachment view (preview) page for the currently selected document's attachment. */
+  const handleViewAttachment = useCallback(
+    (attachmentId: number) => {
+      if (typeof attachmentsDocId === "number") {
+        navigate(
+          routes.documentAttachmentView
+            .replace(":id", String(attachmentsDocId))
+            .replace(":attachmentId", String(attachmentId))
+        );
+      }
+    },
+    [attachmentsDocId, navigate, routes.documentAttachmentView]
+  );
+
   const closeTransferModal = useCallback(() => {
     if (!transferSubmitting) {
       setTransferModalOpen(false);
@@ -725,6 +739,7 @@ export const useFolderDetailPageContainer = () => {
     handleCloseBatchAttachmentTrashConfirm,
     handleConfirmBatchAttachmentTrash,
     openTransferAttachments,
+    handleViewAttachment,
     transferModalOpen,
     transferMode,
     transferDocIds,

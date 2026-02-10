@@ -562,6 +562,12 @@ export const useDocumentDetailPageContainer = () => {
     }
   };
 
+  /** Navigate to the dedicated attachment view (preview) page for the current document. */
+  const handleViewAttachment = (attachmentId: number) => {
+    if (!docId) return;
+    navigate(routes.documentAttachmentView.replace(":id", String(docId)).replace(":attachmentId", String(attachmentId)));
+  };
+
   const tabs = [
     { id: "preview", label: t("documents.preview", { defaultValue: "Preview" }) },
     { id: "download", label: t("documents.download", { defaultValue: "Download" }) },
@@ -702,6 +708,7 @@ export const useDocumentDetailPageContainer = () => {
     handleOpenBatchAttachmentTransfer,
     handleCloseAttachmentTransfer,
     handleConfirmAttachmentTransfer,
+    handleViewAttachment,
     handleArchive,
     handleUnarchive,
     handleRunOcr,

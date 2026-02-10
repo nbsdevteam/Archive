@@ -106,7 +106,7 @@ export const ArchiveTrash = createLazyComponent(
   <LoadingSpinner text="Loading trash..." />
 );
 export const ArchiveActivity = createLazyComponent(
-  () => import("../features/archive/pages/ArchiveActivity"),
+  () => import("../features/activity/pages/ArchiveActivityPage"),
   <LoadingSpinner text="Loading activity..." />
 );
 
@@ -126,6 +126,10 @@ export const UploadDocumentPage = createLazyComponent(
 export const DocumentDetailPage = createLazyComponent(
   () => import("../features/documents/pages/DocumentDetailPage"),
   <LoadingSpinner text="Loading document..." />
+);
+export const DocumentAttachmentViewPage = createLazyComponent(
+  () => import("../features/documents/pages/DocumentAttachmentViewPage"),
+  <LoadingSpinner text="Loading attachment..." />
 );
 export const FoldersPage = createLazyComponent(
   () => import("../features/folders/pages/FoldersPage"),

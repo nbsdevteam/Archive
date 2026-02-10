@@ -118,9 +118,20 @@ function attachmentsRowActions(
   t: (key: string, opts?: { defaultValue?: string }) => string,
   handleDownloadAttachment: (attachmentId: number, fileName: string) => void,
   openTransferAttachments: (ids: number[]) => void,
-  handleOpenAttachmentTrashConfirm: (attachmentId: number) => void
+  handleOpenAttachmentTrashConfirm: (attachmentId: number) => void,
+  handleViewAttachment: (attachmentId: number) => void
 ): RowAction<Attachment>[] {
   return [
+    {
+      id: "view",
+      label: t("documents.view", { defaultValue: "View" }),
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      onClick: (a, e) => {
+        e?.stopPropagation();
+        handleViewAttachment(a.id);
+      },
+    },
     {
       id: "download",
       label: t("documents.download", { defaultValue: "Download" }),
@@ -254,6 +265,7 @@ const FolderDetailPage = () => {
     handleCloseBatchAttachmentTrashConfirm,
     handleConfirmBatchAttachmentTrash,
     openTransferAttachments,
+    handleViewAttachment,
     transferModalOpen,
     transferMode,
     transferDocIds,
@@ -624,7 +636,8 @@ const FolderDetailPage = () => {
                 t,
                 handleDownloadAttachment,
                 openTransferAttachments,
-                handleOpenAttachmentTrashConfirm
+                handleOpenAttachmentTrashConfirm,
+                handleViewAttachment
               )}
               selection={attachmentsSelectionConfig}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}

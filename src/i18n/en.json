@@ -27,7 +27,8 @@
   },
   "errors": {
     "notFound": "Not found.",
-    "invalidId": "Invalid ID."
+    "invalidId": "Invalid ID.",
+    "generic": "Something went wrong."
   },
   "documents": {
     "title": "Documents",
@@ -61,6 +62,10 @@
     "versionUploaded": "New version uploaded.",
     "versionUploadFailed": "Upload failed.",
     "attachments": "Attachments",
+    "viewAttachment": "View attachment",
+    "view": "View",
+    "backToDocument": "Back to document",
+    "previewLoadFailed": "Failed to load preview",
     "addAttachment": "Add attachment",
     "addRelation": "Add relation",
     "relatedDocumentId": "Related document ID",

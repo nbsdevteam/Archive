@@ -8,6 +8,7 @@ import {
   ArchiveTrash,
   ArchiveUpload,
   DashboardPage,
+  DocumentAttachmentViewPage,
   DocumentDetailPage,
   DocumentsPage,
   DocumentsTrashPage,
@@ -80,6 +81,10 @@ export const publicRoutes = [
   {
     path: routes.documentDetail,
     element: <DocumentDetailPage />,
+  },
+  {
+    path: routes.documentAttachmentView,
+    element: <DocumentAttachmentViewPage />,
   },
   // Folders
   {

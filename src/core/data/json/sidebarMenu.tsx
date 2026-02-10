@@ -29,7 +29,8 @@ export const SidebarDataTest = [
         base: routes.documents,
         base2: routes.documentsUpload,
         base3: routes.documentDetail,
-        base4: routes.documentsTrash,
+        base4: routes.documentAttachmentView,
+        base5: routes.documentsTrash,
       },
       {
         label: "Folders",
@@ -67,6 +68,15 @@ export const SidebarDataTest = [
         showSubRoute: false,
         icon: "Bell", // lucide-react icon name
         base: routes.notifications,
+      },
+      {
+        label: "Activity",
+        translationKey: "activity",
+        link: routes.archiveActivity,
+        submenu: false,
+        showSubRoute: false,
+        icon: "History",
+        base: routes.archiveActivity,
       },
       {
         label: "Permissions",

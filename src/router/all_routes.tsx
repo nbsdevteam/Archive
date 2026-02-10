@@ -15,6 +15,8 @@ export const all_routes: Record<string, string> = {
   documentsUpload: "/documents/upload",
   documentsTrash: "/documents/trash",
   documentDetail: "/documents/:id",
+  /** View a single attachment (preview) for a document. */
+  documentAttachmentView: "/documents/:id/attachments/:attachmentId",
   folders: "/folders",
   folderDetail: "/folders/:id",
   editRequests: "/edit-requests",
