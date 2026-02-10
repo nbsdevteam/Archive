@@ -1,8 +1,11 @@
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightLeft } from "lucide-react";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { UploadDocumentSidePanel } from "../../documents/components";
+import { AuditActivityPanel } from "../../../shared/components/Activity";
+import type { ActivityViewMode } from "../../activity/types";
 import { EditFolderSidePanel, TransferToFolderModal } from "../components";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
 import type { ColumnDef, RowAction } from "../../../shared/components/ui/DataTable/DataTable.types";
@@ -259,7 +262,29 @@ const FolderDetailPage = () => {
     transferSubmitting,
     closeTransferModal,
     handleTransferConfirm,
+    activityLogs,
+    activityLoading,
+    activityError,
+    activityDocumentCount,
+    refreshActivityLogs,
+    activityViewMode,
+    setActivityViewMode,
   } = useFolderDetailPageContainer();
+  const handleActivityRefresh = useCallback(() => {
+    void refreshActivityLogs();
+  }, [refreshActivityLogs]);
+  const handleActivityViewModeChange = useCallback(
+    (nextMode: ActivityViewMode) => {
+      setActivityViewMode(nextMode);
+    },
+    [setActivityViewMode]
+  );
+  const handleTimelineDocumentClick = useCallback(
+    (documentId: number, _log?: unknown) => {
+      handleNavigateToDocument(documentId);
+    },
+    [handleNavigateToDocument]
+  );
 
   if (!folderId) {
     return (
@@ -651,6 +676,26 @@ const FolderDetailPage = () => {
             )}
           </div>
         </div>
+
+        {/* Folder activity */}
+        <AuditActivityPanel
+          t={t}
+          logs={activityLogs}
+          loading={activityLoading}
+          error={activityError}
+          viewMode={activityViewMode}
+          onViewModeChange={handleActivityViewModeChange}
+          title={t("activity.folderTitle", { defaultValue: "Folder activity" })}
+          subtitle={t("activity.folderCoverage", {
+            defaultValue: "Showing events from {{count}} documents",
+            count: activityDocumentCount,
+          })}
+          showRefresh
+          onRefresh={handleActivityRefresh}
+          showDocument
+          onDocumentClick={handleNavigateToDocument}
+          treeGroupBy="document"
+        />
 
         {/* Preview */}
         <div className="card mb-3">

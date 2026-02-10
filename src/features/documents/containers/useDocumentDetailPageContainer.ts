@@ -12,6 +12,7 @@ import { ocrApi } from "../../../app/adapter/api/ocr.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/documents.api";
 import { useAuditLogs } from "../../activity/hooks/useAuditLogs";
+import type { ActivityViewMode } from "../../activity/types";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
@@ -106,6 +107,7 @@ export const useDocumentDetailPageContainer = () => {
   const [isAttachmentTransferModalOpen, setIsAttachmentTransferModalOpen] = useState(false);
   const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
   const [isAttachmentTransferSubmitting, setIsAttachmentTransferSubmitting] = useState(false);
+  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("table");
 
   const {
     selectedIds: attachmentSelectedIds,
@@ -166,6 +168,7 @@ export const useDocumentDetailPageContainer = () => {
     logs: auditLogs,
     loading: loadingAudit,
     error: auditError,
+    refresh: auditRefresh,
   } = useAuditLogs({
     enabled: Boolean(docId && activeTab === "audit"),
     initialParams: {
@@ -618,6 +621,9 @@ export const useDocumentDetailPageContainer = () => {
     loadingRelations,
     loadingAudit,
     auditError,
+    auditRefresh,
+    activityViewMode,
+    setActivityViewMode,
     managers,
     isAddAttachmentPanelOpen,
     modalUploadVersion,

@@ -7,10 +7,11 @@ import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTab
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { UploadDocumentSidePanel } from "../components";
 import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
+import { AuditActivityPanel } from "../../../shared/components/Activity";
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, isAttachmentTransferModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, isAttachmentTransferSubmitting, transferAttachmentIds, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleOpenSingleAttachmentTransfer, handleOpenBatchAttachmentTransfer, handleCloseAttachmentTransfer, handleConfirmAttachmentTransfer, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, auditError, auditRefresh, activityViewMode, setActivityViewMode, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, isAttachmentTransferModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, isAttachmentTransferSubmitting, transferAttachmentIds, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleOpenSingleAttachmentTransfer, handleOpenBatchAttachmentTransfer, handleCloseAttachmentTransfer, handleConfirmAttachmentTransfer, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -526,39 +527,20 @@ const DocumentDetailPage = () => {
             )}
 
             {activeTab === "audit" && (
-              <div>
-                {loadingAudit ? (
-                  <Spinner />
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table table-sm">
-                      <thead>
-                        <tr>
-                          <th>{t("documents.action", { defaultValue: "Action" })}</th>
-                          <th>{t("documents.user", { defaultValue: "User" })}</th>
-                          <th>{t("documents.timestamp", { defaultValue: "Timestamp" })}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {auditLogs.map((log) => (
-                          <tr key={log.id}>
-                            <td>{log.action}</td>
-                            <td>{log.user_name}</td>
-                        <td>{formatDate(log.timestamp)}</td>
-                          </tr>
-                        ))}
-                        {auditLogs.length === 0 && (
-                          <tr>
-                            <td colSpan={3} className="text-center text-muted">
-                              {t("common.noData", { defaultValue: "No data" })}
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+              <AuditActivityPanel
+                t={t}
+                logs={auditLogs}
+                loading={loadingAudit}
+                error={auditError}
+                viewMode={activityViewMode}
+                onViewModeChange={setActivityViewMode}
+                title={t("activity.auditTitle", { defaultValue: "Audit log" })}
+                showRefresh
+                onRefresh={auditRefresh}
+                showDocument={false}
+                showMetadata={false}
+                treeGroupBy="document"
+              />
             )}
           </div>
         </div>
