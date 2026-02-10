@@ -1,10 +1,98 @@
 import { Link } from "react-router-dom";
+import { ArrowRightLeft } from "lucide-react";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { UploadDocumentSidePanel } from "../../documents/components";
-import { EditFolderSidePanel } from "../components";
-import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
+import { EditFolderSidePanel, TransferToFolderModal } from "../components";
+import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
+import type { ColumnDef, RowAction } from "../../../shared/components/ui/DataTable/DataTable.types";
+import type { Document } from "../../../app/adapter/api/documents.api";
+import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
+
+function secondaryDocsColumns(
+  t: (key: string, opts?: { defaultValue?: string }) => string,
+  formatDate: (dateStr?: string | null) => string
+): ColumnDef<Document>[] {
+  return [
+    { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (d) => d.barcode ?? "–" },
+    { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (d) => d.title ?? d.name ?? "–" },
+    { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (d) => d.document_type_name ?? (d.document_type as { name?: string })?.name ?? "–" },
+    { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (d) => formatDate(d.upload_date) },
+    { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (d) => d.status ?? "–" },
+  ];
+}
+
+function secondaryDocsRowActions(
+  t: (key: string, opts?: { defaultValue?: string }) => string,
+  handleNavigateToDocument: (id: number) => void,
+  openTransferDocs: (ids: number[]) => void
+): RowAction<Document>[] {
+  return [
+    {
+      id: "view",
+      label: t("common.view", { defaultValue: "View" }),
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      onClick: (d) => handleNavigateToDocument(d.id),
+    },
+    {
+      id: "transfer",
+      label: t("folders.transfer", { defaultValue: "Transfer" }),
+      variant: "outline",
+      className: "btn-outline-secondary",
+      renderLabel: () => (
+        <>
+          <ArrowRightLeft className="me-1" style={{ width: 14, height: 14, verticalAlign: "text-bottom" }} />
+          {t("folders.transfer", { defaultValue: "Transfer" })}
+        </>
+      ),
+      onClick: (d, e) => {
+        e.stopPropagation();
+        openTransferDocs([d.id]);
+      },
+    },
+  ];
+}
+
+function attachmentsColumns(t: (key: string, opts?: { defaultValue?: string }) => string): ColumnDef<Attachment>[] {
+  return [
+    { id: "name", header: t("folders.name", { defaultValue: "Name" }), render: (a) => a.name },
+    { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), render: (a) => a.file_name },
+  ];
+}
+
+function attachmentsRowActions(
+  t: (key: string, opts?: { defaultValue?: string }) => string,
+  handleDownloadAttachment: (attachmentId: number, fileName: string) => void,
+  openTransferAttachments: (ids: number[]) => void
+): RowAction<Attachment>[] {
+  return [
+    {
+      id: "download",
+      label: t("documents.download", { defaultValue: "Download" }),
+      variant: "outline",
+      className: "btn-outline-secondary me-1",
+      onClick: (a) => handleDownloadAttachment(a.id, a.file_name),
+    },
+    {
+      id: "transfer",
+      label: t("folders.transfer", { defaultValue: "Transfer" }),
+      variant: "outline",
+      className: "btn-outline-secondary",
+      renderLabel: () => (
+        <>
+          <ArrowRightLeft className="me-1" style={{ width: 14, height: 14, verticalAlign: "text-bottom" }} />
+          {t("folders.transfer", { defaultValue: "Transfer" })}
+        </>
+      ),
+      onClick: (a, e) => {
+        e.stopPropagation();
+        openTransferAttachments([a.id]);
+      },
+    },
+  ];
+}
 
 const FolderDetailPage = () => {
   const {
@@ -70,6 +158,22 @@ const FolderDetailPage = () => {
     loadFolderDocuments,
     handleCloseUploadPanel,
     refreshAttachmentsForCurrentDocument,
+    subDocsSelectionConfig,
+    subDocSelectedIds,
+    clearSubDocsSelection,
+    openTransferDocs,
+    attachmentsSelectionConfig,
+    attachmentSelectedIds,
+    clearAttachmentsSelection,
+    openTransferAttachments,
+    transferModalOpen,
+    transferMode,
+    transferDocIds,
+    transferAttachmentIds,
+    transferDepartmentId,
+    transferSubmitting,
+    closeTransferModal,
+    handleTransferConfirm,
   } = useFolderDetailPageContainer();
 
   if (!folderId) {
@@ -260,48 +364,37 @@ const FolderDetailPage = () => {
 
         {/* Secondary documents */}
         <div className="card mb-3">
-          <div className="card-header">
+          <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h6 className="mb-0">🧩 {t("folders.secondaryDocuments", { defaultValue: "Secondary documents" })}</h6>
-          </div>
-          <div className="card-body">
-            {subDocs.length === 0 ? (
-              <p className="text-muted mb-0">{t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}</p>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-sm mb-0">
-                  <thead>
-                    <tr>
-                      <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
-                      <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                      <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                      <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
-                      <th>{t("documents.status", { defaultValue: "Status" })}</th>
-                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {subDocs.map((d) => (
-                      <tr
-                        key={d.id}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleNavigateToDocument(d.id)}
-                      >
-                        <td>{d.barcode ?? "–"}</td>
-                        <td>{d.title ?? d.name ?? "–"}</td>
-                        <td>{d.document_type_name ?? (d.document_type as { name?: string })?.name ?? "–"}</td>
-                        <td>{formatDate(d.upload_date)}</td>
-                        <td>{d.status ?? "–"}</td>
-                        <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(d.id); }}>
-                            {t("common.view", { defaultValue: "View" })}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {subDocs.length > 0 && subDocSelectedIds.length > 0 && (
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="btn-outline-secondary"
+                  onClick={() => openTransferDocs(subDocSelectedIds as number[])}
+                >
+                  <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
+                  {t("folders.transferSelected", { count: subDocSelectedIds.length, defaultValue: "Transfer selected ({{count}})" })}
+                </Button>
+                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearSubDocsSelection}>
+                  {t("common.clearSelection", { defaultValue: "Clear selection" })}
+                </Button>
               </div>
             )}
+          </div>
+          <div className="card-body">
+            <DataTable<Document>
+              data={subDocs}
+              getRowId={(d) => d.id}
+              columns={secondaryDocsColumns(t, formatDate)}
+              emptyMessage={t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
+              onRowClick={(d) => handleNavigateToDocument(d.id)}
+              rowActions={secondaryDocsRowActions(t, handleNavigateToDocument, openTransferDocs)}
+              selection={subDocsSelectionConfig}
+              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+              tableClassName="table table-sm mb-0"
+            />
           </div>
         </div>
 
@@ -324,43 +417,39 @@ const FolderDetailPage = () => {
                   ))}
                 </select>
               )}
+              {attachments.length > 0 && attachmentSelectedIds.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="btn-outline-secondary"
+                    onClick={() => openTransferAttachments(attachmentSelectedIds as number[])}
+                  >
+                    <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
+                    {t("folders.transferSelected", { count: attachmentSelectedIds.length, defaultValue: "Transfer selected ({{count}})" })}
+                  </Button>
+                  <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearAttachmentsSelection}>
+                    {t("common.clearSelection", { defaultValue: "Clear selection" })}
+                  </Button>
+                </>
+              )}
               <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleAddAttachment}>
                 {t("folders.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
-            
             </div>
           </div>
           <div className="card-body">
-            {loadingAttachments ? (
-              <Spinner />
-            ) : attachments.length === 0 ? (
-              <p className="text-muted mb-0">{t("common.noData", { defaultValue: "No data" })}</p>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-sm mb-0">
-                  <thead>
-                    <tr>
-                      <th>{t("folders.name", { defaultValue: "Name" })}</th>
-                      <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
-                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attachments.map((a) => (
-                      <tr key={a.id}>
-                        <td>{a.name}</td>
-                        <td>{a.file_name}</td>
-                        <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => handleDownloadAttachment(a.id, a.file_name)}>
-                            {t("documents.download", { defaultValue: "Download" })}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <DataTable<Attachment>
+              data={attachments}
+              getRowId={(a) => a.id}
+              columns={attachmentsColumns(t)}
+              loading={loadingAttachments}
+              emptyMessage={t("common.noData", { defaultValue: "No data" })}
+              rowActions={attachmentsRowActions(t, handleDownloadAttachment, openTransferAttachments)}
+              selection={attachmentsSelectionConfig}
+              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+              tableClassName="table table-sm mb-0"
+            />
           </div>
         </div>
 
@@ -516,6 +605,23 @@ const FolderDetailPage = () => {
         cancelLabel={t("common.cancel")}
         confirmVariant="danger"
         isLoading={isDeletingFolder}
+      />
+
+      <TransferToFolderModal
+        isOpen={transferModalOpen}
+        onClose={closeTransferModal}
+        departmentId={transferDepartmentId}
+        title={t("folders.selectDestinationFolder", { defaultValue: "Select destination folder" })}
+        subtitle={
+          transferMode === "docs"
+            ? t("folders.transferSubtitleDocs", { count: transferDocIds.length, defaultValue: "Transfer {{count}} document(s) to a folder in the same department." })
+            : transferMode === "attachments"
+              ? t("folders.transferSubtitleAttachments", { count: transferAttachmentIds.length, defaultValue: "Transfer {{count}} attachment(s) to a folder in the same department." })
+              : undefined
+        }
+        excludeFolderId={folderId ?? undefined}
+        onConfirm={handleTransferConfirm}
+        isSubmitting={transferSubmitting}
       />
 
       <EditFolderSidePanel

@@ -8,7 +8,7 @@ import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailP
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, isTrashing, isRestoring, isPermanentDeleting, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, isTrashing, isRestoring, isPermanentDeleting, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -577,7 +577,7 @@ const DocumentDetailPage = () => {
           </div>
           {uploadVersionFile && <small className="text-muted d-block mt-1">{uploadVersionFile.name}</small>}
         </div>
-        <ModalFooter>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={() => setModalUploadVersion(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
@@ -622,7 +622,7 @@ const DocumentDetailPage = () => {
             onChange={(e) => setSignMessage(e.target.value)}
           />
         </div>
-        <ModalFooter>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={() => setModalRequestSign(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
@@ -682,7 +682,7 @@ const DocumentDetailPage = () => {
           </div>
           {signedFile && <small className="text-muted d-block mt-1">{signedFile.name}</small>}
         </div>
-        <ModalFooter>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={() => setModalUploadSigned(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
@@ -722,7 +722,7 @@ const DocumentDetailPage = () => {
             onChange={(e) => setRelationNotes(e.target.value)}
           />
         </div>
-        <ModalFooter>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={() => setModalAddRelation(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
