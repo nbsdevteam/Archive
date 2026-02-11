@@ -1,5 +1,19 @@
 /* Theme-based table overrides. Use var(--primary-rgb) from design tokens. */
 
+/* Bootstrap table headers: consistent inline padding so first column (e.g. Name) and last column (Actions) have equal breathing room. */
+.table thead tr th:first-child {
+  padding-inline-start: 1.25rem;
+}
+.table thead tr th:last-child {
+  padding-inline-end: 1.25rem;
+}
+.table tbody tr td:first-child {
+  padding-inline-start: 1.25rem;
+}
+.table tbody tr td:last-child {
+  padding-inline-end: 1.25rem;
+}
+
 /* Ant Design tables */
 .ant-table-wrapper .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1),
 .data-table-card .ant-table-content .ant-table-tbody tr:nth-of-type(2n + 1) {
@@ -93,4 +107,5 @@
 .datatable-responsive-wrap {
   overflow-x: auto;
   overflow-y: visible;
+  height: inherit;
 }
