@@ -585,9 +585,6 @@ const FolderDetailPage = () => {
             </Button>
           </div>
           <div className="card-body">
-            {!userNotes.trim() && (
-              <p className="text-muted mb-2">{t("folders.noNotesOrDrafts", { defaultValue: "No notes or drafts made by the user." })}</p>
-            )}
             <textarea
               className="form-control"
               rows={4}
