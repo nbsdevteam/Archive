@@ -75,7 +75,7 @@ export const SidebarDataTest = [
         link: routes.archiveActivity,
         submenu: false,
         showSubRoute: false,
-        icon: "History",
+        icon: "Activity",
         base: routes.archiveActivity,
       },
       {

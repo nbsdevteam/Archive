@@ -25,6 +25,7 @@ import {
   PenTool,
   Bell,
   Shield,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +37,7 @@ const iconMap: Record<string, LucideIcon> = {
   PenTool,
   Bell,
   Shield,
+  Activity,
 };
 
 interface SidebarMenuItem {
