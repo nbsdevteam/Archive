@@ -61,3 +61,10 @@
   --bs-table-striped-bg: rgba(var(--primary-rgb), 0.12);
   --bs-table-hover-bg: rgba(var(--primary-rgb), 0.2);
 }
+
+/* DataTable row actions kebab: hide Bootstrap/Font Awesome caret pseudo-elements so only the kebab icon shows */
+.datatable-row-actions-dropdown .dropdown-toggle::before,
+.datatable-row-actions-dropdown .dropdown-toggle::after {
+  display: none !important;
+  content: none !important;
+}

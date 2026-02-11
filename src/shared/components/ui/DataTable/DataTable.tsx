@@ -136,11 +136,11 @@ export function DataTable<T>({
                       className="text-end align-middle"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Dropdown align="end" drop="start">
+                      <Dropdown align="end" drop="start" className="datatable-row-actions-dropdown">
                         <Dropdown.Toggle
                           variant="link"
                           size="sm"
-                          className="p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
+                          className="datatable-row-actions-toggle p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
                           aria-label="Row actions"
                         >
                           <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
