@@ -33,8 +33,18 @@
     flex-direction: column;
   }
 
+  /* Table wrapper: same height as card body, no inner vertical scroll */
   &__table-card .card-body .datatable-responsive-wrap {
     flex: 1 1 auto;
     min-height: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  &__table-card .card-body .datatable-responsive-wrap .table {
+    flex: 0 0 auto;
   }
 }
