@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRightLeft } from "lucide-react";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { UploadDocumentSidePanel } from "../../documents/components";
@@ -29,7 +28,6 @@ function secondaryDocsColumns(
 function secondaryDocsRowActions(
   t: (key: string, opts?: { defaultValue?: string }) => string,
   handleNavigateToDocument: (id: number) => void,
-  openTransferDocs: (ids: number[]) => void,
   handleOpenSubDocTrashConfirm: (documentId: number) => void,
   handleDownloadDocument: (documentId: number) => void,
   handleArchiveFolderDocument: (documentId: number) => void,
@@ -51,22 +49,6 @@ function secondaryDocsRowActions(
       onClick: (d, e) => {
         e.stopPropagation();
         handleDownloadDocument(d.id);
-      },
-    },
-    {
-      id: "transfer",
-      label: t("folders.transfer", { defaultValue: "Transfer" }),
-      variant: "outline",
-      className: "btn-outline-secondary",
-      renderLabel: () => (
-        <>
-          <ArrowRightLeft className="me-1" style={{ width: 14, height: 14, verticalAlign: "text-bottom" }} />
-          {t("folders.transfer", { defaultValue: "Transfer" })}
-        </>
-      ),
-      onClick: (d, e) => {
-        e.stopPropagation();
-        openTransferDocs([d.id]);
       },
     },
     {
@@ -235,7 +217,6 @@ const FolderDetailPage = () => {
     handleOpenBatchSubDocTrashConfirm,
     handleCloseBatchSubDocTrashConfirm,
     handleConfirmBatchSubDocTrash,
-    openTransferDocs,
     attachmentsSelectionConfig,
     attachmentSelectedIds,
     clearAttachmentsSelection,
@@ -512,18 +493,6 @@ const FolderDetailPage = () => {
                     defaultValue: "Move selected to trash",
                   })}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="btn-outline-secondary"
-                  onClick={() => openTransferDocs(subDocSelectedIds as number[])}
-                >
-                  <ArrowRightLeft className="me-1" style={{ width: 16, height: 16, verticalAlign: "text-bottom" }} />
-                  {t("folders.transferSelected", { defaultValue: "Transfer selected" })}
-                  {subDocSelectedIds.length > 0 && (
-                    <span className="badge bg-secondary ms-1">{subDocSelectedIds.length}</span>
-                  )}
-                </Button>
                 <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearSubDocsSelection}>
                   {t("common.clearSelection", { defaultValue: "Clear selection" })}
                 </Button>
@@ -540,7 +509,6 @@ const FolderDetailPage = () => {
               rowActions={secondaryDocsRowActions(
                 t,
                 handleNavigateToDocument,
-                openTransferDocs,
                 handleOpenSubDocTrashConfirm,
                 handleDownloadDocument,
                 handleArchiveFolderDocument,
