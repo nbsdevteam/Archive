@@ -5,6 +5,7 @@
 export * from "./types";
 export * from "./utils";
 export * from "./AuditActionBadge";
+export * from "./AuditActionIcon";
 export * from "./ActivityViewSwitcher";
 export * from "./AuditLogsTable";
 export * from "./AuditLogsTimeline";

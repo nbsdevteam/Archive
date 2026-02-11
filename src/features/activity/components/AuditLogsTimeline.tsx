@@ -11,19 +11,10 @@ import {
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
-import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
-import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
-import RestoreFromTrashRoundedIcon from "@mui/icons-material/RestoreFromTrashRounded";
-import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
-import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
-import FolderRoundedIcon from "@mui/icons-material/FolderRounded";
-import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
-import type { SvgIconComponent } from "@mui/icons-material";
 import { Button, Checkbox, Modal, ModalFooter } from "../../../shared/components/ui";
+import { AuditActionIcon } from "../../../shared/components/Activity";
+import { getAuditActionVisual } from "../../../shared/utils/auditActionVisuals";
 import type { AuditLogEntry } from "../types/auditLogs.types";
 import { AUDIT_ACTION_OPTIONS } from "../types/auditLogs.types";
 import { useActivityTimelineFilterStore } from "../stores/useActivityTimelineFilterStore";
@@ -43,39 +34,6 @@ interface AuditLogsTimelineProps {
   onDocumentClick?: (documentId: number, log: AuditLogEntry) => void;
   className?: string;
 }
-
-/**
- * Returns icon and color variant for each action type.
- */
-const getActionVisual = (
-  action: string
-): { icon: SvgIconComponent; color: "primary" | "secondary" | "success" | "warning" | "error" | "info" } => {
-  if (action.includes("upload") || action.includes("new_version")) {
-    return { icon: UploadFileRoundedIcon, color: "success" };
-  }
-  if (action.includes("download")) {
-    return { icon: DownloadRoundedIcon, color: "info" };
-  }
-  if (action.includes("archive")) {
-    return { icon: ArchiveRoundedIcon, color: "warning" };
-  }
-  if (action.includes("restored")) {
-    return { icon: RestoreFromTrashRoundedIcon, color: "success" };
-  }
-  if (action.includes("deleted") || action.includes("rejection")) {
-    return { icon: DeleteForeverRoundedIcon, color: "error" };
-  }
-  if (action.includes("folder_")) {
-    return { icon: FolderRoundedIcon, color: "secondary" };
-  }
-  if (action.includes("edit") || action.includes("approval")) {
-    return { icon: EditNoteRoundedIcon, color: "primary" };
-  }
-  if (action.includes("view") || action.includes("search")) {
-    return { icon: VisibilityRoundedIcon, color: "info" };
-  }
-  return { icon: DescriptionRoundedIcon, color: "primary" };
-};
 
 /**
  * Timeline renderer for phase 2 while reusing the same audit log dataset.
@@ -209,8 +167,8 @@ const AuditLogsTimelineComponent = ({
               const actionLabel = t(`activity.actions.${log.action}`, {
                 defaultValue: humanizeAction(String(log.action)),
               });
-              const visual = getActionVisual(String(log.action));
-              const DotIcon = visual.icon;
+              const visual = getAuditActionVisual(String(log.action));
+              const DotIcon = visual.Icon;
               const isLast = index === (groups[dayKey]?.length ?? 0) - 1;
               const isDocumentClickable = Boolean(onDocumentClick && typeof log.document_id === "number");
               const documentClickHandler = documentClickHandlers.get(log.id);
@@ -224,14 +182,14 @@ const AuditLogsTimelineComponent = ({
                   </TimelineOppositeContent>
                   <TimelineSeparator>
                     <TimelineDot color={visual.color} variant="outlined">
-                      <DotIcon fontSize="small" />
+                      <DotIcon size={16} strokeWidth={2} />
                     </TimelineDot>
                     {!isLast && <TimelineConnector />}
                   </TimelineSeparator>
                   <TimelineContent sx={{ py: 0.5, px: 2, mt: "4px" }}>
                     <Paper elevation={0} variant="outlined" sx={{ p: 1.5 }}>
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" mb={0.5}>
-                        <Chip size="small" color={visual.color} label={actionLabel} />
+                        <AuditActionIcon action={String(log.action)} label={actionLabel} />
                       </Stack>
 
                       <div className="activity-timeline-label-grid">

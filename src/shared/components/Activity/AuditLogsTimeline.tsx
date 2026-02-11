@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState, type ComponentType } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   Timeline,
   TimelineItem,
@@ -11,48 +11,10 @@ import {
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
-import {
-  Archive,
-  ArchiveRestore,
-  BadgeCheck,
-  BadgeX,
-  Building,
-  Building2,
-  CheckCheck,
-  ClipboardCheck,
-  ClipboardX,
-  CircleCheck,
-  CircleX,
-  Download,
-  Eraser,
-  Eye,
-  FileCog,
-  FilePenLine,
-  Files,
-  FileStack,
-  FolderOpen,
-  FolderPen,
-  FolderPlus,
-  FolderSync,
-  FolderX,
-  GitBranchPlus,
-  Link2,
-  LogIn,
-  LogOut,
-  Paperclip,
-  PenTool,
-  RotateCcw,
-  ScanSearch,
-  Settings2,
-  ShieldCheck,
-  ShieldX,
-  Trash,
-  Trash2,
-  Upload,
-} from "lucide-react";
 import { Button, Checkbox, Modal, ModalFooter } from "../ui";
+import { AuditActionIcon } from "./AuditActionIcon";
+import { getAuditActionVisual } from "../../utils/auditActionVisuals";
 import type { AuditLogEntry } from "./types";
 import { AUDIT_ACTION_OPTIONS } from "./types";
 import { useActivityTimelineFilterStore } from "./useActivityTimelineFilterStore";
@@ -73,61 +35,6 @@ export interface AuditLogsTimelineProps {
   onDocumentClick?: (documentId: number, log: AuditLogEntry) => void;
   className?: string;
 }
-
-type TimelineIconComponent = ComponentType<{
-  size?: number | string;
-  strokeWidth?: number | string;
-  className?: string;
-}>;
-
-/** Returns icon and color for each action type. */
-const getActionVisual = (
-  action: string
-): { icon: TimelineIconComponent; color: "primary" | "secondary" | "success" | "warning" | "error" | "info" } => {
-  const actionVisualMap: Record<
-    string,
-    { icon: TimelineIconComponent; color: "primary" | "secondary" | "success" | "warning" | "error" | "info" }
-  > = {
-    upload: { icon: Upload, color: "success" },
-    view: { icon: Eye, color: "info" },
-    download: { icon: Download, color: "info" },
-    edit_request: { icon: ClipboardCheck, color: "primary" },
-    edit_request_created: { icon: FilePenLine, color: "primary" },
-    edit_request_approved: { icon: BadgeCheck, color: "success" },
-    edit_request_rejected: { icon: ClipboardX, color: "error" },
-    approval: { icon: CircleCheck, color: "success" },
-    rejection: { icon: CircleX, color: "error" },
-    new_version: { icon: FileStack, color: "primary" },
-    new_version_uploaded: { icon: Files, color: "success" },
-    archive: { icon: Archive, color: "warning" },
-    unarchive: { icon: ArchiveRestore, color: "success" },
-    document_soft_deleted: { icon: Trash2, color: "error" },
-    document_restored: { icon: RotateCcw, color: "success" },
-    document_permanently_deleted: { icon: Trash, color: "error" },
-    search: { icon: ScanSearch, color: "info" },
-    login: { icon: LogIn, color: "secondary" },
-    logout: { icon: LogOut, color: "secondary" },
-    attachment_upload: { icon: Paperclip, color: "success" },
-    attachment_updated: { icon: FileCog, color: "primary" },
-    attachment_deleted: { icon: Eraser, color: "error" },
-    attachment_restored: { icon: FolderSync, color: "success" },
-    attachment_permanently_deleted: { icon: BadgeX, color: "error" },
-    multiple_attachments_upload: { icon: Files, color: "success" },
-    signed_version_uploaded: { icon: PenTool, color: "primary" },
-    relation_created: { icon: Link2, color: "info" },
-    folder_created: { icon: FolderPlus, color: "secondary" },
-    folder_updated: { icon: FolderPen, color: "secondary" },
-    folder_deleted: { icon: FolderX, color: "error" },
-    folder_moved: { icon: FolderOpen, color: "secondary" },
-    department_created: { icon: Building2, color: "secondary" },
-    department_updated: { icon: Building, color: "primary" },
-    department_archived: { icon: ShieldX, color: "warning" },
-    document_type_created: { icon: GitBranchPlus, color: "primary" },
-    document_type_updated: { icon: Settings2, color: "primary" },
-    document_type_archived: { icon: ShieldCheck, color: "warning" },
-  };
-  return actionVisualMap[action] ?? { icon: CheckCheck, color: "primary" };
-};
 
 /** Timeline view for audit logs; memoized to avoid rerenders when props are unchanged. */
 const AuditLogsTimelineComponent = ({
@@ -213,8 +120,8 @@ const AuditLogsTimelineComponent = ({
           <Timeline position="right" sx={{ m: 0, p: 0 }}>
             {(groups[dayKey] || []).map((log, index) => {
               const actionLabel = t(`activity.actions.${log.action}`, { defaultValue: humanizeAction(String(log.action)) });
-              const visual = getActionVisual(String(log.action));
-              const DotIcon = visual.icon;
+              const visual = getAuditActionVisual(String(log.action));
+              const DotIcon = visual.Icon;
               const isLast = index === (groups[dayKey]?.length ?? 0) - 1;
               const isDocumentClickable = Boolean(onDocumentClick && typeof log.document_id === "number");
               const documentClickHandler = documentClickHandlers.get(log.id);
@@ -235,7 +142,7 @@ const AuditLogsTimelineComponent = ({
                   <TimelineContent sx={{ py: 0.5, px: 2, mt: "4px" }}>
                     <Paper elevation={0} variant="outlined" sx={{ p: 1.5 }}>
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" mb={0.5}>
-                        <Chip size="small" color={visual.color} label={actionLabel} />
+                        <AuditActionIcon action={String(log.action)} label={actionLabel} />
                       </Stack>
                       <div className="activity-timeline-label-grid">
                         <Typography variant="body2" className="activity-timeline-label-row">
