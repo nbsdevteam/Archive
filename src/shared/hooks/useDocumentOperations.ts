@@ -13,10 +13,6 @@ interface TrashOptions extends OperationOptions {
   reason?: string;
 }
 
-interface PermanentDeleteOptions extends OperationOptions {
-  confirmation?: string;
-}
-
 /**
  * Centralized document actions (archive/trash/restore/permanent delete)
  * with shared error handling and loading flags.
@@ -28,8 +24,8 @@ export const useDocumentOperations = () => {
     unarchiveDocument,
     trashDocument,
     batchTrashDocuments,
-    restoreDocument,
-    permanentDeleteDocument,
+    restoreDocuments,
+    permanentDeleteDocuments,
   } = useDocumentStore();
 
   const [isArchivingSingle, setIsArchivingSingle] = useState(false);
@@ -109,6 +105,28 @@ export const useDocumentOperations = () => {
     [unarchiveDocument, getErrorMessage]
   );
 
+  /** Batch unarchive: calls single unarchive per document (no backend batch endpoint). */
+  const unarchiveBatch = useCallback(
+    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
+      if (documentIds.length === 0) return false;
+      setIsUnarchiving(true);
+      try {
+        for (const id of documentIds) {
+          await unarchiveDocument(id);
+        }
+        if (options?.successMessage) toast.success(options.successMessage);
+        await options?.onSuccess?.();
+        return true;
+      } catch (error) {
+        toast.error(getErrorMessage(error, options?.errorMessage));
+        return false;
+      } finally {
+        setIsUnarchiving(false);
+      }
+    },
+    [unarchiveDocument, getErrorMessage]
+  );
+
   const trashSingle = useCallback(
     async (documentId: number, options?: TrashOptions): Promise<boolean> => {
       setIsTrashingSingle(true);
@@ -150,7 +168,7 @@ export const useDocumentOperations = () => {
     async (documentId: number, options?: OperationOptions): Promise<boolean> => {
       setIsRestoring(true);
       try {
-        await restoreDocument(documentId);
+        await restoreDocuments([documentId]);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -161,14 +179,33 @@ export const useDocumentOperations = () => {
         setIsRestoring(false);
       }
     },
-    [restoreDocument, getErrorMessage]
+    [restoreDocuments, getErrorMessage]
+  );
+
+  const restoreBatch = useCallback(
+    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
+      if (documentIds.length === 0) return false;
+      setIsRestoring(true);
+      try {
+        await restoreDocuments(documentIds);
+        if (options?.successMessage) toast.success(options.successMessage);
+        await options?.onSuccess?.();
+        return true;
+      } catch (error) {
+        toast.error(getErrorMessage(error, options?.errorMessage));
+        return false;
+      } finally {
+        setIsRestoring(false);
+      }
+    },
+    [restoreDocuments, getErrorMessage]
   );
 
   const permanentDeleteSingle = useCallback(
-    async (documentId: number, options?: PermanentDeleteOptions): Promise<boolean> => {
+    async (documentId: number, options?: OperationOptions): Promise<boolean> => {
       setIsPermanentDeleting(true);
       try {
-        await permanentDeleteDocument(documentId, options?.confirmation);
+        await permanentDeleteDocuments([documentId]);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -179,7 +216,26 @@ export const useDocumentOperations = () => {
         setIsPermanentDeleting(false);
       }
     },
-    [permanentDeleteDocument, getErrorMessage]
+    [permanentDeleteDocuments, getErrorMessage]
+  );
+
+  const permanentDeleteBatch = useCallback(
+    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
+      if (documentIds.length === 0) return false;
+      setIsPermanentDeleting(true);
+      try {
+        await permanentDeleteDocuments(documentIds);
+        if (options?.successMessage) toast.success(options.successMessage);
+        await options?.onSuccess?.();
+        return true;
+      } catch (error) {
+        toast.error(getErrorMessage(error, options?.errorMessage));
+        return false;
+      } finally {
+        setIsPermanentDeleting(false);
+      }
+    },
+    [permanentDeleteDocuments, getErrorMessage]
   );
 
   return {
@@ -193,9 +249,12 @@ export const useDocumentOperations = () => {
     archiveSingle,
     archiveBatch,
     unarchiveSingle,
+    unarchiveBatch,
     trashSingle,
     trashBatch,
     restoreSingle,
+    restoreBatch,
     permanentDeleteSingle,
+    permanentDeleteBatch,
   };
 };

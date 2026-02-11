@@ -35,15 +35,18 @@ export const useArchivedDocumentsPageContainer = () => {
   const {
     isTrashingSingle,
     isTrashingBatch,
+    isUnarchiving,
     trashSingle,
     trashBatch,
     unarchiveSingle,
+    unarchiveBatch,
   } = useDocumentOperations();
   const [appliedFilters, setAppliedFilters] = useState<ArchivedDocumentsFilterState>({});
   const [draftFilters, setDraftFilters] = useState<ArchivedDocumentsFilterState>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [trashTargetId, setTrashTargetId] = useState<number | null>(null);
   const [isBatchTrashConfirmOpen, setIsBatchTrashConfirmOpen] = useState(false);
+  const [isBatchUnarchiveConfirmOpen, setIsBatchUnarchiveConfirmOpen] = useState(false);
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [documentTypes, setDocumentTypes] = useState<
     Array<{ id: number; name: string; code: string; department_id: number; department_name: string }>
@@ -325,6 +328,40 @@ export const useArchivedDocumentsPageContainer = () => {
     trashBatch,
   ]);
 
+  const handleOpenBatchUnarchiveConfirm = useCallback(() => {
+    if (selectedDocumentIds.length > 0) setIsBatchUnarchiveConfirmOpen(true);
+  }, [selectedDocumentIds.length]);
+
+  const handleCloseBatchUnarchiveConfirm = useCallback(() => {
+    if (!isUnarchiving) setIsBatchUnarchiveConfirmOpen(false);
+  }, [isUnarchiving]);
+
+  const handleConfirmBatchUnarchive = useCallback(async () => {
+    if (selectedDocumentIds.length === 0) return;
+    const selectedCount = selectedDocumentIds.length;
+    const didUnarchive = await unarchiveBatch(selectedDocumentIds, {
+      successMessage: t("documents.batchUnarchived", {
+        defaultValue: "{{count}} document(s) unarchived.",
+        count: selectedCount,
+      }),
+      errorMessage: t("documents.batchUnarchiveFailed", {
+        defaultValue: "Failed to unarchive documents.",
+      }),
+      onSuccess: () => fetchDocuments({ ...getFetchParams(), page: 1, per_page: 20 }),
+    });
+    if (didUnarchive) {
+      clearSelection();
+      setIsBatchUnarchiveConfirmOpen(false);
+    }
+  }, [
+    clearSelection,
+    fetchDocuments,
+    getFetchParams,
+    selectedDocumentIds,
+    t,
+    unarchiveBatch,
+  ]);
+
   const openMoveModalForIds = useCallback(
     (documentIds: number[]) => {
       if (documentIds.length === 0) return;
@@ -446,5 +483,10 @@ export const useArchivedDocumentsPageContainer = () => {
     handleOpenBatchTrashConfirm,
     handleCloseBatchTrashConfirm,
     handleConfirmBatchTrash,
+    isBatchUnarchiveConfirmOpen,
+    isBatchUnarchiving: isUnarchiving,
+    handleOpenBatchUnarchiveConfirm,
+    handleCloseBatchUnarchiveConfirm,
+    handleConfirmBatchUnarchive,
   };
 };

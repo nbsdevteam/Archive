@@ -57,6 +57,11 @@ const ArchiveDocuments = () => {
     handleOpenBatchTrashConfirm,
     handleCloseBatchTrashConfirm,
     handleConfirmBatchTrash,
+    isBatchUnarchiveConfirmOpen,
+    isBatchUnarchiving,
+    handleOpenBatchUnarchiveConfirm,
+    handleCloseBatchUnarchiveConfirm,
+    handleConfirmBatchUnarchive,
   } = useArchivedDocumentsPageContainer();
 
   const totalPages = pagination?.total_pages ?? 1;
@@ -126,7 +131,7 @@ const ArchiveDocuments = () => {
       {
         id: "download",
         label: t("documents.download", { defaultValue: "Download" }),
-        icon: "download",
+        icon: "download" as const,
         variant: "outline" as const,
         className: "btn-outline-secondary me-1",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -137,7 +142,7 @@ const ArchiveDocuments = () => {
       {
         id: "unarchive",
         label: t("documents.unarchive", { defaultValue: "Unarchive" }),
-        icon: "archive",
+        icon: "archive" as const,
         variant: "outline" as const,
         className: "btn-outline-secondary",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -148,7 +153,7 @@ const ArchiveDocuments = () => {
       {
         id: "trash",
         label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
-        icon: "trash-2",
+        icon: "trash-2" as const,
         variant: "outline" as const,
         className: "btn-outline-danger",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -220,6 +225,20 @@ const ArchiveDocuments = () => {
             <div className="d-flex align-items-center gap-2 documents__header-actions">
               {documents.length > 0 && isSomeSelected && (
                 <>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    className="btn-outline-success d-inline-flex align-items-center me-2"
+                    onClick={handleOpenBatchUnarchiveConfirm}
+                    disabled={isBatchUnarchiving}
+                    aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+                  >
+                    <Icon name="archive" className="me-1" />
+                    {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+                    {selectedDocumentIds.length > 0 && (
+                      <span className="badge bg-success ms-2">{selectedDocumentIds.length}</span>
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="md"
@@ -302,7 +321,7 @@ const ArchiveDocuments = () => {
               </Button>
             </div>
           </div>
-          <div className="card-body">
+          <div className="card-body h-50vh">
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}
@@ -387,6 +406,21 @@ const ArchiveDocuments = () => {
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
         isLoading={isBatchTrashing}
+      />
+
+      <ConfirmModal
+        isOpen={isBatchUnarchiveConfirmOpen}
+        onClose={handleCloseBatchUnarchiveConfirm}
+        onConfirm={handleConfirmBatchUnarchive}
+        title={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+        message={t("documents.confirmBatchUnarchive", {
+          defaultValue: "Unarchive {{count}} document(s)?",
+          count: selectedDocumentIds.length,
+        })}
+        confirmLabel={t("documents.unarchive", { defaultValue: "Unarchive" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="primary"
+        isLoading={isBatchUnarchiving}
       />
     </div>
   );
