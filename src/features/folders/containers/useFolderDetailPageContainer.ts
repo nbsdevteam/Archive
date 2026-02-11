@@ -18,8 +18,8 @@ import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFi
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 
-/** localStorage key for user notes draft (debounced save). */
-const USER_NOTES_STORAGE_KEY = "user-notes";
+/** Build localStorage key for folder-specific user notes (key-value by folder id). */
+const getUserNotesStorageKey = (folderId: number) => `user-notes-${folderId}`;
 
 export const useFolderDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,15 +38,11 @@ export const useFolderDetailPageContainer = () => {
 
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
-  /** User notes draft persisted to localStorage with 1000ms debounce. */
-  const [userNotes, setUserNotes] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      return window.localStorage.getItem(USER_NOTES_STORAGE_KEY) ?? "";
-    } catch {
-      return "";
-    }
-  });
+  /** User notes draft per folder, persisted to localStorage with 1000ms debounce. */
+  const [userNotes, setUserNotes] = useState<string>("");
+  const userNotesRef = useRef(userNotes);
+  userNotesRef.current = userNotes;
+  const prevFolderKeyRef = useRef<string | null>(null);
 
   const [managers, setManagers] = useState<Array<{ id: number; name: string; login?: string }>>([]);
   const [signatureOpen, setSignatureOpen] = useState(false);
@@ -158,12 +154,34 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [folderId, attachmentsDocId]);
 
-  /** Debounce timer for persisting user notes to localStorage (1000ms). */
+  /** When folder (URL) changes: flush current notes to previous folder key, then load notes for this folder. */
+  useEffect(() => {
+    if (folderId == null) return;
+    const key = getUserNotesStorageKey(folderId);
+    const prevKey = prevFolderKeyRef.current;
+    if (prevKey != null && prevKey !== key) {
+      try {
+        window.localStorage.setItem(prevKey, userNotesRef.current);
+      } catch {
+        // ignore storage errors
+      }
+    }
+    prevFolderKeyRef.current = key;
+    const stored =
+      typeof window !== "undefined"
+        ? (window.localStorage.getItem(key) ?? "")
+        : "";
+    setUserNotes(stored);
+  }, [folderId]);
+
+  /** Debounce timer for persisting user notes to localStorage (1000ms), keyed by folder id. */
   const userNotesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
+    if (folderId == null) return;
+    const key = getUserNotesStorageKey(folderId);
     userNotesDebounceRef.current = setTimeout(() => {
       try {
-        window.localStorage.setItem(USER_NOTES_STORAGE_KEY, userNotes);
+        window.localStorage.setItem(key, userNotes);
       } catch {
         // ignore storage errors
       }
@@ -175,7 +193,7 @@ export const useFolderDetailPageContainer = () => {
         userNotesDebounceRef.current = null;
       }
     };
-  }, [userNotes]);
+  }, [userNotes, folderId]);
 
   const loadAttachmentsForDocument = async (documentId: number) => {
     setLoadingAttachments(true);
