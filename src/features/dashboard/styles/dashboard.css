@@ -4,11 +4,11 @@
   }
 }
 
-/* Stat card as link: whole card clickable, pointer cursor; number keeps text cursor for selection */
+/* Stat card as link: whole card clickable; default cursor except on "View details" */
 .dashboard-stat-card-link {
   display: flex;
   flex: 1 1 auto;
-  cursor: pointer;
+  cursor: default;
   text-decoration: none;
   color: inherit;
 }
@@ -16,9 +16,14 @@
   color: inherit;
   text-decoration: none;
 }
+/* Numbers: default cursor, not selectable */
 .dashboard-stat-card-link .Num {
-  cursor: text;
-  user-select: text;
+  cursor: default;
+  user-select: none;
+}
+/* Pointer only on "View details" link text */
+.dashboard-stat-card-link .link-default {
+  cursor: pointer;
 }
 
 /* Top grid: fixed-size stat cards that wrap nicely */
