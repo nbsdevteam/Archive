@@ -3,6 +3,7 @@ import type { DataTableProps } from "./DataTable.types";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import { Spinner } from "../Spinner";
+import { InfoWrapper } from "../InfoWrapper";
 
 export function DataTable<T>({
   data,
@@ -126,23 +127,32 @@ export function DataTable<T>({
                           const label = action.renderLabel
                             ? action.renderLabel(row)
                             : action.label;
-                          return (
+                          
+                          const buttonElement = (
                             <Button
                               key={action.id}
                               variant={action.variant ?? "light"}
                               size="sm"
-                              className={`me-1 ${action.className ?? ""}`.trim()}
+                              className={`btn-icon ${action.className ?? ""}`.trim()}
                               disabled={disabled}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 action.onClick(row, e);
                               }}
                             >
-                              {action.icon && (
-                                <Icon name={action.icon} className="me-1" />
-                              )}
-                              {label}
+                              {action.icon && <Icon name={action.icon} />}
                             </Button>
+                          );
+
+                          return (
+                            <InfoWrapper
+                              key={action.id}
+                              content={label}
+                              position="top"
+                              trigger={buttonElement}
+                              className="me-1"
+                              showOn="hover"
+                            />
                           );
                         })}
                     </td>
