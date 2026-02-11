@@ -1,4 +1,5 @@
 import apiClient from './client';
+import type { AuditLogsApiParams } from '../../features/activity/types/auditLogs.types';
 
 export interface Department {
   id: number;
@@ -24,6 +25,7 @@ export interface DashboardStats {
   stats: {
     total_documents: number;
     my_documents: number;
+    pending_ocr: number;
     pending_approvals: number;
     recent_uploads: number;
     unread_notifications?: number;
@@ -31,18 +33,57 @@ export interface DashboardStats {
   };
 }
 
+export type AuditAction =
+  | "upload"
+  | "view"
+  | "download"
+  | "edit_request"
+  | "edit_request_created"
+  | "edit_request_approved"
+  | "edit_request_rejected"
+  | "approval"
+  | "rejection"
+  | "new_version"
+  | "new_version_uploaded"
+  | "archive"
+  | "unarchive"
+  | "document_soft_deleted"
+  | "document_restored"
+  | "document_permanently_deleted"
+  | "search"
+  | "login"
+  | "logout"
+  | "attachment_upload"
+  | "attachment_updated"
+  | "attachment_deleted"
+  | "attachment_restored"
+  | "attachment_permanently_deleted"
+  | "multiple_attachments_upload"
+  | "signed_version_uploaded"
+  | "relation_created"
+  | "folder_created"
+  | "folder_updated"
+  | "folder_deleted"
+  | "folder_moved"
+  | "department_created"
+  | "department_updated"
+  | "department_archived"
+  | "document_type_created"
+  | "document_type_updated"
+  | "document_type_archived";
+
 export interface AuditLog {
   id: number;
   user_id: number;
   user_name: string;
-  action: string;
-  document_id?: number;
-  document_title?: string;
-  department_id?: number;
-  department_name?: string;
+  action: AuditAction | string;
+  document_id: number | null;
+  document_title: string | null;
+  department_id: number | null;
+  department_name: string | null;
   timestamp: string;
-  ip_address: string;
-  metadata?: string;
+  ip_address: string | null;
+  metadata: string | null;
 }
 
 export interface AdminUserRow {
@@ -93,24 +134,19 @@ export const adminApi = {
   },
 
   /**
-   * Get audit logs
+   * Get audit logs. Params: document_id, action, date_from, date_to (YYYY-MM-DDTHH:mm:ss), page, per_page.
    */
-  getAuditLogs: async (params?: {
-    document_id?: number;
-    action?: string;
-    date_from?: string;
-    date_to?: string;
-    page?: number;
-    per_page?: number;
-  }): Promise<{
+  getAuditLogs: async (params?: AuditLogsApiParams): Promise<{
     success: boolean;
     data: AuditLog[];
     pagination: { total: number; page: number; per_page: number };
+    error?: string;
   }> => {
     const response = await apiClient.post('/api/audit-logs', {
       jsonrpc: '2.0',
       method: 'call',
-      params: params || {},
+      params: params ?? {},
+      id: 1,
     });
     return response.data.result || response.data;
   },

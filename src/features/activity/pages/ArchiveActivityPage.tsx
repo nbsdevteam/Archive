@@ -7,14 +7,14 @@ import { Icon, Button } from "../../../shared/components/ui";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
 import { ActivityViewSwitcher, AuditLogsTable, AuditLogsTimeline, AuditLogsTreeView } from "../components";
-import { formatDateForActivityApi } from "../utils/activity.utils";
+import { formatDateForAuditApi } from "../utils/activity.utils";
 import "../styles/activity.css";
 
-/** Returns date `days` ago in DD/MM/YYYY for audit-logs API. */
+/** Returns date `days` ago as YYYY-MM-DDTHH:mm:ss (start of day) for audit-logs API. */
 const getDateDaysAgoFormatted = (days: number): string => {
   const date = new Date();
   date.setDate(date.getDate() - days);
-  return formatDateForActivityApi(date);
+  return formatDateForAuditApi(date, false);
 };
 
 const ArchiveActivityPage = () => {
@@ -43,13 +43,13 @@ const ArchiveActivityPage = () => {
     },
   });
 
-  /** Applies filters; sends date_from/date_to as DD/MM/YYYY per audit-logs API. */
+  /** Applies filters; sends date_from/date_to as YYYY-MM-DDTHH:mm:ss per audit-logs API. */
   const applyFilters = async (nextPage = 1) => {
     const nextParams = {
       ...params,
       page: nextPage,
-      date_from: dateFromInput ? formatDateForActivityApi(dateFromInput) : params.date_from,
-      date_to: dateToInput ? formatDateForActivityApi(dateToInput) : undefined,
+      date_from: dateFromInput ? formatDateForAuditApi(dateFromInput, false) : params.date_from,
+      date_to: dateToInput ? formatDateForAuditApi(dateToInput, true) : undefined,
       action: actionInput || undefined,
     };
     setParams(nextParams);

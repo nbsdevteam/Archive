@@ -106,14 +106,28 @@ export interface AuditPagination {
   per_page: number;
 }
 
-export interface AuditLogsQueryParams {
+/** Params sent in the /api/audit-logs JSON-RPC request. date_from/date_to use YYYY-MM-DDTHH:mm:ss. */
+export interface AuditLogsApiParams {
   document_id?: number;
   action?: AuditAction | string;
+  /** Start of day, e.g. "2025-01-01T00:00:00" */
   date_from?: string;
+  /** End of day, e.g. "2025-02-11T23:59:59" */
   date_to?: string;
   page?: number;
   per_page?: number;
 }
+
+/** Full JSON-RPC 2.0 request body for POST /api/audit-logs */
+export interface AuditLogsJsonRpcRequest {
+  jsonrpc: "2.0";
+  method: "call";
+  params: AuditLogsApiParams;
+  id: number;
+}
+
+/** Query params used by the activity feature (same shape as API params). */
+export interface AuditLogsQueryParams extends AuditLogsApiParams {}
 
 export interface AuditLogsResult {
   success: boolean;

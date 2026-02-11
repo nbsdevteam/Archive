@@ -1,14 +1,16 @@
 import type { AuditLogEntry } from "../types/auditLogs.types";
 
 /**
- * Formats a Date or ISO string to DD/MM/YYYY for the audit-logs API (date_from, date_to).
+ * Formats a Date or ISO string to YYYY-MM-DDTHH:mm:ss for audit-logs API.
+ * Use endOfDay true for date_to (23:59:59), false for date_from (00:00:00).
  */
-export const formatDateForActivityApi = (date: Date | string): string => {
+export const formatDateForAuditApi = (date: Date | string, endOfDay: boolean): string => {
   const d = typeof date === "string" ? new Date(date) : date;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
+  const time = endOfDay ? "23:59:59" : "00:00:00";
+  return `${y}-${m}-${day}T${time}`;
 };
 
 /**
