@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -6,8 +6,7 @@ import { handleApiError } from "../../../app/adapter/api/client";
 import { documentsApi, type Document, type Attachment } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
-import { getFolderDocuments, getFolderWorkflow, applyFolderTransition, deleteFolder } from "../services/folders.api";
-import type { FolderWorkflowInfo } from "../services/folders.api";
+import { getFolderDocuments, deleteFolder } from "../services/folders.api";
 import type { FolderDetail } from "../types/folders.types";
 import { useDocumentStore } from "../../documents/stores/documentStore";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
@@ -18,6 +17,9 @@ import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
+
+/** localStorage key for user notes draft (debounced save). */
+const USER_NOTES_STORAGE_KEY = "user-notes";
 
 export const useFolderDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,14 +36,17 @@ export const useFolderDetailPageContainer = () => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
 
-  const [workflowInfo, setWorkflowInfo] = useState<FolderWorkflowInfo | null>(null);
-  const [workflowError, setWorkflowError] = useState<string | null>(null);
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
-  const [transitionOpen, setTransitionOpen] = useState(false);
-  const [transitionTarget, setTransitionTarget] = useState<{ id: number; label: string } | null>(null);
-  const [transitionMessage, setTransitionMessage] = useState("");
-  const [applyingTransition, setApplyingTransition] = useState(false);
+  /** User notes draft persisted to localStorage with 1000ms debounce. */
+  const [userNotes, setUserNotes] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return window.localStorage.getItem(USER_NOTES_STORAGE_KEY) ?? "";
+    } catch {
+      return "";
+    }
+  });
 
   const [managers, setManagers] = useState<Array<{ id: number; name: string; login?: string }>>([]);
   const [signatureOpen, setSignatureOpen] = useState(false);
@@ -153,17 +158,24 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [folderId, attachmentsDocId]);
 
-  const loadWorkflow = async (fId: number) => {
-    setWorkflowError(null);
-    try {
-      const r = await getFolderWorkflow(fId);
-      if (r.success && r.data) setWorkflowInfo(r.data);
-      else setWorkflowInfo(null);
-    } catch (e: unknown) {
-      setWorkflowInfo(null);
-      setWorkflowError((e as Error)?.message ?? "Failed to load workflow");
-    }
-  };
+  /** Debounce timer for persisting user notes to localStorage (1000ms). */
+  const userNotesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    userNotesDebounceRef.current = setTimeout(() => {
+      try {
+        window.localStorage.setItem(USER_NOTES_STORAGE_KEY, userNotes);
+      } catch {
+        // ignore storage errors
+      }
+      userNotesDebounceRef.current = null;
+    }, 1000);
+    return () => {
+      if (userNotesDebounceRef.current) {
+        clearTimeout(userNotesDebounceRef.current);
+        userNotesDebounceRef.current = null;
+      }
+    };
+  }, [userNotes]);
 
   const loadAttachmentsForDocument = async (documentId: number) => {
     setLoadingAttachments(true);
@@ -179,11 +191,6 @@ export const useFolderDetailPageContainer = () => {
 
   useEffect(() => {
     loadFolderDocuments();
-  }, [folderId]);
-
-  useEffect(() => {
-    if (!folderId) return;
-    loadWorkflow(folderId);
   }, [folderId]);
 
   useEffect(() => {
@@ -273,30 +280,10 @@ export const useFolderDetailPageContainer = () => {
     );
   };
 
-  const openTransition = (transitionId: number, label: string) => {
-    setTransitionTarget({ id: transitionId, label });
-    setTransitionMessage("");
-    setTransitionOpen(true);
-  };
-
-  const submitTransition = async () => {
-    if (!folderId || !transitionTarget) return;
-    setApplyingTransition(true);
-    try {
-      await applyFolderTransition(folderId, {
-        transition_id: transitionTarget.id,
-        message: transitionMessage.trim() || undefined,
-      });
-      toast.success(t("folders.transitionApplied", { defaultValue: "Transition applied." }));
-      setTransitionOpen(false);
-      setTransitionTarget(null);
-      loadWorkflow(folderId);
-    } catch (e: unknown) {
-      toast.error((e as Error)?.message ?? t("folders.transitionFailed", { defaultValue: "Transition failed." }));
-    } finally {
-      setApplyingTransition(false);
-    }
-  };
+  /** Placeholder save handler for user notes (no-op; persistence is via debounced localStorage). */
+  const handleSaveNotes = useCallback(() => {
+    // Intentional no-op: notes are saved automatically as user types (debounced).
+  }, []);
 
   const openSignature = () => {
     setSignatureSignerId("");
@@ -345,7 +332,6 @@ export const useFolderDetailPageContainer = () => {
     }
   };
 
-  const transitions = workflowInfo?.allowed_transitions ?? [];
   const previewDoc = currentDocument as { id?: number; file_name?: string } | null;
   const previewFileName = previewDoc?.file_name ?? "";
   const handleCloseUploadPanel = () => setIsUploadOpen(false);
@@ -656,12 +642,9 @@ export const useFolderDetailPageContainer = () => {
     attachmentsDocId,
     attachments,
     loadingAttachments,
-    workflowInfo,
-    workflowError,
-    transitionOpen,
-    transitionTarget,
-    transitionMessage,
-    applyingTransition,
+    userNotes,
+    setUserNotes,
+    handleSaveNotes,
     managers,
     signatureOpen,
     signatureSignerId,
@@ -680,7 +663,6 @@ export const useFolderDetailPageContainer = () => {
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
-    transitions,
     previewDoc,
     previewFileName,
     formatDate,
@@ -693,10 +675,6 @@ export const useFolderDetailPageContainer = () => {
     handleDownloadAttachment,
     handleArchiveFolderDocument,
     handleUnarchiveFolderDocument,
-    setTransitionOpen,
-    openTransition,
-    setTransitionMessage,
-    submitTransition,
     setSignatureOpen,
     setSignatureSignerId,
     setSignatureMessage,

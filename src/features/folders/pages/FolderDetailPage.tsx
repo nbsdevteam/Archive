@@ -149,12 +149,9 @@ const FolderDetailPage = () => {
     attachmentsDocId,
     attachments,
     loadingAttachments,
-    workflowInfo,
-    workflowError,
-    transitionOpen,
-    transitionTarget,
-    transitionMessage,
-    applyingTransition,
+    userNotes,
+    setUserNotes,
+    handleSaveNotes,
     managers,
     signatureOpen,
     signatureSignerId,
@@ -173,7 +170,6 @@ const FolderDetailPage = () => {
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
-    transitions,
     previewDoc,
     previewFileName,
     formatDate,
@@ -186,10 +182,6 @@ const FolderDetailPage = () => {
     handleDownloadAttachment,
     handleArchiveFolderDocument,
     handleUnarchiveFolderDocument,
-    setTransitionOpen,
-    openTransition,
-    setTransitionMessage,
-    submitTransition,
     setSignatureOpen,
     setSignatureSignerId,
     setSignatureMessage,
@@ -584,70 +576,30 @@ const FolderDetailPage = () => {
           </div>
         </div>
 
-        {/* Workflow */}
+        {/* User Notes: draft saved to localStorage with 1000ms debounce */}
         <div className="card mb-3">
-          <div className="card-header">
-            <h6 className="mb-0">⚙️ {t("folders.availableActions", { defaultValue: "Available actions" })}</h6>
+          <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <h6 className="mb-0">{t("folders.userNotes", { defaultValue: "User Notes" })}</h6>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleSaveNotes} aria-label={t("common.save", { defaultValue: "Save" })}>
+              {t("common.save", { defaultValue: "Save" })}
+            </Button>
           </div>
           <div className="card-body">
-            {workflowInfo?.workflow_name && (
-              <p className="text-muted small mb-2">
-                {t("folders.workflowName", { defaultValue: "Workflow: {{name}}", name: workflowInfo.workflow_name })}
-                {workflowInfo.state && ` • ${t("folders.currentState", { defaultValue: "State: {{name}}", name: workflowInfo.state })}`}
-              </p>
+            {!userNotes.trim() && (
+              <p className="text-muted mb-2">{t("folders.noNotesOrDrafts", { defaultValue: "No notes or drafts made by the user." })}</p>
             )}
-            {workflowError && <Alert variant="danger" className="mb-2">{workflowError}</Alert>}
-            {!workflowInfo?.workflow_id ? (
-              <p className="text-muted mb-0">{t("folders.noWorkflowLinked", { defaultValue: "No workflow linked." })}</p>
-            ) : transitions.length === 0 ? (
-              <p className="text-muted mb-0">{t("folders.noAllowedTransitions", { defaultValue: "No allowed transitions." })}</p>
-            ) : (
-              <div className="d-flex flex-wrap gap-2">
-                {transitions.map((tr) => (
-                  <Button
-                    key={tr.id}
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => openTransition(tr.id, `${tr.name}${tr.target_state ? ` → ${tr.target_state}` : ""}`)}
-                  >
-                    {tr.name}{tr.target_state ? ` → ${tr.target_state}` : ""}
-                  </Button>
-                ))}
-                {mainDoc && (
-                  <>
-                    <Button variant="secondary" size="sm" onClick={openSignature}>
-                      {t("documents.requestSignature", { defaultValue: "Request signature" })}
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={openEditRequest}>
-                      {t("editRequests.create", { defaultValue: "Create edit request" })}
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
+            <textarea
+              className="form-control"
+              rows={4}
+              value={userNotes}
+              onChange={(e) => setUserNotes(e.target.value)}
+              placeholder={t("folders.notesPlaceholder", { defaultValue: "Add your notes or drafts..." })}
+              aria-label={t("folders.userNotes", { defaultValue: "User Notes" })}
+            />
           </div>
         </div>
 
-        {/* Folder activity */}
-        <AuditActivityPanel
-          t={t}
-          logs={activityLogs}
-          loading={activityLoading}
-          error={activityError}
-          viewMode={activityViewMode}
-          onViewModeChange={handleActivityViewModeChange}
-          title={t("activity.folderTitle", { defaultValue: "Folder activity" })}
-          subtitle={t("activity.folderCoverage", {
-            defaultValue: "Showing events from {{count}} documents",
-            count: activityDocumentCount,
-          })}
-          showRefresh
-          onRefresh={handleActivityRefresh}
-          showDocument
-          onDocumentClick={handleNavigateToDocument}
-          treeGroupBy="document"
-        />
-
+        
         {/* Preview */}
         <div className="card mb-3">
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -676,24 +628,28 @@ const FolderDetailPage = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Transition modal */}
-      <Modal isOpen={transitionOpen} onClose={() => setTransitionOpen(false)} title={t("folders.changeFolderState", { defaultValue: "Change folder state" })} size="md">
-        <p className="text-muted small">{transitionTarget?.label}</p>
-        <div className="mb-3">
-          <label className="form-label">{t("folders.messageForNewState", { defaultValue: "Message (optional)" })}</label>
-          <textarea className="form-control" rows={3} value={transitionMessage} onChange={(e) => setTransitionMessage(e.target.value)} />
-        </div>
-        <ModalFooter>
-          <Button variant="outline" className="btn-outline-secondary" onClick={() => setTransitionOpen(false)}>
-            {t("common.cancel", { defaultValue: "Cancel" })}
-          </Button>
-          <Button variant="secondary" disabled={!transitionTarget || applyingTransition} onClick={submitTransition}>
-            {applyingTransition ? <Spinner /> : t("folders.apply", { defaultValue: "Apply" })}
-          </Button>
-        </ModalFooter>
-      </Modal>
+        {/* Folder activity */}
+        <AuditActivityPanel
+          t={t}
+          logs={activityLogs}
+          loading={activityLoading}
+          error={activityError}
+          viewMode={activityViewMode}
+          onViewModeChange={handleActivityViewModeChange}
+          title={t("activity.folderTitle", { defaultValue: "Folder activity" })}
+          subtitle={t("activity.folderCoverage", {
+            defaultValue: "Showing events from {{count}} documents",
+            count: activityDocumentCount,
+          })}
+          showRefresh
+          onRefresh={handleActivityRefresh}
+          showDocument
+          onDocumentClick={handleNavigateToDocument}
+          treeGroupBy="document"
+        />
+
+      </div>
 
       {/* Signature modal */}
       <Modal isOpen={signatureOpen} onClose={() => setSignatureOpen(false)} title={t("folders.signatureRequestOnMain", { defaultValue: "Request signature (main document)" })} size="md">
