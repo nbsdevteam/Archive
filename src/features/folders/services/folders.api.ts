@@ -124,7 +124,7 @@ export const createFolder = async (
   return result.data;
 };
 
-/** Params for update folder (NBS 6.4); all optional for partial update */
+/** Params for update folder (NBS 6.4); all optional for partial update. user_note added in Notes API 1.1. */
 export interface UpdateFolderParams {
   name?: string;
   code?: string;
@@ -134,6 +134,8 @@ export interface UpdateFolderParams {
   color?: string;
   icon?: string;
   sequence?: number;
+  /** Quick note for folder (Notes system API 1.1); managers/admins only. */
+  user_note?: string | null;
 }
 
 export interface UpdateFolderResponse {
@@ -161,6 +163,7 @@ export const updateFolder = async (
   if (params.color !== undefined) body.color = params.color;
   if (params.icon !== undefined) body.icon = params.icon;
   if (params.sequence !== undefined) body.sequence = params.sequence;
+  if (params.user_note !== undefined) body.user_note = params.user_note;
 
   const result = await jsonRpcRequest<UpdateFolderResponse | Folder>(
     `/api/folders/${folderId}/update`,

@@ -34,6 +34,12 @@ export interface Folder {
   updated_at?: string;
   state?: "active" | "archived";
   updated?: string;
+  /** Notes system: number of notes on this folder (API 1.1) */
+  note_count?: number;
+  /** Notes system: quick user note for folder (API 1.1) */
+  user_note?: string | null;
+  /** Notes system: last modified including docs/notes (API 1.1) */
+  last_modified?: string | null;
 }
 
 /** NBS 6.2 get folder: list fields + detail fields */

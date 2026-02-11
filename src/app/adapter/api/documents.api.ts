@@ -29,6 +29,10 @@ export interface Document {
   barcode: string;
   file_name: string;
   file_size: number;
+  /** Notes system: number of notes on this document (API 1.1) */
+  note_count?: number;
+  /** Notes system: last modified including versions/notes (API 1.1) */
+  last_modified?: string | null;
 }
 
 export interface DocumentVersion {
@@ -176,9 +180,6 @@ export interface DeleteLikeResponse {
   message?: string;
 }
 
-/** Value required by the backend to confirm permanent delete. */
-const PERMANENT_DELETE_CONFIRMATION = 'DELETE_PERMANENT' as const;
-
 const getRpcResult = <T>(payload: unknown): T => {
   const maybeWrapped = payload as { result?: T } | T;
   if (
@@ -200,6 +201,48 @@ const assertSuccess = (
   if (result.success === false) {
     throw new Error(result.error || result.message || fallbackMessage);
   }
+};
+
+/**
+ * Performs permanent delete for one or many document IDs via unified endpoint.
+ * Backend accepts body: { ids: number[] }.
+ */
+const postPermanentDelete = async (documentIds: number[]): Promise<{ ok: true }> => {
+  if (documentIds.length === 0) {
+    return { ok: true };
+  }
+  const response = await apiClient.post('/api/documents/permanent-delete', {
+    ids: documentIds,
+  });
+  const result = getRpcResult<DeleteLikeResponse>(response.data ?? {});
+  if (result && result.success === false) {
+    throw new Error(result.error || result.message || 'Failed to permanently delete document(s)');
+  }
+  if (result && result.error && result.success !== true) {
+    throw new Error(result.error || result.message || 'Failed to permanently delete document(s)');
+  }
+  return { ok: true };
+};
+
+/**
+ * Restores one or many trashed document IDs via unified endpoint.
+ * Backend accepts body: { ids: number[] }.
+ */
+const postRestore = async (documentIds: number[]): Promise<{ success: boolean; message?: string }> => {
+  if (documentIds.length === 0) {
+    return { success: true };
+  }
+  const response = await apiClient.post('/api/documents/restore', {
+    ids: documentIds,
+  });
+  const result = getRpcResult<DeleteLikeResponse>(response.data ?? {});
+  if (result && result.success === false) {
+    throw new Error(result.error || result.message || 'Failed to restore document(s)');
+  }
+  if (result && result.error && result.success !== true) {
+    throw new Error(result.error || result.message || 'Failed to restore document(s)');
+  }
+  return { success: true, message: result?.message };
 };
 
 export const documentsApi = {
@@ -449,19 +492,11 @@ export const documentsApi = {
   },
 
   /**
-   * Restore document from trash
+   * Restore one or many documents from trash.
+   * Uses unified endpoint: POST /api/documents/restore with ids array.
    */
-  restoreDocument: async (documentId: number): Promise<{ success: boolean; message?: string }> => {
-    const response = await apiClient.post(`/api/documents/${documentId}/restore`, {
-      jsonrpc: '2.0',
-      method: 'call',
-      params: {},
-    });
-    const result = (response.data.result ?? response.data) as DeleteLikeResponse;
-    if (result && result.success === false) {
-      throw new Error(result.error || result.message || 'Failed to restore document');
-    }
-    return result as { success: boolean; message?: string };
+  restoreDocuments: async (documentIds: number[]): Promise<{ success: boolean; message?: string }> => {
+    return postRestore(documentIds);
   },
 
   /**
@@ -481,25 +516,13 @@ export const documentsApi = {
   },
 
   /**
-   * Permanently delete a document (admin only).
-   * Backend requires confirmation in body or query: use "DELETE_PERMANENT".
+   * Permanently delete many documents (admin only).
+   * Uses unified endpoint: POST /api/documents/permanent-delete with ids array.
    */
-  permanentDeleteDocument: async (
-    documentId: number,
-    confirmation?: string
+  permanentDeleteDocuments: async (
+    documentIds: number[]
   ): Promise<{ ok: true }> => {
-    const value = confirmation ?? PERMANENT_DELETE_CONFIRMATION;
-    const response = await apiClient.delete(`/api/documents/${documentId}/permanent`, {
-      data: { confirmation: value },
-    });
-    const result = (response.data ?? {}) as DeleteLikeResponse;
-    if (result && result.success === false) {
-      throw new Error(result.error || result.message || 'Failed to permanently delete document');
-    }
-    if (result && (result.error || result.message) && result.success !== true) {
-      throw new Error(result.error || result.message || 'Failed to permanently delete document');
-    }
-    return { ok: true };
+    return postPermanentDelete(documentIds);
   },
 
   /**
