@@ -20,19 +20,15 @@ interface TrashOptions extends OperationOptions {
 export const useDocumentOperations = () => {
   const {
     archiveDocument,
-    batchArchiveDocuments,
     unarchiveDocument,
     trashDocument,
-    batchTrashDocuments,
-    restoreDocuments,
+    restoreDocument,
     permanentDeleteDocuments,
   } = useDocumentStore();
 
-  const [isArchivingSingle, setIsArchivingSingle] = useState(false);
-  const [isArchivingBatch, setIsArchivingBatch] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [isUnarchiving, setIsUnarchiving] = useState(false);
-  const [isTrashingSingle, setIsTrashingSingle] = useState(false);
-  const [isTrashingBatch, setIsTrashingBatch] = useState(false);
+  const [isTrashing, setIsTrashing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isPermanentDeleting, setIsPermanentDeleting] = useState(false);
 
@@ -50,11 +46,19 @@ export const useDocumentOperations = () => {
     []
   );
 
-  const archiveSingle = useCallback(
-    async (documentId: number, options?: OperationOptions): Promise<boolean> => {
-      setIsArchivingSingle(true);
+  /** Ensures all operations can receive either one document id or multiple ids. */
+  const toDocumentIds = useCallback((documentIds: number | number[]): number[] => {
+    const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
+    return ids.filter((id): id is number => Number.isFinite(id));
+  }, []);
+
+  const archiveDocumentAction = useCallback(
+    async (documentIds: number | number[], options?: OperationOptions): Promise<boolean> => {
+      const ids = toDocumentIds(documentIds);
+      if (ids.length === 0) return false;
+      setIsArchiving(true);
       try {
-        await archiveDocument(documentId);
+        await archiveDocument(ids);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -62,36 +66,19 @@ export const useDocumentOperations = () => {
         toast.error(getErrorMessage(error, options?.errorMessage));
         return false;
       } finally {
-        setIsArchivingSingle(false);
+        setIsArchiving(false);
       }
     },
-    [archiveDocument, getErrorMessage]
+    [archiveDocument, getErrorMessage, toDocumentIds]
   );
 
-  const archiveBatch = useCallback(
-    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
-      if (documentIds.length === 0) return false;
-      setIsArchivingBatch(true);
-      try {
-        await batchArchiveDocuments(documentIds);
-        if (options?.successMessage) toast.success(options.successMessage);
-        await options?.onSuccess?.();
-        return true;
-      } catch (error) {
-        toast.error(getErrorMessage(error, options?.errorMessage));
-        return false;
-      } finally {
-        setIsArchivingBatch(false);
-      }
-    },
-    [batchArchiveDocuments, getErrorMessage]
-  );
-
-  const unarchiveSingle = useCallback(
-    async (documentId: number, options?: OperationOptions): Promise<boolean> => {
+  const unarchiveDocumentAction = useCallback(
+    async (documentIds: number | number[], options?: OperationOptions): Promise<boolean> => {
+      const ids = toDocumentIds(documentIds);
+      if (ids.length === 0) return false;
       setIsUnarchiving(true);
       try {
-        await unarchiveDocument(documentId);
+        await unarchiveDocument(ids);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -102,18 +89,16 @@ export const useDocumentOperations = () => {
         setIsUnarchiving(false);
       }
     },
-    [unarchiveDocument, getErrorMessage]
+    [getErrorMessage, toDocumentIds, unarchiveDocument]
   );
 
-  /** Batch unarchive: calls single unarchive per document (no backend batch endpoint). */
-  const unarchiveBatch = useCallback(
-    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
-      if (documentIds.length === 0) return false;
-      setIsUnarchiving(true);
+  const trashDocumentAction = useCallback(
+    async (documentIds: number | number[], options?: TrashOptions): Promise<boolean> => {
+      const ids = toDocumentIds(documentIds);
+      if (ids.length === 0) return false;
+      setIsTrashing(true);
       try {
-        for (const id of documentIds) {
-          await unarchiveDocument(id);
-        }
+        await trashDocument(ids, options?.reason);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -121,54 +106,19 @@ export const useDocumentOperations = () => {
         toast.error(getErrorMessage(error, options?.errorMessage));
         return false;
       } finally {
-        setIsUnarchiving(false);
+        setIsTrashing(false);
       }
     },
-    [unarchiveDocument, getErrorMessage]
+    [getErrorMessage, toDocumentIds, trashDocument]
   );
 
-  const trashSingle = useCallback(
-    async (documentId: number, options?: TrashOptions): Promise<boolean> => {
-      setIsTrashingSingle(true);
-      try {
-        await trashDocument(documentId, options?.reason);
-        if (options?.successMessage) toast.success(options.successMessage);
-        await options?.onSuccess?.();
-        return true;
-      } catch (error) {
-        toast.error(getErrorMessage(error, options?.errorMessage));
-        return false;
-      } finally {
-        setIsTrashingSingle(false);
-      }
-    },
-    [trashDocument, getErrorMessage]
-  );
-
-  const trashBatch = useCallback(
-    async (documentIds: number[], options?: TrashOptions): Promise<boolean> => {
-      if (documentIds.length === 0) return false;
-      setIsTrashingBatch(true);
-      try {
-        await batchTrashDocuments(documentIds, options?.reason);
-        if (options?.successMessage) toast.success(options.successMessage);
-        await options?.onSuccess?.();
-        return true;
-      } catch (error) {
-        toast.error(getErrorMessage(error, options?.errorMessage));
-        return false;
-      } finally {
-        setIsTrashingBatch(false);
-      }
-    },
-    [batchTrashDocuments, getErrorMessage]
-  );
-
-  const restoreSingle = useCallback(
-    async (documentId: number, options?: OperationOptions): Promise<boolean> => {
+  const restoreDocumentAction = useCallback(
+    async (documentIds: number | number[], options?: OperationOptions): Promise<boolean> => {
+      const ids = toDocumentIds(documentIds);
+      if (ids.length === 0) return false;
       setIsRestoring(true);
       try {
-        await restoreDocuments([documentId]);
+        await restoreDocument(ids);
         if (options?.successMessage) toast.success(options.successMessage);
         await options?.onSuccess?.();
         return true;
@@ -179,26 +129,7 @@ export const useDocumentOperations = () => {
         setIsRestoring(false);
       }
     },
-    [restoreDocuments, getErrorMessage]
-  );
-
-  const restoreBatch = useCallback(
-    async (documentIds: number[], options?: OperationOptions): Promise<boolean> => {
-      if (documentIds.length === 0) return false;
-      setIsRestoring(true);
-      try {
-        await restoreDocuments(documentIds);
-        if (options?.successMessage) toast.success(options.successMessage);
-        await options?.onSuccess?.();
-        return true;
-      } catch (error) {
-        toast.error(getErrorMessage(error, options?.errorMessage));
-        return false;
-      } finally {
-        setIsRestoring(false);
-      }
-    },
-    [restoreDocuments, getErrorMessage]
+    [getErrorMessage, restoreDocument, toDocumentIds]
   );
 
   const permanentDeleteSingle = useCallback(
@@ -239,21 +170,15 @@ export const useDocumentOperations = () => {
   );
 
   return {
-    isArchivingSingle,
-    isArchivingBatch,
+    isArchiving,
     isUnarchiving,
-    isTrashingSingle,
-    isTrashingBatch,
+    isTrashing,
     isRestoring,
     isPermanentDeleting,
-    archiveSingle,
-    archiveBatch,
-    unarchiveSingle,
-    unarchiveBatch,
-    trashSingle,
-    trashBatch,
-    restoreSingle,
-    restoreBatch,
+    archiveDocument: archiveDocumentAction,
+    unarchiveDocument: unarchiveDocumentAction,
+    trashDocument: trashDocumentAction,
+    restoreDocument: restoreDocumentAction,
     permanentDeleteSingle,
     permanentDeleteBatch,
   };

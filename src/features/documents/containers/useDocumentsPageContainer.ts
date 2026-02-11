@@ -25,14 +25,10 @@ export const useDocumentsPageContainer = () => {
   const { documents, isLoading, fetchDocuments, error, clearError, pagination } =
     useDocumentStore();
   const {
-    isArchivingSingle,
-    isArchivingBatch,
-    isTrashingSingle,
-    isTrashingBatch,
-    archiveSingle,
-    archiveBatch,
-    trashSingle,
-    trashBatch,
+    isArchiving,
+    isTrashing,
+    archiveDocument,
+    trashDocument,
   } = useDocumentOperations();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<DocumentsFilterState>({});
@@ -190,20 +186,20 @@ export const useDocumentsPageContainer = () => {
   }, []);
 
   const handleCloseTrashConfirm = useCallback(() => {
-    if (!isTrashingSingle) setTrashTargetId(null);
-  }, [isTrashingSingle]);
+    if (!isTrashing) setTrashTargetId(null);
+  }, [isTrashing]);
 
   const handleOpenArchiveConfirm = useCallback((documentId: number) => {
     setArchiveTargetId(documentId);
   }, []);
 
   const handleCloseArchiveConfirm = useCallback(() => {
-    if (!isArchivingSingle) setArchiveTargetId(null);
-  }, [isArchivingSingle]);
+    if (!isArchiving) setArchiveTargetId(null);
+  }, [isArchiving]);
 
   const handleConfirmArchive = useCallback(async () => {
     if (!archiveTargetId) return;
-    const didArchive = await archiveSingle(archiveTargetId, {
+    const didArchive = await archiveDocument(archiveTargetId, {
       successMessage: t("documents.archived", { defaultValue: "Document archived." }),
       errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
       onSuccess: () => fetchDocuments(getFetchParams()),
@@ -211,11 +207,11 @@ export const useDocumentsPageContainer = () => {
     if (didArchive) {
       setArchiveTargetId(null);
     }
-  }, [archiveSingle, archiveTargetId, fetchDocuments, getFetchParams, t]);
+  }, [archiveDocument, archiveTargetId, fetchDocuments, getFetchParams, t]);
 
   const handleConfirmTrash = useCallback(async () => {
     if (!trashTargetId) return;
-    const didTrash = await trashSingle(trashTargetId, {
+    const didTrash = await trashDocument(trashTargetId, {
       successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
       errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
       onSuccess: () => fetchDocuments(getFetchParams()),
@@ -223,7 +219,7 @@ export const useDocumentsPageContainer = () => {
     if (didTrash) {
       setTrashTargetId(null);
     }
-  }, [trashSingle, trashTargetId, fetchDocuments, getFetchParams, t]);
+  }, [trashDocument, trashTargetId, fetchDocuments, getFetchParams, t]);
 
   const handleOpenFilter = useCallback(() => {
     setDraftFilters(appliedFilters);
@@ -286,21 +282,21 @@ export const useDocumentsPageContainer = () => {
   }, [selectedDocumentIds.length]);
 
   const handleCloseBatchTrashConfirm = useCallback(() => {
-    if (!isTrashingBatch) setIsBatchTrashConfirmOpen(false);
-  }, [isTrashingBatch]);
+    if (!isTrashing) setIsBatchTrashConfirmOpen(false);
+  }, [isTrashing]);
 
   const handleOpenBatchArchiveConfirm = useCallback(() => {
     if (selectedDocumentIds.length > 0) setIsBatchArchiveConfirmOpen(true);
   }, [selectedDocumentIds.length]);
 
   const handleCloseBatchArchiveConfirm = useCallback(() => {
-    if (!isArchivingBatch) setIsBatchArchiveConfirmOpen(false);
-  }, [isArchivingBatch]);
+    if (!isArchiving) setIsBatchArchiveConfirmOpen(false);
+  }, [isArchiving]);
 
   const handleConfirmBatchArchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const selectedCount = selectedDocumentIds.length;
-    const didArchive = await archiveBatch(selectedDocumentIds, {
+    const didArchive = await archiveDocument(selectedDocumentIds, {
       successMessage: t("documents.batchArchived", {
         defaultValue: "{{count}} document(s) archived.",
         count: selectedCount,
@@ -315,7 +311,7 @@ export const useDocumentsPageContainer = () => {
       setIsBatchArchiveConfirmOpen(false);
     }
   }, [
-    archiveBatch,
+    archiveDocument,
     clearSelection,
     fetchDocuments,
     getFetchParams,
@@ -326,7 +322,7 @@ export const useDocumentsPageContainer = () => {
   const handleConfirmBatchTrash = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const selectedCount = selectedDocumentIds.length;
-    const didTrash = await trashBatch(selectedDocumentIds, {
+    const didTrash = await trashDocument(selectedDocumentIds, {
       successMessage: t("documents.batchTrashed", {
         defaultValue: "{{count}} document(s) moved to trash.",
         count: selectedCount,
@@ -346,7 +342,7 @@ export const useDocumentsPageContainer = () => {
     getFetchParams,
     selectedDocumentIds,
     t,
-    trashBatch,
+    trashDocument,
   ]);
 
   const openMoveModalForIds = useCallback(
@@ -451,17 +447,17 @@ export const useDocumentsPageContainer = () => {
     handleClearFilter,
     filterApplyDisabled,
     trashTargetId,
-    isTrashing: isTrashingSingle,
+    isTrashing,
     handleOpenTrashConfirm,
     handleCloseTrashConfirm,
     handleConfirmTrash,
     archiveTargetId,
-    isArchiving: isArchivingSingle,
+    isArchiving,
     handleOpenArchiveConfirm,
     handleCloseArchiveConfirm,
     handleConfirmArchive,
     isBatchArchiveConfirmOpen,
-    isBatchArchiving: isArchivingBatch,
+    isBatchArchiving: isArchiving,
     handleOpenBatchArchiveConfirm,
     handleCloseBatchArchiveConfirm,
     handleConfirmBatchArchive,
@@ -478,7 +474,7 @@ export const useDocumentsPageContainer = () => {
     handleCloseBatchMoveConfirm,
     handleConfirmBatchMove,
     isBatchTrashConfirmOpen,
-    isBatchTrashing: isTrashingBatch,
+    isBatchTrashing: isTrashing,
     handleOpenBatchTrashConfirm,
     handleCloseBatchTrashConfirm,
     handleConfirmBatchTrash,

@@ -304,7 +304,7 @@ const DocumentsPage = () => {
               </Button>
             </div>
           </div>
-          <div className="card-body">
+          <div className="card-body h-50vh">
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}

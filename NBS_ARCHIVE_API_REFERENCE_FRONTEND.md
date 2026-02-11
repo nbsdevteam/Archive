@@ -897,21 +897,29 @@ Create a new document from a template. **JSON-RPC.**
 
 ### 14.4 Restore from trash
 
+Unified endpoint for single or batch restore. Use the same URL and body shape for one or many documents.
+
 | Item | Value |
 |------|--------|
 | **Method** | `POST` |
-| **URL** | `/api/documents/<document_id>/restore` |
-| **Body** | JSON-RPC |
+| **URL** | `/api/documents/restore` |
+| **Body** | Plain JSON: `{ "ids": [1, 2, ...] }` |
+
+**Params:** `ids` (array of document IDs, int). Use one ID for single restore, multiple for batch.
 
 ---
 
 ### 14.5 Permanent delete (admin only)
 
+Unified endpoint for single or batch permanent delete. Use the same URL and body shape for one or many documents.
+
 | Item | Value |
 |------|--------|
-| **Method** | `DELETE` |
-| **URL** | `/api/documents/<document_id>/permanent` |
-| **Body** | Optional JSON: `{ "confirmation": "..." }` |
+| **Method** | `POST` |
+| **URL** | `/api/documents/permanent-delete` |
+| **Body** | Plain JSON: `{ "ids": [1, 2, ...] }` |
+
+**Params:** `ids` (array of document IDs, int). Use one ID for single delete, multiple for batch.
 
 **Permission:** Admin only.
 
@@ -1254,9 +1262,9 @@ For **locked** documents: user requests edit → manager approves (receives `unl
 | Archive | POST | `/api/documents/<id>/archive` | JSON-RPC |
 | Unarchive | POST | `/api/documents/<id>/unarchive` | JSON-RPC |
 | Trash | POST | `/api/documents/<id>/trash` | JSON-RPC |
-| Restore | POST | `/api/documents/<id>/restore` | JSON-RPC |
+| Restore | POST | `/api/documents/restore` | Plain JSON: `{ "ids": [1, 2] }` |
 | List trash | POST | `/api/documents/trash` | JSON-RPC |
-| Permanent delete | DELETE | `/api/documents/<id>/permanent` | Optional JSON |
+| Permanent delete | POST | `/api/documents/permanent-delete` | Plain JSON: `{ "ids": [1, 2] }` |
 | Set parent | POST | `/api/documents/<id>/set-parent` | JSON-RPC |
 | Relations | POST | `/api/documents/<id>/relations` | JSON-RPC |
 | Add relation | POST | `/api/documents/<id>/add-relation` | JSON-RPC |

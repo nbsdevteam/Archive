@@ -21,6 +21,7 @@ export const all_routes: Record<string, string> = {
   folderDetail: "/folders/:id",
   editRequests: "/edit-requests",
   signatures: "/signatures",
+  notes: "/notes",
   notifications: "/notifications",
   permissions: "/admin/permissions",
   search: "/search",

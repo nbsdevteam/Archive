@@ -245,6 +245,12 @@ const postRestore = async (documentIds: number[]): Promise<{ success: boolean; m
   return { success: true, message: result?.message };
 };
 
+/** Normalizes single or multi document input into an ID array. */
+const toDocumentIds = (documentIds: number | number[]): number[] =>
+  (Array.isArray(documentIds) ? documentIds : [documentIds]).filter(
+    (id): id is number => Number.isFinite(id)
+  );
+
 export const documentsApi = {
   /**
    * Get list of documents
@@ -373,68 +379,19 @@ export const documentsApi = {
   },
 
   /**
-   * Archive document
+   * Archive one or many documents using the unified array payload.
    */
-  archiveDocument: async (documentId: number): Promise<{ success: boolean }> => {
-    const response = await apiClient.post(`/api/documents/${documentId}/archive`, {
-      jsonrpc: '2.0',
-      method: 'call',
-      params: {},
-    });
-    const result = (response.data.result ?? response.data) as { success?: boolean; error?: string };
-    if (result && result.success === false && result.error) {
-      throw new Error(result.error);
-    }
-    return result as { success: boolean };
-  },
-
-  /**
-   * Unarchive document
-   */
-  unarchiveDocument: async (documentId: number): Promise<{ success: boolean }> => {
-    const response = await apiClient.post(`/api/documents/${documentId}/unarchive`, {
-      jsonrpc: '2.0',
-      method: 'call',
-      params: {},
-    });
-    const result = (response.data.result ?? response.data) as { success?: boolean; error?: string };
-    if (result && result.success === false && result.error) {
-      throw new Error(result.error);
-    }
-    return result as { success: boolean };
-  },
-
-  /**
-   * Move document to trash (soft delete)
-   */
-  trashDocument: async (
-    documentId: number,
-    reason?: string
-  ): Promise<{ success: boolean; message?: string }> => {
-    const response = await apiClient.post(`/api/documents/${documentId}/trash`, {
-      jsonrpc: '2.0',
-      method: 'call',
-      params: reason ? { reason } : {},
-    });
-    const result = (response.data.result ?? response.data) as DeleteLikeResponse;
-    if (result && result.success === false) {
-      throw new Error(result.error || result.message || 'Failed to move document to trash');
-    }
-    return result as { success: boolean; message?: string };
-  },
-
-  /**
-   * Batch archive documents
-   * POST /api/documents/batch/archive (JSON-RPC)
-   */
-  batchArchiveDocuments: async (documentIds: number[]): Promise<{ success: boolean; error?: string }> => {
-    if (documentIds.length === 0) {
+  archiveDocument: async (
+    documentIds: number | number[]
+  ): Promise<{ success: boolean; error?: string }> => {
+    const normalizedIds = toDocumentIds(documentIds);
+    if (normalizedIds.length === 0) {
       return { success: true };
     }
     const response = await apiClient.post('/api/documents/batch/archive', {
       jsonrpc: '2.0',
       method: 'call',
-      params: { document_ids: documentIds },
+      params: { document_ids: normalizedIds },
       id: 1,
     });
     const result = (response.data.result ?? response.data) as { success?: boolean; error?: string };
@@ -445,20 +402,45 @@ export const documentsApi = {
   },
 
   /**
-   * Batch move documents to trash (soft delete)
-   * POST /api/documents/batch/trash (JSON-RPC)
+   * Unarchive one or many documents using the unified array payload.
    */
-  batchTrashDocuments: async (
-    documentIds: number[],
+  unarchiveDocument: async (
+    documentIds: number | number[]
+  ): Promise<{ success: boolean; error?: string }> => {
+    const normalizedIds = toDocumentIds(documentIds);
+    if (normalizedIds.length === 0) {
+      return { success: true };
+    }
+    const response = await apiClient.post('/api/documents/batch/unarchive', {
+      jsonrpc: '2.0',
+      method: 'call',
+      params: { document_ids: normalizedIds },
+      id: 1,
+    });
+    const result = (response.data.result ?? response.data) as { success?: boolean; error?: string };
+    if (result && result.success === false && result.error) {
+      throw new Error(result.error);
+    }
+    return (result ?? { success: true }) as { success: boolean; error?: string };
+  },
+
+  /**
+   * Move one or many documents to trash (soft delete) using the unified array payload.
+   */
+  trashDocument: async (
+    documentIds: number | number[],
     reason?: string
-  ): Promise<{ success: boolean; error?: string; message?: string }> => {
-    if (documentIds.length === 0) {
+  ): Promise<{ success: boolean; message?: string }> => {
+    const normalizedIds = toDocumentIds(documentIds);
+    if (normalizedIds.length === 0) {
       return { success: true };
     }
     const response = await apiClient.post('/api/documents/batch/trash', {
       jsonrpc: '2.0',
       method: 'call',
-      params: reason ? { document_ids: documentIds, reason } : { document_ids: documentIds },
+      params: reason
+        ? { document_ids: normalizedIds, reason }
+        : { document_ids: normalizedIds },
       id: 1,
     });
     const result = (response.data.result ?? response.data) as DeleteLikeResponse;
@@ -495,8 +477,10 @@ export const documentsApi = {
    * Restore one or many documents from trash.
    * Uses unified endpoint: POST /api/documents/restore with ids array.
    */
-  restoreDocuments: async (documentIds: number[]): Promise<{ success: boolean; message?: string }> => {
-    return postRestore(documentIds);
+  restoreDocument: async (
+    documentIds: number | number[]
+  ): Promise<{ success: boolean; message?: string }> => {
+    return postRestore(toDocumentIds(documentIds));
   },
 
   /**

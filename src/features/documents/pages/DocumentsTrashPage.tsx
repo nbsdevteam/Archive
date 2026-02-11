@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner } from "../../../shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useDocumentsTrashPageContainer } from "../containers/useDocumentsTrashPageContainer";
 import type { Document } from "../../../app/adapter/api/documents.api";
@@ -18,13 +18,25 @@ const DocumentsTrashPage = () => {
     documents,
     loading,
     error,
+    selectedDocumentIds,
+    isSomeSelected,
+    selectionConfig,
     restoreLoadingId,
     permanentDeleteId,
+    isBatchRestoreConfirmOpen,
+    isBatchPermanentDeleteConfirmOpen,
+    isRestoring,
     isPermanentDeleting,
     handleRestore,
     handleOpenPermanentDelete,
     handleClosePermanentDelete,
     handleConfirmPermanentDelete,
+    handleOpenBatchRestore,
+    handleCloseBatchRestore,
+    handleConfirmBatchRestore,
+    handleOpenBatchPermanentDelete,
+    handleCloseBatchPermanentDelete,
+    handleConfirmBatchPermanentDelete,
   } = useDocumentsTrashPageContainer();
 
   const columns = useMemo(
@@ -157,8 +169,44 @@ const DocumentsTrashPage = () => {
                 )}
               </span>
             </div>
+            <div className="d-flex align-items-center gap-2">
+              {isSomeSelected && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    className="btn-outline-secondary d-inline-flex align-items-center"
+                    onClick={handleOpenBatchRestore}
+                    disabled={isRestoring}
+                    aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+                  >
+                    <Icon name="refresh-cw" className="me-1" />
+                    {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+                    {selectedDocumentIds.length > 0 && (
+                      <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                    )}
+                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="md"
+                      className="btn-outline-danger d-inline-flex align-items-center"
+                      onClick={handleOpenBatchPermanentDelete}
+                      disabled={isPermanentDeleting}
+                      aria-label={t("documents.permanentDeleteSelected", { defaultValue: "Permanent delete selected" })}
+                    >
+                      <Icon name="trash" className="me-1" />
+                      {t("documents.permanentDeleteSelected", { defaultValue: "Permanent delete selected" })}
+                      {selectedDocumentIds.length > 0 && (
+                        <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
+                      )}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-          <div className="card-body">
+          <div className="card-body h-100">
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}
@@ -171,6 +219,7 @@ const DocumentsTrashPage = () => {
               loading={loading}
               emptyMessage={t("common.noData", { defaultValue: "No data" })}
               rowActions={rowActions}
+              selection={isAdmin ? selectionConfig : undefined}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             />
           </div>
@@ -182,6 +231,36 @@ const DocumentsTrashPage = () => {
           onConfirm={handleConfirmPermanentDelete}
           title={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
           message={t("documents.confirmPermanentDelete", { defaultValue: "This will permanently delete the document. This action cannot be undone." })}
+          confirmLabel={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
+          cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+          confirmVariant="danger"
+          isLoading={isPermanentDeleting}
+        />
+
+        <ConfirmModal
+          isOpen={isBatchRestoreConfirmOpen}
+          onClose={handleCloseBatchRestore}
+          onConfirm={handleConfirmBatchRestore}
+          title={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+          message={t("documents.confirmBatchRestore", {
+            defaultValue: "Restore {{count}} document(s)?",
+            count: selectedDocumentIds.length,
+          })}
+          confirmLabel={t("documents.restore", { defaultValue: "Restore" })}
+          cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+          confirmVariant="secondary"
+          isLoading={isRestoring}
+        />
+
+        <ConfirmModal
+          isOpen={isBatchPermanentDeleteConfirmOpen}
+          onClose={handleCloseBatchPermanentDelete}
+          onConfirm={handleConfirmBatchPermanentDelete}
+          title={t("documents.permanentDeleteSelected", { defaultValue: "Permanent delete selected" })}
+          message={t("documents.confirmBatchPermanentDelete", {
+            defaultValue: "Permanently delete {{count}} document(s)? This action cannot be undone.",
+            count: selectedDocumentIds.length,
+          })}
           confirmLabel={t("documents.permanentDelete", { defaultValue: "Permanent delete" })}
           cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
           confirmVariant="danger"

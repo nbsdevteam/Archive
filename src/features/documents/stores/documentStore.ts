@@ -31,13 +31,11 @@ interface DocumentState {
     data: { file_data: string; file_name: string; unlock_token: string; change_description: string }
   ) => Promise<void>;
   downloadVersion: (documentId: number, versionId: number, fileName: string) => Promise<void>;
-  archiveDocument: (documentId: number) => Promise<void>;
-  batchArchiveDocuments: (documentIds: number[]) => Promise<void>;
-  unarchiveDocument: (documentId: number) => Promise<void>;
-  trashDocument: (documentId: number, reason?: string) => Promise<void>;
-  batchTrashDocuments: (documentIds: number[], reason?: string) => Promise<void>;
-  restoreDocument: (documentId: number) => Promise<void>;
-  permanentDeleteDocument: (documentId: number, confirmation?: string) => Promise<void>;
+  archiveDocument: (documentIds: number | number[]) => Promise<void>;
+  unarchiveDocument: (documentIds: number | number[]) => Promise<void>;
+  trashDocument: (documentIds: number | number[], reason?: string) => Promise<void>;
+  restoreDocument: (documentIds: number | number[]) => Promise<void>;
+  permanentDeleteDocuments: (documentIds: number[]) => Promise<void>;
   clearError: () => void;
   clearCurrentDocument: () => void;
 }
@@ -174,32 +172,16 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
-  archiveDocument: async (documentId) => {
-    set({ isLoading: true, error: null });
-
-    try {
-      await documentsApi.archiveDocument(documentId);
-
-      // Refresh current document if it's the one we archived
-      if (get().currentDocument?.id === documentId) {
-        await get().fetchDocument(documentId);
-      }
-      await get().fetchDocuments();
-      set({ isLoading: false });
-    } catch (error) {
-      set({
-        error: handleApiError(error),
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
-
-  batchArchiveDocuments: async (documentIds: number[]): Promise<void> => {
-    if (documentIds.length === 0) return;
+  archiveDocument: async (documentIds): Promise<void> => {
+    const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
+    if (ids.length === 0) return;
     set({ error: null });
     try {
-      await documentsApi.batchArchiveDocuments(documentIds);
+      await documentsApi.archiveDocument(ids);
+      const currentId = get().currentDocument?.id;
+      if (currentId && ids.includes(currentId)) {
+        await get().fetchDocument(currentId);
+      }
       await get().fetchDocuments();
     } catch (error) {
       set({ error: handleApiError(error) });
@@ -207,86 +189,70 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
-  unarchiveDocument: async (documentId) => {
-    set({ isLoading: true, error: null });
-
-    try {
-      await documentsApi.unarchiveDocument(documentId);
-      if (get().currentDocument?.id === documentId) {
-        await get().fetchDocument(documentId);
-      }
-      await get().fetchDocuments();
-      set({ isLoading: false });
-    } catch (error) {
-      set({
-        error: handleApiError(error),
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
-
-  trashDocument: async (documentId: number, reason?: string): Promise<void> => {
-    set({ isLoading: true, error: null });
-    try {
-      await documentsApi.trashDocument(documentId, reason);
-      if (get().currentDocument?.id === documentId) {
-        set({ currentDocument: null });
-      }
-      await get().fetchDocuments();
-      set({ isLoading: false });
-    } catch (error) {
-      set({
-        error: handleApiError(error),
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
-
-  batchTrashDocuments: async (documentIds: number[], reason?: string): Promise<void> => {
-    if (documentIds.length === 0) return;
+  unarchiveDocument: async (documentIds) => {
+    const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
+    if (ids.length === 0) return;
     set({ error: null });
     try {
-      await documentsApi.batchTrashDocuments(documentIds, reason);
+      await documentsApi.unarchiveDocument(ids);
+      const currentId = get().currentDocument?.id;
+      if (currentId && ids.includes(currentId)) {
+        await get().fetchDocument(currentId);
+      }
+      await get().fetchDocuments();
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;
     }
   },
 
-  restoreDocument: async (documentId: number): Promise<void> => {
-    set({ isLoading: true, error: null });
+  trashDocument: async (documentIds: number | number[], reason?: string): Promise<void> => {
+    const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
+    if (ids.length === 0) return;
+    set({ error: null });
     try {
-      await documentsApi.restoreDocument(documentId);
-      if (get().currentDocument?.id === documentId) {
-        await get().fetchDocument(documentId);
+      await documentsApi.trashDocument(ids, reason);
+      const currentId = get().currentDocument?.id;
+      if (currentId && ids.includes(currentId)) {
+        set({ currentDocument: null });
       }
       await get().fetchDocuments();
-      set({ isLoading: false });
     } catch (error) {
-      set({
-        error: handleApiError(error),
-        isLoading: false,
-      });
+      set({ error: handleApiError(error) });
       throw error;
     }
   },
 
-  permanentDeleteDocument: async (documentId: number, confirmation?: string): Promise<void> => {
-    set({ isLoading: true, error: null });
+  /** Restores selected documents in one API call and refreshes list state. */
+  restoreDocument: async (documentIds: number | number[]): Promise<void> => {
+    const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
+    if (ids.length === 0) return;
+    set({ error: null });
     try {
-      await documentsApi.permanentDeleteDocument(documentId, confirmation);
-      if (get().currentDocument?.id === documentId) {
+      await documentsApi.restoreDocument(ids);
+      const currentId = get().currentDocument?.id;
+      if (currentId && ids.includes(currentId)) {
+        await get().fetchDocument(currentId);
+      }
+      await get().fetchDocuments();
+    } catch (error) {
+      set({ error: handleApiError(error) });
+      throw error;
+    }
+  },
+
+  /** Permanently deletes selected documents in one API call and refreshes list state. */
+  permanentDeleteDocuments: async (documentIds: number[]): Promise<void> => {
+    if (documentIds.length === 0) return;
+    set({ error: null });
+    try {
+      await documentsApi.permanentDeleteDocuments(documentIds);
+      if (get().currentDocument && documentIds.includes(get().currentDocument.id)) {
         set({ currentDocument: null });
       }
       await get().fetchDocuments();
-      set({ isLoading: false });
     } catch (error) {
-      set({
-        error: handleApiError(error),
-        isLoading: false,
-      });
+      set({ error: handleApiError(error) });
       throw error;
     }
   },

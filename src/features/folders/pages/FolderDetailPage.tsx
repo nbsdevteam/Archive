@@ -12,6 +12,7 @@ import type { Document } from "../../../app/adapter/api/documents.api";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
 import { formatDateAndTimeIraqi } from "../../../shared/utils/format/date";
+import { NotesList, NoteEditor, NoteImageViewerModal } from "../../notes/components";
 
 function secondaryDocsColumns(
   t: (key: string, opts?: { defaultValue?: string }) => string,
@@ -150,9 +151,6 @@ const FolderDetailPage = () => {
     attachmentsDocId,
     attachments,
     loadingAttachments,
-    userNotes,
-    setUserNotes,
-    handleSaveNotes,
     managers,
     signatureOpen,
     signatureSignerId,
@@ -238,6 +236,25 @@ const FolderDetailPage = () => {
     refreshActivityLogs,
     activityViewMode,
     setActivityViewMode,
+    notes,
+    loadingNotes,
+    notesError,
+    isNotesEditorOpen,
+    editingNote,
+    isCreatingNote,
+    isUpdatingNote,
+    isDeletingNote,
+    noteImageViewerId,
+    noteImageViewerTitle,
+    noteImageViewerFilename,
+    handleLoadNotes,
+    handleCreateNote,
+    handleEditNote,
+    handleCloseNoteEditor,
+    handleSaveNote,
+    handleDeleteNote,
+    handleViewNoteImage,
+    handleCloseNoteImageViewer,
   } = useFolderDetailPageContainer();
   const handleActivityRefresh = useCallback(() => {
     void refreshActivityLogs();
@@ -581,26 +598,40 @@ const FolderDetailPage = () => {
           </div>
         </div>
 
-        {/* User Notes: draft saved to localStorage with 1000ms debounce */}
+        {/* Folder Notes (structured notes with optional images) */}
         <div className="card mb-3">
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <h6 className="mb-0">{t("folders.userNotes", { defaultValue: "User Notes" })}</h6>
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleSaveNotes} aria-label={t("common.save", { defaultValue: "Save" })}>
-              {t("common.save", { defaultValue: "Save" })}
-            </Button>
+            <h6 className="mb-0">
+              <Icon name="file-text" className="me-2" />
+              {t("notes.folderNotes", { defaultValue: "Folder Notes" })}
+            </h6>
+            <div className="d-flex gap-2">
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleLoadNotes}>
+                <Icon name="refresh-cw" className="me-1" />
+                {t("common.refresh", { defaultValue: "Refresh" })}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleCreateNote}>
+                <Icon name="upload" className="me-1" />
+                {t("notes.createNote", { defaultValue: "Create note" })}
+              </Button>
+            </div>
           </div>
           <div className="card-body">
-            <textarea
-              className="form-control"
-              rows={4}
-              value={userNotes}
-              onChange={(e) => setUserNotes(e.target.value)}
-              placeholder={t("folders.notesPlaceholder", { defaultValue: "Add your notes or drafts..." })}
-              aria-label={t("folders.userNotes", { defaultValue: "User Notes" })}
+            <NotesList
+              notes={notes}
+              loading={loadingNotes}
+              error={notesError}
+              onEdit={handleEditNote}
+              onDelete={handleDeleteNote}
+              onViewImage={handleViewNoteImage}
+              showDocument={true}
+              showFolder={false}
+              emptyMessage={t("notes.noNotesForFolder", {
+                defaultValue: "No notes found for this folder.",
+              })}
             />
           </div>
         </div>
-
         
         {/* Preview */}
         <div className="card mb-3">
@@ -812,6 +843,36 @@ const FolderDetailPage = () => {
         }}
         initialValues={uploadPanelInitialValues}
         lockFolderContext={uploadPanelLockFolderContext}
+      />
+
+      {/* Note editor modal */}
+      <Modal
+        isOpen={isNotesEditorOpen}
+        onClose={handleCloseNoteEditor}
+        title={
+          editingNote
+            ? t("notes.editNote", { defaultValue: "Edit note" })
+            : t("notes.createNote", { defaultValue: "Create note" })
+        }
+        size="lg"
+      >
+        <NoteEditor
+          note={editingNote}
+          folderId={folderId ?? undefined}
+          departmentId={folder?.department_id}
+          onSave={handleSaveNote}
+          onCancel={handleCloseNoteEditor}
+          isSaving={isCreatingNote || isUpdatingNote}
+        />
+      </Modal>
+
+      {/* Note image viewer modal */}
+      <NoteImageViewerModal
+        isOpen={noteImageViewerId != null}
+        onClose={handleCloseNoteImageViewer}
+        noteId={noteImageViewerId}
+        noteTitle={noteImageViewerTitle}
+        imageFilename={noteImageViewerFilename}
       />
     </div>
   );

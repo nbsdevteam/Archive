@@ -7,10 +7,11 @@ import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { UploadDocumentSidePanel } from "../components";
 import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
 import { AuditActivityPanel } from "../../../shared/components/Activity";
+import { NotesList, NoteEditor, NoteImageViewerModal } from "../../notes/components";
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, auditError, auditRefresh, activityViewMode, setActivityViewMode, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleViewAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent } = useDocumentDetailPageContainer();
+  const { t, docId, doc, isLoading, storeError, title, documentTypeName, departmentName, uploaderName, versions, tags, ocr, ocrStatus, fileName, isOcrSupported, latestVersionId, signatureRows, approvedRequests, isArchived, isTrashed, isAdmin, canRequestSignature, attachments, attachmentSelectedIds, attachmentSelectionConfig, relations, auditLogs, activeTab, loadingAttachments, loadingRelations, loadingAudit, auditError, auditRefresh, activityViewMode, setActivityViewMode, managers, isAddAttachmentPanelOpen, modalUploadVersion, uploadVersionFile, uploadVersionUnlockToken, uploadVersionDescription, uploadingVersion, uploadVersionInputRef, modalRequestSign, selectedSignerId, signMessage, modalUploadSigned, selectedApprovedReqId, signToken, signedFile, uploadingSigned, signedFileInputRef, modalAddRelation, relatedDocId, relationNotes, addingRelation, runOcrLoading, modalTrashConfirm, modalPermanentDelete, attachmentTrashTargetId, isBatchAttachmentTrashConfirmOpen, isEditAttachmentModalOpen, editAttachmentName, editAttachmentDescription, isTrashing, isRestoring, isPermanentDeleting, isDeletingAttachment, isUpdatingAttachment, tabs, formatDate, refreshAttachments, setActiveTab, setIsAddAttachmentPanelOpen, setModalUploadVersion, setUploadVersionFile, setUploadVersionUnlockToken, setUploadVersionDescription, setModalRequestSign, setSelectedSignerId, setSignMessage, setModalUploadSigned, setSelectedApprovedReqId, setSignToken, setSignedFile, setModalAddRelation, setRelatedDocId, setRelationNotes, setModalTrashConfirm, setModalPermanentDelete, setEditAttachmentName, setEditAttachmentDescription, handleClearUploadVersionFile, handleClearSignedFile, handleDownloadVersion, handleDownloadCurrent, handleDownloadAttachment, handleViewAttachment, handleOpenAttachmentTrashConfirm, handleCloseAttachmentTrashConfirm, handleConfirmAttachmentTrash, handleOpenBatchAttachmentTrashConfirm, handleCloseBatchAttachmentTrashConfirm, handleConfirmBatchAttachmentTrash, handleOpenEditAttachment, handleCloseEditAttachment, handleConfirmEditAttachment, handleArchive, handleUnarchive, handleRunOcr, handleTrashDocument, handleRestoreDocument, handlePermanentDelete, handleUploadVersionSubmit, handleCreateSignatureRequest, handleUploadSignedSubmit, handleAddRelationSubmit, handleSetParent, notes, loadingNotes, notesError, isNotesEditorOpen, editingNote, isCreatingNote, isUpdatingNote, isDeletingNote, noteImageViewerId, noteImageViewerTitle, noteImageViewerFilename, handleCreateNote, handleEditNote, handleCloseNoteEditor, handleSaveNote, handleDeleteNote, handleViewNoteImage, handleCloseNoteImageViewer } = useDocumentDetailPageContainer();
   const routes = all_routes;
   if (isLoading && !doc) {
     return (
@@ -379,6 +380,31 @@ const DocumentDetailPage = () => {
                     tableClassName="table table-sm mb-0"
                   />
                 )}
+              </div>
+            )}
+
+            {activeTab === "notes" && (
+              <div>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <span>{t("documents.notes", { defaultValue: "Notes" })}</span>
+                  <Button variant="secondary" size="sm" onClick={handleCreateNote}>
+                    <Icon name="plus" className="me-1" />
+                    {t("notes.createNote", { defaultValue: "Create note" })}
+                  </Button>
+                </div>
+                <NotesList
+                  notes={notes}
+                  loading={loadingNotes}
+                  error={notesError}
+                  onEdit={handleEditNote}
+                  onDelete={handleDeleteNote}
+                  onViewImage={handleViewNoteImage}
+                  showDocument={false}
+                  showFolder={true}
+                  emptyMessage={t("notes.noNotesForDocument", {
+                    defaultValue: "No notes found for this document.",
+                  })}
+                />
               </div>
             )}
 
@@ -823,6 +849,36 @@ const DocumentDetailPage = () => {
           </Button>
         </ModalFooter>
       </Modal>
+
+      {/* Note editor modal */}
+      <Modal
+        isOpen={isNotesEditorOpen}
+        onClose={handleCloseNoteEditor}
+        title={
+          editingNote
+            ? t("notes.editNote", { defaultValue: "Edit note" })
+            : t("notes.createNote", { defaultValue: "Create note" })
+        }
+        size="lg"
+      >
+        <NoteEditor
+          note={editingNote}
+          documentId={docId ?? undefined}
+          departmentId={doc?.department_id}
+          onSave={handleSaveNote}
+          onCancel={handleCloseNoteEditor}
+          isSaving={isCreatingNote || isUpdatingNote}
+        />
+      </Modal>
+
+      {/* Note image viewer modal */}
+      <NoteImageViewerModal
+        isOpen={noteImageViewerId != null}
+        onClose={handleCloseNoteImageViewer}
+        noteId={noteImageViewerId}
+        noteTitle={noteImageViewerTitle}
+        imageFilename={noteImageViewerFilename}
+      />
     </div>
   );
 };

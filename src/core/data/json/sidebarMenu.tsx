@@ -61,6 +61,15 @@ export const SidebarDataTest = [
         base: routes.signatures,
       },
       {
+        label: "Notes",
+        translationKey: "notes",
+        link: routes.notes,
+        submenu: false,
+        showSubRoute: false,
+        icon: "StickyNote", // lucide-react icon name
+        base: routes.notes,
+      },
+      {
         label: "Notifications",
         translationKey: "notifications",
         link: routes.notifications,

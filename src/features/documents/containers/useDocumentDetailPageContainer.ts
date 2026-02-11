@@ -16,6 +16,8 @@ import type { ActivityViewMode } from "../../activity/types";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
+import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../../notes/types/notes.types";
 
 export const useDocumentDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,13 +40,13 @@ export const useDocumentDetailPageContainer = () => {
     error: storeError,
   } = useDocumentStore();
   const {
-    isTrashingSingle,
+    isTrashing,
     isRestoring,
     isPermanentDeleting,
-    archiveSingle,
-    unarchiveSingle,
-    trashSingle,
-    restoreSingle,
+    archiveDocument,
+    unarchiveDocument,
+    trashDocument,
+    restoreDocument,
     permanentDeleteSingle,
   } = useDocumentOperations();
 
@@ -106,11 +108,38 @@ export const useDocumentDetailPageContainer = () => {
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
+  // Notes state
+  const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
+  const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
+  const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
+  const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
+
   const {
     selectedIds: attachmentSelectedIds,
     selectionConfig: attachmentSelectionConfig,
     clear: clearAttachmentSelection,
   } = useSelection(attachments, (a) => a.id);
+
+  // Notes hooks
+  const {
+    notes,
+    loading: loadingNotes,
+    error: notesError,
+    refresh: refreshNotes,
+  } = useNotes({
+    documentId: docId ?? undefined,
+    autoLoad: activeTab === "notes",
+  });
+
+  const {
+    create: createNote,
+    update: updateNote,
+    remove: deleteNote,
+    isCreating: isCreatingNote,
+    isUpdating: isUpdatingNote,
+    isDeleting: isDeletingNote,
+  } = useNoteMutations();
 
   const handleClearUploadVersionFile = () => {
     setUploadVersionFile(null);
@@ -238,6 +267,13 @@ export const useDocumentDetailPageContainer = () => {
       .finally(() => setLoadingRelations(false));
   }, [docId, activeTab]);
 
+  // Refresh notes when switching to notes tab
+  useEffect(() => {
+    if (activeTab === "notes" && docId) {
+      refreshNotes();
+    }
+  }, [activeTab, docId, refreshNotes]);
+
   const handleDownloadVersion = async (versionId: number, fName: string) => {
     if (!doc?.id) return;
     try {
@@ -343,7 +379,7 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleArchive = async () => {
     if (!doc?.id) return;
-    await archiveSingle(doc.id, {
+    await archiveDocument(doc.id, {
       successMessage: t("documents.archived", { defaultValue: "Document archived." }),
       errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
       onSuccess: () => fetchDocument(doc.id),
@@ -352,7 +388,7 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleUnarchive = async () => {
     if (!doc?.id) return;
-    await unarchiveSingle(doc.id, {
+    await unarchiveDocument(doc.id, {
       successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
       errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
       onSuccess: () => fetchDocument(doc.id),
@@ -375,7 +411,7 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleTrashDocument = async () => {
     if (!doc?.id) return;
-    const didTrash = await trashSingle(doc.id, {
+    const didTrash = await trashDocument(doc.id, {
       successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
       errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
     });
@@ -387,7 +423,7 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleRestoreDocument = async () => {
     if (!doc?.id) return;
-    await restoreSingle(doc.id, {
+    await restoreDocument(doc.id, {
       successMessage: t("documents.restored", { defaultValue: "Document restored." }),
       errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
       onSuccess: () => fetchDocument(doc.id),
@@ -533,6 +569,7 @@ export const useDocumentDetailPageContainer = () => {
     { id: "download", label: t("documents.download", { defaultValue: "Download" }) },
     { id: "versions", label: t("documents.versionHistory", { defaultValue: "Version history" }) },
     { id: "attachments", label: t("documents.attachments", { defaultValue: "Attachments" }) },
+    { id: "notes", label: t("documents.notes", { defaultValue: "Notes" }) },
     { id: "ocr", label: t("documents.ocr", { defaultValue: "OCR" }) },
     { id: "signatures", label: t("documents.signatureRequests", { defaultValue: "Signature requests" }) },
     { id: "relations", label: t("documents.relations", { defaultValue: "Relations" }) },
@@ -619,7 +656,7 @@ export const useDocumentDetailPageContainer = () => {
     isEditAttachmentModalOpen,
     editAttachmentName,
     editAttachmentDescription,
-    isTrashing: isTrashingSingle,
+    isTrashing,
     isRestoring,
     isPermanentDeleting,
     isDeletingAttachment,
@@ -673,5 +710,24 @@ export const useDocumentDetailPageContainer = () => {
     handleUploadSignedSubmit,
     handleAddRelationSubmit,
     handleSetParent,
+    // Notes
+    notes,
+    loadingNotes,
+    notesError,
+    isNotesEditorOpen,
+    editingNote,
+    isCreatingNote,
+    isUpdatingNote,
+    isDeletingNote,
+    noteImageViewerId,
+    noteImageViewerTitle,
+    noteImageViewerFilename,
+    handleCreateNote,
+    handleEditNote,
+    handleCloseNoteEditor,
+    handleSaveNote,
+    handleDeleteNote,
+    handleViewNoteImage,
+    handleCloseNoteImageViewer,
   };
 };

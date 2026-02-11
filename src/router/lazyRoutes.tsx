@@ -149,6 +149,10 @@ export const SignatureRequestsPage = createLazyComponent(
   () => import("../features/signatures/pages/SignatureRequestsPage"),
   <LoadingSpinner text="Loading signatures..." />
 );
+export const NotesPage = createLazyComponent(
+  () => import("../features/notes/pages/NotesPage"),
+  <LoadingSpinner text="Loading notes..." />
+);
 export const NotificationsPage = createLazyComponent(
   () => import("../features/notifications/pages/NotificationsPage"),
   <LoadingSpinner text="Loading notifications..." />

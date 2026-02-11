@@ -33,13 +33,10 @@ export const useArchivedDocumentsPageContainer = () => {
     pagination,
   } = useDocumentStore();
   const {
-    isTrashingSingle,
-    isTrashingBatch,
+    isTrashing,
     isUnarchiving,
-    trashSingle,
-    trashBatch,
-    unarchiveSingle,
-    unarchiveBatch,
+    trashDocument,
+    unarchiveDocument,
   } = useDocumentOperations();
   const [appliedFilters, setAppliedFilters] = useState<ArchivedDocumentsFilterState>({});
   const [draftFilters, setDraftFilters] = useState<ArchivedDocumentsFilterState>({});
@@ -245,13 +242,13 @@ export const useArchivedDocumentsPageContainer = () => {
 
   const handleUnarchive = useCallback(
     async (documentId: number) => {
-      await unarchiveSingle(documentId, {
+      await unarchiveDocument(documentId, {
         successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
         errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
         onSuccess: () => fetchDocuments({ ...getFetchParams(), page: 1, per_page: 20 }),
       });
     },
-    [unarchiveSingle, t, fetchDocuments, getFetchParams]
+    [unarchiveDocument, t, fetchDocuments, getFetchParams]
   );
 
   const handlePageChange = useCallback(
@@ -279,12 +276,12 @@ export const useArchivedDocumentsPageContainer = () => {
   }, []);
 
   const handleCloseTrashConfirm = useCallback(() => {
-    if (!isTrashingSingle) setTrashTargetId(null);
-  }, [isTrashingSingle]);
+    if (!isTrashing) setTrashTargetId(null);
+  }, [isTrashing]);
 
   const handleConfirmTrash = useCallback(async () => {
     if (!trashTargetId) return;
-    const didTrash = await trashSingle(trashTargetId, {
+    const didTrash = await trashDocument(trashTargetId, {
       successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
       errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
       onSuccess: () => fetchDocuments({ ...getFetchParams(), page: 1, per_page: 20 }),
@@ -292,20 +289,20 @@ export const useArchivedDocumentsPageContainer = () => {
     if (didTrash) {
       setTrashTargetId(null);
     }
-  }, [trashSingle, trashTargetId, t, fetchDocuments, getFetchParams]);
+  }, [trashDocument, trashTargetId, t, fetchDocuments, getFetchParams]);
 
   const handleOpenBatchTrashConfirm = useCallback(() => {
     if (selectedDocumentIds.length > 0) setIsBatchTrashConfirmOpen(true);
   }, [selectedDocumentIds.length]);
 
   const handleCloseBatchTrashConfirm = useCallback(() => {
-    if (!isTrashingBatch) setIsBatchTrashConfirmOpen(false);
-  }, [isTrashingBatch]);
+    if (!isTrashing) setIsBatchTrashConfirmOpen(false);
+  }, [isTrashing]);
 
   const handleConfirmBatchTrash = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const selectedCount = selectedDocumentIds.length;
-    const didTrash = await trashBatch(selectedDocumentIds, {
+    const didTrash = await trashDocument(selectedDocumentIds, {
       successMessage: t("documents.batchTrashed", {
         defaultValue: "{{count}} document(s) moved to trash.",
         count: selectedCount,
@@ -325,7 +322,7 @@ export const useArchivedDocumentsPageContainer = () => {
     getFetchParams,
     selectedDocumentIds,
     t,
-    trashBatch,
+    trashDocument,
   ]);
 
   const handleOpenBatchUnarchiveConfirm = useCallback(() => {
@@ -339,7 +336,7 @@ export const useArchivedDocumentsPageContainer = () => {
   const handleConfirmBatchUnarchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const selectedCount = selectedDocumentIds.length;
-    const didUnarchive = await unarchiveBatch(selectedDocumentIds, {
+    const didUnarchive = await unarchiveDocument(selectedDocumentIds, {
       successMessage: t("documents.batchUnarchived", {
         defaultValue: "{{count}} document(s) unarchived.",
         count: selectedCount,
@@ -359,7 +356,7 @@ export const useArchivedDocumentsPageContainer = () => {
     getFetchParams,
     selectedDocumentIds,
     t,
-    unarchiveBatch,
+    unarchiveDocument,
   ]);
 
   const openMoveModalForIds = useCallback(
@@ -474,12 +471,12 @@ export const useArchivedDocumentsPageContainer = () => {
     handleCloseBatchMoveConfirm,
     handleConfirmBatchMove,
     trashTargetId,
-    isTrashing: isTrashingSingle,
+    isTrashing,
     handleOpenTrashConfirm,
     handleCloseTrashConfirm,
     handleConfirmTrash,
     isBatchTrashConfirmOpen,
-    isBatchTrashing: isTrashingBatch,
+    isBatchTrashing: isTrashing,
     handleOpenBatchTrashConfirm,
     handleCloseBatchTrashConfirm,
     handleConfirmBatchTrash,

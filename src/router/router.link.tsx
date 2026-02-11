@@ -20,6 +20,7 @@ import {
   Login,
   Register,
   ResetPassword,
+  NotesPage,
   NotificationsPage,
   PermissionsPage,
   SearchPage,
@@ -103,6 +104,10 @@ export const publicRoutes = [
   {
     path: routes.signatures,
     element: <SignatureRequestsPage />,
+  },
+  {
+    path: routes.notes,
+    element: <NotesPage />,
   },
   {
     path: routes.notifications,

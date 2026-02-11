@@ -6,7 +6,7 @@ import { handleApiError } from "../../../app/adapter/api/client";
 import { documentsApi, type Document, type Attachment } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
-import { getFolder, getFolderDocuments, deleteFolder } from "../services/folders.api";
+import { getFolder, getFolderDocuments, deleteFolder, updateFolder } from "../services/folders.api";
 import type { FolderDetail } from "../types/folders.types";
 import { useDocumentStore } from "../../documents/stores/documentStore";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
@@ -17,9 +17,8 @@ import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
-
-/** Build localStorage key for folder-specific user notes (key-value by folder id). */
-const getUserNotesStorageKey = (folderId: number) => `user-notes-${folderId}`;
+import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
+import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../../notes/types/notes.types";
 
 export const useFolderDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,12 +36,6 @@ export const useFolderDetailPageContainer = () => {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
 
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
-
-  /** User notes draft per folder, persisted to localStorage with 1000ms debounce. */
-  const [userNotes, setUserNotes] = useState<string>("");
-  const userNotesRef = useRef(userNotes);
-  userNotesRef.current = userNotes;
-  const prevFolderKeyRef = useRef<string | null>(null);
 
   const [managers, setManagers] = useState<Array<{ id: number; name: string; login?: string }>>([]);
   const [signatureOpen, setSignatureOpen] = useState(false);
@@ -68,14 +61,12 @@ export const useFolderDetailPageContainer = () => {
 
   const { currentDocument, fetchDocument } = useDocumentStore();
   const {
-    isArchivingSingle,
+    isArchiving,
     isUnarchiving,
-    isTrashingSingle,
-    isTrashingBatch,
-    archiveSingle,
-    unarchiveSingle,
-    trashSingle,
-    trashBatch,
+    isTrashing,
+    archiveDocument,
+    unarchiveDocument,
+    trashDocument,
   } = useDocumentOperations();
   const { createRequest } = useSignatureStore();
 
@@ -116,6 +107,26 @@ export const useFolderDetailPageContainer = () => {
     clear: clearAttachmentsSelection,
   } = useSelection<Attachment>(attachments, (a) => a.id);
 
+  // Notes hooks
+  const {
+    notes,
+    loading: loadingNotes,
+    error: notesError,
+    refresh: refreshNotes,
+  } = useNotes({
+    folderId: folderId ?? undefined,
+    autoLoad: false, // Manual load
+  });
+
+  const {
+    create: createNote,
+    update: updateNote,
+    remove: deleteNote,
+    isCreating: isCreatingNote,
+    isUpdating: isUpdatingNote,
+    isDeleting: isDeletingNote,
+  } = useNoteMutations();
+
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [transferMode, setTransferMode] = useState<"docs" | "attachments" | null>(null);
   const [transferDocIds, setTransferDocIds] = useState<number[]>([]);
@@ -126,6 +137,13 @@ export const useFolderDetailPageContainer = () => {
   const [isBatchSubDocTrashConfirmOpen, setIsBatchSubDocTrashConfirmOpen] = useState(false);
   const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
   const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
+
+  // Notes state
+  const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
+  const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
+  const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
+  const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
 
   /** Fetches folder and its documents from GET /api/folders/:id/documents; folder includes last_modified (UTC) for "Updated" display. */
   const loadFolderDocuments = useCallback(async () => {
@@ -154,46 +172,6 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [folderId, attachmentsDocId]);
 
-  /** When folder (URL) changes: flush current notes to previous folder key, then load notes for this folder. */
-  useEffect(() => {
-    if (folderId == null) return;
-    const key = getUserNotesStorageKey(folderId);
-    const prevKey = prevFolderKeyRef.current;
-    if (prevKey != null && prevKey !== key) {
-      try {
-        window.localStorage.setItem(prevKey, userNotesRef.current);
-      } catch {
-        // ignore storage errors
-      }
-    }
-    prevFolderKeyRef.current = key;
-    const stored =
-      typeof window !== "undefined"
-        ? (window.localStorage.getItem(key) ?? "")
-        : "";
-    setUserNotes(stored);
-  }, [folderId]);
-
-  /** Debounce timer for persisting user notes to localStorage (1000ms), keyed by folder id. */
-  const userNotesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (folderId == null) return;
-    const key = getUserNotesStorageKey(folderId);
-    userNotesDebounceRef.current = setTimeout(() => {
-      try {
-        window.localStorage.setItem(key, userNotes);
-      } catch {
-        // ignore storage errors
-      }
-      userNotesDebounceRef.current = null;
-    }, 1000);
-    return () => {
-      if (userNotesDebounceRef.current) {
-        clearTimeout(userNotesDebounceRef.current);
-        userNotesDebounceRef.current = null;
-      }
-    };
-  }, [userNotes, folderId]);
 
   const loadAttachmentsForDocument = async (documentId: number) => {
     setLoadingAttachments(true);
@@ -310,10 +288,6 @@ export const useFolderDetailPageContainer = () => {
     );
   };
 
-  /** Placeholder save handler for user notes (no-op; persistence is via debounced localStorage). */
-  const handleSaveNotes = useCallback(() => {
-    // Intentional no-op: notes are saved automatically as user types (debounced).
-  }, []);
 
   const openSignature = () => {
     setSignatureSignerId("");
@@ -384,24 +358,24 @@ export const useFolderDetailPageContainer = () => {
 
   const handleArchiveFolderDocument = useCallback(
     async (documentId: number) => {
-      await archiveSingle(documentId, {
+      await archiveDocument(documentId, {
         successMessage: t("documents.archived", { defaultValue: "Document archived." }),
         errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
         onSuccess: loadFolderDocuments,
       });
     },
-    [archiveSingle, loadFolderDocuments, t]
+    [archiveDocument, loadFolderDocuments, t]
   );
 
   const handleUnarchiveFolderDocument = useCallback(
     async (documentId: number) => {
-      await unarchiveSingle(documentId, {
+      await unarchiveDocument(documentId, {
         successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
         errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
         onSuccess: loadFolderDocuments,
       });
     },
-    [loadFolderDocuments, t, unarchiveSingle]
+    [loadFolderDocuments, t, unarchiveDocument]
   );
 
   const handleOpenSubDocTrashConfirm = useCallback((documentId: number) => {
@@ -409,14 +383,14 @@ export const useFolderDetailPageContainer = () => {
   }, []);
 
   const handleCloseSubDocTrashConfirm = useCallback(() => {
-    if (!isTrashingSingle) {
+    if (!isTrashing) {
       setSubDocTrashTargetId(null);
     }
-  }, [isTrashingSingle]);
+  }, [isTrashing]);
 
   const handleConfirmSubDocTrash = useCallback(async () => {
     if (!subDocTrashTargetId) return;
-    const didTrash = await trashSingle(subDocTrashTargetId, {
+    const didTrash = await trashDocument(subDocTrashTargetId, {
       successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
       errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
       onSuccess: loadFolderDocuments,
@@ -425,7 +399,7 @@ export const useFolderDetailPageContainer = () => {
       clearSubDocsSelection();
       setSubDocTrashTargetId(null);
     }
-  }, [clearSubDocsSelection, loadFolderDocuments, subDocTrashTargetId, t, trashSingle]);
+  }, [clearSubDocsSelection, loadFolderDocuments, subDocTrashTargetId, t, trashDocument]);
 
   const handleOpenBatchSubDocTrashConfirm = useCallback(() => {
     if (subDocSelectedIds.length > 0) {
@@ -434,15 +408,15 @@ export const useFolderDetailPageContainer = () => {
   }, [subDocSelectedIds.length]);
 
   const handleCloseBatchSubDocTrashConfirm = useCallback(() => {
-    if (!isTrashingBatch) {
+    if (!isTrashing) {
       setIsBatchSubDocTrashConfirmOpen(false);
     }
-  }, [isTrashingBatch]);
+  }, [isTrashing]);
 
   const handleConfirmBatchSubDocTrash = useCallback(async () => {
     const ids = subDocSelectedIds.map((id) => Number(id));
     if (ids.length === 0) return;
-    const didTrash = await trashBatch(ids, {
+    const didTrash = await trashDocument(ids, {
       successMessage: t("documents.batchTrashed", {
         defaultValue: "{{count}} document(s) moved to trash.",
         count: ids.length,
@@ -456,7 +430,7 @@ export const useFolderDetailPageContainer = () => {
       clearSubDocsSelection();
       setIsBatchSubDocTrashConfirmOpen(false);
     }
-  }, [clearSubDocsSelection, loadFolderDocuments, subDocSelectedIds, t, trashBatch]);
+  }, [clearSubDocsSelection, loadFolderDocuments, subDocSelectedIds, t, trashDocument]);
 
   const trashAttachmentsByIds = useCallback(
     async (attachmentIds: number[]) => {
@@ -658,6 +632,91 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [folderId, t, navigate, routes.folders]);
 
+  // Load notes when needed
+  const handleLoadNotes = useCallback(() => {
+    if (folderId) {
+      refreshNotes();
+    }
+  }, [folderId, refreshNotes]);
+
+  /** Open note editor for creating a new note */
+  const handleCreateNote = useCallback(() => {
+    setEditingNote(null);
+    setIsNotesEditorOpen(true);
+  }, []);
+
+  /** Open note editor for editing an existing note */
+  const handleEditNote = useCallback((note: NoteListItem) => {
+    setEditingNote(note);
+    setIsNotesEditorOpen(true);
+  }, []);
+
+  /** Close note editor */
+  const handleCloseNoteEditor = useCallback(() => {
+    setIsNotesEditorOpen(false);
+    setEditingNote(null);
+  }, []);
+
+  /** Save note (create or update) */
+  const handleSaveNote = useCallback(
+    async (payload: Omit<CreateNotePayload, 'folder_id'>) => {
+      if (!folderId) return;
+
+      if (editingNote) {
+        // Update existing note
+        const success = await updateNote(editingNote.id, payload as UpdateNotePayload);
+        if (success) {
+          handleCloseNoteEditor();
+          refreshNotes();
+        }
+      } else {
+        // Create new note
+        const noteId = await createNote({
+          ...payload,
+          folder_id: folderId,
+          department_id: folder?.department_id,
+        });
+        if (noteId) {
+          handleCloseNoteEditor();
+          refreshNotes();
+        }
+      }
+    },
+    [folderId, editingNote, updateNote, createNote, folder?.department_id, handleCloseNoteEditor, refreshNotes]
+  );
+
+  /** Delete a note */
+  const handleDeleteNote = useCallback(
+    async (note: NoteListItem) => {
+      const confirmed = window.confirm(
+        t("notes.confirmDelete", {
+          defaultValue: "Are you sure you want to delete this note?",
+        })
+      );
+      if (!confirmed) return;
+
+      const success = await deleteNote(note.id);
+      if (success) {
+        refreshNotes();
+      }
+    },
+    [deleteNote, refreshNotes, t]
+  );
+
+  /** Open image viewer for a note */
+  const handleViewNoteImage = useCallback((note: NoteListItem) => {
+    setNoteImageViewerId(note.id);
+    setNoteImageViewerTitle(note.title ?? "");
+    setNoteImageViewerFilename(note.image_filename ?? "");
+  }, []);
+
+  /** Close image viewer */
+  const handleCloseNoteImageViewer = useCallback(() => {
+    setNoteImageViewerId(null);
+    setNoteImageViewerTitle("");
+    setNoteImageViewerFilename("");
+  }, []);
+
   return {
     t,
     routes,
@@ -672,9 +731,6 @@ export const useFolderDetailPageContainer = () => {
     attachmentsDocId,
     attachments,
     loadingAttachments,
-    userNotes,
-    setUserNotes,
-    handleSaveNotes,
     managers,
     signatureOpen,
     signatureSignerId,
@@ -722,11 +778,11 @@ export const useFolderDetailPageContainer = () => {
     subDocSelectedIds,
     clearSubDocsSelection,
     subDocTrashTargetId,
-    isSubDocArchiving: isArchivingSingle,
+    isSubDocArchiving: isArchiving,
     isSubDocUnarchiving: isUnarchiving,
-    isSubDocTrashing: isTrashingSingle,
+    isSubDocTrashing: isTrashing,
     isBatchSubDocTrashConfirmOpen,
-    isBatchSubDocTrashing: isTrashingBatch,
+    isBatchSubDocTrashing: isTrashing,
     handleOpenSubDocTrashConfirm,
     handleCloseSubDocTrashConfirm,
     handleConfirmSubDocTrash,
@@ -763,5 +819,25 @@ export const useFolderDetailPageContainer = () => {
     refreshActivityLogs,
     activityViewMode,
     setActivityViewMode,
+    // Notes
+    notes,
+    loadingNotes,
+    notesError,
+    isNotesEditorOpen,
+    editingNote,
+    isCreatingNote,
+    isUpdatingNote,
+    isDeletingNote,
+    noteImageViewerId,
+    noteImageViewerTitle,
+    noteImageViewerFilename,
+    handleLoadNotes,
+    handleCreateNote,
+    handleEditNote,
+    handleCloseNoteEditor,
+    handleSaveNote,
+    handleDeleteNote,
+    handleViewNoteImage,
+    handleCloseNoteImageViewer,
   };
 };
