@@ -99,72 +99,62 @@ const LayoutModernDashboardPage = () => {
             <div className="row mb-3">
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
-                  <div className="card-body">
+                  <Link to={routes.folders} className="dashboard-stat-card-link card-body d-flex flex-column text-decoration-none text-body">
                     <span className="avatar rounded-circle bg-primary mb-2">
                       <Icon name="folder" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Total Folders</h6>
-                    <h4 className="mb-0 Num">{totalFolders.toLocaleString()}</h4>
-                    <Link to={routes.folders} className="link-default mt-2 d-inline-block">
-                      View folders
-                    </Link>
-                  </div>
+                    <h4 className="mb-0 Num" onClick={(e) => e.stopPropagation()}>{totalFolders.toLocaleString()}</h4>
+                    <span className="link-default mt-2 d-inline-block">View folders</span>
+                  </Link>
                 </div>
               </div>
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
-                  <div className="card-body">
+                  <Link to={routes.documents} className="dashboard-stat-card-link card-body d-flex flex-column text-decoration-none text-body">
                     <span className="avatar rounded-circle bg-info mb-2">
                       <Icon name="file-check" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
-                    <h4 className="mb-0 Num">{activeDocuments.toLocaleString()}</h4>
-                    <Link to={routes.documents} className="link-default mt-2 d-inline-block">
-                      View documents
-                    </Link>
-                  </div>
+                    <h4 className="mb-0 Num" onClick={(e) => e.stopPropagation()}>{activeDocuments.toLocaleString()}</h4>
+                    <span className="link-default mt-2 d-inline-block">View documents</span>
+                  </Link>
                 </div>
               </div>
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
-                  <div className="card-body">
+                  <Link to={routes.archiveDocuments} className="dashboard-stat-card-link card-body d-flex flex-column text-decoration-none text-body">
                     <span className="avatar rounded-circle bg-secondary mb-2">
                       <Icon name="archive" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h6>
-                    <h4 className="mb-0 Num">{archivedDocuments.toLocaleString()}</h4>
-                    <Link to={routes.archiveDocuments} className="link-default mt-2 d-inline-block">
-                      View documents
-                    </Link>
-                  </div>
+                    <h4 className="mb-0 Num" onClick={(e) => e.stopPropagation()}>{archivedDocuments.toLocaleString()}</h4>
+                    <span className="link-default mt-2 d-inline-block">View documents</span>
+                  </Link>
                 </div>
               </div>
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
-                  <div className="card-body">
+                  <Link to={routes.documentsTrash} className="dashboard-stat-card-link card-body d-flex flex-column text-decoration-none text-body">
                     <span className="avatar rounded-circle bg-danger-subtle text-danger mb-2">
                       <Icon name="trash-2" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>
-                    <h4 className="mb-0 Num">{trashedDocuments.toLocaleString()}</h4>
-                    <Link to={routes.documentsTrash} className="link-default mt-2 d-inline-block">
-                      View details
-                    </Link>
-                  </div>
+                    <h4 className="mb-0 Num" onClick={(e) => e.stopPropagation()}>{trashedDocuments.toLocaleString()}</h4>
+                    <span className="link-default mt-2 d-inline-block">View details</span>
+                  </Link>
                 </div>
               </div>
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
-                  <div className="card-body">
+                  <Link to={routes.notifications} className="dashboard-stat-card-link card-body d-flex flex-column text-decoration-none text-body">
                     <span className="avatar rounded-circle bg-warning mb-2">
                       <Icon name="bell" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">Unread Notifications</h6>
-                    <h4 className="mb-0 Num">{unreadCount.toLocaleString()}</h4>
-                    <Link to={routes.notifications} className="link-default mt-2 d-inline-block">
-                      View notifications
-                    </Link>
-                  </div>
+                    <h4 className="mb-0 Num" onClick={(e) => e.stopPropagation()}>{unreadCount.toLocaleString()}</h4>
+                    <span className="link-default mt-2 d-inline-block">View notifications</span>
+                  </Link>
                 </div>
               </div>
             </div>
