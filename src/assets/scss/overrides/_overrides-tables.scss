@@ -62,9 +62,29 @@
   --bs-table-hover-bg: rgba(var(--primary-rgb), 0.2);
 }
 
-/* DataTable row actions kebab: hide Bootstrap/Font Awesome caret pseudo-elements so only the kebab icon shows */
-.datatable-row-actions-dropdown .dropdown-toggle::before,
-.datatable-row-actions-dropdown .dropdown-toggle::after {
+/* DataTable row actions kebab: keep icon-only trigger and stable open-menu layout */
+.datatable-row-actions-dropdown .datatable-row-actions-toggle::before,
+.datatable-row-actions-dropdown .datatable-row-actions-toggle::after {
   display: none !important;
   content: none !important;
+}
+
+.datatable-row-actions-dropdown .datatable-row-actions-toggle {
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+
+.datatable-row-actions-dropdown .datatable-row-actions-toggle:hover,
+.datatable-row-actions-dropdown .datatable-row-actions-toggle:focus,
+.datatable-row-actions-dropdown .datatable-row-actions-toggle.show {
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+
+.datatable-row-actions-dropdown .dropdown-menu {
+  z-index: 1060;
 }
