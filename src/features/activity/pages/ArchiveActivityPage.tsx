@@ -7,15 +7,14 @@ import { Icon, Button } from "../../../shared/components/ui";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
 import { ActivityViewSwitcher, AuditLogsTable, AuditLogsTimeline, AuditLogsTreeView } from "../components";
+import { formatDateForActivityApi } from "../utils/activity.utils";
 import "../styles/activity.css";
 
-/**
- * Returns an ISO timestamp for `days` ago used by the default recent activity filter.
- */
-const getDateDaysAgoIso = (days: number): string => {
+/** Returns date `days` ago in DD/MM/YYYY for audit-logs API. */
+const getDateDaysAgoFormatted = (days: number): string => {
   const date = new Date();
   date.setDate(date.getDate() - days);
-  return date.toISOString();
+  return formatDateForActivityApi(date);
 };
 
 const ArchiveActivityPage = () => {
@@ -26,7 +25,7 @@ const ArchiveActivityPage = () => {
   const [dateFromInput, setDateFromInput] = useState("");
   const [dateToInput, setDateToInput] = useState("");
   const [actionInput, setActionInput] = useState("");
-  const defaultDateFrom = useMemo(() => getDateDaysAgoIso(7), []);
+  const defaultDateFrom = useMemo(() => getDateDaysAgoFormatted(7), []);
 
   const {
     logs,
@@ -44,15 +43,13 @@ const ArchiveActivityPage = () => {
     },
   });
 
-  /**
-   * Applies filters in one place to keep form submit and preset buttons consistent.
-   */
+  /** Applies filters; sends date_from/date_to as DD/MM/YYYY per audit-logs API. */
   const applyFilters = async (nextPage = 1) => {
     const nextParams = {
       ...params,
       page: nextPage,
-      date_from: dateFromInput ? new Date(dateFromInput).toISOString() : params.date_from,
-      date_to: dateToInput ? new Date(dateToInput).toISOString() : undefined,
+      date_from: dateFromInput ? formatDateForActivityApi(dateFromInput) : params.date_from,
+      date_to: dateToInput ? formatDateForActivityApi(dateToInput) : undefined,
       action: actionInput || undefined,
     };
     setParams(nextParams);
@@ -102,7 +99,7 @@ const ArchiveActivityPage = () => {
               size="sm"
               className="btn-outline-secondary"
               onClick={() => {
-                const defaultParams = { date_from: getDateDaysAgoIso(7), page: 1, per_page: 50 };
+                const defaultParams = { date_from: getDateDaysAgoFormatted(7), page: 1, per_page: 50 };
                 setDateFromInput("");
                 setDateToInput("");
                 setActionInput("");
@@ -117,7 +114,7 @@ const ArchiveActivityPage = () => {
               size="sm"
               className="btn-outline-secondary"
               onClick={() => {
-                const defaultParams = { date_from: getDateDaysAgoIso(1), page: 1, per_page: 50 };
+                const defaultParams = { date_from: getDateDaysAgoFormatted(1), page: 1, per_page: 50 };
                 setDateFromInput("");
                 setDateToInput("");
                 setActionInput("");
