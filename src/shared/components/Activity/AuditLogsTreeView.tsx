@@ -27,36 +27,59 @@ export interface AuditLogsTreeViewProps {
   groupBy: "document" | "action";
 }
 
+/** Single "label: value" row for timeline-style display. */
+interface LabelValueRow {
+  label: string;
+  value: string;
+}
+
 interface ActivityFlowNodeData {
   kind: "group" | "log";
   title: string;
-  /** Optional label for timeline-style "label: value" display (e.g. "Document", "Action"). */
+  /** Optional single label for group nodes (e.g. "Document", "Action"). */
   label?: string;
+  /** For log nodes: full set of label+value rows (Action, User, Document, Timestamp) to match timeline. */
+  rows?: LabelValueRow[];
   subtitle?: string;
   metadata?: string | null;
   count?: number;
   [key: string]: unknown;
 }
 
-/** Renders a single tree node with optional label+value row (e.g. "Document: asd1") to match timeline. */
+/** Renders a tree node: group = one "label: value" + count; log = full label grid (Action, User, Document, Timestamp). */
 const ActivityFlowNode = memo(({ data }: NodeProps) => {
   const nodeData = data as ActivityFlowNodeData;
   const isGroup = nodeData.kind === "group";
   const hasLabel = Boolean(nodeData.label);
+  const hasRows = Array.isArray(nodeData.rows) && nodeData.rows.length > 0;
+
   return (
     <div className={`activity-flow-node ${isGroup ? "activity-flow-node-group" : "activity-flow-node-log"}`}>
-      <div className="activity-flow-node-title">
-        {hasLabel ? (
-          <>
-            <span className="activity-timeline-label-key">{nodeData.label}: </span>
-            <span className="activity-timeline-label-value">{nodeData.title}</span>
-          </>
-        ) : (
-          nodeData.title
-        )}
-      </div>
-      {typeof nodeData.count === "number" && <div className="activity-flow-node-count">{nodeData.count} events</div>}
-      {nodeData.subtitle && <div className="activity-flow-node-subtitle">{nodeData.subtitle}</div>}
+      {hasRows ? (
+        <div className="activity-timeline-label-grid">
+          {nodeData.rows!.map((row, i) => (
+            <div key={i} className="activity-flow-node-label-row">
+              <span className="activity-timeline-label-key">{row.label}: </span>
+              <span className="activity-timeline-label-value">{row.value}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="activity-flow-node-title">
+            {hasLabel ? (
+              <>
+                <span className="activity-timeline-label-key">{nodeData.label}: </span>
+                <span className="activity-timeline-label-value">{nodeData.title}</span>
+              </>
+            ) : (
+              nodeData.title
+            )}
+          </div>
+          {typeof nodeData.count === "number" && <div className="activity-flow-node-count">{nodeData.count} events</div>}
+          {nodeData.subtitle && <div className="activity-flow-node-subtitle">{nodeData.subtitle}</div>}
+        </>
+      )}
       {nodeData.metadata && <div className="activity-flow-node-metadata">{nodeData.metadata}</div>}
     </div>
   );
@@ -112,10 +135,18 @@ const AuditLogsTreeViewComponent = ({
       groupLogs.forEach((log, logIndex) => {
         const logNodeId = `log-${groupIndex}-${log.id}`;
         const actionLabel = t(`activity.actions.${log.action}`, { defaultValue: humanizeAction(String(log.action)) });
-        const subtitle = `${actionLabel} • ${log.user_name || "–"} • ${formatAuditTimestamp(log.timestamp)}`;
-
-        const documentLabel = t("activity.columns.document", { defaultValue: "Document" });
-        const documentValue = log.document_title || `#${log.document_id ?? "N/A"}`;
+        const rows: LabelValueRow[] = [
+          { label: t("activity.columns.action", { defaultValue: "Action" }), value: actionLabel },
+          { label: t("activity.columns.user", { defaultValue: "User" }), value: log.user_name || "–" },
+          {
+            label: t("activity.columns.document", { defaultValue: "Document" }),
+            value: log.document_title || `#${log.document_id ?? "N/A"}`,
+          },
+          {
+            label: t("activity.columns.timestamp", { defaultValue: "Timestamp" }),
+            value: formatAuditTimestamp(log.timestamp),
+          },
+        ];
         nodes.push({
           id: logNodeId,
           type: "activityNode",
@@ -125,9 +156,8 @@ const AuditLogsTreeViewComponent = ({
           selectable: false,
           data: {
             kind: "log",
-            label: documentLabel,
-            title: documentValue,
-            subtitle,
+            title: log.document_title || `#${log.document_id ?? "N/A"}`,
+            rows,
             metadata: log.metadata,
           } as ActivityFlowNodeData,
         });
