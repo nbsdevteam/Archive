@@ -1,3 +1,16 @@
+/* When content contains the documents table card, fill viewport height */
+.content:has(.documents__table-card) {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 105px);
+}
+
+.content:has(.documents__table-card) .documents__table-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 24px;
+}
+
 .documents {
   &__search-card {
     margin-bottom: 1rem;
@@ -7,17 +20,15 @@
     width: 100%;
   }
 
-  /* Table card: fixed height so body does not shrink with few rows */
+  /* Table card: fill available height, body and table wrapper flex to fill */
   &__table-card {
-    margin-bottom: 24px;
     display: flex;
     flex-direction: column;
-    min-height: 420px;
   }
 
   &__table-card .card-body {
     flex: 1 1 auto;
-    min-height: 320px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
   }
