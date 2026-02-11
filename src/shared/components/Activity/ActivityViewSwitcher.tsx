@@ -11,21 +11,13 @@ interface ActivityViewSwitcherProps {
   onChange: (next: ActivityViewMode) => void;
 }
 
-/** Segmented control to switch between table, timeline and tree views. */
+/** Segmented control to switch between timeline and tree views. */
 const ActivityViewSwitcherComponent = ({ t, value, onChange }: ActivityViewSwitcherProps) => {
-  const handleTableClick = useCallback(() => onChange("table"), [onChange]);
   const handleTimelineClick = useCallback(() => onChange("timeline"), [onChange]);
   const handleTreeClick = useCallback(() => onChange("tree"), [onChange]);
 
   return (
     <div className="btn-group btn-group-sm" role="group" aria-label={t("activity.viewMode", { defaultValue: "View mode" })}>
-      <button
-        type="button"
-        className={`btn ${value === "table" ? "btn-secondary" : "btn-outline-secondary"}`}
-        onClick={handleTableClick}
-      >
-        {t("activity.view.table", { defaultValue: "Table" })}
-      </button>
       <button
         type="button"
         className={`btn ${value === "timeline" ? "btn-secondary" : "btn-outline-secondary"}`}

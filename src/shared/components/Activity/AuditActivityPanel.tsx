@@ -3,7 +3,6 @@ import { Button } from "../ui";
 import type { ActivityViewMode } from "./types";
 import type { AuditLogEntry } from "./types";
 import { ActivityViewSwitcher } from "./ActivityViewSwitcher";
-import { AuditLogsTable } from "./AuditLogsTable";
 import { AuditLogsTimeline } from "./AuditLogsTimeline";
 import { AuditLogsTreeView } from "./AuditLogsTreeView";
 
@@ -16,7 +15,7 @@ export interface AuditActivityPanelProps {
   logs: AuditLogEntry[];
   loading?: boolean;
   error?: string | null;
-  /** Current view mode (table | timeline | tree). */
+  /** Current view mode (timeline | tree). */
   viewMode: ActivityViewMode;
   /** Called when user switches view. */
   onViewModeChange: (mode: ActivityViewMode) => void;
@@ -32,7 +31,7 @@ export interface AuditActivityPanelProps {
   showDocument?: boolean;
   /** Show metadata/details column. */
   showMetadata?: boolean;
-  /** Navigate to document (table: documentId; timeline: documentId, log). */
+  /** Navigate to document (timeline: documentId, log). */
   onDocumentClick?: (documentId: number, log?: AuditLogEntry) => void;
   /** Tree view group by: "document" | "action". */
   treeGroupBy?: "document" | "action";
@@ -78,17 +77,6 @@ const AuditActivityPanelComponent = ({
         </div>
       </div>
       <div className="card-body">
-        {viewMode === "table" && (
-          <AuditLogsTable
-            t={t}
-            logs={logs}
-            loading={loading}
-            error={error}
-            showDocument={showDocument}
-            showMetadata={showMetadata}
-            onDocumentClick={onDocumentClick ? (id) => onDocumentClick(id) : undefined}
-          />
-        )}
         {viewMode === "timeline" && (
           <AuditLogsTimeline
             t={t}

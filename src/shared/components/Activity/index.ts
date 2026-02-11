@@ -1,5 +1,5 @@
 /**
- * Shared audit activity components: reusable panel and views (table, timeline, tree).
+ * Shared audit activity components: reusable panel and views (timeline, tree).
  * Pass data via props; components are memoized to avoid unnecessary rerenders.
  */
 export * from "./types";

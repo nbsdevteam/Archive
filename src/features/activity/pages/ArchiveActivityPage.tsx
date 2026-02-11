@@ -6,7 +6,7 @@ import { all_routes } from "../../../router/all_routes";
 import { Icon, Button } from "../../../shared/components/ui";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
-import { ActivityViewSwitcher, AuditLogsTable, AuditLogsTimeline, AuditLogsTreeView } from "../components";
+import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../components";
 import { formatDateForAuditApi } from "../utils/activity.utils";
 import "../styles/activity.css";
 
@@ -20,7 +20,7 @@ const getDateDaysAgoFormatted = (days: number): string => {
 const ArchiveActivityPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
-  const [viewMode, setViewMode] = useState<ActivityViewMode>("table");
+  const [viewMode, setViewMode] = useState<ActivityViewMode>("timeline");
   const [treeGroupBy, setTreeGroupBy] = useState<"document" | "action">("document");
   const [dateFromInput, setDateFromInput] = useState("");
   const [dateToInput, setDateToInput] = useState("");
@@ -197,16 +197,6 @@ const ArchiveActivityPage = () => {
             </div>
           </div>
           <div className="card-body">
-            {viewMode === "table" && (
-              <AuditLogsTable
-                t={t}
-                logs={logs}
-                loading={loading}
-                error={error}
-                showDocument
-                showMetadata
-              />
-            )}
             {viewMode === "timeline" && (
               <AuditLogsTimeline
                 t={t}

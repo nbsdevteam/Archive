@@ -36,7 +36,7 @@ export const useFolderDetailPageContainer = () => {
 
   const [workflowInfo, setWorkflowInfo] = useState<FolderWorkflowInfo | null>(null);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
-  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("table");
+  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
   const [transitionOpen, setTransitionOpen] = useState(false);
   const [transitionTarget, setTransitionTarget] = useState<{ id: number; label: string } | null>(null);

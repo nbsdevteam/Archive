@@ -104,7 +104,7 @@ export const useDocumentDetailPageContainer = () => {
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
-  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("table");
+  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
   const {
     selectedIds: attachmentSelectedIds,
