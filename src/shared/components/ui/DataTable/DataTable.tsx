@@ -1,9 +1,47 @@
 import { useEffect, useRef } from "react";
 import type { DataTableProps } from "./DataTable.types";
 import { Button } from "../Button";
-import { Icon } from "../Icon";
+import { Icon, type IconName } from "../Icon";
 import { Spinner } from "../Spinner";
 import { InfoWrapper } from "../InfoWrapper";
+
+/**
+ * Resolves the icon shown for a row action.
+ * Falls back by action id so icon-only actions remain visible even when icon is omitted.
+ */
+const resolveActionIcon = (actionId: string, configuredIcon?: string): IconName => {
+  const normalizedIcon = String(configuredIcon ?? "").trim().toLowerCase();
+  const configuredIconMap: Record<string, IconName> = {
+    eye: "eye",
+    download: "download",
+    edit: "edit",
+    pencil: "pencil",
+    trash: "trash",
+    "trash-2": "trash-2",
+    archive: "archive",
+    search: "search",
+    filter: "filter",
+    info: "info",
+    "refresh-cw": "refresh-cw",
+    "arrow-left": "arrow-left",
+    upload: "upload",
+    "file-up": "file-up",
+    x: "x",
+  };
+  if (normalizedIcon && configuredIconMap[normalizedIcon]) {
+    return configuredIconMap[normalizedIcon];
+  }
+
+  const normalizedActionId = String(actionId ?? "").trim().toLowerCase();
+  if (normalizedActionId.includes("view")) return "eye";
+  if (normalizedActionId.includes("download")) return "download";
+  if (normalizedActionId.includes("edit") || normalizedActionId.includes("update")) return "edit";
+  if (normalizedActionId.includes("delete") || normalizedActionId.includes("trash")) return "trash";
+  if (normalizedActionId.includes("archive")) return "archive";
+  if (normalizedActionId.includes("restore") || normalizedActionId.includes("unarchive")) return "refresh-cw";
+
+  return "info";
+};
 
 export function DataTable<T>({
   data,
@@ -127,20 +165,21 @@ export function DataTable<T>({
                           const label = action.renderLabel
                             ? action.renderLabel(row)
                             : action.label;
-                          
+                          const iconName = resolveActionIcon(action.id, action.icon);
+
                           const buttonElement = (
                             <Button
                               key={action.id}
                               variant={action.variant ?? "light"}
                               size="sm"
-                              className={`btn-icon ${action.className ?? ""}`.trim()}
+                              className={(action.className ?? "").trim()}
                               disabled={disabled}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 action.onClick(row, e);
                               }}
                             >
-                              {action.icon && <Icon name={action.icon} />}
+                              <Icon name={iconName} className="fs-16" />
                             </Button>
                           );
 
@@ -150,7 +189,6 @@ export function DataTable<T>({
                               content={label}
                               position="top"
                               trigger={buttonElement}
-                              className="me-1"
                               showOn="hover"
                             />
                           );
