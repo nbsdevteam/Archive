@@ -142,7 +142,7 @@ const LayoutModernDashboardPage = () => {
               <div className="col-xl-3 col-md-6 d-flex">
                 <div className="card flex-fill">
                   <div className="card-body">
-                    <span className="avatar rounded-circle bg-warning-subtle text-warning mb-2">
+                    <span className="avatar rounded-circle bg-danger-subtle text-danger mb-2">
                       <Icon name="trash-2" className="fs-16" />
                     </span>
                     <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>

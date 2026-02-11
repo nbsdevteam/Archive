@@ -142,7 +142,7 @@ const DashboardPage = () => {
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
                     <Card className="flex-fill" glassEffect>
-                      <span className="avatar rounded-circle bg-warning-subtle text-warning mb-2">
+                      <span className="avatar rounded-circle bg-danger-subtle text-danger mb-2">
                         <Icon name="trash-2" className="fs-16" />
                       </span>
                       <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>

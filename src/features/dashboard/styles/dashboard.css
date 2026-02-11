@@ -67,6 +67,16 @@
   font-weight: 400;
 }
 
+/* Trashed documents card: light red scheme (bg + icon) instead of yellow */
+.avatar.bg-danger-subtle.text-danger {
+  background-color: rgba(220, 53, 69, 0.12) !important;
+  color: #c92a3a !important;
+}
+[data-theme="dark"] .avatar.bg-danger-subtle.text-danger {
+  background-color: rgba(220, 53, 69, 0.2) !important;
+  color: #e85564 !important;
+}
+
 /* ApexCharts legend text: match dashboard donut info text color in dark mode */
 [data-theme="dark"] .dashboard-donut-card .apexcharts-legend-text {
   color: var(--app-muted-color) !important;
