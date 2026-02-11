@@ -1,8 +1,25 @@
 import { useEffect, useRef } from "react";
+import { Dropdown } from "react-bootstrap";
 import type { DataTableProps } from "./DataTable.types";
-import { Button } from "../Button";
 import { Icon } from "../Icon";
+import type { IconName } from "../Icon";
 import { Spinner } from "../Spinner";
+
+/**
+ * Resolves icon for a row action: use configured icon or infer from action id so menu items always show an icon.
+ */
+function resolveActionIcon(actionId: string, configuredIcon?: IconName): IconName {
+  if (configuredIcon) return configuredIcon;
+  const id = String(actionId ?? "").toLowerCase();
+  if (id.includes("view")) return "eye";
+  if (id.includes("download")) return "download";
+  if (id.includes("transfer")) return "arrow-right-left";
+  if (id.includes("archive") && !id.includes("unarchive")) return "archive";
+  if (id.includes("unarchive") || id.includes("restore")) return "refresh-cw";
+  if (id.includes("trash") || id.includes("delete")) return "trash-2";
+  if (id.includes("edit")) return "pencil";
+  return "info";
+}
 
 export function DataTable<T>({
   data,
@@ -116,35 +133,49 @@ export function DataTable<T>({
                   ))}
                   {hasActions && (
                     <td
-                      className="text-end"
+                      className="text-end align-middle"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {rowActions!
-                        .filter((action) => action.visible?.(row) !== false)
-                        .map((action) => {
-                          const disabled = action.disabled?.(row);
-                          const label = action.renderLabel
-                            ? action.renderLabel(row)
-                            : action.label;
-                          return (
-                            <Button
-                              key={action.id}
-                              variant={action.variant ?? "light"}
-                              size="sm"
-                              className={`me-1 ${action.className ?? ""}`.trim()}
-                              disabled={disabled}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                action.onClick(row, e);
-                              }}
-                            >
-                              {action.icon && (
-                                <Icon name={action.icon} className="me-1" />
-                              )}
-                              {label}
-                            </Button>
-                          );
-                        })}
+                      <Dropdown align="end" drop="start">
+                        <Dropdown.Toggle
+                          variant="link"
+                          size="sm"
+                          className="p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
+                          aria-label="Row actions"
+                        >
+                          <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu className="dropdown-menu-end">
+                          {rowActions!
+                            .filter((action) => action.visible?.(row) !== false)
+                            .map((action) => {
+                              const disabled = action.disabled?.(row);
+                              const label = action.renderLabel
+                                ? action.renderLabel(row)
+                                : action.label;
+                              const iconName = resolveActionIcon(action.id, action.icon);
+                              const isDanger =
+                                action.variant === "danger" ||
+                                (action.className ?? "").toLowerCase().includes("danger");
+                              return (
+                                <Dropdown.Item
+                                  key={action.id}
+                                  as="button"
+                                  type="button"
+                                  disabled={disabled}
+                                  className={`d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.onClick(row, e);
+                                  }}
+                                >
+                                  <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
+                                  <span>{label}</span>
+                                </Dropdown.Item>
+                              );
+                            })}
+                        </Dropdown.Menu>
+                      </Dropdown>
                     </td>
                   )}
                 </tr>

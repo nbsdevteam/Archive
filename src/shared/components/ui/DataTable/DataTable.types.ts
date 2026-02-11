@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { IconName } from "../Icon";
 
 export type ButtonVariant = "primary" | "secondary" | "danger" | "light" | "outline";
 
@@ -16,7 +17,7 @@ export interface RowAction<T> {
   label: ReactNode;
   /** When set, used instead of label for each row (e.g. to show loading state). */
   renderLabel?: (row: T) => ReactNode;
-  icon?: string;
+  icon?: IconName;
   variant?: ButtonVariant;
   className?: string;
   visible?: (row: T) => boolean;
