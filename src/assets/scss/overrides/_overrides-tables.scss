@@ -86,5 +86,11 @@
 }
 
 .datatable-row-actions-dropdown .dropdown-menu {
-  z-index: 1060;
+  z-index: 999999 !important;
+}
+
+/* Allow row-action menus to escape table clipping while preserving horizontal scroll. */
+.datatable-responsive-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
 }

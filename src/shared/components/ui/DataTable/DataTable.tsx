@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
@@ -35,11 +35,19 @@ export function DataTable<T>({
   tbodyClassName,
 }: DataTableProps<T>) {
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
+  const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
 
   useEffect(() => {
     const el = headerCheckboxRef.current;
     if (el && selection) el.indeterminate = selection.isIndeterminate;
   }, [selection?.isIndeterminate]);
+
+  // Keep row-actions menu state valid when table data changes.
+  useEffect(() => {
+    if (!openActionsRowId) return;
+    const stillExists = data.some((row) => String(getRowId(row)) === openActionsRowId);
+    if (!stillExists) setOpenActionsRowId(null);
+  }, [data, getRowId, openActionsRowId]);
 
   const hasSelection = Boolean(selection);
   const hasActions = Boolean(rowActions && rowActions.length > 0);
@@ -47,7 +55,7 @@ export function DataTable<T>({
     columns.length + (hasSelection ? 1 : 0) + (hasActions ? 1 : 0);
 
   return (
-    <div className="table-responsive">
+    <div className="table-responsive datatable-responsive-wrap">
       <table className={tableClassName}>
         <thead>
           <tr>
@@ -136,7 +144,12 @@ export function DataTable<T>({
                       className="text-end align-middle"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Dropdown align="end" className="datatable-row-actions-dropdown">
+                      <Dropdown
+                        align="end"
+                        className="datatable-row-actions-dropdown"
+                        show={openActionsRowId === String(rowId)}
+                        onToggle={(isOpen) => setOpenActionsRowId(isOpen ? String(rowId) : null)}
+                      >
                         <Dropdown.Toggle
                           variant="link"
                           size="sm"
@@ -167,6 +180,7 @@ export function DataTable<T>({
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     action.onClick(row, e);
+                                    setOpenActionsRowId(null);
                                   }}
                                 >
                                   <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
