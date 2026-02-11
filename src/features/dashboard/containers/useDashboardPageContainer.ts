@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
+import { useDocumentCount, useTrashDocumentCount } from "../../documents/hooks";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 
@@ -54,6 +54,8 @@ export const useDashboardPageContainer = () => {
   const { count: archivedDocumentsCount } = useDocumentCount({
     initialParams: DOCUMENT_PARAMS_ARCHIVED,
   });
+
+  const { count: trashedDocumentsCount } = useTrashDocumentCount();
 
   const {
     notifications,
@@ -119,6 +121,7 @@ export const useDashboardPageContainer = () => {
     notificationsError,
     activeDocumentsCount,
     archivedDocumentsCount,
+    trashedDocumentsCount,
     totalFolders,
     documentsByDepartment,
     foldersByDepartmentItems,

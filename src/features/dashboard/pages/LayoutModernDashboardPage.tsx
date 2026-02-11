@@ -25,6 +25,7 @@ const LayoutModernDashboardPage = () => {
     totalFolders,
     activeDocuments,
     archivedDocuments,
+    trashedDocuments,
     chartData,
     chartOptions,
     loading,
@@ -134,6 +135,20 @@ const LayoutModernDashboardPage = () => {
                     <h4 className="mb-0 Num">{archivedDocuments.toLocaleString()}</h4>
                     <Link to={routes.archiveDocuments} className="link-default mt-2 d-inline-block">
                       View documents
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-3 col-md-6 d-flex">
+                <div className="card flex-fill">
+                  <div className="card-body">
+                    <span className="avatar rounded-circle bg-warning-subtle text-warning mb-2">
+                      <Icon name="trash-2" className="fs-16" />
+                    </span>
+                    <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>
+                    <h4 className="mb-0 Num">{trashedDocuments.toLocaleString()}</h4>
+                    <Link to={routes.documentsTrash} className="link-default mt-2 d-inline-block">
+                      View details
                     </Link>
                   </div>
                 </div>

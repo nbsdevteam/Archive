@@ -3,7 +3,7 @@ import type { ApexOptions } from "apexcharts";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocumentCount } from "../../documents/hooks/useDocumentCount";
+import { useDocumentCount, useTrashDocumentCount } from "../../documents/hooks";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
@@ -39,6 +39,8 @@ export const useLayoutModernDashboardPageContainer = () => {
     initialParams: ARCHIVED_DOCUMENT_PARAMS,
   });
 
+  const { count: trashedDocumentsCount } = useTrashDocumentCount();
+
   const {
     notifications,
     unreadCount,
@@ -73,6 +75,7 @@ export const useLayoutModernDashboardPageContainer = () => {
   const totalFolders = foldersPagination?.total ?? folders.length;
   const activeDocuments = stats?.total_documents ?? 0;
   const archivedDocuments = archivedDocumentsCount;
+  const trashedDocuments = trashedDocumentsCount;
 
   const chartData = useMemo(() => groupFoldersByDepartment(folders), [folders]);
   const chartOptions = useMemo<ApexOptions>(
@@ -121,6 +124,7 @@ export const useLayoutModernDashboardPageContainer = () => {
     totalFolders,
     activeDocuments,
     archivedDocuments,
+    trashedDocuments,
     chartData,
     chartOptions,
     loading,
