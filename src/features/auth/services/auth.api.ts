@@ -13,7 +13,8 @@ import type {
 } from "../../../app/adapter/api/auth.api";
 
 /**
- * Login
+ * Login: stores tokens, then fetches /api/auth/me once and stores full user in localStorage.
+ * All consumers (e.g. useAuth) read user from localStorage; no further /auth/me calls.
  */
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await adapterAuthApi.login(data);
@@ -22,6 +23,15 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
     localStorage.setItem('refresh_token', response.refresh_token);
     if (response.user) {
       localStorage.setItem('user', JSON.stringify(response.user));
+    }
+    // Fetch full user (e.g. uploaded_documents, pending_approvals) once and persist for the session
+    try {
+      const meResponse = await adapterAuthApi.getCurrentUser();
+      if (meResponse?.success && meResponse?.user) {
+        localStorage.setItem('user', JSON.stringify(meResponse.user));
+      }
+    } catch {
+      // Keep login response user if /me fails
     }
   }
   return response;

@@ -54,6 +54,10 @@ export interface User {
   is_manager?: boolean;
   departments?: Array<{ id: number; name: string; code: string; role: string }>;
   language?: string;
+  /** From /api/auth/me (stored in localStorage after login) */
+  uploaded_documents?: number;
+  pending_approvals?: number;
+  unread_notifications?: number;
 }
 
 export interface MeResponse {

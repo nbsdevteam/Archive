@@ -5,6 +5,7 @@
 
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
+const USER_KEY = "user";
 
 /**
  * Get the access token from storage
@@ -69,6 +70,31 @@ export const clearTokens = (): void => {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   } catch (error) {
     console.error("Failed to clear tokens:", error);
+  }
+};
+
+/**
+ * Get stored user from localStorage (set after login; consumed by useAuth).
+ * Returns null if missing or invalid.
+ */
+export const getStoredUser = <T = unknown>(): T | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Clear stored user from localStorage (called on logout).
+ */
+export const clearStoredUser = (): void => {
+  try {
+    localStorage.removeItem(USER_KEY);
+  } catch (error) {
+    console.error("Failed to clear user from storage:", error);
   }
 };
 

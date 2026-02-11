@@ -1,52 +1,26 @@
-import { useState, useEffect } from "react";
-import { getMe, logout as logoutApi } from "../services/auth.api";
-import { isAuthenticated, getAccessToken, clearTokens } from "../../../shared/utils/storage";
+import { useState, useMemo } from "react";
+import { logout as logoutApi } from "../services/auth.api";
+import {
+  isAuthenticated,
+  getAccessToken,
+  clearTokens,
+  getStoredUser,
+  clearStoredUser,
+} from "../../../shared/utils/storage";
 import type { User } from "../types/auth.types";
 
 /**
- * useAuth - Hook for authentication state and user info
+ * useAuth - Authentication state and user from localStorage (no /api/auth/me calls).
+ * User is set once on login and cleared on logout.
  */
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const authenticated = isAuthenticated();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!authenticated) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const response = await getMe();
-        if (response.success && response.user) {
-          setUser(response.user);
-          try {
-            localStorage.setItem("user", JSON.stringify(response.user));
-          } catch {
-            /* ignore storage errors */
-          }
-        } else {
-          // Token might be invalid, clear it
-          clearTokens();
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setError(err instanceof Error ? err.message : "Failed to load user");
-        clearTokens();
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
+  const user = useMemo<User | null>(() => {
+    if (!authenticated) return null;
+    return getStoredUser<User>();
   }, [authenticated]);
+
+  const [error, setError] = useState<string | null>(null);
 
   const logout = async () => {
     try {
@@ -54,7 +28,7 @@ export const useAuth = () => {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      setUser(null);
+      clearStoredUser();
       clearTokens();
     }
   };
@@ -62,7 +36,7 @@ export const useAuth = () => {
   return {
     user,
     authenticated,
-    loading,
+    loading: false,
     error,
     logout,
     token: getAccessToken(),
