@@ -11,6 +11,7 @@ import type { ColumnDef, RowAction } from "../../../shared/components/ui/DataTab
 import type { Document } from "../../../app/adapter/api/documents.api";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
+import { formatDateAndTimeIraqi } from "../../../shared/utils/format/date";
 
 function secondaryDocsColumns(
   t: (key: string, opts?: { defaultValue?: string }) => string,
@@ -376,7 +377,11 @@ const FolderDetailPage = () => {
               </div>
               <div className="col-md-4">
                 <div className="text-muted small">{t("folders.updated", { defaultValue: "Updated" })}</div>
-                <div className="fw-medium">{formatDate(folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated) || "–"}</div>
+                <div className="fw-medium">
+                  {folder.last_modified
+                    ? formatDateAndTimeIraqi(folder.last_modified) || "–"
+                    : formatDate(folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated) || "–"}
+                </div>
               </div>
               <div className="col-12">
                 <div className="text-muted small">{t("folders.description", { defaultValue: "Description" })}</div>

@@ -127,7 +127,7 @@ export const useFolderDetailPageContainer = () => {
   const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
   const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
 
-  /** Fetches folder and its documents from API and updates local state. Call after move/trash/archive so UI matches backend. */
+  /** Fetches folder and its documents from GET /api/folders/:id/documents; folder includes last_modified (UTC) for "Updated" display. */
   const loadFolderDocuments = useCallback(async () => {
     if (!folderId) return;
     setLoading(true);

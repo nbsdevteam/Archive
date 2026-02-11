@@ -52,3 +52,40 @@ export const formatRelativeTime = (
 
   return formatDate(d);
 };
+
+/** Iraq timezone offset in hours (Arabia Standard Time, UTC+3). */
+const IRAQ_UTC_OFFSET_HOURS = 3;
+
+/**
+ * Formats a UTC (Greenwich) date string to Iraqi time (UTC+3) as date and time with AM/PM.
+ * Use for last_modified from API (e.g. folder documents response).
+ * @param utcDateString - ISO date string in UTC (e.g. "2026-02-11T14:00:00" or "2026-02-11T14:00:00Z")
+ * @returns Formatted string e.g. "11 Feb 2026, 5:00 PM" or empty string if invalid
+ */
+export const formatDateAndTimeIraqi = (
+  utcDateString: string | null | undefined
+): string => {
+  if (!utcDateString || typeof utcDateString !== "string") return "";
+
+  const normalized = utcDateString.trim().endsWith("Z")
+    ? utcDateString.trim()
+    : `${utcDateString.trim()}Z`;
+  const d = new Date(normalized);
+  if (isNaN(d.getTime())) return "";
+
+  const utcMs = d.getTime();
+  const iraqMs = utcMs + IRAQ_UTC_OFFSET_HOURS * 60 * 60 * 1000;
+  const iraq = new Date(iraqMs);
+
+  const day = iraq.getUTCDate();
+  const month = iraq.getUTCMonth();
+  const year = iraq.getUTCFullYear();
+  let hours = iraq.getUTCHours();
+  const minutes = iraq.getUTCMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const timePart = `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  return `${day} ${monthNames[month]} ${year}, ${timePart}`;
+};
