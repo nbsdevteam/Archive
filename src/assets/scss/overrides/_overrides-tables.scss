@@ -85,22 +85,8 @@
   box-shadow: none !important;
 }
 
-/* Row-actions dropdown: when open, create stacking context so menu appears above card-body and table. */
-.datatable-row-actions-dropdown.show {
-  position: relative;
-  z-index: 1060;
-}
 .datatable-row-actions-dropdown .dropdown-menu {
-  z-index: 1060 !important;
-}
-
-/* Documents table card: allow overflow so dropdown is not clipped; mild z-index so card stacks above following content. */
-.documents__table-card {
-  position: relative;
-  z-index: 1;
-  .card-body {
-    overflow: visible;
-  }
+  z-index: 999999 !important;
 }
 
 /* Allow row-action menus to escape table clipping while preserving horizontal scroll. */
