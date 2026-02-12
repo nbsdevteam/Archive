@@ -2,10 +2,10 @@ import apiClient from './client';
 
 export interface SearchResult {
   id: number;
-  type?: 'document' | 'folder';
+  type?: 'document' | 'folder' | 'note';
   /** API may return entity_type instead of type */
   entity_type?: string;
-  title: string;
+  title?: string;
   name?: string;
   code?: string;
   barcode?: string;
@@ -14,6 +14,17 @@ export interface SearchResult {
   upload_date?: string;
   created_at?: string;
   create_date?: string;
+  // Note-specific fields
+  content?: string;
+  user_name?: string;
+  document_id?: number | null;
+  document_title?: string | null;
+  folder_id?: number | null;
+  folder_name?: string | null;
+  has_image?: boolean;
+  is_pinned?: boolean;
+  color?: number;
+  updated_at?: string;
 }
 
 export interface SearchResponse {

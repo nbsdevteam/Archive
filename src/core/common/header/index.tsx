@@ -166,22 +166,36 @@ const Header = React.memo(() => {
     };
   }, []);
 
-  const normalizeType = useCallback((type: string | undefined): "document" | "folder" => {
-    return type?.toLowerCase() === "folder" ? "folder" : "document";
+  /**
+   * Normalizes the entity type from API response
+   * @param type - The type or entity_type from API
+   * @returns Normalized type: "document", "folder", or "note"
+   */
+  const normalizeType = useCallback((type: string | undefined): "document" | "folder" | "note" => {
+    const lowerType = type?.toLowerCase();
+    if (lowerType === "folder") return "folder";
+    if (lowerType === "note") return "note";
+    return "document";
   }, []);
 
   /** Use entity_type from API when type is missing */
   const getEffectiveType = useCallback(
-    (item: SearchResult): "document" | "folder" => {
+    (item: SearchResult): "document" | "folder" | "note" => {
       return normalizeType(item.type ?? item.entity_type);
     },
     [normalizeType]
   );
 
+  /**
+   * Gets the display name for a search result based on entity type
+   * @param item - Search result item
+   * @returns Display name string
+   */
   const getDisplayName = useCallback(
     (item: SearchResult) => {
       const t = getEffectiveType(item);
       if (t === "document") return item.title || item.name || "-";
+      if (t === "note") return item.title || "-";
       return item.name || item.title || "-";
     },
     [getEffectiveType]
@@ -193,6 +207,11 @@ const Header = React.memo(() => {
     return convertToArabianStandardTime(iso);
   }, []);
 
+  /**
+   * Gets metadata to display for a search result based on entity type
+   * @param item - Search result item
+   * @returns Formatted metadata string
+   */
   const getMeta = useCallback(
     (item: SearchResult): string => {
       const t = getEffectiveType(item);
@@ -200,24 +219,43 @@ const Header = React.memo(() => {
         if (item.barcode?.trim()) return item.barcode.trim();
         return formatDateCompact(item.upload_date ?? item.created_at);
       }
+      if (t === "note") {
+        return formatDateCompact(item.updated_at ?? item.created_at);
+      }
       return formatDateCompact(item.create_date ?? item.created_at);
     },
     [getEffectiveType, formatDateCompact]
   );
 
+  /**
+   * Handles click on a search result item
+   * - Documents: Navigate to document detail page
+   * - Folders: Navigate to folder detail page
+   * - Notes: Navigate to the folder containing the note (if folder_id exists)
+   */
   const handleSearchResultClick = useCallback(
     (item: SearchResult) => {
       setSearchDropdownOpen(false);
       setSearchTerm("");
       setSearchResults([]);
       const type = getEffectiveType(item);
+      
       if (type === "document") {
         navigate(routes.documentDetail.replace(":id", String(item.id)));
-      } else {
+      } else if (type === "folder") {
         navigate(routes.folderDetail.replace(":id", String(item.id)));
+      } else if (type === "note") {
+        // Navigate to folder containing the note
+        if (item.folder_id) {
+          navigate(routes.folderDetail.replace(":id", String(item.folder_id)));
+        } else {
+          // Show error if folder_id doesn't exist
+          setSearchError(t("header.noteFolderNotFound") || "Note's folder not found");
+          setTimeout(() => setSearchError(null), 3000);
+        }
       }
     },
-    [navigate, getEffectiveType, routes.documentDetail, routes.folderDetail]
+    [navigate, getEffectiveType, routes.documentDetail, routes.folderDetail, t]
   );
 
   // Memoize the toggle fullscreen function
@@ -486,7 +524,7 @@ const Header = React.memo(() => {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Search documents or folders..."
+                      placeholder="Search documents, folders, or notes..."
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
@@ -533,6 +571,7 @@ const Header = React.memo(() => {
                             <tbody>
                               {searchResults.map((item) => {
                                 const type = getEffectiveType(item);
+                                const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
                                 return (
                                   <tr
                                     key={`${type}-${item.id}`}
@@ -540,11 +579,16 @@ const Header = React.memo(() => {
                                     onClick={() => handleSearchResultClick(item)}
                                   >
                                     <td className="py-1 px-2 fs-12">
-                                      {type === "document" ? (
-                                        <i className="ti ti-file text-primary" aria-hidden />
-                                      ) : (
-                                        <i className="ti ti-folder text-secondary" aria-hidden />
-                                      )}
+                                      <div className="d-flex align-items-center gap-1">
+                                        {type === "document" ? (
+                                          <i className="ti ti-file text-primary" aria-hidden />
+                                        ) : type === "folder" ? (
+                                          <i className="ti ti-folder text-secondary" aria-hidden />
+                                        ) : (
+                                          <i className="ti ti-notes text-info" aria-hidden />
+                                        )}
+                                        <span>{typeLabel}</span>
+                                      </div>
                                     </td>
                                     <td className="py-1 px-2 fs-12">{getDisplayName(item)}</td>
                                     <td className="py-1 px-2 fs-12">{item.department_name || "-"}</td>
