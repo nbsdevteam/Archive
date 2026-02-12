@@ -33,8 +33,15 @@ initializePreloading();
 // Import the new App component (replaces the old provider/router setup)
 import { App } from "./app/App";
 
+// StrictMode doubles effects in dev (mount, unmount, remount), causing duplicate API calls.
+// We disable it in development to ensure each effect runs only once during QA.
+// Production builds don't have this double-invocation behavior, so we keep it there.
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+  import.meta.env.DEV ? (
     <App />
-  </StrictMode>
+  ) : (
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
 );
