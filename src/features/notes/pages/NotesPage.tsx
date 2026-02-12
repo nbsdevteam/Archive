@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, Icon, Modal, Spinner } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, Modal, Spinner } from "../../../shared/components/ui";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
 import type { NoteEditorSavePayload } from "../components/NoteEditor";
@@ -23,6 +23,7 @@ const NotesPage = () => {
   const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
   const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
   const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
+  const [noteDeleteTarget, setNoteDeleteTarget] = useState<NoteListItem | null>(null);
 
   // Load all notes (no document/folder filter)
   const {
@@ -88,23 +89,25 @@ const NotesPage = () => {
     [editingNote, updateNote, createNote, handleCloseNoteEditor, refresh]
   );
 
-  /** Delete a note */
-  const handleDeleteNote = useCallback(
-    async (note: NoteListItem) => {
-      const confirmed = window.confirm(
-        t("notes.confirmDelete", {
-          defaultValue: "Are you sure you want to delete this note?",
-        })
-      );
-      if (!confirmed) return;
+  /** Open delete confirmation modal for a note */
+  const handleDeleteNote = useCallback((note: NoteListItem) => {
+    setNoteDeleteTarget(note);
+  }, []);
 
-      const success = await deleteNote(note.id);
-      if (success) {
-        refresh();
-      }
-    },
-    [deleteNote, refresh, t]
-  );
+  /** Close delete confirmation modal */
+  const handleCloseDeleteConfirm = useCallback(() => {
+    if (!isDeleting) setNoteDeleteTarget(null);
+  }, [isDeleting]);
+
+  /** Confirm and execute note deletion */
+  const handleConfirmDeleteNote = useCallback(async () => {
+    if (!noteDeleteTarget) return;
+    const success = await deleteNote(noteDeleteTarget.id);
+    if (success) {
+      setNoteDeleteTarget(null);
+      refresh();
+    }
+  }, [noteDeleteTarget, deleteNote, refresh]);
 
   /** Open image viewer for a note */
   const handleViewNoteImage = useCallback((note: NoteListItem) => {
@@ -289,6 +292,21 @@ const NotesPage = () => {
         noteId={noteImageViewerId}
         noteTitle={noteImageViewerTitle}
         imageFilename={noteImageViewerFilename}
+      />
+
+      {/* Note delete confirmation modal */}
+      <ConfirmModal
+        isOpen={noteDeleteTarget != null}
+        onClose={handleCloseDeleteConfirm}
+        onConfirm={handleConfirmDeleteNote}
+        title={t("notes.deleteNote", { defaultValue: "Delete note" })}
+        message={t("notes.confirmDelete", {
+          defaultValue: "Are you sure you want to delete this note? This action cannot be undone.",
+        })}
+        confirmLabel={t("common.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isDeleting}
       />
     </div>
   );

@@ -144,6 +144,7 @@ export const useFolderDetailPageContainer = () => {
   const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
   const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
   const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
+  const [noteDeleteTarget, setNoteDeleteTarget] = useState<NoteListItem | null>(null);
 
   /** Fetches folder and its documents from GET /api/folders/:id/documents; folder includes last_modified (UTC) for "Updated" display. */
   const loadFolderDocuments = useCallback(async () => {
@@ -685,23 +686,25 @@ export const useFolderDetailPageContainer = () => {
     [folderId, editingNote, updateNote, createNote, folder?.department_id, handleCloseNoteEditor, refreshNotes]
   );
 
-  /** Delete a note */
-  const handleDeleteNote = useCallback(
-    async (note: NoteListItem) => {
-      const confirmed = window.confirm(
-        t("notes.confirmDelete", {
-          defaultValue: "Are you sure you want to delete this note?",
-        })
-      );
-      if (!confirmed) return;
+  /** Open delete confirmation modal for a note */
+  const handleDeleteNote = useCallback((note: NoteListItem) => {
+    setNoteDeleteTarget(note);
+  }, []);
 
-      const success = await deleteNote(note.id);
-      if (success) {
-        refreshNotes();
-      }
-    },
-    [deleteNote, refreshNotes, t]
-  );
+  /** Close delete confirmation modal */
+  const handleCloseNoteDeleteConfirm = useCallback(() => {
+    if (!isDeleting) setNoteDeleteTarget(null);
+  }, [isDeleting]);
+
+  /** Confirm and execute note deletion */
+  const handleConfirmDeleteNote = useCallback(async () => {
+    if (!noteDeleteTarget) return;
+    const success = await deleteNote(noteDeleteTarget.id);
+    if (success) {
+      setNoteDeleteTarget(null);
+      refreshNotes();
+    }
+  }, [noteDeleteTarget, deleteNote, refreshNotes]);
 
   /** Open image viewer for a note */
   const handleViewNoteImage = useCallback((note: NoteListItem) => {
@@ -837,6 +840,9 @@ export const useFolderDetailPageContainer = () => {
     handleCloseNoteEditor,
     handleSaveNote,
     handleDeleteNote,
+    noteDeleteTarget,
+    handleCloseNoteDeleteConfirm,
+    handleConfirmDeleteNote,
     handleViewNoteImage,
     handleCloseNoteImageViewer,
   };

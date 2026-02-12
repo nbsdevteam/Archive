@@ -253,6 +253,9 @@ const FolderDetailPage = () => {
     handleCloseNoteEditor,
     handleSaveNote,
     handleDeleteNote,
+    noteDeleteTarget,
+    handleCloseNoteDeleteConfirm,
+    handleConfirmDeleteNote,
     handleViewNoteImage,
     handleCloseNoteImageViewer,
   } = useFolderDetailPageContainer();
@@ -873,6 +876,21 @@ const FolderDetailPage = () => {
         noteId={noteImageViewerId}
         noteTitle={noteImageViewerTitle}
         imageFilename={noteImageViewerFilename}
+      />
+
+      {/* Note delete confirmation modal */}
+      <ConfirmModal
+        isOpen={noteDeleteTarget != null}
+        onClose={handleCloseNoteDeleteConfirm}
+        onConfirm={handleConfirmDeleteNote}
+        title={t("notes.deleteNote", { defaultValue: "Delete note" })}
+        message={t("notes.confirmDelete", {
+          defaultValue: "Are you sure you want to delete this note? This action cannot be undone.",
+        })}
+        confirmLabel={t("common.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={isDeletingNote}
       />
     </div>
   );
