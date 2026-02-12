@@ -52,7 +52,8 @@ export const useAuditLogs = (options: UseAuditLogsOptions = {}) => {
   useEffect(() => {
     if (!enabled) return;
     fetchLogs().catch(() => undefined);
-  }, [enabled, fetchLogs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, initialParamsKey]);
 
   const refresh = useMemo(() => {
     return () => fetchLogs();

@@ -6,7 +6,7 @@ import { all_routes } from "../../../router/all_routes";
 import { Icon, Button } from "../../../shared/components/ui";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
-import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../components";
+import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../../../shared/components/Activity";
 import { formatDateForAuditApi } from "../utils/activity.utils";
 import "../styles/activity.css";
 

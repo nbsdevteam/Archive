@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { all_routes } from "../../../router/all_routes";
+import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
@@ -38,7 +39,10 @@ export const useDocumentsPageContainer = () => {
   const [archiveTargetId, setArchiveTargetId] = useState<number | null>(null);
   const [isBatchTrashConfirmOpen, setIsBatchTrashConfirmOpen] = useState(false);
   const [isBatchArchiveConfirmOpen, setIsBatchArchiveConfirmOpen] = useState(false);
-  const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
+  
+  // Use centralized departments store
+  const { departments, fetchDepartments } = useDepartmentsStore();
+  
   const [documentTypes, setDocumentTypes] = useState<Array<{ id: number; name: string; code: string; department_id: number; department_name: string }>>([]);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
@@ -57,17 +61,10 @@ export const useDocumentsPageContainer = () => {
 
   useRunOnceOnMount(fetchDocuments);
 
+  // Fetch departments from centralized store
   useEffect(() => {
-    let cancelled = false;
-    adminApi.getDepartments().then((res) => {
-      if (!cancelled && res?.data) {
-        setDepartments(res.data);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   const departmentIdForTypes = draftFilters.department_id;
 

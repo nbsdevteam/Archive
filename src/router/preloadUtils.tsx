@@ -33,7 +33,7 @@ export const preloadRouteComponents = (currentPath: string): void => {
     preloadComponent(() => import("../features/archive/pages/ArchiveDocuments"))();
     preloadComponent(() => import("../features/archive/pages/ArchiveUpload"))();
     preloadComponent(() => import("../features/archive/pages/ArchiveTrash"))();
-    preloadComponent(() => import("../features/archive/pages/ArchiveActivity"))();
+    preloadComponent(() => import("../features/activity/pages/ArchiveActivityPage"))();
   }
 
 };
@@ -50,7 +50,7 @@ export const preloadOnInteraction = (componentPath: string): void => {
     "/archive/trash": () =>
       preloadComponent(() => import("../features/archive/pages/ArchiveTrash"))(),
     "/archive/activity": () =>
-      preloadComponent(() => import("../features/archive/pages/ArchiveActivity"))(),
+      preloadComponent(() => import("../features/activity/pages/ArchiveActivityPage"))(),
     "/dashboard": () =>
       preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))(),
   };

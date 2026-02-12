@@ -87,7 +87,8 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-  }, [fetchNotifications, fetchUnreadCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useApi, JSON.stringify(initialParams)]);
 
   return {
     notifications,

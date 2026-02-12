@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { all_routes } from "../../../router/all_routes";
-import { adminApi } from "../../../app/adapter/api/admin.api";
+import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
 import { handleApiError } from "../../../app/adapter/api/client";
 import type { SelectOption } from "../../../shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
@@ -59,7 +59,9 @@ export function useFoldersPageContainer() {
   // ─── Filter UI state ───────────────────────────────────────────────────────
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<FoldersFilterState>({});
-  const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
+  
+  // Use centralized departments store
+  const { departments, fetchDepartments } = useDepartmentsStore();
 
   const departmentOptions: SelectOption<number>[] = useMemo(
     () => departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
@@ -94,21 +96,10 @@ export function useFoldersPageContainer() {
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
-  // ─── Data loading: departments ─────────────────────────────────────────────
+  // ─── Data loading: departments (from centralized store) ────────────────────
   useEffect(() => {
-    let cancelled = false;
-    adminApi
-      .getDepartments()
-      .then((res) => {
-        if (!cancelled && res?.data) setDepartments(res.data);
-      })
-      .catch(() => {
-        if (!cancelled) setDepartments([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   // ─── Navigation & search ──────────────────────────────────────────────────
   const handleNavigateToFolder = useCallback(

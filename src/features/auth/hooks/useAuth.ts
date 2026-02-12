@@ -7,6 +7,7 @@ import {
   getStoredUser,
   clearStoredUser,
 } from "../../../shared/utils/storage";
+import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
 import type { User } from "../types/auth.types";
 
 /**
@@ -21,6 +22,7 @@ export const useAuth = () => {
   }, [authenticated]);
 
   const [error, setError] = useState<string | null>(null);
+  const { clearDepartments } = useDepartmentsStore();
 
   const logout = async () => {
     try {
@@ -30,6 +32,8 @@ export const useAuth = () => {
     } finally {
       clearStoredUser();
       clearTokens();
+      // Clear cached departments on logout
+      clearDepartments();
     }
   };
 

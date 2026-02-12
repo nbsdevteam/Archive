@@ -67,7 +67,8 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
   /** Re-fetches folders on every mount so navigation back triggers a fresh API call. */
   useEffect(() => {
     fetchFolders();
-  }, [fetchFolders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useApi, stateParam, departmentIdParam, folderTypeParam]);
 
   return {
     folders,

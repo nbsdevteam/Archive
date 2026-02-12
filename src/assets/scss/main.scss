@@ -13,13 +13,8 @@
 @use "components/button";
 @use "components/badge";
 @use "components/border";
-@use "components/calendar";
 @use "components/chart";
-@use "components/call";
-
 @use "components/dropdown";
-@use "components/email";
-@use "components/file-manager";
 @use "components/file-upload";
 @use "components/icons";
 @use "components/progress";
@@ -43,7 +38,6 @@
 @use "components/grid";
 @use "components/timeline";
 @use "components/sweetalert";
-@use "components/incoming-call";
 
 /****** Layout ******/
 @use "layout/common";

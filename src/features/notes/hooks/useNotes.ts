@@ -122,7 +122,8 @@ export const useNotes = (options: UseNotesOptions = {}) => {
     if (autoLoad) {
       loadNotes(1);
     }
-  }, [autoLoad, loadNotes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLoad, documentId, folderId, includePrivate, perPage]);
 
   return {
     notes,
