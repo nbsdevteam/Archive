@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -581,6 +581,86 @@ export const useDocumentDetailPageContainer = () => {
   const formatDate = (value?: string) => {
     return convertToArabianStandardTime(value);
   };
+
+  // ── Note handlers ──
+
+  /** Open note editor for creating a new note */
+  const handleCreateNote = useCallback(() => {
+    setEditingNote(null);
+    setIsNotesEditorOpen(true);
+  }, []);
+
+  /** Open note editor for editing an existing note */
+  const handleEditNote = useCallback((note: NoteListItem) => {
+    setEditingNote(note);
+    setIsNotesEditorOpen(true);
+  }, []);
+
+  /** Close note editor */
+  const handleCloseNoteEditor = useCallback(() => {
+    setIsNotesEditorOpen(false);
+    setEditingNote(null);
+  }, []);
+
+  /** Save note (create or update) for this document */
+  const handleSaveNote = useCallback(
+    async (payload: Omit<CreateNotePayload, 'document_id'>) => {
+      if (!docId) return;
+
+      if (editingNote) {
+        // Update existing note
+        const success = await updateNote(editingNote.id, payload as UpdateNotePayload);
+        if (success) {
+          handleCloseNoteEditor();
+          refreshNotes();
+        }
+      } else {
+        // Create new note linked to this document
+        const noteId = await createNote({
+          ...payload,
+          document_id: docId,
+          department_id: doc?.department_id,
+        });
+        if (noteId) {
+          handleCloseNoteEditor();
+          refreshNotes();
+        }
+      }
+    },
+    [docId, editingNote, updateNote, createNote, doc?.department_id, handleCloseNoteEditor, refreshNotes]
+  );
+
+  /** Delete a note */
+  const handleDeleteNote = useCallback(
+    async (note: NoteListItem) => {
+      const confirmed = window.confirm(
+        t("notes.confirmDelete", {
+          defaultValue: "Are you sure you want to delete this note?",
+        })
+      );
+      if (!confirmed) return;
+
+      const success = await deleteNote(note.id);
+      if (success) {
+        refreshNotes();
+      }
+    },
+    [deleteNote, refreshNotes, t]
+  );
+
+  /** Open image viewer for a note */
+  const handleViewNoteImage = useCallback((note: NoteListItem) => {
+    setNoteImageViewerId(note.id);
+    setNoteImageViewerTitle(note.title ?? "");
+    setNoteImageViewerFilename(note.image_filename ?? "");
+  }, []);
+
+  /** Close image viewer */
+  const handleCloseNoteImageViewer = useCallback(() => {
+    setNoteImageViewerId(null);
+    setNoteImageViewerTitle("");
+    setNoteImageViewerFilename("");
+  }, []);
 
   return {
     t,
