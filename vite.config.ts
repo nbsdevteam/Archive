@@ -51,7 +51,7 @@ export default defineConfig({
        * - Vite forwards that request to the backend target below
        */
       '/api': {
-        target: 'http://192.168.116.15:8070',
+        target: 'http://localhost:8070',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
@@ -63,7 +63,7 @@ export default defineConfig({
        * and Vite will forward it to the backend WS server.
        */
       '/websocket': {
-        target: 'ws://192.168.116.15:8070',
+        target: 'ws://localhost:8070',
         /**
          * Enables WebSocket proxying. Without this, WS upgrade requests won't be forwarded.
          */
