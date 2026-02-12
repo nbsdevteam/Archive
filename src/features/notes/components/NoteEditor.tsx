@@ -11,6 +11,7 @@ import { Button, Icon, Input, SelectField } from '../../../shared/components/ui'
 import { fileToBase64 } from '../../../shared/utils/files/fileToBase64';
 import { NOTE_COLOR_NAMES, type NoteListItem, type NoteColorCode } from '../types/notes.types';
 import { listFolders, getFolderDocuments } from '../../folders/services/folders.api';
+import { documentsApi } from '../../../app/adapter/api/documents.api';
 import type { Folder } from '../../folders/types/folders.types';
 import type { Document } from '../../../app/adapter/api/documents.api';
 
@@ -82,11 +83,17 @@ export const NoteEditor = ({
     note?.folder_id ?? null
   );
 
+  /** All documents fetched on mount (for document-first selection) */
+  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
+  /** Documents filtered by selected folder (or all documents if no folder selected) */
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
     note?.document_id ?? null
   );
+
+  /** Document-to-folder mapping for reverse lookup when user selects document first */
+  const [documentFolderMap, setDocumentFolderMap] = useState<Map<number, number>>(new Map());
 
   /** Memoised color dropdown options — computed once */
   const colorOptions = useMemo(
@@ -118,57 +125,82 @@ export const NoteEditor = ({
     [documents]
   );
 
-  // ── Fetch all folders on mount (standalone mode only) ──
-  // Uses AbortController to prevent state updates after unmount and cancel stale requests.
+  // ── Fetch all folders and documents on mount (standalone mode only) ──
+  // Fetches both to enable document-first selection and build document-to-folder mapping.
   useEffect(() => {
     if (!isStandaloneMode) return;
 
     let cancelled = false;
     setLoadingFolders(true);
+    setLoadingDocuments(true);
 
-    listFolders()
-      .then((res) => {
-        if (!cancelled) setFolders(res.folders ?? []);
+    Promise.all([
+      listFolders().catch(() => ({ folders: [] })),
+      documentsApi.getDocuments({ per_page: 999 }).catch(() => ({ data: [] })),
+    ])
+      .then(([foldersRes, docsRes]) => {
+        if (cancelled) return;
+        
+        const foldersList = foldersRes.folders ?? [];
+        const docsList = docsRes.data ?? [];
+        
+        setFolders(foldersList);
+        setAllDocuments(docsList);
+        
+        // Build document-to-folder map from all documents
+        const docFolderMap = new Map<number, number>();
+        docsList.forEach((doc) => {
+          if (doc.folder_id) {
+            docFolderMap.set(doc.id, doc.folder_id);
+          }
+        });
+        setDocumentFolderMap(docFolderMap);
+        
+        // Initially show all documents (or filter by note's folder if editing)
+        if (note?.folder_id) {
+          setDocuments(docsList.filter((d) => d.folder_id === note.folder_id));
+        } else {
+          setDocuments(docsList);
+        }
+        
+        setLoadingFolders(false);
+        setLoadingDocuments(false);
       })
       .catch(() => {
-        if (!cancelled) setFolders([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingFolders(false);
+        if (!cancelled) {
+          setFolders([]);
+          setAllDocuments([]);
+          setDocuments([]);
+          setLoadingFolders(false);
+          setLoadingDocuments(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [isStandaloneMode]);
+  }, [isStandaloneMode, note?.folder_id]);
 
-  // ── Fetch documents when selected folder changes (standalone mode only) ──
-  // Cancels in-flight request if folder changes before previous fetch completes.
+  // ── Filter documents when selected folder changes (standalone mode only) ──
+  // Auto-selects document if folder contains exactly 1 document.
   useEffect(() => {
     if (!isStandaloneMode) return;
+    
     if (!selectedFolderId) {
-      setDocuments([]);
+      // No folder selected — show all documents
+      setDocuments(allDocuments);
       return;
     }
 
-    let cancelled = false;
-    setLoadingDocuments(true);
-
-    getFolderDocuments(selectedFolderId)
-      .then((res) => {
-        if (!cancelled) setDocuments(res.data ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setDocuments([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingDocuments(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isStandaloneMode, selectedFolderId]);
+    // Filter documents by selected folder
+    const folderDocs = allDocuments.filter((d) => d.folder_id === selectedFolderId);
+    setDocuments(folderDocs);
+    
+    // Auto-select document if folder contains exactly 1 document
+    if (folderDocs.length === 1 && !selectedDocumentId) {
+      setSelectedDocumentId(folderDocs[0].id);
+    }
+  }, [isStandaloneMode, selectedFolderId, allDocuments, selectedDocumentId]);
 
   /** Handle folder dropdown change — clears document selection to avoid stale link */
   const handleFolderChange = useCallback(
@@ -181,13 +213,22 @@ export const NoteEditor = ({
     []
   );
 
-  /** Handle document dropdown change */
+  /** Handle document dropdown change — auto-selects folder if document has folder_id */
   const handleDocumentChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const val = e.target.value;
-      setSelectedDocumentId(val ? parseInt(val, 10) : null);
+      const docId = val ? parseInt(val, 10) : null;
+      setSelectedDocumentId(docId);
+      
+      // Auto-select folder if document has folder_id and folder not already selected
+      if (docId && !selectedFolderId) {
+        const folderIdForDoc = documentFolderMap.get(docId);
+        if (folderIdForDoc) {
+          setSelectedFolderId(folderIdForDoc);
+        }
+      }
     },
-    []
+    [documentFolderMap, selectedFolderId]
   );
 
   const handleFileChange = useCallback(
@@ -290,7 +331,7 @@ export const NoteEditor = ({
         <div className="row g-3">
           <div className="col-md-6">
             <label className="form-label">
-              {t('notes.folder', { defaultValue: 'Folder (optional)' })}
+              {t('notes.folder', { defaultValue: 'Folder' })}
             </label>
             <select
               className="form-select"
@@ -312,20 +353,18 @@ export const NoteEditor = ({
           </div>
           <div className="col-md-6">
             <label className="form-label">
-              {t('notes.document', { defaultValue: 'Document (optional)' })}
+              {t('notes.document', { defaultValue: 'Document' })}
             </label>
             <select
               className="form-select"
               value={selectedDocumentId ?? ''}
               onChange={handleDocumentChange}
-              disabled={isSaving || loadingDocuments || !selectedFolderId}
+              disabled={isSaving || loadingDocuments}
             >
               <option value="">
-                {!selectedFolderId
-                  ? t('notes.selectFolderFirst', { defaultValue: 'Select a folder first' })
-                  : loadingDocuments
-                    ? t('common.loading', { defaultValue: 'Loading...' })
-                    : `— ${t('notes.noDocument', { defaultValue: 'None' })} —`}
+                {loadingDocuments
+                  ? t('common.loading', { defaultValue: 'Loading...' })
+                  : `— ${t('notes.noDocument', { defaultValue: 'None' })} —`}
               </option>
               {documentOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
