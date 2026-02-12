@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import "../styles/edit-requests.css";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
 import { useEditRequestsPageContainer } from "../containers/useEditRequestsPageContainer";
 
 /**
@@ -87,7 +88,7 @@ const EditRequestsPage = () => {
                             <td>{req.document_title || `Document #${req.document_id}`}</td>
                             <td>{req.reason || "-"}</td>
                             <td>
-                              {req.request_date ? new Date(req.request_date).toLocaleDateString() : req.created_at ? new Date(req.created_at).toLocaleDateString() : "-"}
+                              {req.request_date ? formatApiTimestampInIraqi(req.request_date) : req.created_at ? formatApiTimestampInIraqi(req.created_at) : "-"}
                             </td>
                             <td>
                               <span className={`badge bg-${isPending ? "warning" : status === "approved" ? "success" : "danger"}`}>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Icon, Card } from "../../../shared/components/ui";
+import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
@@ -185,7 +186,7 @@ const DashboardPage = () => {
                                       </h6>
                                       <p className="mb-0 small text-muted text-truncate">{n.message}</p>
                                       <small className="text-muted">
-                                        {n.created_at ? new Date(n.created_at).toLocaleString() : ""}
+                                        {n.created_at ? formatApiTimestampInIraqi(n.created_at) : ""}
                                       </small>
                                     </div>
                                   </div>

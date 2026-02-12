@@ -57,6 +57,45 @@ export const formatRelativeTime = (
 const IRAQ_UTC_OFFSET_HOURS = 3;
 
 /**
+ * Converts a UTC timestamp (from API / "green" time) to Iraqi time and returns a Date-like object
+ * for formatting. Iraq uses Arabia Standard Time (UTC+3).
+ * @param utcDateString - ISO date string in UTC (e.g. "2026-02-11T14:00:00" or "2026-02-11T14:00:00Z")
+ * @returns Date instance representing the same moment in Iraqi time, or null if invalid
+ */
+function utcToIraqiDate(utcDateString: string | null | undefined): Date | null {
+  if (!utcDateString || typeof utcDateString !== "string") return null;
+  const normalized = utcDateString.trim().endsWith("Z")
+    ? utcDateString.trim()
+    : `${utcDateString.trim()}Z`;
+  const d = new Date(normalized);
+  if (isNaN(d.getTime())) return null;
+  const iraqMs = d.getTime() + IRAQ_UTC_OFFSET_HOURS * 60 * 60 * 1000;
+  return new Date(iraqMs);
+}
+
+/**
+ * Converts an API timestamp (UTC / GMT) to Iraqi time and formats for display.
+ * Use for any timestamp from the API (audit log, upload_date, created_at, etc.).
+ * @param value - ISO timestamp string from API (UTC)
+ * @returns Formatted string e.g. "12 Feb 2026, 5:30 PM" or "–" if invalid/missing
+ */
+export const formatApiTimestampInIraqi = (value?: string | null): string => {
+  const iraq = utcToIraqiDate(value);
+  if (!iraq) return "–";
+  const day = iraq.getUTCDate();
+  const month = iraq.getUTCMonth();
+  const year = iraq.getUTCFullYear();
+  let hours = iraq.getUTCHours();
+  const minutes = iraq.getUTCMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const timePart = `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  return `${day} ${monthNames[month]} ${year}, ${timePart}`;
+};
+
+/**
  * Formats a UTC (Greenwich) date string to Iraqi time (UTC+3) as date and time with AM/PM.
  * Use for last_modified from API (e.g. folder documents response).
  * @param utcDateString - ISO date string in UTC (e.g. "2026-02-11T14:00:00" or "2026-02-11T14:00:00Z")
@@ -65,18 +104,8 @@ const IRAQ_UTC_OFFSET_HOURS = 3;
 export const formatDateAndTimeIraqi = (
   utcDateString: string | null | undefined
 ): string => {
-  if (!utcDateString || typeof utcDateString !== "string") return "";
-
-  const normalized = utcDateString.trim().endsWith("Z")
-    ? utcDateString.trim()
-    : `${utcDateString.trim()}Z`;
-  const d = new Date(normalized);
-  if (isNaN(d.getTime())) return "";
-
-  const utcMs = d.getTime();
-  const iraqMs = utcMs + IRAQ_UTC_OFFSET_HOURS * 60 * 60 * 1000;
-  const iraq = new Date(iraqMs);
-
+  const iraq = utcToIraqiDate(utcDateString);
+  if (!iraq) return "";
   const day = iraq.getUTCDate();
   const month = iraq.getUTCMonth();
   const year = iraq.getUTCFullYear();

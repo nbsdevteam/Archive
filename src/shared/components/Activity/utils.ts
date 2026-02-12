@@ -1,4 +1,5 @@
 import type { AuditLogEntry } from "./types";
+import { formatApiTimestampInIraqi } from "../../utils/format/date";
 
 /** Converts a snake_case action code into a readable fallback label. */
 export const humanizeAction = (action: string): string => {
@@ -8,18 +9,9 @@ export const humanizeAction = (action: string): string => {
     .replace(/\b\w/g, (ch: string) => ch.toUpperCase());
 };
 
-/** Formats an audit timestamp for table, timeline and tree views. */
+/** Formats an audit timestamp (API UTC) to Iraqi time for table, timeline and tree views. */
 export const formatAuditTimestamp = (value?: string | null): string => {
-  if (!value) return "–";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "–";
-  return parsed.toLocaleString(undefined, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatApiTimestampInIraqi(value);
 };
 
 /** Groups logs by the local date key (YYYY-MM-DD). */

@@ -14,6 +14,7 @@ import type { DocumentDetail, DocumentVersion } from "../../../app/adapter/api/d
 import { useAuditLogs } from "../../activity/hooks/useAuditLogs";
 import type { ActivityViewMode } from "../../activity/types";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
+import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
 import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
@@ -576,19 +577,9 @@ export const useDocumentDetailPageContainer = () => {
     { id: "audit", label: t("documents.audit", { defaultValue: "Audit log" }) },
   ];
 
+  /** Formats API timestamp (UTC) as Iraqi time for document/version/request dates. */
   const formatDate = (value?: string) => {
-    if (!value) return "–";
-    try {
-      return new Date(value).toLocaleString(undefined, {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "–";
-    }
+    return formatApiTimestampInIraqi(value);
   };
 
   return {

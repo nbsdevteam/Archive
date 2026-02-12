@@ -8,6 +8,7 @@ import { useDebounce } from "../../../shared/hooks/useDebounce";
 import ImageWithBasePath from "../imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import { Button } from "../../../shared/components/ui";
+import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import React from "react";
 import type { HorizontalMenuItem, HorizontalSubMenu } from "../../data/types";
@@ -186,17 +187,10 @@ const Header = React.memo(() => {
     [getEffectiveType]
   );
 
+  /** Formats API timestamp (UTC) as Iraqi time for search result meta. */
   const formatDateCompact = useCallback((iso: string | undefined): string => {
     if (!iso) return "-";
-    try {
-      return new Date(iso).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch {
-      return "-";
-    }
+    return formatApiTimestampInIraqi(iso);
   }, []);
 
   const getMeta = useCallback(
