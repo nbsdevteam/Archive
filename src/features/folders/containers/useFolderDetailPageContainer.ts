@@ -115,7 +115,7 @@ export const useFolderDetailPageContainer = () => {
     refresh: refreshNotes,
   } = useNotes({
     folderId: folderId ?? undefined,
-    autoLoad: false, // Manual load
+    autoLoad: Boolean(folderId), // Load automatically on folder detail page mount/reload
   });
 
   const {

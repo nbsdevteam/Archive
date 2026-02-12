@@ -599,7 +599,7 @@ const FolderDetailPage = () => {
         </div>
 
         {/* Folder Notes (structured notes with optional images) */}
-        <div className="card mb-3">
+        <div className="card mb-3" style={{ borderTop: 0 }}>
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h6 className="mb-0">
               <Icon name="file-text" className="me-2" />

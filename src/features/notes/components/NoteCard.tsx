@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Icon } from '../../../shared/components/ui';
+import { Button, Icon, InfoWrapper } from '../../../shared/components/ui';
 import { convertToArabianStandardTime } from '../../../shared/utils/format/date';
 import { NOTE_COLOR_NAMES, type NoteListItem } from '../types/notes.types';
 
@@ -15,6 +15,35 @@ export interface NoteCardProps {
   onViewImage?: (note: NoteListItem) => void;
   showDocument?: boolean;
   showFolder?: boolean;
+}
+
+const NOTE_COLOR_HEX_MAP: Record<number, string> = {
+  0: '#6c757d',
+  1: '#dc3545',
+  2: '#0d6efd',
+  3: '#198754',
+  4: '#ffc107',
+  5: '#fd7e14',
+  6: '#6f42c1',
+  7: '#d63384',
+  8: '#8b5e3c',
+  9: '#6c757d',
+};
+
+/** Convert HEX color to rgba for note card tint/background usage. */
+function hexToRgba(hexColor: string, alpha: number): string {
+  const hex = hexColor.replace('#', '');
+  const value =
+    hex.length === 3
+      ? hex
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : hex;
+  const red = parseInt(value.slice(0, 2), 16);
+  const green = parseInt(value.slice(2, 4), 16);
+  const blue = parseInt(value.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 /**
@@ -31,6 +60,10 @@ export const NoteCard = ({
   const { t } = useTranslation();
 
   const colorName = NOTE_COLOR_NAMES[note.color] ?? NOTE_COLOR_NAMES[0];
+  const noteColor = NOTE_COLOR_HEX_MAP[note.color] ?? NOTE_COLOR_HEX_MAP[0];
+  const noteTint = hexToRgba(noteColor, 0.12);
+  const noteSoftBorder = hexToRgba(noteColor, 0.35);
+  const noteStrongBorder = hexToRgba(noteColor, 0.75);
 
   const contentPreview = useMemo(() => {
     const text = note.content ?? '';
@@ -38,98 +71,153 @@ export const NoteCard = ({
     return text.substring(0, 200) + '...';
   }, [note.content]);
 
-  // Map color codes to Bootstrap color classes
-  const colorClassMap: Record<number, string> = {
-    0: 'secondary',
-    1: 'danger',
-    2: 'primary',
-    3: 'success',
-    4: 'warning',
-    5: 'warning',
-    6: 'info',
-    7: 'danger',
-    8: 'dark',
-    9: 'secondary',
-  };
-  const colorClass = colorClassMap[note.color] ?? 'secondary';
-
   return (
-    <div className={`card mb-2 border-start border-${colorClass} border-3`}>
+    <div
+      className="card mb-2"
+      style={{
+        borderTop: '0',
+        borderLeft: `4px solid ${noteStrongBorder}`,
+        borderRight: `1px solid ${noteSoftBorder}`,
+        borderBottom: `1px solid ${noteSoftBorder}`,
+        backgroundColor: noteTint,
+      }}
+    >
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <div className="flex-grow-1">
-            {note.title && <h6 className="card-title mb-1">{note.title}</h6>}
+            {note.title && (
+              <h6 className="card-title mb-1" style={{ color: noteColor }}>
+                {note.title}
+              </h6>
+            )}
             <div className="d-flex flex-wrap gap-1 mb-2">
               {note.is_pinned && (
-                <span className="badge bg-warning text-dark">
+                <span
+                  className="badge"
+                  style={{
+                    color: noteColor,
+                    backgroundColor: hexToRgba(noteColor, 0.16),
+                    border: `1px solid ${noteSoftBorder}`,
+                  }}
+                >
                   <Icon name="paperclip" className="me-1" size={12} />
                   {t('notes.pinned', { defaultValue: 'Pinned' })}
                 </span>
               )}
               {note.is_private ? (
-                <span className="badge bg-secondary">
+                <span
+                  className="badge"
+                  style={{
+                    color: noteColor,
+                    backgroundColor: hexToRgba(noteColor, 0.16),
+                    border: `1px solid ${noteSoftBorder}`,
+                  }}
+                >
                   <Icon name="eye-off" className="me-1" size={12} />
                   {t('notes.private', { defaultValue: 'Private' })}
                 </span>
               ) : (
-                <span className="badge bg-success">
+                <span
+                  className="badge"
+                  style={{
+                    color: noteColor,
+                    backgroundColor: hexToRgba(noteColor, 0.16),
+                    border: `1px solid ${noteSoftBorder}`,
+                  }}
+                >
                   <Icon name="eye" className="me-1" size={12} />
                   {t('notes.public', { defaultValue: 'Public' })}
                 </span>
               )}
               {note.color !== 0 && (
-                <span className={`badge bg-${colorClass}`}>
+                <span
+                  className="badge"
+                  style={{
+                    color: noteColor,
+                    backgroundColor: hexToRgba(noteColor, 0.16),
+                    border: `1px solid ${noteSoftBorder}`,
+                  }}
+                >
                   {colorName}
                 </span>
               )}
               {note.has_image && (
-                <span className="badge bg-info">
+                <button
+                  type="button"
+                  className="badge border-0"
+                  style={{
+                    color: noteColor,
+                    backgroundColor: hexToRgba(noteColor, 0.16),
+                    border: `1px solid ${noteSoftBorder}`,
+                    cursor: onViewImage ? 'pointer' : 'default',
+                  }}
+                  onClick={() => onViewImage?.(note)}
+                  disabled={!onViewImage}
+                >
                   <Icon name="file-check" className="me-1" size={12} />
                   {t('notes.hasImage', { defaultValue: 'Image' })}
-                </span>
+                </button>
               )}
             </div>
           </div>
           <div className="d-flex gap-1">
             {note.has_image && onViewImage && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-outline-info"
-                onClick={() => onViewImage(note)}
-                title={t('notes.viewImage', { defaultValue: 'View image' })}
-              >
-                <Icon name="eye" size={14} />
-              </Button>
+              <InfoWrapper
+                content={t('notes.viewImage', { defaultValue: 'View image' })}
+                position="top"
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="btn-outline-info"
+                    onClick={() => onViewImage(note)}
+                  >
+                    <Icon name="eye" size={14} />
+                  </Button>
+                }
+              />
             )}
             {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-outline-secondary"
-                onClick={() => onEdit(note)}
-                title={t('common.edit', { defaultValue: 'Edit' })}
-              >
-                <Icon name="edit" size={14} />
-              </Button>
+              <InfoWrapper
+                content={t('common.edit', { defaultValue: 'Edit' })}
+                position="top"
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="btn-outline-secondary"
+                    onClick={() => onEdit(note)}
+                  >
+                    <Icon name="edit" size={14} />
+                  </Button>
+                }
+              />
             )}
             {onDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-outline-danger"
-                onClick={() => onDelete(note)}
-                title={t('common.delete', { defaultValue: 'Delete' })}
-              >
-                <Icon name="trash" size={14} />
-              </Button>
+              <InfoWrapper
+                content={t('common.delete', { defaultValue: 'Delete' })}
+                position="top"
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="btn-outline-danger"
+                    onClick={() => onDelete(note)}
+                  >
+                    <Icon name="trash" size={14} />
+                  </Button>
+                }
+              />
             )}
           </div>
         </div>
-        <p className="card-text text-muted small mb-2" style={{ whiteSpace: 'pre-wrap' }}>
+        <p
+          className="card-text small mb-2"
+          style={{ whiteSpace: 'pre-wrap', color: noteColor }}
+        >
           {contentPreview}
         </p>
-        <div className="d-flex flex-wrap gap-2 align-items-center text-muted small">
+        <div className="d-flex flex-wrap gap-2 align-items-center small" style={{ color: noteColor }}>
           <span>
             <Icon name="user" size={12} className="me-1" />
             {note.user_name}
