@@ -49,13 +49,9 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
         setLoading(false);
       }
     })();
-  }, [
-    initialParams.status,
-    initialParams.department_id,
-    initialParams.document_type_id,
-    initialParams.page,
-    initialParams.per_page,
-  ]);
+    // Serialize initialParams to prevent re-runs when object reference changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialParams)]);
 
   return { count, loading };
 };
