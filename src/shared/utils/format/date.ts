@@ -74,12 +74,12 @@ function utcToIraqiDate(utcDateString: string | null | undefined): Date | null {
 }
 
 /**
- * Converts an API timestamp (UTC / GMT) to Iraqi time and formats for display.
+ * Converts an API timestamp (UTC / GMT) to Arabia Standard Time (UTC+3) and formats for display.
  * Use for any timestamp from the API (audit log, upload_date, created_at, etc.).
  * @param value - ISO timestamp string from API (UTC)
  * @returns Formatted string e.g. "12 Feb 2026, 5:30 PM" or "–" if invalid/missing
  */
-export const formatApiTimestampInIraqi = (value?: string | null): string => {
+export const convertToArabianStandardTime = (value?: string | null): string => {
   const iraq = utcToIraqiDate(value);
   if (!iraq) return "–";
   const day = iraq.getUTCDate();

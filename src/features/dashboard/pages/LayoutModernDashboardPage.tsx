@@ -4,7 +4,7 @@ import ReactApexChart from "react-apexcharts";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Spinner, Alert, Icon } from "../../../shared/components/ui";
-import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
+import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { useLayoutModernDashboardPageContainer } from "../containers/useLayoutModernDashboardPageContainer";
 import "../styles/dashboard.css";
 
@@ -194,7 +194,7 @@ const LayoutModernDashboardPage = () => {
                             </div>
                             <p className="mb-1 small text-muted">{n.message}</p>
                             <small className="text-muted">
-                              {n.created_at ? formatApiTimestampInIraqi(n.created_at) : ""}
+                              {n.created_at ? convertToArabianStandardTime(n.created_at) : ""}
                             </small>
                           </li>
                         ))}

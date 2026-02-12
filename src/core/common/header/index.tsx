@@ -8,7 +8,7 @@ import { useDebounce } from "../../../shared/hooks/useDebounce";
 import ImageWithBasePath from "../imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import { Button } from "../../../shared/components/ui";
-import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
+import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import React from "react";
 import type { HorizontalMenuItem, HorizontalSubMenu } from "../../data/types";
@@ -187,10 +187,10 @@ const Header = React.memo(() => {
     [getEffectiveType]
   );
 
-  /** Formats API timestamp (UTC) as Iraqi time for search result meta. */
+  /** Formats API timestamp (UTC) as Arabia Standard Time for search result meta. */
   const formatDateCompact = useCallback((iso: string | undefined): string => {
     if (!iso) return "-";
-    return formatApiTimestampInIraqi(iso);
+    return convertToArabianStandardTime(iso);
   }, []);
 
   const getMeta = useCallback(

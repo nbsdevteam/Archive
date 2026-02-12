@@ -1,5 +1,5 @@
 import type { AuditLogEntry } from "../types/auditLogs.types";
-import { formatApiTimestampInIraqi } from "../../../shared/utils/format/date";
+import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 
 /**
  * Formats a Date or ISO string to YYYY-MM-DDTHH:mm:ss for audit-logs API.
@@ -24,9 +24,9 @@ export const humanizeAction = (action: string): string => {
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
 };
 
-/** Formats an audit timestamp (API UTC) to Iraqi time for table, timeline and tree views. */
+/** Formats an audit timestamp (API UTC) to Arabia Standard Time for table, timeline and tree views. */
 export const formatAuditTimestamp = (value?: string | null): string => {
-  return formatApiTimestampInIraqi(value);
+  return convertToArabianStandardTime(value);
 };
 
 /**

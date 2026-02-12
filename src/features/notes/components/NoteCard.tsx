@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Icon } from '../../../shared/components/ui';
-import { formatApiTimestampInIraqi } from '../../../shared/utils/format/date';
+import { convertToArabianStandardTime } from '../../../shared/utils/format/date';
 import { NOTE_COLOR_NAMES, type NoteListItem } from '../types/notes.types';
 
 export interface NoteCardProps {
@@ -153,7 +153,7 @@ export const NoteCard = ({
             </span>
           )}
           <span className="ms-auto">
-            {formatApiTimestampInIraqi(note.updated_at)}
+            {convertToArabianStandardTime(note.updated_at)}
           </span>
         </div>
       </div>
