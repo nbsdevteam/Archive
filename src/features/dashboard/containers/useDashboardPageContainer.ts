@@ -10,6 +10,11 @@ import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 const DOCUMENT_PARAMS_ARCHIVED = { status: "archived" as const, per_page: 1, page: 1 };
 const NOTIFICATION_PARAMS = { page: 1, per_page: 10 };
 
+// Define hook options objects outside component to prevent triggering re-fetches
+const FOLDERS_OPTIONS = { useApi: true as const };
+const ARCHIVED_DOCS_OPTIONS = { initialParams: DOCUMENT_PARAMS_ARCHIVED };
+const NOTIFICATIONS_OPTIONS = { useApi: true as const, initialParams: NOTIFICATION_PARAMS };
+
 type DashboardStats = {
   total_documents?: number;
   by_department?: Array<{ department: string; count: number }>;
@@ -27,11 +32,9 @@ export const useDashboardPageContainer = () => {
     error: foldersError,
     pagination: foldersPagination,
     fetchFolders,
-  } = useFolders({ useApi: true });
+  } = useFolders(FOLDERS_OPTIONS);
 
-  const { count: archivedDocumentsCount } = useDocumentCount({
-    initialParams: DOCUMENT_PARAMS_ARCHIVED,
-  });
+  const { count: archivedDocumentsCount } = useDocumentCount(ARCHIVED_DOCS_OPTIONS);
 
   const { count: trashedDocumentsCount } = useTrashDocumentCount();
 
@@ -40,10 +43,7 @@ export const useDashboardPageContainer = () => {
     unreadCount,
     loading: notificationsLoading,
     error: notificationsError,
-  } = useNotifications({
-    useApi: true,
-    initialParams: NOTIFICATION_PARAMS,
-  });
+  } = useNotifications(NOTIFICATIONS_OPTIONS);
 
   /** Fetches dashboard stats once on mount, protected against StrictMode double calls. */
   useEffect(() => {
