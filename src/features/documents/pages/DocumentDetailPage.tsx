@@ -310,75 +310,115 @@ const DocumentDetailPage = () => {
                 {loadingAttachments ? (
                   <Spinner />
                 ) : (
-                  <DataTable<Attachment>
-                    data={attachments}
-                    getRowId={(row) => row.id}
-                    columns={[
-                      {
-                        id: "name",
-                        header: t("documents.name", { defaultValue: "Name" }),
-                        render: (row) => row.name,
-                      },
-                      {
-                        id: "fileName",
-                        header: t("documents.fileName", { defaultValue: "File name" }),
-                        render: (row) => row.file_name,
-                      },
-                      {
-                        id: "description",
-                        header: t("documents.description", { defaultValue: "Description" }),
-                        render: (row) => row.description ?? "–",
-                      },
-                    ]}
-                    rowActions={[
-                      {
-                        id: "view",
-                        label: t("documents.view", { defaultValue: "View" }),
-                        icon: "eye",
-                        variant: "outline",
-                        className: "btn-outline-secondary me-1",
-                        onClick: (row, e) => {
-                          e.stopPropagation();
-                          handleViewAttachment(row.id);
-                        },
-                      },
-                      {
-                        id: "download",
-                        label: t("documents.download", { defaultValue: "Download" }),
-                        variant: "outline",
-                        className: "btn-outline-secondary me-1",
-                        onClick: (row, e) => {
-                          e.stopPropagation();
-                          handleDownloadAttachment(row.id, row.file_name);
-                        },
-                      },
-                      {
-                        id: "edit",
-                        label: t("common.edit", { defaultValue: "Edit" }),
-                        variant: "outline",
-                        className: "btn-outline-secondary me-1",
-                        onClick: (row, e) => {
-                          e.stopPropagation();
-                          handleOpenEditAttachment(row.id);
-                        },
-                      },
-                      {
-                        id: "delete",
-                        label: t("documents.deleteAttachment", { defaultValue: "Delete" }),
-                        icon: "trash",
-                        variant: "outline",
-                        className: "btn-outline-danger",
-                        onClick: (row, e) => {
-                          e.stopPropagation();
-                          handleOpenAttachmentTrashConfirm(row.id);
-                        },
-                      },
-                    ]}
-                    selection={attachmentSelectionConfig}
-                    actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
-                    emptyMessage={t("common.noData", { defaultValue: "No data" })}
-                    tableClassName="table table-sm mb-0"
-                  />
+                  <div className="table-responsive">
+                    <table className="table table-sm mb-0">
+                      <thead>
+                        <tr>
+                          {attachmentSelectionConfig && (
+                            <th style={{ width: "2.5rem" }} className="text-center">
+                              {attachments.length > 0 && (
+                                <div className="form-check d-inline-flex justify-content-center mb-0">
+                                  <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={attachmentSelectionConfig.isAllSelected}
+                                    onChange={attachmentSelectionConfig.onToggleAll}
+                                    aria-label={attachmentSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                                  />
+                                </div>
+                              )}
+                            </th>
+                          )}
+                          <th>{t("documents.name", { defaultValue: "Name" })}</th>
+                          <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
+                          <th>{t("documents.description", { defaultValue: "Description" })}</th>
+                          <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {attachments.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="text-center py-4 text-muted">
+                              {t("common.noData", { defaultValue: "No data" })}
+                            </td>
+                          </tr>
+                        ) : (
+                          attachments.map((attachment) => {
+                            const isSelected = attachmentSelectionConfig && attachmentSelectionConfig.selectedIds.includes(attachment.id);
+                            return (
+                              <tr key={attachment.id}>
+                                {attachmentSelectionConfig && (
+                                  <td onClick={(e) => e.stopPropagation()}>
+                                    <div className="form-check mb-0">
+                                      <input
+                                        type="checkbox"
+                                        className="form-check-input"
+                                        checked={isSelected}
+                                        onChange={() => attachmentSelectionConfig.onToggle(attachment.id)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        aria-label={`Select attachment ${attachment.name}`}
+                                      />
+                                    </div>
+                                  </td>
+                                )}
+                                <td>{attachment.name}</td>
+                                <td>{attachment.file_name}</td>
+                                <td>{attachment.description ?? "–"}</td>
+                                <td className="text-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="btn-outline-secondary me-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewAttachment(attachment.id);
+                                    }}
+                                  >
+                                    <Icon name="eye" className="me-1" />
+                                    {t("documents.view", { defaultValue: "View" })}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="btn-outline-secondary me-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownloadAttachment(attachment.id, attachment.file_name);
+                                    }}
+                                  >
+                                    {t("documents.download", { defaultValue: "Download" })}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="btn-outline-secondary me-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenEditAttachment(attachment.id);
+                                    }}
+                                  >
+                                    {t("common.edit", { defaultValue: "Edit" })}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="btn-outline-danger"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenAttachmentTrashConfirm(attachment.id);
+                                    }}
+                                  >
+                                    <Icon name="trash" className="me-1" />
+                                    {t("documents.deleteAttachment", { defaultValue: "Delete" })}
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             )}

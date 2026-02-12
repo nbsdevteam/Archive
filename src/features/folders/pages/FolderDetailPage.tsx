@@ -91,51 +91,6 @@ function secondaryDocsRowActions(
   ];
 }
 
-function attachmentsColumns(t: (key: string, opts?: { defaultValue?: string }) => string): ColumnDef<Attachment>[] {
-  return [
-    { id: "name", header: t("folders.name", { defaultValue: "Name" }), render: (a) => a.name },
-    { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), render: (a) => a.file_name },
-  ];
-}
-
-/** Row actions for the folder attachments table (view, download, delete only; transfer removed). */
-function attachmentsRowActions(
-  t: (key: string, opts?: { defaultValue?: string }) => string,
-  handleDownloadAttachment: (attachmentId: number, fileName: string) => void,
-  handleOpenAttachmentTrashConfirm: (attachmentId: number) => void,
-  handleViewAttachment: (attachmentId: number) => void
-): RowAction<Attachment>[] {
-  return [
-    {
-      id: "view",
-      label: t("documents.view", { defaultValue: "View" }),
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      onClick: (a, e) => {
-        e?.stopPropagation();
-        handleViewAttachment(a.id);
-      },
-    },
-    {
-      id: "download",
-      label: t("documents.download", { defaultValue: "Download" }),
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      onClick: (a) => handleDownloadAttachment(a.id, a.file_name),
-    },
-    {
-      id: "delete",
-      label: t("documents.deleteAttachment", { defaultValue: "Delete" }),
-      icon: "trash",
-      variant: "outline",
-      className: "btn-outline-danger",
-      onClick: (a, e) => {
-        e.stopPropagation();
-        handleOpenAttachmentTrashConfirm(a.id);
-      },
-    },
-  ];
-}
 
 const FolderDetailPage = () => {
   const {
@@ -582,22 +537,105 @@ const FolderDetailPage = () => {
             </div>
           </div>
           <div className="card-body">
-            <DataTable<Attachment>
-              data={attachments}
-              getRowId={(a) => a.id}
-              columns={attachmentsColumns(t)}
-              loading={loadingAttachments}
-              emptyMessage={t("common.noData", { defaultValue: "No data" })}
-              rowActions={attachmentsRowActions(
-                t,
-                handleDownloadAttachment,
-                handleOpenAttachmentTrashConfirm,
-                handleViewAttachment
-              )}
-              selection={attachmentsSelectionConfig}
-              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
-              tableClassName="table table-sm mb-0"
-            />
+            {loadingAttachments ? (
+              <div className="text-center py-4">
+                <Spinner size="md" />
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      {attachmentsSelectionConfig && (
+                        <th style={{ width: "2.5rem" }} className="text-center">
+                          {attachments.length > 0 && (
+                            <div className="form-check d-inline-flex justify-content-center mb-0">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                checked={attachmentsSelectionConfig.isAllSelected}
+                                onChange={attachmentsSelectionConfig.onToggleAll}
+                                aria-label={attachmentsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                              />
+                            </div>
+                          )}
+                        </th>
+                      )}
+                      <th>{t("folders.name", { defaultValue: "Name" })}</th>
+                      <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
+                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attachments.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="text-center py-4 text-muted">
+                          {t("common.noData", { defaultValue: "No data" })}
+                        </td>
+                      </tr>
+                    ) : (
+                      attachments.map((attachment) => {
+                        const isSelected = attachmentsSelectionConfig && attachmentsSelectionConfig.selectedIds.includes(attachment.id);
+                        return (
+                          <tr key={attachment.id}>
+                            {attachmentsSelectionConfig && (
+                              <td onClick={(e) => e.stopPropagation()}>
+                                <div className="form-check mb-0">
+                                  <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={isSelected}
+                                    onChange={() => attachmentsSelectionConfig.onToggle(attachment.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    aria-label={`Select attachment ${attachment.name}`}
+                                  />
+                                </div>
+                              </td>
+                            )}
+                            <td>{attachment.name}</td>
+                            <td>{attachment.file_name}</td>
+                            <td className="text-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
+                                onClick={(e) => {
+                                  e?.stopPropagation();
+                                  handleViewAttachment(attachment.id);
+                                }}
+                              >
+                                <Icon name="eye" className="me-1" />
+                                {t("documents.view", { defaultValue: "View" })}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
+                                onClick={() => handleDownloadAttachment(attachment.id, attachment.file_name)}
+                              >
+                                {t("documents.download", { defaultValue: "Download" })}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-danger"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenAttachmentTrashConfirm(attachment.id);
+                                }}
+                              >
+                                <Icon name="trash" className="me-1" />
+                                {t("documents.deleteAttachment", { defaultValue: "Delete" })}
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 
