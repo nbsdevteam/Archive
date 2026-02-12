@@ -15,6 +15,8 @@ export interface NotesListProps {
   onEdit?: (note: NoteListItem) => void;
   onDelete?: (note: NoteListItem) => void;
   onViewImage?: (note: NoteListItem) => void;
+  /** Callback when folder badge is clicked — receives the folder ID */
+  onFolderClick?: (folderId: number) => void;
   showDocument?: boolean;
   showFolder?: boolean;
   emptyMessage?: string;
@@ -30,6 +32,7 @@ export const NotesList = ({
   onEdit,
   onDelete,
   onViewImage,
+  onFolderClick,
   showDocument = true,
   showFolder = true,
   emptyMessage,
@@ -81,6 +84,7 @@ export const NotesList = ({
           onEdit={onEdit}
           onDelete={onDelete}
           onViewImage={onViewImage}
+          onFolderClick={onFolderClick}
           showDocument={showDocument}
           showFolder={showFolder}
         />

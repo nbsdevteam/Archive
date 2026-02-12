@@ -202,6 +202,7 @@ const NotesPage = () => {
               onEdit={handleEditNote}
               onDelete={handleDeleteNote}
               onViewImage={handleViewNoteImage}
+              onFolderClick={handleNavigateToFolder}
               showDocument={true}
               showFolder={true}
               emptyMessage={t("notes.noNotes", {

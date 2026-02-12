@@ -13,6 +13,8 @@ export interface NoteCardProps {
   onEdit?: (note: NoteListItem) => void;
   onDelete?: (note: NoteListItem) => void;
   onViewImage?: (note: NoteListItem) => void;
+  /** Callback when folder badge is clicked — receives the folder ID */
+  onFolderClick?: (folderId: number) => void;
   showDocument?: boolean;
   showFolder?: boolean;
 }
@@ -54,6 +56,7 @@ export const NoteCard = ({
   onEdit,
   onDelete,
   onViewImage,
+  onFolderClick,
   showDocument = true,
   showFolder = true,
 }: NoteCardProps) => {
@@ -229,7 +232,13 @@ export const NoteCard = ({
             </span>
           )}
           {showFolder && note.folder_id && note.folder_name && (
-            <span>
+            <span
+              role={onFolderClick ? 'button' : undefined}
+              tabIndex={onFolderClick ? 0 : undefined}
+              style={onFolderClick ? { cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' } : undefined}
+              onClick={onFolderClick ? () => onFolderClick(note.folder_id!) : undefined}
+              onKeyDown={onFolderClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onFolderClick(note.folder_id!); } : undefined}
+            >
               <Icon name="folder" size={12} className="me-1" />
               {note.folder_name}
             </span>
