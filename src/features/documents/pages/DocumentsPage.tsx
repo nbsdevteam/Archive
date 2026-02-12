@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { UploadDocumentSidePanel } from "../components";
+import { TransferToFolderModal } from "../../folders/components";
 import { Button, Alert, Icon, SearchInput, ListFilter, DataTable, ConfirmModal } from "../../../shared/components/ui";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import type { Document } from "../../../app/adapter/api/documents.api";
@@ -63,6 +64,14 @@ const DocumentsPage = () => {
     handleOpenBatchTrashConfirm,
     handleCloseBatchTrashConfirm,
     handleConfirmBatchTrash,
+    isMoveModalOpen,
+    moveDocumentIdsCount,
+    moveDepartmentId,
+    isMoveSubmitting,
+    handleOpenSingleMoveConfirm,
+    handleOpenBatchMoveConfirm,
+    handleCloseBatchMoveConfirm,
+    handleConfirmBatchMove,
   } = useDocumentsPageContainer();
 
   const columns = useMemo(
@@ -137,6 +146,17 @@ const DocumentsPage = () => {
         },
       },
       {
+        id: "transfer",
+        label: t("documents.transfer", { defaultValue: "Transfer to folder" }),
+        icon: "arrow-right-left",
+        variant: "outline" as const,
+        className: "btn-outline-secondary me-1",
+        onClick: (row: Document, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handleOpenSingleMoveConfirm(row.id);
+        },
+      },
+      {
         id: "archive",
         label: t("documents.archive", { defaultValue: "Archive" }),
         icon: "archive",
@@ -165,6 +185,7 @@ const DocumentsPage = () => {
       t,
       handleDownloadDocument,
       handleNavigateToDocument,
+      handleOpenSingleMoveConfirm,
       handleOpenArchiveConfirm,
       handleOpenTrashConfirm,
     ]
@@ -207,6 +228,20 @@ const DocumentsPage = () => {
             <div className="d-flex align-items-center gap-2 documents__header-actions">
               {documents.length > 0 && isSomeSelected && (
                 <>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    className="btn-outline-secondary d-inline-flex align-items-center me-2"
+                    onClick={handleOpenBatchMoveConfirm}
+                    disabled={isMoveSubmitting}
+                    aria-label={t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+                  >
+                    <Icon name="arrow-right-left" className="me-1" />
+                    {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+                    {selectedDocumentIds.length > 0 && (
+                      <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="md"
@@ -386,6 +421,19 @@ const DocumentsPage = () => {
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
         isLoading={isBatchTrashing}
+      />
+
+      <TransferToFolderModal
+        isOpen={isMoveModalOpen}
+        onClose={handleCloseBatchMoveConfirm}
+        departmentId={moveDepartmentId}
+        title={t("documents.transferToFolder", { defaultValue: "Transfer to folder" })}
+        subtitle={t("documents.transferSubtitle", {
+          defaultValue: "Transfer {{count}} document(s) to a folder in the same department.",
+          count: moveDocumentIdsCount,
+        })}
+        onConfirm={handleConfirmBatchMove}
+        isSubmitting={isMoveSubmitting}
       />
     </div>
   );

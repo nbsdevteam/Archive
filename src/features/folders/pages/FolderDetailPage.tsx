@@ -97,6 +97,8 @@ const FolderDetailPage = () => {
     handleCloseBatchAttachmentTrashConfirm,
     handleConfirmBatchAttachmentTrash,
     handleViewAttachment,
+    openTransferDocs,
+    openTransferAttachments,
     transferModalOpen,
     transferMode,
     transferDocIds,
@@ -377,6 +379,18 @@ const FolderDetailPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="btn-outline-secondary"
+                  onClick={() => openTransferDocs(subDocSelectedIds)}
+                  disabled={transferSubmitting}
+                >
+                  <Icon name="arrow-right-left" className="me-1" />
+                  {t("documents.transferSelected", {
+                    defaultValue: "Transfer selected",
+                  })}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="btn-outline-danger"
                   onClick={handleOpenBatchSubDocTrashConfirm}
                   disabled={isBatchSubDocTrashing}
@@ -475,6 +489,19 @@ const FolderDetailPage = () => {
                               }}
                             >
                               {t("documents.download", { defaultValue: "Download" })}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="btn-outline-secondary me-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openTransferDocs([doc.id]);
+                              }}
+                              disabled={transferSubmitting}
+                            >
+                              <Icon name="arrow-right-left" className="me-1" />
+                              {t("documents.transfer", { defaultValue: "Transfer" })}
                             </Button>
                             {isArchived ? (
                               <Button
