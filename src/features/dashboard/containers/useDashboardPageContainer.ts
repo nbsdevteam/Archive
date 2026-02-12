@@ -14,30 +14,6 @@ type DashboardStats = {
   by_department?: Array<{ department: string; count: number }>;
 };
 
-type StatsResult = { stats: DashboardStats; error: null } | { stats: null; error: string };
-
-let statsPromise: Promise<StatsResult> | null = null;
-
-function getDashboardStatsOnce(): Promise<StatsResult> {
-  if (statsPromise) return statsPromise;
-  statsPromise = (async () => {
-    try {
-      const res = await adminApi.getDashboardStats();
-      const data = res && typeof res === "object" ? res : {};
-      const payload =
-        "stats" in data && data.stats && typeof data.stats === "object"
-          ? data.stats
-          : "total_documents" in data || "by_department" in data
-            ? data
-            : {};
-      return { stats: payload as DashboardStats, error: null };
-    } catch (err) {
-      return { stats: null, error: handleApiError(err) };
-    }
-  })();
-  return statsPromise;
-}
-
 export const useDashboardPageContainer = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -67,18 +43,29 @@ export const useDashboardPageContainer = () => {
     initialParams: NOTIFICATION_PARAMS,
   });
 
+  /** Fetches dashboard stats fresh on every mount (navigation to /dashboard). */
   useEffect(() => {
     let cancelled = false;
-    getDashboardStatsOnce().then((result) => {
-      if (cancelled) return;
-      if (result.error) {
-        setStatsError(result.error);
-        setStats({});
-      } else {
-        setStats(result.stats);
+    (async () => {
+      try {
+        const res = await adminApi.getDashboardStats();
+        if (cancelled) return;
+        const data = res && typeof res === "object" ? res : {};
+        const payload =
+          "stats" in data && data.stats && typeof data.stats === "object"
+            ? data.stats
+            : "total_documents" in data || "by_department" in data
+              ? data
+              : {};
+        setStats(payload as DashboardStats);
         setStatsError(null);
+      } catch (err) {
+        if (!cancelled) {
+          setStatsError(handleApiError(err));
+          setStats({});
+        }
       }
-    });
+    })();
     return () => {
       cancelled = true;
     };

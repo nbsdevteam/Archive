@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ApexOptions } from "apexcharts";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
@@ -51,10 +51,8 @@ export const useLayoutModernDashboardPageContainer = () => {
     initialParams: NOTIFICATION_PARAMS,
   });
 
-  const didRunRef = useRef(false);
+  /** Fetches dashboard stats fresh on every mount (navigation to /dashboard). */
   useEffect(() => {
-    if (didRunRef.current) return;
-    didRunRef.current = true;
     let cancelled = false;
     (async () => {
       try {
@@ -66,9 +64,6 @@ export const useLayoutModernDashboardPageContainer = () => {
     })();
     return () => {
       cancelled = true;
-      setTimeout(() => {
-        didRunRef.current = false;
-      }, 0);
     };
   }, []);
 

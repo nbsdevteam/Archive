@@ -4,7 +4,7 @@
  * Uses app/adapter API (same HTTP client with token refresh).
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 
 interface UseDocumentCountParams {
@@ -27,12 +27,9 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
 
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const fetchedRef = useRef(false);
 
+  /** Re-fetches document count on every mount so navigation triggers a fresh API call. */
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
     (async () => {
       try {
         setLoading(true);

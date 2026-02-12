@@ -3,18 +3,15 @@
  * Uses documentsApi.listTrashDocuments with minimal page size to get pagination.total.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 
 export const useTrashDocumentCount = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const fetchedRef = useRef(false);
 
+  /** Re-fetches trash document count on every mount so navigation triggers a fresh API call. */
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
     (async () => {
       try {
         setLoading(true);
