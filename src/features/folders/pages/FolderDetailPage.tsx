@@ -6,91 +6,12 @@ import { UploadDocumentSidePanel } from "../../documents/components";
 import { AuditActivityPanel } from "../../../shared/components/Activity";
 import type { ActivityViewMode } from "../../activity/types";
 import { EditFolderSidePanel, TransferToFolderModal } from "../components";
-import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
-import type { ColumnDef, RowAction } from "../../../shared/components/ui/DataTable/DataTable.types";
+import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
 import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../../notes/components";
-
-function secondaryDocsColumns(
-  t: (key: string, opts?: { defaultValue?: string }) => string,
-  formatDate: (dateStr?: string | null) => string
-): ColumnDef<Document>[] {
-  return [
-    { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (d) => d.barcode ?? "–" },
-    { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (d) => d.title ?? d.name ?? "–" },
-    { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (d) => d.document_type_name ?? (d.document_type as { name?: string })?.name ?? "–" },
-    { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (d) => formatDate(d.upload_date) },
-    { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (d) => d.status ?? "–" },
-  ];
-}
-
-function secondaryDocsRowActions(
-  t: (key: string, opts?: { defaultValue?: string }) => string,
-  handleNavigateToDocument: (id: number) => void,
-  handleOpenSubDocTrashConfirm: (documentId: number) => void,
-  handleDownloadDocument: (documentId: number) => void,
-  handleArchiveFolderDocument: (documentId: number) => void,
-  handleUnarchiveFolderDocument: (documentId: number) => void
-): RowAction<Document>[] {
-  return [
-    {
-      id: "view",
-      label: t("common.view", { defaultValue: "View" }),
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      onClick: (d) => handleNavigateToDocument(d.id),
-    },
-    {
-      id: "download",
-      label: t("documents.download", { defaultValue: "Download" }),
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      onClick: (d, e) => {
-        e.stopPropagation();
-        handleDownloadDocument(d.id);
-      },
-    },
-    {
-      id: "archive",
-      label: t("documents.archive", { defaultValue: "Archive" }),
-      icon: "archive",
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      visible: (d) => (d.status ?? "").toLowerCase() !== "archived",
-      onClick: (d, e) => {
-        e.stopPropagation();
-        handleArchiveFolderDocument(d.id);
-      },
-    },
-    {
-      id: "unarchive",
-      label: t("documents.unarchive", { defaultValue: "Unarchive" }),
-      icon: "archive",
-      variant: "outline",
-      className: "btn-outline-secondary me-1",
-      visible: (d) => (d.status ?? "").toLowerCase() === "archived",
-      onClick: (d, e) => {
-        e.stopPropagation();
-        handleUnarchiveFolderDocument(d.id);
-      },
-    },
-    {
-      id: "trash",
-      label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
-      icon: "trash-2",
-      variant: "outline",
-      className: "btn-outline-danger",
-      onClick: (d, e) => {
-        e.stopPropagation();
-        handleOpenSubDocTrashConfirm(d.id);
-      },
-    },
-  ];
-}
-
 
 const FolderDetailPage = () => {
   const {
@@ -472,24 +393,138 @@ const FolderDetailPage = () => {
             )}
           </div>
           <div className="card-body">
-            <DataTable<Document>
-              data={subDocs}
-              getRowId={(d) => d.id}
-              columns={secondaryDocsColumns(t, formatDate)}
-              emptyMessage={t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
-              onRowClick={(d) => handleNavigateToDocument(d.id)}
-              rowActions={secondaryDocsRowActions(
-                t,
-                handleNavigateToDocument,
-                handleOpenSubDocTrashConfirm,
-                handleDownloadDocument,
-                handleArchiveFolderDocument,
-                handleUnarchiveFolderDocument
-              )}
-              selection={subDocsSelectionConfig}
-              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
-              tableClassName="table table-sm mb-0"
-            />
+            <div className="table-responsive">
+              <table className="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    {subDocsSelectionConfig && (
+                      <th style={{ width: "2.5rem" }} className="text-center">
+                        {subDocs.length > 0 && (
+                          <div className="form-check d-inline-flex justify-content-center mb-0">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={subDocsSelectionConfig.isAllSelected}
+                              onChange={subDocsSelectionConfig.onToggleAll}
+                              aria-label={subDocsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                            />
+                          </div>
+                        )}
+                      </th>
+                    )}
+                    <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
+                    <th>{t("documents.name", { defaultValue: "Name" })}</th>
+                    <th>{t("documents.type", { defaultValue: "Type" })}</th>
+                    <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
+                    <th>{t("documents.status", { defaultValue: "Status" })}</th>
+                    <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subDocs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-4 text-muted">
+                        {t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
+                      </td>
+                    </tr>
+                  ) : (
+                    subDocs.map((doc) => {
+                      const isSelected = subDocsSelectionConfig && subDocsSelectionConfig.selectedIds.includes(doc.id);
+                      const isArchived = (doc.status ?? "").toLowerCase() === "archived";
+                      return (
+                        <tr
+                          key={doc.id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleNavigateToDocument(doc.id)}
+                        >
+                          {subDocsSelectionConfig && (
+                            <td onClick={(e) => e.stopPropagation()}>
+                              <div className="form-check mb-0">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={isSelected}
+                                  onChange={() => subDocsSelectionConfig.onToggle(doc.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label={`Select document ${doc.barcode || doc.id}`}
+                                />
+                              </div>
+                            </td>
+                          )}
+                          <td>{doc.barcode ?? "–"}</td>
+                          <td>{doc.title ?? doc.name ?? "–"}</td>
+                          <td>{doc.document_type_name ?? (doc.document_type as { name?: string })?.name ?? "–"}</td>
+                          <td>{formatDate(doc.upload_date)}</td>
+                          <td>{doc.status ?? "–"}</td>
+                          <td className="text-end" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="btn-outline-secondary me-1"
+                              onClick={() => handleNavigateToDocument(doc.id)}
+                            >
+                              {t("common.view", { defaultValue: "View" })}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="btn-outline-secondary me-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadDocument(doc.id);
+                              }}
+                            >
+                              {t("documents.download", { defaultValue: "Download" })}
+                            </Button>
+                            {isArchived ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUnarchiveFolderDocument(doc.id);
+                                }}
+                                disabled={isSubDocUnarchiving}
+                              >
+                                <Icon name="archive" className="me-1" />
+                                {t("documents.unarchive", { defaultValue: "Unarchive" })}
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="btn-outline-secondary me-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleArchiveFolderDocument(doc.id);
+                                }}
+                                disabled={isSubDocArchiving}
+                              >
+                                <Icon name="archive" className="me-1" />
+                                {t("documents.archive", { defaultValue: "Archive" })}
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="btn-outline-danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenSubDocTrashConfirm(doc.id);
+                              }}
+                            >
+                              <Icon name="trash-2" className="me-1" />
+                              {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
