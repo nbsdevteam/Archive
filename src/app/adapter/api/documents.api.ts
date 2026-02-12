@@ -29,6 +29,12 @@ export interface Document {
   barcode: string;
   file_name: string;
   file_size: number;
+  /** Optional shipping/logistics fields */
+  po_number?: string;
+  bl_number?: string;
+  container_number?: string;
+  invoice_number?: string;
+  envoy_number?: string;
   /** Notes system: number of notes on this document (API 1.1) */
   note_count?: number;
   /** Notes system: last modified including versions/notes (API 1.1) */

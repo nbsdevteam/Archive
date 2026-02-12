@@ -144,6 +144,36 @@ const DocumentDetailPage = () => {
                       <td className="text-muted">{t("documents.confidentialityLabel", { defaultValue: "Confidentiality" })}</td>
                       <td>{doc.confidentiality_level ?? "–"}</td>
                     </tr>
+                    {doc.po_number && (
+                      <tr>
+                        <td className="text-muted">{t("documents.poNumber", { defaultValue: "PO Number" })}</td>
+                        <td>{doc.po_number}</td>
+                      </tr>
+                    )}
+                    {doc.bl_number && (
+                      <tr>
+                        <td className="text-muted">{t("documents.blNumber", { defaultValue: "BL Number" })}</td>
+                        <td>{doc.bl_number}</td>
+                      </tr>
+                    )}
+                    {doc.container_number && (
+                      <tr>
+                        <td className="text-muted">{t("documents.containerNumber", { defaultValue: "Container Number" })}</td>
+                        <td>{doc.container_number}</td>
+                      </tr>
+                    )}
+                    {doc.invoice_number && (
+                      <tr>
+                        <td className="text-muted">{t("documents.invoiceNumber", { defaultValue: "Invoice Number" })}</td>
+                        <td>{doc.invoice_number}</td>
+                      </tr>
+                    )}
+                    {doc.envoy_number && (
+                      <tr>
+                        <td className="text-muted">{t("documents.envoyNumber", { defaultValue: "Envoy Number" })}</td>
+                        <td>{doc.envoy_number}</td>
+                      </tr>
+                    )}
                     {tags.length > 0 && (
                       <tr>
                         <td className="text-muted">{t("documents.tags", { defaultValue: "Tags" })}</td>
