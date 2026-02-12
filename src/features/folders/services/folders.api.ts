@@ -5,6 +5,7 @@
  */
 
 import { jsonRpcRequest, httpDelete } from "../../../shared/lib/http";
+import type { Document } from "../../../app/adapter/api/documents.api";
 import type {
   Folder,
   FolderDetail,
@@ -63,20 +64,47 @@ export const getFolder = async (folderId: number): Promise<FolderDetail> => {
 
 /**
  * Get folder documents (NBS 6.8).
+ * Handles multiple backend response shapes: documents may be under
+ * "data", "documents", "records", or the result itself may be an array.
  * If response has no folder, fetches folder separately so caller always has folder details.
  */
 export const getFolderDocuments = async (
   folderId: number
 ): Promise<FolderDocumentsResponse> => {
-  const result = await jsonRpcRequest<FolderDocumentsResponse>(
+  const raw = await jsonRpcRequest<Record<string, unknown>>(
     `/api/folders/${folderId}/documents`,
     {}
   );
-  if (result?.folder) {
-    return result;
+
+  console.log("[getFolderDocuments] raw response for folderId", folderId, raw);
+
+  // Extract the documents array from whichever key the backend uses
+  let docs: Document[] = [];
+  if (Array.isArray(raw)) {
+    // Backend returned a plain array of documents
+    docs = raw as unknown as Document[];
+  } else if (raw && typeof raw === "object") {
+    if (Array.isArray(raw.data)) {
+      docs = raw.data as Document[];
+    } else if (Array.isArray(raw.documents)) {
+      docs = raw.documents as Document[];
+    } else if (Array.isArray(raw.records)) {
+      docs = raw.records as Document[];
+    }
   }
+
+  // Extract folder from the response (may live under "folder" key)
+  const folderFromResponse = (raw && typeof raw === "object" && !Array.isArray(raw))
+    ? (raw.folder as FolderDetail | undefined)
+    : undefined;
+
+  if (folderFromResponse) {
+    return { success: true, data: docs, folder: folderFromResponse };
+  }
+
+  // Folder not in response — fetch it separately
   const folder = await getFolder(folderId);
-  return { ...result, data: result?.data ?? [], folder };
+  return { success: true, data: docs, folder };
 };
 
 export interface CreateFolderParams {
