@@ -6,6 +6,39 @@ import styles from './FilePreview.module.css';
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
 const PDF_EXTENSION = 'pdf';
 
+// ─── Module-level blob URL cache ────────────────────────────────────────────
+// Keeps downloaded preview blob URLs in memory so the same file is only fetched
+// once per browser session. The cache owns the blob URLs; they are only revoked
+// when an entry is evicted to free memory.
+
+/** Maximum number of cached blob URLs before the oldest entry is evicted. */
+const MAX_PREVIEW_CACHE_SIZE = 20;
+
+/** In-memory cache mapping composite key → blob URL. Survives component unmount/remount. */
+const previewCache = new Map<string, string>();
+
+/** Builds a unique cache key from the preview identifiers. */
+function buildPreviewCacheKey(
+  documentId: number,
+  versionId?: number,
+  attachmentId?: number,
+): string {
+  return `${documentId}-${versionId ?? 'latest'}-${attachmentId ?? 'none'}`;
+}
+
+/** Evicts the oldest cache entry (first inserted) and revokes its blob URL to prevent memory leaks. */
+function evictOldestIfNeeded(): void {
+  if (previewCache.size <= MAX_PREVIEW_CACHE_SIZE) return;
+  const oldestKey = previewCache.keys().next().value;
+  if (oldestKey != null) {
+    const oldUrl = previewCache.get(oldestKey);
+    if (oldUrl) window.URL.revokeObjectURL(oldUrl);
+    previewCache.delete(oldestKey);
+  }
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
 export interface FilePreviewProps {
   documentId: number;
   versionId?: number;
@@ -49,7 +82,16 @@ export function FilePreview({
       return;
     }
 
-    let blobUrlToRevoke: string | null = null;
+    const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
+
+    // Serve from cache if already downloaded — skip the network request entirely
+    const cached = previewCache.get(cacheKey);
+    if (cached) {
+      setBlobUrl(cached);
+      setIsLoading(false);
+      return;
+    }
+
     let isCancelled = false;
 
     const loadFile = async () => {
@@ -65,7 +107,11 @@ export function FilePreview({
         if (isCancelled) return;
 
         const url = window.URL.createObjectURL(blob);
-        blobUrlToRevoke = url;
+
+        // Store in cache so subsequent mounts skip the download
+        previewCache.set(cacheKey, url);
+        evictOldestIfNeeded();
+
         setBlobUrl(url);
         setIsLoading(false);
       } catch (err: unknown) {
@@ -79,11 +125,10 @@ export function FilePreview({
 
     loadFile();
 
+    // Cleanup only cancels in-flight requests; blob URLs are owned by the cache
+    // and revoked only on eviction, not on component unmount.
     return () => {
       isCancelled = true;
-      if (blobUrlToRevoke) {
-        window.URL.revokeObjectURL(blobUrlToRevoke);
-      }
     };
   }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage]);
 
