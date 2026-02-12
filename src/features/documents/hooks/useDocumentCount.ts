@@ -4,7 +4,7 @@
  * Uses app/adapter API (same HTTP client with token refresh).
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 
 interface UseDocumentCountParams {
@@ -27,31 +27,42 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
 
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const paramsRef = useRef(initialParams);
+  paramsRef.current = initialParams;
+
+  /** Fetches the document count from the API using current params. */
+  const fetchCount = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = paramsRef.current;
+      const response = await documentsApi.getDocuments({
+        status: params.status ?? "active",
+        per_page: params.per_page ?? 1,
+        page: params.page ?? 1,
+        department_id: params.department_id,
+        document_type_id: params.document_type_id,
+        search: params.search,
+      });
+      const total = response.pagination?.total ?? response.data?.length ?? 0;
+      setCount(total);
+    } catch (err) {
+      setCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   /** Re-fetches document count on every mount so navigation triggers a fresh API call. */
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const response = await documentsApi.getDocuments({
-          status: initialParams.status ?? "active",
-          per_page: initialParams.per_page ?? 1,
-          page: initialParams.page ?? 1,
-          department_id: initialParams.department_id,
-          document_type_id: initialParams.document_type_id,
-          search: initialParams.search,
-        });
-        const total = response.pagination?.total ?? response.data?.length ?? 0;
-        setCount(total);
-      } catch (err) {
-        setCount(0);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchCount();
     // Serialize initialParams to prevent re-runs when object reference changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialParams)]);
 
-  return { count, loading };
+  /** Imperatively re-fetches the document count (e.g. after creating a folder/document). */
+  const refetch = useCallback(() => {
+    fetchCount();
+  }, [fetchCount]);
+
+  return { count, loading, refetch };
 };

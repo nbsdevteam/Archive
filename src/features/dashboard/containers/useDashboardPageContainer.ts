@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { useFolders } from "../../folders/hooks/useFolders";
@@ -34,9 +34,9 @@ export const useDashboardPageContainer = () => {
     fetchFolders,
   } = useFolders(FOLDERS_OPTIONS);
 
-  const { count: archivedDocumentsCount } = useDocumentCount(ARCHIVED_DOCS_OPTIONS);
+  const { count: archivedDocumentsCount, refetch: refetchArchivedCount } = useDocumentCount(ARCHIVED_DOCS_OPTIONS);
 
-  const { count: trashedDocumentsCount } = useTrashDocumentCount();
+  const { count: trashedDocumentsCount, refetch: refetchTrashedCount } = useTrashDocumentCount();
 
   const {
     notifications,
@@ -45,37 +45,43 @@ export const useDashboardPageContainer = () => {
     error: notificationsError,
   } = useNotifications(NOTIFICATIONS_OPTIONS);
 
+  /** Fetches dashboard stats (active document counts, department breakdown) from the API. */
+  const fetchDashboardStats = useCallback(async () => {
+    try {
+      const res = await adminApi.getDashboardStats();
+      const data = res && typeof res === "object" ? res : {};
+      const payload =
+        "stats" in data && data.stats && typeof data.stats === "object"
+          ? data.stats
+          : "total_documents" in data || "by_department" in data
+            ? data
+            : {};
+      setStats(payload as DashboardStats);
+      setStatsError(null);
+    } catch (err) {
+      setStatsError(handleApiError(err));
+      setStats({});
+    }
+  }, []);
+
   /** Fetches dashboard stats once on mount, protected against StrictMode double calls. */
   useEffect(() => {
     // Prevent double fetch in StrictMode
     if (hasFetchedStats.current) return;
     hasFetchedStats.current = true;
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await adminApi.getDashboardStats();
-        if (cancelled) return;
-        const data = res && typeof res === "object" ? res : {};
-        const payload =
-          "stats" in data && data.stats && typeof data.stats === "object"
-            ? data.stats
-            : "total_documents" in data || "by_department" in data
-              ? data
-              : {};
-        setStats(payload as DashboardStats);
-        setStatsError(null);
-      } catch (err) {
-        if (!cancelled) {
-          setStatsError(handleApiError(err));
-          setStats({});
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  /**
+   * Re-fetches all dashboard counts (folders, active/archived/trashed documents, stats).
+   * Call this after mutations like folder creation or document upload to keep the dashboard in sync.
+   */
+  const refreshDashboardCounts = useCallback(() => {
+    fetchFolders();
+    fetchDashboardStats();
+    refetchArchivedCount();
+    refetchTrashedCount();
+  }, [fetchFolders, fetchDashboardStats, refetchArchivedCount, refetchTrashedCount]);
 
   const totalFolders = foldersPagination?.total ?? folders.length;
   const activeDocumentsCount = stats?.total_documents ?? 0;
@@ -122,5 +128,6 @@ export const useDashboardPageContainer = () => {
     hasError,
     handleOpenUploadPanel,
     handleCloseUploadPanel,
+    refreshDashboardCounts,
   };
 };

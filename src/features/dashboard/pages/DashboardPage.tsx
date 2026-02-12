@@ -36,6 +36,7 @@ const DashboardPage = () => {
     hasError,
     handleOpenUploadPanel,
     handleCloseUploadPanel,
+    refreshDashboardCounts,
   } = useDashboardPageContainer();
 
   return (
@@ -98,6 +99,7 @@ const DashboardPage = () => {
         <UploadDocumentSidePanel
           isOpen={uploadPanelOpen}
           onClose={handleCloseUploadPanel}
+          onSuccess={refreshDashboardCounts}
         />
 
         {/* Cards + Chart on same row (compact cards) */}
