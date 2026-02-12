@@ -691,10 +691,10 @@ export const useFolderDetailPageContainer = () => {
     setNoteDeleteTarget(note);
   }, []);
 
-  /** Close delete confirmation modal */
+  /** Close delete confirmation modal (only allow closing when not actively deleting a note) */
   const handleCloseNoteDeleteConfirm = useCallback(() => {
-    if (!isDeleting) setNoteDeleteTarget(null);
-  }, [isDeleting]);
+    if (!isDeletingNote) setNoteDeleteTarget(null);
+  }, [isDeletingNote]);
 
   /** Confirm and execute note deletion */
   const handleConfirmDeleteNote = useCallback(async () => {
