@@ -10,7 +10,8 @@ import { all_routes } from "../../../router/all_routes";
 import { Button, Icon, Modal, Spinner } from "../../../shared/components/ui";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
-import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../types/notes.types";
+import type { NoteEditorSavePayload } from "../components/NoteEditor";
+import type { NoteListItem, UpdateNotePayload } from "../types/notes.types";
 
 const NotesPage = () => {
   const { t } = useTranslation();
@@ -64,21 +65,20 @@ const NotesPage = () => {
     setEditingNote(null);
   }, []);
 
-  /** Save note (create or update) */
+  /** Save note (create or update), now supports optional folder/document linking */
   const handleSaveNote = useCallback(
-    async (payload: Omit<CreateNotePayload, 'folder_id' | 'document_id'>) => {
+    async (payload: NoteEditorSavePayload) => {
       if (editingNote) {
-        // Update existing note
-        const success = await updateNote(editingNote.id, payload as UpdateNotePayload);
+        // Update existing note — strip linking fields not accepted by update endpoint
+        const { folder_id, document_id, ...updateFields } = payload;
+        const success = await updateNote(editingNote.id, updateFields as UpdateNotePayload);
         if (success) {
           handleCloseNoteEditor();
           refresh();
         }
       } else {
-        // Create new standalone note (no folder/document link)
-        const noteId = await createNote({
-          ...payload,
-        });
+        // Create note — pass full payload including optional folder/document IDs
+        const noteId = await createNote(payload);
         if (noteId) {
           handleCloseNoteEditor();
           refresh();

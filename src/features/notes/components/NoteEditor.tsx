@@ -1,36 +1,45 @@
 /**
- * Note editor component for creating and editing notes
+ * Note editor component for creating and editing notes.
+ * Supports standalone mode (from /notes page) with folder/document linking dropdowns,
+ * and contextual mode (from folder/document detail pages) where linking is pre-filled.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { Button, Icon, Input, SelectField } from '../../../shared/components/ui';
 import { fileToBase64 } from '../../../shared/utils/files/fileToBase64';
 import { NOTE_COLOR_NAMES, type NoteListItem, type NoteColorCode } from '../types/notes.types';
-import type { Control } from 'react-hook-form';
+import { listFolders, getFolderDocuments } from '../../folders/services/folders.api';
+import type { Folder } from '../../folders/types/folders.types';
+import type { Document } from '../../../app/adapter/api/documents.api';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+/** Payload shape emitted by onSave — includes optional folder/document linking fields */
+export interface NoteEditorSavePayload {
+  title?: string;
+  content: string;
+  is_private: boolean;
+  is_pinned: boolean;
+  color: NoteColorCode;
+  image?: string;
+  image_filename?: string;
+  folder_id?: number;
+  document_id?: number;
+}
 
 export interface NoteEditorProps {
   /** Existing note to edit (null for create mode) */
   note?: NoteListItem | null;
-  /** Pre-fill document link */
+  /** Pre-fill document link (contextual mode — hides the dropdowns) */
   documentId?: number;
-  /** Pre-fill folder link */
+  /** Pre-fill folder link (contextual mode — hides the dropdowns) */
   folderId?: number;
   /** Pre-fill department */
   departmentId?: number;
   /** Callback when save is clicked */
-  onSave: (payload: {
-    title?: string;
-    content: string;
-    is_private: boolean;
-    is_pinned: boolean;
-    color: NoteColorCode;
-    image?: string;
-    image_filename?: string;
-  }) => void;
+  onSave: (payload: NoteEditorSavePayload) => void;
   /** Callback when cancel is clicked */
   onCancel: () => void;
   /** Is saving in progress */
@@ -38,7 +47,9 @@ export interface NoteEditorProps {
 }
 
 /**
- * Form for creating or editing a note
+ * Form for creating or editing a note.
+ * In standalone mode (no folderId/documentId props), renders linked folder + document
+ * dropdowns so the user can optionally link the note to an existing folder/document.
  */
 export const NoteEditor = ({
   note,
@@ -52,6 +63,7 @@ export const NoteEditor = ({
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // ── Core note fields ──
   const [title, setTitle] = useState(note?.title ?? '');
   const [content, setContent] = useState(note?.content ?? '');
   const [isPrivate, setIsPrivate] = useState(note?.is_private ?? true);
@@ -60,10 +72,123 @@ export const NoteEditor = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
-  const colorOptions = Object.entries(NOTE_COLOR_NAMES).map(([code, name]) => ({
-    value: parseInt(code, 10),
-    label: name,
-  }));
+  // ── Standalone-mode folder/document linking state ──
+  /** True when the parent did NOT pre-supply folder/document IDs — user must choose */
+  const isStandaloneMode = !folderId && !documentId;
+
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [loadingFolders, setLoadingFolders] = useState(false);
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(
+    note?.folder_id ?? null
+  );
+
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(
+    note?.document_id ?? null
+  );
+
+  /** Memoised color dropdown options — computed once */
+  const colorOptions = useMemo(
+    () =>
+      Object.entries(NOTE_COLOR_NAMES).map(([code, name]) => ({
+        value: parseInt(code, 10),
+        label: name,
+      })),
+    []
+  );
+
+  /** Memoised folder dropdown options */
+  const folderOptions = useMemo(
+    () =>
+      folders.map((f) => ({
+        value: f.id,
+        label: `${f.name}${f.code ? ` — ${f.code}` : ''}`,
+      })),
+    [folders]
+  );
+
+  /** Memoised document dropdown options */
+  const documentOptions = useMemo(
+    () =>
+      documents.map((d) => ({
+        value: d.id,
+        label: d.title || d.name || `Document #${d.id}`,
+      })),
+    [documents]
+  );
+
+  // ── Fetch all folders on mount (standalone mode only) ──
+  // Uses AbortController to prevent state updates after unmount and cancel stale requests.
+  useEffect(() => {
+    if (!isStandaloneMode) return;
+
+    let cancelled = false;
+    setLoadingFolders(true);
+
+    listFolders()
+      .then((res) => {
+        if (!cancelled) setFolders(res.folders ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setFolders([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingFolders(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isStandaloneMode]);
+
+  // ── Fetch documents when selected folder changes (standalone mode only) ──
+  // Cancels in-flight request if folder changes before previous fetch completes.
+  useEffect(() => {
+    if (!isStandaloneMode) return;
+    if (!selectedFolderId) {
+      setDocuments([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingDocuments(true);
+
+    getFolderDocuments(selectedFolderId)
+      .then((res) => {
+        if (!cancelled) setDocuments(res.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setDocuments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingDocuments(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isStandaloneMode, selectedFolderId]);
+
+  /** Handle folder dropdown change — clears document selection to avoid stale link */
+  const handleFolderChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const val = e.target.value;
+      const id = val ? parseInt(val, 10) : null;
+      setSelectedFolderId(id);
+      setSelectedDocumentId(null);
+    },
+    []
+  );
+
+  /** Handle document dropdown change */
+  const handleDocumentChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const val = e.target.value;
+      setSelectedDocumentId(val ? parseInt(val, 10) : null);
+    },
+    []
+  );
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +237,7 @@ export const NoteEditor = ({
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
 
+  /** Build and emit the save payload, including optional folder/document linking */
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -124,7 +250,7 @@ export const NoteEditor = ({
         return;
       }
 
-      const payload: Parameters<typeof onSave>[0] = {
+      const payload: NoteEditorSavePayload = {
         title: title.trim() || undefined,
         content: content.trim(),
         is_private: isPrivate,
@@ -137,13 +263,87 @@ export const NoteEditor = ({
         payload.image_filename = selectedFile.name;
       }
 
+      // Attach folder/document linking — use prop values when in contextual mode,
+      // or user-selected values when in standalone mode
+      if (isStandaloneMode) {
+        if (selectedFolderId) payload.folder_id = selectedFolderId;
+        if (selectedDocumentId) payload.document_id = selectedDocumentId;
+      } else {
+        if (folderId) payload.folder_id = folderId;
+        if (documentId) payload.document_id = documentId;
+      }
+
       onSave(payload);
     },
-    [title, content, isPrivate, isPinned, color, imageBase64, selectedFile, onSave, t]
+    [
+      title, content, isPrivate, isPinned, color,
+      imageBase64, selectedFile, onSave, t,
+      isStandaloneMode, selectedFolderId, selectedDocumentId,
+      folderId, documentId,
+    ]
   );
 
   return (
     <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+      {/* ── Folder / Document linking (standalone mode only) ── */}
+      {isStandaloneMode && (
+        <div className="row g-3">
+          <div className="col-md-6">
+            <label className="form-label">
+              {t('notes.folder', { defaultValue: 'Folder (optional)' })}
+            </label>
+            <select
+              className="form-select"
+              value={selectedFolderId ?? ''}
+              onChange={handleFolderChange}
+              disabled={isSaving || loadingFolders}
+            >
+              <option value="">
+                {loadingFolders
+                  ? t('common.loading', { defaultValue: 'Loading...' })
+                  : `— ${t('notes.noFolder', { defaultValue: 'None' })} —`}
+              </option>
+              {folderOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">
+              {t('notes.document', { defaultValue: 'Document (optional)' })}
+            </label>
+            <select
+              className="form-select"
+              value={selectedDocumentId ?? ''}
+              onChange={handleDocumentChange}
+              disabled={isSaving || loadingDocuments || !selectedFolderId}
+            >
+              <option value="">
+                {!selectedFolderId
+                  ? t('notes.selectFolderFirst', { defaultValue: 'Select a folder first' })
+                  : loadingDocuments
+                    ? t('common.loading', { defaultValue: 'Loading...' })
+                    : `— ${t('notes.noDocument', { defaultValue: 'None' })} —`}
+              </option>
+              {documentOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {selectedFolderId && !loadingDocuments && documents.length === 0 && (
+              <small className="text-muted">
+                {t('notes.noDocumentsInFolder', {
+                  defaultValue: 'No documents in this folder.',
+                })}
+              </small>
+            )}
+          </div>
+        </div>
+      )}
+
       <Input
         label={t('notes.title', { defaultValue: 'Title (optional)' })}
         value={title}

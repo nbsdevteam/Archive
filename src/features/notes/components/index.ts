@@ -9,5 +9,5 @@ export { NoteImageViewerModal } from './NoteImageViewerModal';
 
 export type { NoteCardProps } from './NoteCard';
 export type { NotesListProps } from './NotesList';
-export type { NoteEditorProps } from './NoteEditor';
+export type { NoteEditorProps, NoteEditorSavePayload } from './NoteEditor';
 export type { NoteImageViewerModalProps } from './NoteImageViewerModal';
