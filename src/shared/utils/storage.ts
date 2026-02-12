@@ -104,3 +104,18 @@ export const clearStoredUser = (): void => {
 export const isAuthenticated = (): boolean => {
   return getAccessToken() !== null;
 };
+
+/**
+ * Force-logout: clears all auth state and redirects to login.
+ * Centralised so every caller (interceptors, hooks, guards) does the same thing.
+ * The guard prevents multiple redirects when several requests fail at once.
+ */
+let _isForceLoggingOut = false;
+export const forceLogout = (): void => {
+  if (_isForceLoggingOut) return;
+  _isForceLoggingOut = true;
+
+  clearTokens();
+  clearStoredUser();
+  window.location.href = "/login";
+};

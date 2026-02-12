@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { forceLogout } from '../../../shared/utils/storage';
 
 // API Base URL - use relative path for proxy
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -12,6 +13,39 @@ const apiClient: AxiosInstance = axios.create({
   },
   withCredentials: true, // Important for Odoo session cookies
 });
+
+/**
+ * Returns true when the URL belongs to an auth endpoint (login / refresh)
+ * so we never accidentally force-logout during those flows.
+ */
+const isAuthEndpoint = (url?: string): boolean =>
+  Boolean(url?.includes('/api/auth/login') || url?.includes('/api/auth/refresh'));
+
+/**
+ * Checks whether an API response body signals "Unauthorized" even though
+ * the HTTP status was 200.  The backend may return:
+ *   { result: { success: false, error: "Unauthorized", data: [] } }
+ */
+const isBodyUnauthorized = (data: unknown): boolean => {
+  if (!data || typeof data !== 'object') return false;
+  const root = data as Record<string, unknown>;
+
+  // Check top-level: { success: false, error: "Unauthorized" }
+  if (root.success === false && typeof root.error === 'string' && root.error.toLowerCase() === 'unauthorized') {
+    return true;
+  }
+
+  // Check nested: { result: { success: false, error: "Unauthorized" } }
+  const result = root.result;
+  if (result && typeof result === 'object') {
+    const r = result as Record<string, unknown>;
+    if (r.success === false && typeof r.error === 'string' && r.error.toLowerCase() === 'unauthorized') {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
@@ -29,25 +63,38 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors and token refresh
+// Response interceptor - handle errors, body-level Unauthorized, and token refresh
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Detect body-level "Unauthorized" on otherwise successful HTTP responses
+    if (!isAuthEndpoint(response.config.url) && isBodyUnauthorized(response.data)) {
+      forceLogout();
+      return Promise.reject(new Error('Session expired. Redirecting to login.'));
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     
-    // Don't try to refresh token for login/refresh endpoints - these are authentication endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/api/auth/login') || 
-                          originalRequest.url?.includes('/api/auth/refresh');
+    // Don't try to refresh token for login/refresh endpoints
+    if (isAuthEndpoint(originalRequest.url)) {
+      return Promise.reject(error);
+    }
+
+    // Also check body-level Unauthorized on error responses (e.g. 400 with Unauthorized body)
+    if (error.response && isBodyUnauthorized(error.response.data)) {
+      forceLogout();
+      return Promise.reject(new Error('Session expired. Redirecting to login.'));
+    }
     
     // If 401 and not already retried, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       const refreshToken = localStorage.getItem('refresh_token');
       
       if (refreshToken) {
         try {
-          // Use relative URL for proxy
           const refreshUrl = API_BASE_URL ? `${API_BASE_URL}/api/auth/refresh` : '/api/auth/refresh';
           const response = await axios.post(refreshUrl, {
             refresh_token: refreshToken,
@@ -66,20 +113,11 @@ apiClient.interceptors.response.use(
           }
           return apiClient(originalRequest);
         } catch (refreshError) {
-          // Refresh failed, logout user
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user');
-          
-          // Redirect to login
-          window.location.href = '/login';
+          forceLogout();
           return Promise.reject(refreshError);
         }
       } else {
-        // No refresh token, logout
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        forceLogout();
       }
     }
     
