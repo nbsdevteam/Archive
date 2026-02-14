@@ -79,3 +79,34 @@
 .folders__view-option--active-list {
   color: #fff;
 }
+
+/* Grid card fixed height layout */
+.folders__grid-card-wrapper {
+  cursor: pointer;
+  min-height: 220px;
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.folders__grid-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.folders__grid-card-body {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Folder name ellipsis with full width */
+.folders__folder-name-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}

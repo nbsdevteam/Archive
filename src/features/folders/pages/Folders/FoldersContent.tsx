@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { Button, Spinner, Alert, Icon, Card } from "../../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, Card, InfoWrapper } from "../../../../shared/components/ui";
 import type { Folder } from "../../types/folders.types";
 
 export interface FoldersContentProps {
@@ -55,9 +55,9 @@ export function FoldersContent(props: FoldersContentProps) {
           ) : (
             filteredFolders.map((folder) => (
               <div className="col-xl-3 col-md-6 d-flex" key={folder.id}>
-                <div className="flex-fill" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)} style={{ cursor: "pointer" }}>
-                  <Card className="flex-fill" bordered={false}>
-                    <div className="card-body">
+                <div className="flex-fill folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)}>
+                  <Card className="flex-fill folders__grid-card" bordered={false}>
+                    <div className="card-body d-flex flex-column folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <span className="folders__folder-icon p-2 br-10 d-flex align-items-center justify-content-center">
                           <Icon name="folder" className="folders__folder-icon-symbol fs-18" />
@@ -66,7 +66,15 @@ export function FoldersContent(props: FoldersContentProps) {
                           {t("folders.updated", { defaultValue: "Updated" })} {formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}
                         </span>
                       </div>
-                      <h5 className="mb-1">{folder.name}</h5>
+                      <InfoWrapper
+                        content={folder.name}
+                        position="top"
+                        trigger={
+                          <h5 className="mb-1 folders__folder-name-ellipsis">
+                            {folder.name}
+                          </h5>
+                        }
+                      />
                       <p className="text-muted mb-2">
                         <small>{t("folders.code", { defaultValue: "Code" })}: {folder.code}</small>
                       </p>
@@ -74,7 +82,7 @@ export function FoldersContent(props: FoldersContentProps) {
                         {folder.document_count ?? folder.docs ?? 0} documents
                         {folder.department_name && ` • ${folder.department_name}`}
                       </p>
-                      <div className="d-flex flex-wrap gap-2 align-items-center" onClick={(e) => e.stopPropagation()}>
+                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto" onClick={(e) => e.stopPropagation()}>
                         <Link to={routes.folderDetail.replace(":id", String(folder.id))} className="link-primary fs-13">
                           {t("common.view", { defaultValue: "View" })}
                         </Link>
