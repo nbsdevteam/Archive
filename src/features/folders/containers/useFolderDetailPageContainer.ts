@@ -645,7 +645,7 @@ export const useFolderDetailPageContainer = () => {
     setNoteImageViewerFilename("");
   }, []);
 
-  /** Grouped return shape (data/loading/error/activity/selection/actions/modals) for consistency with list and document detail containers. */
+  /** Grouped return shape: loadingState (avoids loading.loading), errors (avoids error.error), plus data/activity/selection/actions/modals. */
   return {
     t,
     routes,
@@ -663,7 +663,7 @@ export const useFolderDetailPageContainer = () => {
       previewDoc,
       previewFileName,
     },
-    loading: {
+    loadingState: {
       loading,
       loadingAttachments,
       activityLoading,
@@ -677,8 +677,8 @@ export const useFolderDetailPageContainer = () => {
       isUpdatingNote,
       isDeletingNote,
     },
-    error: {
-      error,
+    errors: {
+      main: error,
       activityError,
       notesError,
     },

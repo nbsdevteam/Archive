@@ -1,6 +1,7 @@
 import { Button, Modal, ModalFooter, Spinner, ConfirmModal, Icon } from "../../../../shared/components/ui";
 import { NoteEditor, NoteImageViewerModal } from "../../../notes/components";
 import type { TFunction } from "i18next";
+import type { CreateNotePayload } from "../../../notes/types/notes.types";
 
 /** Props for document detail modals: modal state, actions, loading, data needed by modals, and confirm dialog spread props. */
 export interface DocumentDetailModalsProps {
@@ -53,7 +54,7 @@ export interface DocumentDetailModalsProps {
     handleClearUploadVersionFile: () => void;
     handleUploadVersionSubmit: () => void;
     setModalRequestSign: (v: boolean) => void;
-    setSelectedSignerId: (v: string | number) => void;
+    setSelectedSignerId: React.Dispatch<React.SetStateAction<number | "">>;
     setSignMessage: (v: string) => void;
     handleCreateSignatureRequest: () => void;
     setModalUploadSigned: (v: boolean) => void;
@@ -71,7 +72,7 @@ export interface DocumentDetailModalsProps {
     setEditAttachmentDescription: (v: string) => void;
     handleConfirmEditAttachment: () => void;
     handleCloseNoteEditor: () => void;
-    handleSaveNote: (payload: unknown) => void;
+    handleSaveNote: (payload: Omit<CreateNotePayload, "document_id">) => Promise<void>;
     handleCloseNoteImageViewer: () => void;
   };
   selection: { attachmentSelectedIds: (string | number)[] };

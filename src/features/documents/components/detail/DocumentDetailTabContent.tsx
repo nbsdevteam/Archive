@@ -7,11 +7,23 @@ import { NotesList } from "../../../notes/components";
 import { buildRowActions } from "../../../../shared/utils/buildRowActions";
 import type { TFunction } from "i18next";
 import type { ColumnDef } from "../../../../shared/components/ui/DataTable/DataTable.types";
+import type { ActivityViewMode } from "../../../activity/types/auditLogs.types";
+import type { NoteListItem } from "../../../notes/types/notes.types";
 
-/** Props for document detail tab content: data/loading/error/tabs/selection/actions from container + confirm dialogs for attachment/note. */
+/** Tab state from document detail container (tab list, active id, setters, audit view mode). */
+export interface DocumentDetailTabState {
+  tabs: Array<{ id: string; label: string }>;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  activityViewMode: ActivityViewMode;
+  setActivityViewMode: React.Dispatch<React.SetStateAction<ActivityViewMode>>;
+  auditRefresh: () => void;
+}
+
+/** Props for document detail tab content: data/loading/error/tabState/selection/actions from container + confirm dialogs. */
 export interface DocumentDetailTabContentProps {
   t: TFunction;
-  tabs: { activeTab: string; activityViewMode: string; setActivityViewMode: (mode: unknown) => void; auditRefresh: () => void };
+  tabState: DocumentDetailTabState;
   data: {
     doc: { id: number; department_id?: number } | null;
     fileName: string | null | undefined;
@@ -22,7 +34,7 @@ export interface DocumentDetailTabContentProps {
     ocr: unknown;
     ocrStatus: string;
     isOcrSupported: boolean;
-    signatureRows: Array<{ id: number; state?: string; signer_name?: string; request_date?: string }>;
+    signatureRows: Array<{ id: number; state?: string; signer_name?: string; request_date?: string | null }>;
     approvedRequests: Array<{ id: number; signer_name?: string }>;
     canRequestSignature: boolean;
     relations: { parent?: { id: number; title: string; barcode?: string } | null; related?: Array<{ id: number; title: string; barcode?: string; notes?: string }> };
@@ -57,8 +69,8 @@ export interface DocumentDetailTabContentProps {
     handleDownloadAttachment: (id: number, fileName: string) => void;
     handleOpenEditAttachment: (id: number) => void;
     handleCreateNote: () => void;
-    handleEditNote: (note: unknown) => void;
-    handleViewNoteImage: (note: unknown) => void;
+    handleEditNote: (note: NoteListItem) => void;
+    handleViewNoteImage: (note: NoteListItem) => void;
     handleRunOcr: () => void;
     setModalRequestSign: (v: boolean) => void;
     setModalUploadSigned: (v: boolean) => void;
@@ -76,7 +88,7 @@ type AttachmentRow = { id: number; name: string; file_name: string; description?
 /** Renders the active tab content for document detail (preview, versions, attachments, notes, ocr, signatures, relations, audit). */
 export const DocumentDetailTabContent = ({
   t,
-  tabs,
+  tabState,
   data,
   loading,
   error,
@@ -108,7 +120,7 @@ export const DocumentDetailTabContent = ({
 
   return (
     <>
-      {tabs.activeTab === "preview" && (
+      {tabState.activeTab === "preview" && (
         <div className="row">
           <div className="col-12 col-lg-6" style={{ minHeight: 200 }}>
             <FilePreview
@@ -122,7 +134,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "download" && (
+      {tabState.activeTab === "download" && (
         <div>
           <p className="text-muted mb-2">
             {t("documents.downloadCurrentVersion", { defaultValue: "Download current version" })}
@@ -153,7 +165,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "versions" && (
+      {tabState.activeTab === "versions" && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.versionHistory", { defaultValue: "Version history" })}</span>
@@ -205,7 +217,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "attachments" && (
+      {tabState.activeTab === "attachments" && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
@@ -246,7 +258,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "notes" && (
+      {tabState.activeTab === "notes" && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.notes", { defaultValue: "Notes" })}</span>
@@ -269,7 +281,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "ocr" && (
+      {tabState.activeTab === "ocr" && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <span>
@@ -306,7 +318,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "signatures" && (
+      {tabState.activeTab === "signatures" && (
         <div>
           <div className="d-flex flex-wrap gap-2 mb-3">
             {data.canRequestSignature && (
@@ -351,7 +363,7 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "relations" && (
+      {tabState.activeTab === "relations" && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.relations", { defaultValue: "Relations" })}</span>
@@ -404,17 +416,18 @@ export const DocumentDetailTabContent = ({
         </div>
       )}
 
-      {tabs.activeTab === "audit" && (
+      {tabState.activeTab === "audit" && (
         <AuditActivityPanel
           t={t}
           logs={data.auditLogs as Parameters<typeof AuditActivityPanel>[0]["logs"]}
           loading={loading.loadingAudit}
           error={error.auditError ?? undefined}
-          viewMode={tabs.activityViewMode as "timeline" | "tree"}
-          onViewModeChange={(mode: string) => tabs.setActivityViewMode(mode)}
+          viewMode={tabState.activityViewMode as "timeline" | "tree"}
+          /* AuditActivityPanel passes string; cast to ActivityViewMode for setState. */
+          onViewModeChange={(mode: string) => tabState.setActivityViewMode(mode as ActivityViewMode)}
           title={t("activity.auditTitle", { defaultValue: "Audit log" })}
           showRefresh
-          onRefresh={tabs.auditRefresh}
+          onRefresh={tabState.auditRefresh}
           showDocument={false}
           showMetadata={false}
           treeGroupBy="document"

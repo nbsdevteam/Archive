@@ -17,7 +17,7 @@ import { convertToArabianStandardTime } from "../../../shared/utils/format/date"
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../../notes/components";
 
 const FolderDetailPage = () => {
-  const { t, routes, data, loading, error, activity, selection, actions, modals } = useFolderDetailPageContainer();
+  const { t, routes, data, loadingState, errors, activity, selection, actions, modals } = useFolderDetailPageContainer();
 
   const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmDeleteFolder });
   const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmSubDocTrash });
@@ -52,7 +52,7 @@ const FolderDetailPage = () => {
     );
   }
 
-  if (loading.loading) {
+  if (loadingState.loading) {
     return (
       <div className="page-wrapper">
         <div className="content">
@@ -114,9 +114,9 @@ const FolderDetailPage = () => {
         </>
       }
     >
-        {error.error && (
+        {errors.main && (
           <Alert variant="danger" className="mb-3">
-            {error.error}
+            {errors.main}
             <Button variant="outline" size="sm" className="ms-2 btn-outline-secondary" onClick={actions.loadFolderDocuments}>
               {t("common.retry", { defaultValue: "Retry" })}
             </Button>
@@ -182,7 +182,7 @@ const FolderDetailPage = () => {
                               e.stopPropagation();
                               actions.handleUnarchiveFolderDocument(data.mainDoc!.id);
                             }}
-                            disabled={loading.isSubDocUnarchiving}
+                            disabled={loadingState.isSubDocUnarchiving}
                           >
                             {t("documents.unarchive", { defaultValue: "Unarchive" })}
                           </Button>
@@ -195,7 +195,7 @@ const FolderDetailPage = () => {
                               e.stopPropagation();
                               actions.handleArchiveFolderDocument(data.mainDoc!.id);
                             }}
-                            disabled={loading.isSubDocArchiving}
+                            disabled={loadingState.isSubDocArchiving}
                           >
                             {t("documents.archive", { defaultValue: "Archive" })}
                           </Button>
@@ -223,7 +223,7 @@ const FolderDetailPage = () => {
                   size="sm"
                   className="btn-outline-secondary"
                   onClick={() => actions.openTransferDocs(selection.subDocSelectedIds.map((id) => Number(id)))}
-                  disabled={loading.transferSubmitting}
+                  disabled={loadingState.transferSubmitting}
                 >
                   <Icon name="arrow-right-left" className="me-1" />
                   {t("documents.transferSelected", {
@@ -235,7 +235,7 @@ const FolderDetailPage = () => {
                   size="sm"
                   className="btn-outline-danger"
                   onClick={batchSubDocTrashDialog.open}
-                  disabled={loading.isSubDocTrashing}
+                  disabled={loadingState.isSubDocTrashing}
                 >
                   <Icon name="trash-2" className="me-1" />
                   {t("documents.moveSelectedToTrash", {
@@ -340,7 +340,7 @@ const FolderDetailPage = () => {
                                 e.stopPropagation();
                                 actions.openTransferDocs([doc.id]);
                               }}
-                              disabled={loading.transferSubmitting}
+                              disabled={loadingState.transferSubmitting}
                             >
                               <Icon name="arrow-right-left" className="me-1" />
                               {t("documents.transfer", { defaultValue: "Transfer" })}
@@ -354,7 +354,7 @@ const FolderDetailPage = () => {
                                   e.stopPropagation();
                                   actions.handleUnarchiveFolderDocument(doc.id);
                                 }}
-                                disabled={loading.isSubDocUnarchiving}
+                                disabled={loadingState.isSubDocUnarchiving}
                               >
                                 <Icon name="archive" className="me-1" />
                                 {t("documents.unarchive", { defaultValue: "Unarchive" })}
@@ -368,7 +368,7 @@ const FolderDetailPage = () => {
                                   e.stopPropagation();
                                   actions.handleArchiveFolderDocument(doc.id);
                                 }}
-                                disabled={loading.isSubDocArchiving}
+                                disabled={loadingState.isSubDocArchiving}
                               >
                                 <Icon name="archive" className="me-1" />
                                 {t("documents.archive", { defaultValue: "Archive" })}
@@ -423,7 +423,7 @@ const FolderDetailPage = () => {
                     size="sm"
                     className="btn-outline-danger"
                     onClick={batchAttachmentTrashDialog.open}
-                    disabled={loading.isAttachmentTrashing}
+                    disabled={loadingState.isAttachmentTrashing}
                   >
                     <Icon name="trash" className="me-1" />
                     {t("documents.deleteSelectedAttachments", {
@@ -441,7 +441,7 @@ const FolderDetailPage = () => {
             </div>
           </div>
           <div className="card-body">
-            {loading.loadingAttachments ? (
+            {loadingState.loadingAttachments ? (
               <div className="text-center py-4">
                 <Spinner size="md" />
               </div>
@@ -564,8 +564,8 @@ const FolderDetailPage = () => {
           <div className="card-body">
             <NotesList
               notes={data.notes}
-              loading={loading.loadingNotes}
-              error={error.notesError}
+              loading={loadingState.loadingNotes}
+              error={errors.notesError}
               onEdit={actions.handleEditNote}
               onDelete={(note) => noteDeleteDialog.open(note.id)}
               onViewImage={actions.handleViewNoteImage}
@@ -751,7 +751,7 @@ const FolderDetailPage = () => {
         }
         excludeFolderId={data.folderId ?? undefined}
         onConfirm={actions.handleTransferConfirm}
-        isSubmitting={loading.transferSubmitting}
+        isSubmitting={loadingState.transferSubmitting}
       />
 
       <EditFolderSidePanel
@@ -790,7 +790,7 @@ const FolderDetailPage = () => {
           departmentId={data.folder?.department_id}
           onSave={actions.handleSaveNote}
           onCancel={actions.handleCloseNoteEditor}
-          isSaving={loading.isCreatingNote || loading.isUpdatingNote}
+          isSaving={loadingState.isCreatingNote || loadingState.isUpdatingNote}
         />
       </Modal>
 

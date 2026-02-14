@@ -103,7 +103,7 @@ describe("useFolderDetailPageContainer", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.loading.loading).toBe(false);
+      expect(result.current.loadingState.loading).toBe(false);
       expect(result.current.data.folder?.id).toBe(folderId);
       expect(result.current.data.documents).toHaveLength(2);
       expect(result.current.data.mainDoc?.id).toBe(1);
