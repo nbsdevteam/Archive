@@ -23,6 +23,7 @@ export interface FolderDetailAttachmentsSectionProps {
   onAddAttachment: () => void;
   onViewAttachment: (attachmentId: number) => void;
   onDownloadAttachment: (attachmentId: number, fileName: string) => void;
+  onEditAttachment?: (attachmentId: number) => void;
   onTrashAttachment: (attachmentId: number) => void;
   onClearSelection: () => void;
   onBatchTrash: () => void;
@@ -42,6 +43,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
     onAddAttachment,
     onViewAttachment,
     onDownloadAttachment,
+    onEditAttachment,
     onTrashAttachment,
     onClearSelection,
     onBatchTrash,
@@ -134,6 +136,12 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                           <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={() => onDownloadAttachment(attachment.id, attachment.file_name)}>
                             {t("documents.download", { defaultValue: "Download" })}
                           </Button>
+                          {onEditAttachment && (
+                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); onEditAttachment(attachment.id); }}>
+                              <Icon name="pencil" className="me-1" />
+                              {t("common.edit", { defaultValue: "Edit" })}
+                            </Button>
+                          )}
                           <Button variant="outline" size="sm" className="btn-outline-danger" onClick={(e) => { e.stopPropagation(); onTrashAttachment(attachment.id); }}>
                             <Icon name="trash" className="me-1" />{t("documents.deleteAttachment", { defaultValue: "Delete" })}
                           </Button>

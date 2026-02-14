@@ -191,12 +191,19 @@ export const useFolderDetailPageContainer = () => {
 
   const {
     isDeletingAttachment: isAttachmentTrashing,
+    isUpdatingAttachment,
     downloadAttachment,
     deleteAttachments,
+    updateAttachment,
   } = useAttachmentOperations(
     typeof attachmentsDocId === "number" ? attachmentsDocId : null,
     { onSuccess: refreshAttachmentsForCurrentDocument }
   );
+
+  const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
+  const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
+  const [editAttachmentName, setEditAttachmentName] = useState("");
+  const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
 
   const previewDoc = currentDocument as { id?: number; file_name?: string } | null;
   const previewFileName = previewDoc?.file_name ?? "";
@@ -330,6 +337,36 @@ export const useFolderDetailPageContainer = () => {
     [attachmentsDocId, navigate, routes.documentAttachmentView]
   );
 
+  /** Closes the edit-attachment modal and clears form state; no-op while update is in progress. */
+  const handleCloseEditAttachment = useCallback(() => {
+    if (!isUpdatingAttachment) {
+      setIsEditAttachmentModalOpen(false);
+      setEditAttachmentId(null);
+      setEditAttachmentName("");
+      setEditAttachmentDescription("");
+    }
+  }, [isUpdatingAttachment]);
+
+  /** Opens the edit-attachment modal with the selected attachment’s name and description. */
+  const handleOpenEditAttachment = useCallback((attachmentId: number) => {
+    const target = attachments.find((a) => a.id === attachmentId);
+    if (!target) return;
+    setEditAttachmentId(target.id);
+    setEditAttachmentName(target.name ?? "");
+    setEditAttachmentDescription(target.description ?? "");
+    setIsEditAttachmentModalOpen(true);
+  }, [attachments]);
+
+  /** Saves attachment name/description via update API and closes modal on success. */
+  const handleConfirmEditAttachment = useCallback(async () => {
+    if (!editAttachmentId) return;
+    const didUpdate = await updateAttachment(editAttachmentId, {
+      name: editAttachmentName.trim() || undefined,
+      description: editAttachmentDescription.trim() || null,
+    });
+    if (didUpdate) handleCloseEditAttachment();
+  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment]);
+
   const handleOpenEditFolder = useCallback(() => setIsEditFolderOpen(true), []);
   const handleCloseEditFolder = useCallback(() => setIsEditFolderOpen(false), []);
   const handleEditFolderSuccess = useCallback(() => {
@@ -390,6 +427,7 @@ export const useFolderDetailPageContainer = () => {
       isSubDocUnarchiving: isUnarchiving,
       isSubDocTrashing: isTrashing,
       isAttachmentTrashing,
+      isUpdatingAttachment,
       transferSubmitting,
       isCreatingNote: noteEditor.isCreatingNote,
       isUpdatingNote: noteEditor.isUpdatingNote,
@@ -448,6 +486,11 @@ export const useFolderDetailPageContainer = () => {
       confirmBatchAttachmentTrash,
       openTransferAttachments,
       handleViewAttachment,
+      handleOpenEditAttachment,
+      handleCloseEditAttachment,
+      setEditAttachmentName,
+      setEditAttachmentDescription,
+      handleConfirmEditAttachment,
       closeTransferModal,
       handleTransferConfirm,
       handleOpenEditFolder,
@@ -482,6 +525,9 @@ export const useFolderDetailPageContainer = () => {
       transferDocIds,
       transferAttachmentIds,
       transferDepartmentId,
+      isEditAttachmentModalOpen,
+      editAttachmentName,
+      editAttachmentDescription,
       isNotesEditorOpen: noteEditor.isNotesEditorOpen,
       editingNote: noteEditor.editingNote,
       noteImageViewerId: noteEditor.noteImageViewerId,

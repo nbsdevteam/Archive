@@ -158,6 +158,7 @@ const FolderDetailPage = () => {
         onAddAttachment={actions.handleAddAttachment}
         onViewAttachment={actions.handleViewAttachment}
         onDownloadAttachment={actions.handleDownloadAttachment}
+        onEditAttachment={actions.handleOpenEditAttachment}
         onTrashAttachment={(id) => attachmentTrashDialog.open(id)}
         onClearSelection={actions.clearAttachmentsSelection}
         onBatchTrash={batchAttachmentTrashDialog.open}
@@ -214,11 +215,15 @@ const FolderDetailPage = () => {
           handleCloseUploadPanel: actions.handleCloseUploadPanel,
           loadFolderDocuments: actions.loadFolderDocuments,
           refreshAttachmentsForCurrentDocument: actions.refreshAttachmentsForCurrentDocument,
+          handleCloseEditAttachment: actions.handleCloseEditAttachment,
+          setEditAttachmentName: actions.setEditAttachmentName,
+          setEditAttachmentDescription: actions.setEditAttachmentDescription,
+          handleConfirmEditAttachment: actions.handleConfirmEditAttachment,
           handleCloseNoteEditor: actions.handleCloseNoteEditor,
           handleSaveNote: (payload: unknown) => actions.handleSaveNote(payload as Parameters<typeof actions.handleSaveNote>[0]),
           handleCloseNoteImageViewer: actions.handleCloseNoteImageViewer,
         }}
-        loadingState={{ transferSubmitting: loadingState.transferSubmitting, isCreatingNote: loadingState.isCreatingNote, isUpdatingNote: loadingState.isUpdatingNote }}
+        loadingState={{ transferSubmitting: loadingState.transferSubmitting, isCreatingNote: loadingState.isCreatingNote, isUpdatingNote: loadingState.isUpdatingNote, isUpdatingAttachment: loadingState.isUpdatingAttachment }}
         selection={{ subDocSelectedIds: selection.subDocSelectedIds, attachmentSelectedIds: selection.attachmentSelectedIds }}
         deleteFolderDialog={deleteFolderDialog}
         subDocTrashDialog={subDocTrashDialog}

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Modal, ModalFooter, Button, ConfirmModal } from "@/shared/components/ui";
+import { Modal, ModalFooter, Button, ConfirmModal, Spinner } from "@/shared/components/ui";
 import { EditFolderSidePanel, TransferToFolderModal } from "@/features/folders/components";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
 import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
@@ -31,6 +31,9 @@ export interface FolderDetailModalsProps {
     transferDocIds: number[];
     transferAttachmentIds: number[];
     transferDepartmentId: number;
+    isEditAttachmentModalOpen: boolean;
+    editAttachmentName: string;
+    editAttachmentDescription: string;
     isNotesEditorOpen: boolean;
     editingNote: NoteListItem | null;
     noteImageViewerId: number | null;
@@ -50,13 +53,17 @@ export interface FolderDetailModalsProps {
     closeTransferModal: () => void;
     handleTransferConfirm: (targetFolderId: number) => void | Promise<void>;
     handleCloseUploadPanel: () => void;
+    handleCloseEditAttachment: () => void;
+    setEditAttachmentName: (v: string) => void;
+    setEditAttachmentDescription: (v: string) => void;
+    handleConfirmEditAttachment: () => void | Promise<void>;
     loadFolderDocuments: () => void;
     refreshAttachmentsForCurrentDocument: () => void;
     handleCloseNoteEditor: () => void;
     handleSaveNote: (payload: unknown) => void | Promise<void>;
     handleCloseNoteImageViewer: () => void;
   };
-  loadingState: { transferSubmitting: boolean; isCreatingNote: boolean; isUpdatingNote: boolean };
+  loadingState: { transferSubmitting: boolean; isCreatingNote: boolean; isUpdatingNote: boolean; isUpdatingAttachment: boolean };
   selection: { subDocSelectedIds: (string | number)[]; attachmentSelectedIds: (string | number)[] };
   deleteFolderDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   subDocTrashDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
@@ -140,6 +147,45 @@ export function FolderDetailModals({
         initialValues={modals.uploadPanelInitialValues}
         lockFolderContext={modals.uploadPanelLockFolderContext}
       />
+
+      <Modal
+        isOpen={modals.isEditAttachmentModalOpen}
+        onClose={actions.handleCloseEditAttachment}
+        title={t("common.edit", { defaultValue: "Edit" })}
+        size="md"
+      >
+        <div className="mb-3">
+          <label className="form-label">{t("documents.name", { defaultValue: "Name" })}</label>
+          <input
+            type="text"
+            className="form-control"
+            value={modals.editAttachmentName}
+            onChange={(e) => actions.setEditAttachmentName(e.target.value)}
+            maxLength={255}
+          />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">{t("documents.description", { defaultValue: "Description" })}</label>
+          <textarea
+            className="form-control"
+            rows={3}
+            value={modals.editAttachmentDescription}
+            onChange={(e) => actions.setEditAttachmentDescription(e.target.value)}
+          />
+        </div>
+        <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
+          <Button variant="outline" className="btn-outline-secondary" onClick={actions.handleCloseEditAttachment}>
+            {t("common.cancel", { defaultValue: "Cancel" })}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={actions.handleConfirmEditAttachment}
+            disabled={!modals.editAttachmentName.trim() || loadingState.isUpdatingAttachment}
+          >
+            {loadingState.isUpdatingAttachment ? <Spinner /> : t("common.save", { defaultValue: "Save" })}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Modal isOpen={modals.isNotesEditorOpen} onClose={actions.handleCloseNoteEditor} title={modals.editingNote ? t("notes.editNote", { defaultValue: "Edit note" }) : t("notes.createNote", { defaultValue: "Create note" })} size="lg">
         <NoteEditor note={modals.editingNote} folderId={data.folderId ?? undefined} departmentId={data.folder?.department_id} onSave={actions.handleSaveNote} onCancel={actions.handleCloseNoteEditor} isSaving={loadingState.isCreatingNote || loadingState.isUpdatingNote} />
