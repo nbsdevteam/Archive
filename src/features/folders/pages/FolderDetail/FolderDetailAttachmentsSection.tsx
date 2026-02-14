@@ -130,7 +130,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                         )}
                         <td className="folders-detail-attachments-cell-ellipsis" title={attachment.name}>{attachment.name}</td>
                         <td className="folders-detail-attachments-cell-ellipsis" title={attachment.file_name}>{attachment.file_name}</td>
-                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.description ?? undefined}>{(attachment.description ?? "–").trim() || "–"}</td>
+                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.description != null ? String(attachment.description) : undefined}>{String(attachment.description ?? "").trim() || "–"}</td>
                         <td className="text-end">
                           <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e?.stopPropagation(); onViewAttachment(attachment.id); }}>
                             <Icon name="eye" className="me-1" />{t("documents.view", { defaultValue: "View" })}

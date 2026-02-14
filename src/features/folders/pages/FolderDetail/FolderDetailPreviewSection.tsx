@@ -4,7 +4,7 @@ import { FilePreview } from "@/shared/components/FilePreview";
 
 export interface FolderDetailPreviewSectionProps {
   t: TFunction;
-  previewDoc: { id?: number; file_name?: string } | null;
+  previewDoc: { id?: number; file_name?: string; versions?: Array<{ id: number }> } | null;
   previewFileName: string;
   onDownload: () => void;
 }
@@ -17,6 +17,11 @@ export function FolderDetailPreviewSection({
   onDownload,
 }: FolderDetailPreviewSectionProps) {
   const hasPreview = previewDoc?.id && previewFileName;
+  
+  // Extract the latest version ID from version history to validate cache freshness
+  const latestVersionId = previewDoc?.versions?.length 
+    ? previewDoc.versions[0]?.id 
+    : undefined;
 
   return (
     <div className="card mb-3">
@@ -37,6 +42,7 @@ export function FolderDetailPreviewSection({
                 documentId={previewDoc!.id!}
                 fileName={previewFileName}
                 maxHeight="500px"
+                latestVersionId={latestVersionId}
                 notPreviewableMessage={t("documents.previewNotAvailable", {
                   defaultValue: "Preview not available for this file type",
                 })}

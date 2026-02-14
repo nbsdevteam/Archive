@@ -10,12 +10,34 @@ const PDF_EXTENSION = 'pdf';
 // Keeps blob URLs in memory so the same file is only requested once per session.
 // Persistence across full page reloads is handled in the API layer (Cache API in
 // documents.api getDocumentForPreview / getAttachmentForPreview).
+//
+// ─── Version-based cache invalidation ───────────────────────────────────────
+// When a new file version is uploaded, the cache is automatically invalidated:
+// 1. Parent component passes `latestVersionId` from version history (first item)
+// 2. FilePreview compares cached version ID with the latest version ID
+// 3. If they differ, cache is invalidated and file is re-downloaded
+// 4. New preview is cached with the latest version ID for future comparisons
+//
+// This ensures users always see the most recent file after upload without manual refresh.
 
 /** Maximum number of cached blob URLs before the oldest entry is evicted. */
 const MAX_PREVIEW_CACHE_SIZE = 20;
 
-/** In-memory cache mapping composite key → blob URL. Survives component unmount/remount. */
+/** Legacy cache for backward compatibility - will be migrated to enhancedPreviewCache */
 const previewCache = new Map<string, string>();
+
+/** 
+ * Cache metadata structure to track version information 
+ * This allows us to invalidate cache when a new version is uploaded
+ */
+interface CacheMetadata {
+  blobUrl: string;
+  latestVersionId?: number;
+  timestamp: number;
+}
+
+/** Enhanced cache that stores both blob URL and version metadata */
+const enhancedPreviewCache = new Map<string, CacheMetadata>();
 
 /** Builds a unique cache key from the preview identifiers. */
 function buildPreviewCacheKey(
@@ -28,13 +50,92 @@ function buildPreviewCacheKey(
 
 /** Evicts the oldest cache entry (first inserted) and revokes its blob URL to prevent memory leaks. */
 function evictOldestIfNeeded(): void {
-  if (previewCache.size <= MAX_PREVIEW_CACHE_SIZE) return;
-  const oldestKey = previewCache.keys().next().value;
-  if (oldestKey != null) {
-    const oldUrl = previewCache.get(oldestKey);
-    if (oldUrl) window.URL.revokeObjectURL(oldUrl);
-    previewCache.delete(oldestKey);
+  const totalSize = previewCache.size + enhancedPreviewCache.size;
+  if (totalSize <= MAX_PREVIEW_CACHE_SIZE) return;
+  
+  // Try to evict from legacy cache first
+  if (previewCache.size > 0) {
+    const oldestKey = previewCache.keys().next().value;
+    if (oldestKey != null) {
+      const oldUrl = previewCache.get(oldestKey);
+      if (oldUrl) window.URL.revokeObjectURL(oldUrl);
+      previewCache.delete(oldestKey);
+    }
+  } else if (enhancedPreviewCache.size > 0) {
+    const oldestKey = enhancedPreviewCache.keys().next().value;
+    if (oldestKey != null) {
+      const metadata = enhancedPreviewCache.get(oldestKey);
+      if (metadata?.blobUrl) window.URL.revokeObjectURL(metadata.blobUrl);
+      enhancedPreviewCache.delete(oldestKey);
+    }
   }
+}
+
+/**
+ * Checks if the cached preview is outdated by comparing version IDs.
+ * Returns true if cache should be invalidated and re-downloaded.
+ */
+function isCacheStale(
+  cacheKey: string,
+  latestVersionId?: number,
+): boolean {
+  const cached = enhancedPreviewCache.get(cacheKey);
+  if (!cached) return false;
+  
+  // If we have version information from both cache and latest, compare them
+  if (latestVersionId != null && cached.latestVersionId != null) {
+    return cached.latestVersionId !== latestVersionId;
+  }
+  
+  return false;
+}
+
+/**
+ * Invalidates cache entry for a specific document when a new version is detected.
+ * Revokes the blob URL to free memory.
+ */
+function invalidateCache(cacheKey: string): void {
+  const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+  if (cachedMetadata?.blobUrl) {
+    window.URL.revokeObjectURL(cachedMetadata.blobUrl);
+    enhancedPreviewCache.delete(cacheKey);
+  }
+  
+  // Also check legacy cache
+  const legacyUrl = previewCache.get(cacheKey);
+  if (legacyUrl) {
+    window.URL.revokeObjectURL(legacyUrl);
+    previewCache.delete(cacheKey);
+  }
+}
+
+/**
+ * Public utility function to manually clear preview cache for a specific document.
+ * Useful when you need to force a re-download (e.g., after uploading a new version).
+ * 
+ * @param documentId - The document ID
+ * @param versionId - Optional specific version ID
+ * @param attachmentId - Optional attachment ID
+ * 
+ * @example
+ * ```ts
+ * // Clear cache for latest version of document 123
+ * clearPreviewCache(123);
+ * 
+ * // Clear cache for specific version
+ * clearPreviewCache(123, 456);
+ * 
+ * // Clear cache for attachment
+ * clearPreviewCache(123, undefined, 789);
+ * ```
+ */
+export function clearPreviewCache(
+  documentId: number,
+  versionId?: number,
+  attachmentId?: number,
+): void {
+  const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
+  invalidateCache(cacheKey);
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -51,6 +152,11 @@ export interface FilePreviewProps {
   notPreviewableMessage?: string;
   /** Optional i18n message for load error */
   errorMessage?: string;
+  /**
+   * The latest version ID from version history. Used to detect when a new version
+   * has been uploaded and cache should be invalidated.
+   */
+  latestVersionId?: number;
 }
 
 export function FilePreview({
@@ -62,6 +168,7 @@ export function FilePreview({
   maxHeight = '600px',
   notPreviewableMessage = 'Preview not available for this file type',
   errorMessage,
+  latestVersionId,
 }: FilePreviewProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,10 +191,25 @@ export function FilePreview({
 
     const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
 
-    // Serve from cache if already downloaded — skip the network request entirely
-    const cached = previewCache.get(cacheKey);
-    if (cached) {
-      setBlobUrl(cached);
+    // Check if cache exists and if it's stale (new version uploaded)
+    const isStale = isCacheStale(cacheKey, latestVersionId);
+    if (isStale) {
+      // Invalidate stale cache - new version detected from version history
+      invalidateCache(cacheKey);
+    }
+
+    // Serve from enhanced cache if already downloaded and not stale
+    const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+    if (cachedMetadata && !isStale) {
+      setBlobUrl(cachedMetadata.blobUrl);
+      setIsLoading(false);
+      return;
+    }
+
+    // Fallback to legacy cache for backward compatibility
+    const legacyCached = previewCache.get(cacheKey);
+    if (legacyCached && !isStale) {
+      setBlobUrl(legacyCached);
       setIsLoading(false);
       return;
     }
@@ -108,8 +230,12 @@ export function FilePreview({
 
         const url = window.URL.createObjectURL(blob);
 
-        // Store in cache so subsequent mounts skip the download
-        previewCache.set(cacheKey, url);
+        // Store in enhanced cache with version metadata for future validation
+        enhancedPreviewCache.set(cacheKey, {
+          blobUrl: url,
+          latestVersionId: latestVersionId,
+          timestamp: Date.now(),
+        });
         evictOldestIfNeeded();
 
         setBlobUrl(url);
@@ -130,7 +256,7 @@ export function FilePreview({
     return () => {
       isCancelled = true;
     };
-  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage]);
+  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage, latestVersionId]);
 
   if (!isPreviewable) {
     return (

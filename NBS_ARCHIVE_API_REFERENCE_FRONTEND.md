@@ -299,7 +299,7 @@ Base path: `/api/documents`. All document endpoints below that are **JSON-RPC** 
 
 | Item | Value |
 |------|--------|
-| **Method** | `PUT` |
+| **Method** | `POST` |
 | **URL** | `/api/documents/<document_id>/update` |
 | **Body** | JSON-RPC |
 

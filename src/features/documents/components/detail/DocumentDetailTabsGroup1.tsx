@@ -43,6 +43,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
               versionId={data.latestVersionId ?? undefined}
               fileName={data.fileName ?? ""}
               maxHeight="600px"
+              latestVersionId={data.latestVersionId ?? undefined}
               notPreviewableMessage={t("documents.previewNotAvailable", { defaultValue: "Preview not available for this file type" })}
             />
           </div>
