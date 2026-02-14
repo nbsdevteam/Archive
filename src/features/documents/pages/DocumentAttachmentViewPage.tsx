@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { all_routes } from "@/router/all_routes";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
@@ -16,6 +16,7 @@ import "@/features/documents/styles/documents.css";
 const DocumentAttachmentViewPage = () => {
   const { t } = useTranslation();
   const { id, attachmentId } = useParams<{ id: string; attachmentId: string }>();
+  const location = useLocation();
   const routes = all_routes;
 
   const docId = useMemo(() => {
@@ -40,6 +41,7 @@ const DocumentAttachmentViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  /** Refetch document and attachments when visiting this URL (pathname) so the attachments API is always called. */
   useEffect(() => {
     if (!docId || !attachmentIdNum) {
       setLoading(false);
@@ -84,7 +86,7 @@ const DocumentAttachmentViewPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [docId, attachmentIdNum, t]);
+  }, [docId, attachmentIdNum, location.pathname, t]);
 
   if (loading) {
     return (
