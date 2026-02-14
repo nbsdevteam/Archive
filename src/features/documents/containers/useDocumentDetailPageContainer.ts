@@ -679,7 +679,7 @@ export const useDocumentDetailPageContainer = () => {
       auditError,
       notesError,
     },
-    tabs: {
+    tabState: {
       tabs,
       activeTab,
       setActiveTab,

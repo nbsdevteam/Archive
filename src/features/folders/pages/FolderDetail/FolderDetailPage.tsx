@@ -1,0 +1,223 @@
+import { useCallback } from "react";
+import { Link } from "react-router-dom";
+import CollapseHeader from "../../../../core/common/collapse-header/collapse-header";
+import { Alert, Button, Icon, Spinner } from "../../../../shared/components/ui";
+import { PageLayout } from "../../../../shared/layout/PageLayout";
+import { useConfirmDialog, useConfirmDialogEmpty } from "../../../../shared/hooks";
+import type { ActivityViewMode } from "../../../activity/types";
+import { useFolderDetailPageContainer } from "../../containers/useFolderDetailPageContainer";
+import { FolderDetailInfoSection } from "./FolderDetailInfoSection";
+import { FolderDetailMainDocSection } from "./FolderDetailMainDocSection";
+import { FolderDetailSubDocsSection } from "./FolderDetailSubDocsSection";
+import { FolderDetailAttachmentsSection } from "./FolderDetailAttachmentsSection";
+import { FolderDetailNotesSection } from "./FolderDetailNotesSection";
+import { FolderDetailPreviewSection } from "./FolderDetailPreviewSection";
+import { FolderDetailActivitySection } from "./FolderDetailActivitySection";
+import { FolderDetailModals } from "./FolderDetailModals";
+
+/** Folder detail page: guards, layout, and composition of info, main doc, sub-docs, attachments, notes, preview, activity, and modals. */
+const FolderDetailPage = () => {
+  const { t, routes, data, loadingState, errors, activity, selection, actions, modals } =
+    useFolderDetailPageContainer();
+
+  const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmDeleteFolder });
+  const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmSubDocTrash });
+  const batchSubDocTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchSubDocTrash });
+  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmAttachmentTrash });
+  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchAttachmentTrash });
+  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteNote });
+
+  const handleActivityRefresh = useCallback(() => void activity.refreshActivityLogs(), [activity.refreshActivityLogs]);
+  const handleActivityViewModeChange = useCallback((nextMode: ActivityViewMode) => activity.setActivityViewMode(nextMode), [activity.setActivityViewMode]);
+
+  if (!data.folderId) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <Alert variant="danger">{t("errors.invalidId", { defaultValue: "Invalid folder id" })}</Alert>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingState.loading) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <div className="d-flex align-items-center justify-content-center min-vh-50">
+            <Spinner size="md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data.folder) {
+    return (
+      <div className="page-wrapper">
+        <div className="content">
+          <Alert variant="warning">{t("errors.notFound", { defaultValue: "Not found." })}</Alert>
+          <Link to={routes.folders} className="btn btn-secondary mt-2">
+            {t("common.back", { defaultValue: "Back" })}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const pageTitle = data.folder.name || `Folder #${data.folderId}`;
+
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("folders.title", { defaultValue: "Folders" }), to: routes.folders }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder}>
+            <Icon name="upload" className="me-1" />
+            {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
+          </Button>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleOpenEditFolder}>
+            <Icon name="edit" className="me-1" />
+            {t("folders.editFolder", { defaultValue: "Edit folder" })}
+          </Button>
+          <Button variant="outline" size="sm" className="btn-outline-danger" onClick={deleteFolderDialog.open} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
+            <Icon name="trash" className="me-1" />
+            {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+          </Button>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.loadFolderDocuments}>
+            <Icon name="refresh-cw" className="me-1" />
+            {t("common.refresh", { defaultValue: "Refresh" })}
+          </Button>
+          <CollapseHeader />
+        </>
+      }
+    >
+      {errors.main && (
+        <Alert variant="danger" className="mb-3">
+          {errors.main}
+          <Button variant="outline" size="sm" className="ms-2 btn-outline-secondary" onClick={actions.loadFolderDocuments}>
+            {t("common.retry", { defaultValue: "Retry" })}
+          </Button>
+        </Alert>
+      )}
+
+      <FolderDetailInfoSection t={t} folder={data.folder} folderId={data.folderId} documentCount={data.documents.length} />
+
+      <FolderDetailMainDocSection
+        t={t}
+        mainDoc={data.mainDoc}
+        formatDate={actions.formatDate}
+        onDownload={actions.handleDownloadMainDocument}
+        onNavigate={actions.handleNavigateToDocument}
+        onArchive={actions.handleArchiveFolderDocument}
+        onUnarchive={actions.handleUnarchiveFolderDocument}
+        isArchiving={loadingState.isSubDocArchiving}
+        isUnarchiving={loadingState.isSubDocUnarchiving}
+      />
+
+      <FolderDetailSubDocsSection
+        t={t}
+        subDocs={data.subDocs}
+        selectionConfig={selection.subDocsSelectionConfig}
+        formatDate={actions.formatDate}
+        onNavigate={actions.handleNavigateToDocument}
+        onDownload={actions.handleDownloadDocument}
+        onTransfer={actions.openTransferDocs}
+        onArchive={actions.handleArchiveFolderDocument}
+        onUnarchive={actions.handleUnarchiveFolderDocument}
+        onTrash={(id) => subDocTrashDialog.open(id)}
+        onClearSelection={actions.clearSubDocsSelection}
+        onBatchTrash={batchSubDocTrashDialog.open}
+        transferSubmitting={loadingState.transferSubmitting}
+        isSubDocTrashing={loadingState.isSubDocTrashing}
+        isSubDocArchiving={loadingState.isSubDocArchiving}
+        isSubDocUnarchiving={loadingState.isSubDocUnarchiving}
+      />
+
+      <FolderDetailAttachmentsSection
+        t={t}
+        documents={data.documents}
+        attachmentsDocId={data.attachmentsDocId}
+        attachments={data.attachments}
+        loadingAttachments={loadingState.loadingAttachments}
+        selectionConfig={selection.attachmentsSelectionConfig}
+        onAttachmentsDocIdChange={actions.handleAttachmentsDocIdChange}
+        onAddAttachment={actions.handleAddAttachment}
+        onViewAttachment={actions.handleViewAttachment}
+        onDownloadAttachment={actions.handleDownloadAttachment}
+        onTrashAttachment={(id) => attachmentTrashDialog.open(id)}
+        onClearSelection={actions.clearAttachmentsSelection}
+        onBatchTrash={batchAttachmentTrashDialog.open}
+        isAttachmentTrashing={loadingState.isAttachmentTrashing}
+      />
+
+      <FolderDetailNotesSection
+        t={t}
+        notes={data.notes}
+        loadingNotes={loadingState.loadingNotes}
+        notesError={errors.notesError}
+        onLoadNotes={actions.handleLoadNotes}
+        onCreateNote={actions.handleCreateNote}
+        onEditNote={actions.handleEditNote}
+        onDeleteNote={(id) => noteDeleteDialog.open(id)}
+        onViewNoteImage={actions.handleViewNoteImage}
+      />
+
+      <FolderDetailPreviewSection
+        t={t}
+        previewDoc={data.previewDoc}
+        previewFileName={data.previewFileName}
+        onDownload={actions.handleDownloadMainDocument}
+      />
+
+      <FolderDetailActivitySection
+        t={t}
+        logs={activity.activityLogs}
+        loading={activity.activityLoading}
+        error={activity.activityError}
+        viewMode={activity.activityViewMode}
+        onViewModeChange={handleActivityViewModeChange}
+        documentCount={activity.activityDocumentCount}
+        onRefresh={handleActivityRefresh}
+        onDocumentClick={actions.handleNavigateToDocument}
+      />
+
+      <FolderDetailModals
+        t={t}
+        data={{ folder: data.folder, folderId: data.folderId, mainDoc: data.mainDoc, managers: data.managers }}
+        modals={modals}
+        actions={{
+          setSignatureOpen: actions.setSignatureOpen,
+          setSignatureSignerId: actions.setSignatureSignerId,
+          setSignatureMessage: actions.setSignatureMessage,
+          submitSignature: actions.submitSignature,
+          setEditOpen: actions.setEditOpen,
+          setEditReason: actions.setEditReason,
+          submitEditRequest: actions.submitEditRequest,
+          handleCloseEditFolder: actions.handleCloseEditFolder,
+          handleEditFolderSuccess: actions.handleEditFolderSuccess,
+          closeTransferModal: actions.closeTransferModal,
+          handleTransferConfirm: actions.handleTransferConfirm,
+          handleCloseUploadPanel: actions.handleCloseUploadPanel,
+          loadFolderDocuments: actions.loadFolderDocuments,
+          refreshAttachmentsForCurrentDocument: actions.refreshAttachmentsForCurrentDocument,
+          handleCloseNoteEditor: actions.handleCloseNoteEditor,
+          handleSaveNote: (payload: unknown) => actions.handleSaveNote(payload as Parameters<typeof actions.handleSaveNote>[0]),
+          handleCloseNoteImageViewer: actions.handleCloseNoteImageViewer,
+        }}
+        loadingState={{ transferSubmitting: loadingState.transferSubmitting, isCreatingNote: loadingState.isCreatingNote, isUpdatingNote: loadingState.isUpdatingNote }}
+        selection={{ subDocSelectedIds: selection.subDocSelectedIds, attachmentSelectedIds: selection.attachmentSelectedIds }}
+        deleteFolderDialog={deleteFolderDialog}
+        subDocTrashDialog={subDocTrashDialog}
+        batchSubDocTrashDialog={batchSubDocTrashDialog}
+        attachmentTrashDialog={attachmentTrashDialog}
+        batchAttachmentTrashDialog={batchAttachmentTrashDialog}
+        noteDeleteDialog={noteDeleteDialog}
+      />
+    </PageLayout>
+  );
+};
+
+export default FolderDetailPage;
