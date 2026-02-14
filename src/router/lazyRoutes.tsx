@@ -132,7 +132,7 @@ export const DocumentAttachmentViewPage = createLazyComponent(
   <LoadingSpinner text="Loading attachment..." />
 );
 export const FoldersPage = createLazyComponent(
-  () => import("../features/folders/pages/FoldersPage"),
+  () => import("../features/folders/pages/Folders"),
   <LoadingSpinner text="Loading folders..." />
 );
 export const FolderDetailPage = createLazyComponent(
