@@ -1,0 +1,13 @@
+export { useDocumentDetailIds } from "./useDocumentDetailIds";
+export { useDocumentDetailData } from "./useDocumentDetailData";
+export { useDocumentTabs } from "./useDocumentTabs";
+export type { DocumentDetailTabId } from "./useDocumentTabs";
+export { useDocumentAudit } from "./useDocumentAudit";
+export { useDocumentManagers } from "./useDocumentManagers";
+export type { Manager } from "./useDocumentManagers";
+export { useDocumentAttachments } from "./useDocumentAttachments";
+export { useDocumentVersions } from "./useDocumentVersions";
+export { useDocumentOcr } from "./useDocumentOcr";
+export { useDocumentRelations } from "./useDocumentRelations";
+export type { DocumentRelations } from "./useDocumentRelations";
+export { useDocumentSignatures } from "./useDocumentSignatures";

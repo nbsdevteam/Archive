@@ -92,6 +92,17 @@ describe("useFolderDetailPageContainer", () => {
     resetStores();
   });
 
+  it("renders without throwing (smoke test)", () => {
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+    expect(result.current).toBeDefined();
+    expect(result.current.data).toBeDefined();
+    expect(result.current.actions).toBeDefined();
+    expect(result.current.modals).toBeDefined();
+  });
+
   it("loads folder and documents from getFolderDocuments on mount", async () => {
     const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
       initialEntries,

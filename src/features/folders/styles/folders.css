@@ -106,7 +106,7 @@
   overflow: hidden;
 }
 
-/* Folder name wrapper with 80% max width constraint */
+/* Folder name wrapper with 90% max width constraint */
 .folders__folder-name-wrapper {
   max-width: 80%;
   overflow: hidden;

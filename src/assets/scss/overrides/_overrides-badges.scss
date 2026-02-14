@@ -1,0 +1,33 @@
+/* Badge and success background overrides. */
+
+div .badge-status {
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: 64px;
+  color: #fff;
+}
+
+div .bg-success {
+  background-color: #03c95a !important;
+
+  &.bg-opacity-10 {
+    background-color: rgba(#03c95a, 0.1) !important;
+  }
+
+  &.bg-opacity-25 {
+    background-color: rgba(#03c95a, 0.25) !important;
+  }
+
+  &.bg-opacity-50 {
+    background-color: rgba(#03c95a, 0.5) !important;
+  }
+
+  &.bg-opacity-75 {
+    background-color: rgba(#03c95a, 0.75) !important;
+  }
+
+  &.bg-opacity-100 {
+    background-color: rgba(#03c95a, 1) !important;
+  }
+}

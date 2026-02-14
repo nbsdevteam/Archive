@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { all_routes } from "../../../router/all_routes";
-import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
+import { editRequestsApi, type EditRequest } from "../../../app/adapter/api/editRequests.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 
 export const useEditRequestsPageContainer = () => {
   const routes = all_routes;
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<EditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
@@ -18,8 +18,8 @@ export const useEditRequestsPageContainer = () => {
       const response = await editRequestsApi.getEditRequests();
       const list = Array.isArray(response?.data) ? response.data : [];
       setRequests(list);
-    } catch (err) {
-      console.error("Failed to load requests:", err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error("Failed to load requests:", err);
       setError(handleApiError(err));
       setRequests([]);
     } finally {
@@ -43,8 +43,8 @@ export const useEditRequestsPageContainer = () => {
       setProcessingId(requestId);
       await editRequestsApi.approveEditRequest(requestId);
       await loadRequests();
-    } catch (err: any) {
-      console.error("Failed to approve request:", err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error("Failed to approve request:", err);
       setError(handleApiError(err));
     } finally {
       setProcessingId(null);
@@ -56,8 +56,8 @@ export const useEditRequestsPageContainer = () => {
       setProcessingId(requestId);
       await editRequestsApi.rejectEditRequest(requestId, "Rejected by user");
       await loadRequests();
-    } catch (err: any) {
-      console.error("Failed to reject request:", err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error("Failed to reject request:", err);
       setError(handleApiError(err));
     } finally {
       setProcessingId(null);

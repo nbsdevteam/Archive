@@ -9,9 +9,9 @@ A comprehensive, performance-optimized React admin template built with TypeScrip
 - **Code Splitting** with React.lazy and Suspense
 - **Virtual Scrolling** for large datasets
 - **Debounced Search** with optimized filtering
-- **Redux Toolkit** with proper TypeScript integration
+- **Zustand** stores for feature state (`src/features/*/stores/*Store.ts`)
 - **Comprehensive Error Handling** with Error Boundaries
-- **Testing Setup** with Jest and React Testing Library
+- **Testing** with Vitest and React Testing Library
 - **Bundle Analysis** with webpack-bundle-analyzer
 - **Performance Monitoring** with real-time metrics
 
@@ -41,18 +41,23 @@ npm run performance
 
 ```
 src/
-├── core/
-│   ├── common/           # Shared components
-│   ├── data/            # Redux store and types
-│   ├── hooks/           # Custom hooks
-│   ├── modals/          # Modal components
-│   ├── providers/       # Context providers
-│   └── utils/           # Utility functions
-├── feature-module/      # Feature-based modules
-├── router/             # Routing configuration
-├── assets/             # Static assets
-└── components/         # Global components
+├── app/                 # API adapters, providers, router
+├── core/                # Common components, providers, hooks
+├── features/            # Feature-based modules
+│   ├── activity/        # Audit logs, folder activity
+│   ├── auth/            # Login, session
+│   ├── documents/       # Document list, detail, upload, stores
+│   ├── folders/         # Folder list, detail, containers, hooks
+│   ├── notes/           # Notes hooks, components
+│   ├── search/          # Search store and UI
+│   ├── signatures/      # Signature requests store and UI
+│   └── ...              # Other features (edit-requests, notifications, etc.)
+├── shared/              # Shared UI components, hooks, utils
+├── router/              # Routing configuration
+└── assets/              # Static assets, SCSS
 ```
+
+Feature state is held in **Zustand** stores under `src/features/*/stores/` (e.g. `documentStore`, `signatureStore`, `searchStore`).
 
 ## 🔧 Configuration
 
@@ -135,29 +140,29 @@ Configure performance options in `src/main.tsx`:
 
 ### Running Tests
 
+Tests use **Vitest**. Run them with:
+
 ```bash
-# Run all tests
-npm test
+# Run all tests (single run)
+npm run test -- --run
 
 # Run tests in watch mode
-npm test -- --watch
+npm test
 
 # Run tests with coverage
-npm test -- --coverage
+npm run test -- --run --coverage
 
-# Run specific test file
-npm test -- --testPathPattern=ComponentName
+# Run a specific test file
+npm run test -- --run src/features/folders/containers/useFolderDetailPageContainer.test.tsx
 ```
 
 ### Test Structure
 
-```
-__tests__/
-├── components/         # Component tests
-├── hooks/             # Hook tests
-├── utils/             # Utility tests
-└── integration/       # Integration tests
-```
+Test files sit alongside source code (e.g. `*.test.ts`, `*.test.tsx`):
+
+- `src/features/*/containers/*.test.tsx` – container/hook tests
+- `src/features/*/hooks/*.test.tsx` – hook unit tests
+- `src/shared/utils/**/*.test.ts` – utility tests
 
 ## 📊 Performance Monitoring
 
@@ -198,18 +203,15 @@ const MyComponent = React.memo(({ data, onAction }) => {
 ### 2. State Management
 
 ```typescript
-// Use Redux Toolkit with proper types
-import { useSelector, useDispatch } from "react-redux";
-import type { RootState, AppDispatch } from "./store";
+// Use Zustand stores (e.g. src/features/documents/stores/documentStore.ts)
+import { useDocumentStore } from "@/features/documents/stores/documentStore";
 
 const MyComponent = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const data = useSelector((state: RootState) => state.mySlice.data);
+  const { documents, fetchDocuments, isLoading } = useDocumentStore();
 
-  // Use typed actions
-  const handleAction = useCallback(() => {
-    dispatch(myAction({ payload: "data" }));
-  }, [dispatch]);
+  const handleRefresh = useCallback(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 };
 ```
 
@@ -287,7 +289,7 @@ open dist/bundle-report.html
 
    - Ensure proper type definitions
    - Use strict TypeScript configuration
-   - Check Redux type integration
+   - Check store and hook types
 
 3. **Build Issues**
    - Clear node_modules and reinstall

@@ -1,20 +1,4 @@
-/* Misc overrides (base links, tooltips, components not in tables/forms/sidebar/pagination). */
-
-/* Height utility: 50% of viewport height */
-.h-min-50vh {
-  min-height: 50vh;
-}
-
-a {
-  text-decoration: none;
-  color: #262a2a;
-}
-
-.ant-tooltip {
-  display: none;
-}
-
-
+/* Misc overrides (components not in tables/forms/sidebar/pagination/links/badges/ant/react-select). */
 
 // manage columns in datatable page
 h4,
@@ -28,44 +12,6 @@ h4,
   border: 1px solid rgb(var(--primary-rgb));
 }
 
-// react-select plugin
-.css-1u9des2-indicatorSeparator {
-  display: none;
-}
-
-//compaign data table
-div .badge-status {
-  border-radius: 5px;
-  font-size: 12px;
-  padding: 4px 8px;
-  min-width: 64px;
-  color: #fff;
-}
-
-div .bg-success {
-  background-color: #03c95a !important;
-
-  &.bg-opacity-10 {
-    background-color: rgba(#03c95a, 0.1) !important;
-  }
-
-  &.bg-opacity-25 {
-    background-color: rgba(#03c95a, 0.25) !important;
-  }
-
-  &.bg-opacity-50 {
-    background-color: rgba(#03c95a, 0.5) !important;
-  }
-
-  &.bg-opacity-75 {
-    background-color: rgba(#03c95a, 0.75) !important;
-  }
-
-  &.bg-opacity-100 {
-    background-color: rgba(#03c95a, 1) !important;
-  }
-}
-
 // compaign page datatable
 // .list-progress {
 //   width: 380px;
@@ -77,32 +23,9 @@ div .bg-success {
   background-color: #fff;
 }
 
-.css-1p3m7a8-multiValue {
-  background-color: #f6f6f6;
-  border-color: #f6f6f6;
-  color: #6f6f6f;
-  border-radius: 5px;
-}
-
 .stickybar {
   top: 0;
   position: sticky;
-}
-
-// select
-.select-details .css-1dimb5e-singleValue,
-.select-details .css-1jqq78o-placeholder {
-  padding-left: 15px;
-}
-
-div.css-13cymwt-control,
-div.css-t3ipsp-control {
-  min-width: 120px;
-  border-color: #e9edf4;
-}
-
-div.css-t3ipsp-control:hover {
-  border-color: transparent;
 }
 
 span.p-dropdown-label.p-inputtext span {
@@ -178,15 +101,6 @@ span.form-icon {
 // }
 .form-sorts.dropdown .radio-btn-items {
   margin-top: 10px;
-}
-
-.select__control {
-  background-color: rgb(var(--primary-rgb)) !important;
-  border-color: rgb(var(--primary-rgb)) !important;
-}
-
-.select__control:hover {
-  border-color: rgb(var(--primary-rgb)) !important;
 }
 
 // .slick-slide {

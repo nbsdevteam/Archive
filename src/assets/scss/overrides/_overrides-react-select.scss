@@ -1,0 +1,40 @@
+/* React-select plugin overrides. */
+
+.css-1u9des2-indicatorSeparator {
+  display: none;
+}
+
+.css-1p3m7a8-multiValue {
+  background-color: #f6f6f6;
+  border-color: #f6f6f6;
+  color: #6f6f6f;
+  border-radius: 5px;
+}
+
+.select-details .css-1dimb5e-singleValue,
+.select-details .css-1jqq78o-placeholder {
+  padding-left: 15px;
+}
+
+div.css-13cymwt-control,
+div.css-t3ipsp-control {
+  min-width: 120px;
+  border-color: #e9edf4;
+}
+
+div.css-t3ipsp-control:hover {
+  border-color: transparent;
+}
+
+.select__control {
+  background-color: rgb(var(--primary-rgb)) !important;
+  border-color: rgb(var(--primary-rgb)) !important;
+}
+
+.select__control:hover {
+  border-color: rgb(var(--primary-rgb)) !important;
+}
+
+.visible .input-blocks .css-b62m3t-container .css-1dimb5e-singleValue {
+  margin-left: 25px !important;
+}

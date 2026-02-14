@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { searchApi, SearchResponse } from '../../../app/adapter/api/search.api';
 import { handleApiError } from '../../../app/adapter/api/client';
+import type { SearchResult } from '../types/search.types';
 
 interface SearchState {
-  results: any[];
+  results: SearchResult[];
   isLoading: boolean;
   error: string | null;
   pagination: {
@@ -31,11 +32,11 @@ export const useSearchStore = create<SearchState>((set) => ({
     try {
       const response = await searchApi.search(params);
       set({
-        results: response.data || [],
+        results: (response.data ?? []) as SearchResult[],
         pagination: response.pagination || null,
         isLoading: false,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       set({
         error: handleApiError(error),
         results: [],
@@ -49,11 +50,11 @@ export const useSearchStore = create<SearchState>((set) => ({
     try {
       const response = await searchApi.globalSearch(params);
       set({
-        results: response.data || [],
+        results: (response.data ?? []) as SearchResult[],
         pagination: response.pagination || null,
         isLoading: false,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       set({
         error: handleApiError(error),
         results: [],
@@ -68,7 +69,7 @@ export const useSearchStore = create<SearchState>((set) => ({
       const response = await searchApi.searchByBarcode(barcode);
       if (response.data && response.data.length > 0) {
         set({
-          results: response.data,
+          results: response.data as SearchResult[],
           pagination: response.pagination || null,
           isLoading: false,
         });
@@ -79,7 +80,7 @@ export const useSearchStore = create<SearchState>((set) => ({
           isLoading: false,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       set({
         error: handleApiError(error),
         results: [],

@@ -27,8 +27,8 @@ export const useSignatureRequestsPageContainer = () => {
       setProcessingId(requestId);
       await approve(requestId);
       fetchRequests(tab === "pending" ? { state: "pending" } : {});
-    } catch (err: any) {
-      console.error("Failed to approve signature:", err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error("Failed to approve signature:", err);
     } finally {
       setProcessingId(null);
     }
@@ -39,8 +39,8 @@ export const useSignatureRequestsPageContainer = () => {
       setProcessingId(requestId);
       await reject(requestId, "Rejected by user");
       fetchRequests(tab === "pending" ? { state: "pending" } : {});
-    } catch (err: any) {
-      console.error("Failed to reject signature:", err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error("Failed to reject signature:", err);
     } finally {
       setProcessingId(null);
     }
