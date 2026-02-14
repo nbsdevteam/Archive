@@ -106,18 +106,28 @@
   overflow: hidden;
 }
 
-/* Folder name ellipsis with 80% max width */
+/* Folder name wrapper with 80% max width constraint */
+.folders__folder-name-wrapper {
+  max-width: 80%;
+  overflow: hidden;
+  width: 90%;
+}
+
+/* Ensure InfoWrapper spans take full width */
+.folders__folder-name-wrapper > span,
+.folders__folder-name-wrapper > span > span {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden;
+}
+
+/* Folder name ellipsis styling */
 .folders__folder-name-ellipsis {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  max-width: 80% !important;
-  width: 100%;
-  display: inline-block !important;
+  width: 100% !important;
+  display: block !important;
   cursor: pointer;
-}
-
-.folders__folder-name-wrapper {
-  max-width: 100%;
-  overflow: hidden;
+  margin: 0 !important;
 }
