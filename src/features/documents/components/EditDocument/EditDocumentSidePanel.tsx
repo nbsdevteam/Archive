@@ -37,10 +37,12 @@ function getDefaultEditFormValues(): EditDocumentFormValues {
   };
 }
 
-/** Maps document detail to form default values for prefill. */
-function documentToEditFormValues(doc: DocumentDetail): EditDocumentFormValues {
+/** Maps document detail to form default values for prefill. Uses initialFolderId when API does not return folder_id (e.g. when editing a secondary document from folder context). */
+function documentToEditFormValues(doc: DocumentDetail, initialFolderId?: number | null): EditDocumentFormValues {
   const tags = (doc as DocumentDetail).tags?.map((t) => t.id) ?? [];
-  const folderId = doc.folder_id != null && doc.folder_id > 0 ? doc.folder_id : 0;
+  const fromApi = doc.folder_id != null && doc.folder_id > 0 ? doc.folder_id : null;
+  const fromContext = initialFolderId != null && initialFolderId > 0 ? initialFolderId : null;
+  const folderId = fromApi ?? fromContext ?? 0;
   return {
     title: doc.title ?? (doc as { name?: string }).name ?? "",
     department_id: doc.department_id ?? 0,
@@ -77,8 +79,8 @@ function formValuesToUpdateParams(values: EditDocumentFormValues, isSubDoc: bool
 }
 
 /** Returns true if any metadata field differs from the original document. */
-function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail, isSubDoc: boolean): boolean {
-  const current = documentToEditFormValues(doc);
+function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail, isSubDoc: boolean, initialFolderId?: number | null): boolean {
+  const current = documentToEditFormValues(doc, initialFolderId);
   if (values.title.trim() !== (current.title ?? "")) return true;
   if (values.department_id !== current.department_id) return true;
   if (values.document_type_id !== current.document_type_id) return true;
@@ -99,7 +101,7 @@ function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail,
  * Edit document side panel: fetches full document on open, prefills form,
  * allows editing metadata and optionally uploading a new version (replace file).
  */
-export function EditDocumentSidePanel({ isOpen, documentId, onClose, onSuccess }: EditDocumentSidePanelProps) {
+export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onClose, onSuccess }: EditDocumentSidePanelProps) {
   const { t } = useTranslation();
   const [doc, setDoc] = useState<DocumentDetail | null>(null);
   const [loadingDoc, setLoadingDoc] = useState(false);
@@ -149,14 +151,14 @@ export function EditDocumentSidePanel({ isOpen, documentId, onClose, onSuccess }
     return () => { cancelled = true; };
   }, [isOpen, documentId, t]);
 
-  // Prefill form when doc is loaded.
+  // Prefill form when doc is loaded. Use initialFolderId when API omits folder_id so "Link to folder" shows current folder.
   useEffect(() => {
     if (doc) {
-      reset(documentToEditFormValues(doc));
+      reset(documentToEditFormValues(doc, initialFolderId));
       setReplaceFile(null);
       if (replaceFileInputRef.current) replaceFileInputRef.current.value = "";
     }
-  }, [doc, reset]);
+  }, [doc, initialFolderId, reset]);
 
   // Load departments and tags when panel opens.
   useEffect(() => {
@@ -233,7 +235,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, onClose, onSuccess }
             (values.changeDescription ?? "").trim() || "New version from edit"
           );
         }
-        const didChangeMetadata = hasMetadataChanges(values, doc, isSubDoc);
+        const didChangeMetadata = hasMetadataChanges(values, doc, isSubDoc, initialFolderId);
         if (didChangeMetadata) {
           const params = formValuesToUpdateParams(values, isSubDoc);
           await documentsApi.updateDocument(documentId, params as Parameters<typeof documentsApi.updateDocument>[1]);

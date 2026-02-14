@@ -19,6 +19,8 @@ export type EditDocumentFormValues = {
 export interface EditDocumentSidePanelProps {
   isOpen: boolean;
   documentId: number | null;
+  /** When editing from folder context (e.g. folder detail page), pass the current folder id so "Link to folder" can be prefilled if the API does not return folder_id. */
+  initialFolderId?: number | null;
   onClose: () => void;
   onSuccess?: () => void;
 }

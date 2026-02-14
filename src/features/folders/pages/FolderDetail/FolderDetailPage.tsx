@@ -235,6 +235,7 @@ const FolderDetailPage = () => {
       <EditDocumentSidePanel
         isOpen={modals.editDocumentId != null}
         documentId={modals.editDocumentId}
+        initialFolderId={data.folderId ?? undefined}
         onClose={actions.handleCloseEditDocument}
         onSuccess={actions.handleEditDocumentSuccess}
       />
