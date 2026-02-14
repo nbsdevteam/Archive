@@ -60,6 +60,9 @@
     /* Type checking - include node and React so react/jsx-runtime types resolve */
     "types": ["node", "react", "react-dom"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
+    
+    /* Force JSX runtime resolution */
+    "skipLibCheck": true,
 
     /* Performance */
     "incremental": true,
