@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "../../../shared/components/ui";
-import { PageLayout } from "../../../shared/layout/PageLayout";
-import { useConfirmDialog, useConfirmDialogEmpty } from "../../../shared/hooks";
-import { buildRowActions } from "../../../shared/utils/buildRowActions";
-import { useDocumentsTrashPageContainer } from "../containers/useDocumentsTrashPageContainer";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "@/shared/components/ui";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
+import { buildRowActions } from "@/shared/utils/buildRowActions";
+import { useDocumentsTrashPageContainer } from "@/features/documents/containers/useDocumentsTrashPageContainer";
 import {
   getDocumentTableColumnsForTrash,
   type TrashDocument,
-} from "../utils/documentTableColumns";
-import "../styles/documents.css";
+} from "@/features/documents/utils/documentTableColumns";
+import "@/features/documents/styles/documents.css";
 
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();

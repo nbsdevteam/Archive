@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { all_routes } from "../../../router/all_routes";
-import { documentsApi, type Document, type TrashDocumentsResponse } from "../../../app/adapter/api/documents.api";
-import { handleApiError } from "../../../app/adapter/api/client";
-import { useAuth } from "../../auth/hooks/useAuth";
-import { useDocumentOperations, useSelection } from "../../../shared/hooks";
+import { all_routes } from "@/router/all_routes";
+import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
+import { handleApiError } from "@/app/adapter/api/client";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useDocumentOperations, useSelection } from "@/shared/hooks";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 

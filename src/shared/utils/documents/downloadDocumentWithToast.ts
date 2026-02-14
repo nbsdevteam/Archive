@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
-import { documentsApi } from "../../../app/adapter/api/documents.api";
-import { handleApiError } from "../../../app/adapter/api/client";
-import { downloadBlobAsFile } from "../files/downloadBlobAsFile";
+import { documentsApi } from "@/app/adapter/api/documents.api";
+import { handleApiError } from "@/app/adapter/api/client";
+import { downloadBlobAsFile } from "@/shared/utils/files/downloadBlobAsFile";
 
 /** Minimal i18n translate signature used for success/error toasts. */
 type TranslateFn = (key: string, options?: { defaultValue?: string }) => string;

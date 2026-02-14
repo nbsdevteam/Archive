@@ -1,19 +1,20 @@
 import { Link } from "react-router-dom";
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Alert, Button, Spinner, Icon } from "../../../shared/components/ui";
-import { PageLayout } from "../../../shared/layout/PageLayout";
-import { useConfirmDialog, useConfirmDialogEmpty } from "../../../shared/hooks";
-import { UploadDocumentSidePanel } from "../components";
-import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "../components/detail";
-import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
-import "../styles/documents.css";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { UploadDocumentSidePanel } from "@/features/documents/components";
+import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";
+import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "@/features/documents/components/detail";
+import { useDocumentDetailPageContainer } from "@/features/documents/containers/useDocumentDetailPageContainer";
+import "@/features/documents/styles/documents.css";
 
 const DocumentDetailPage = () => {
   const { t, routes, data, loading, error, tabState, selection, actions, modals } = useDocumentDetailPageContainer();
-
-  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmAttachmentTrash });
-  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchAttachmentTrash });
-  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteNote });
+  const { attachmentTrashDialog, batchAttachmentTrashDialog, noteDeleteDialog } = useDocumentDetailDialogs({
+    confirmAttachmentTrash: actions.confirmAttachmentTrash,
+    confirmBatchAttachmentTrash: actions.confirmBatchAttachmentTrash,
+    confirmDeleteNote: actions.confirmDeleteNote,
+  });
 
   if (loading.isLoading && !data.doc) {
     return (
@@ -47,7 +48,7 @@ const DocumentDetailPage = () => {
   return (
     <PageLayout
       title={pageTitle}
-      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.archiveDocuments }]}
+      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents }]}
       homeTo={routes.adminDashboard}
       rightContent={
         <>
@@ -105,7 +106,7 @@ const DocumentDetailPage = () => {
         </ul>
 
         <div className="card">
-          <div className="card-body">
+          <div className="card-body h-min-50vh">
             <DocumentDetailTabContent
               t={t}
               tabState={tabState}

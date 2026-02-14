@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
-import { documentsApi } from "../../../../app/adapter/api/documents.api";
-import type { BulkUploadProgressData } from "../../../../app/adapter/api/documents.api";
-import { createFolder } from "../../../folders/services/folders.api";
-import { fileToBase64 } from "../../../../shared/utils/files/fileToBase64";
+import { documentsApi } from "@/app/adapter/api/documents.api";
+import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
+import { createFolder } from "@/features/folders/services/folders.api";
+import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import type { UploadFormValues } from "./types";
 
 export interface UseUploadSubmitParams {

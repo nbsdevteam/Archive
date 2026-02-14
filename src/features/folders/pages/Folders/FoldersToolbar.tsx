@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
-import { Button, Icon, SearchInput, ListFilter } from "../../../../shared/components/ui";
-import { TablePageToolbar } from "../../../../shared/components/TablePageToolbar";
+import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
+import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 
 export interface FoldersToolbarProps {
   t: TFunction;

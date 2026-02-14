@@ -1,0 +1,11 @@
+/* React-datepicker and date picker overrides. */
+
+.deals-details.react-datepicker__input-container {
+  width: 450px !important;
+}
+
+div.react-datepicker-wrapper {
+  display: block;
+  padding: 0;
+  border: 0;
+}

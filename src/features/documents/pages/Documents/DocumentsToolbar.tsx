@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { Button, Icon, SearchInput, ListFilter } from "../../../../shared/components/ui";
-import { TablePageToolbar } from "../../../../shared/components/TablePageToolbar";
+import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
+import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 
 /** Props for the documents list toolbar (count, selection actions, search, filter, upload, trash link, refresh). */
 export interface DocumentsToolbarProps {

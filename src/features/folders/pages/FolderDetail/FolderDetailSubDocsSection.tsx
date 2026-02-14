@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
-import type { Document } from "../../../../app/adapter/api/documents.api";
-import { Button, Icon } from "../../../../shared/components/ui";
+import type { Document } from "@/app/adapter/api/documents.api";
+import { Button, Icon } from "@/shared/components/ui";
 
 export interface SubDocsSelectionConfig {
   selectedIds: (string | number)[];

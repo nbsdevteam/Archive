@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import type { Document } from "../../../../app/adapter/api/documents.api";
+import type { Document } from "@/app/adapter/api/documents.api";
 
 export interface DocumentDetailInfoCardProps {
   t: TFunction;

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { ConfirmModal } from "../../../../shared/components/ui";
+import { ConfirmModal } from "@/shared/components/ui";
 import { EditFolderSidePanel } from "../../components";
 import type { FolderDetail } from "../../types/folders.types";
 

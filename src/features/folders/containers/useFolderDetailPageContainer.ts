@@ -2,18 +2,18 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { handleApiError } from "../../../app/adapter/api/client";
-import { deleteFolder } from "../services/folders.api";
-import { useDocumentStore } from "../../documents/stores/documentStore";
-import { useFolderAuditLogs } from "../../activity/hooks/useFolderAuditLogs";
-import type { ActivityViewMode } from "../../activity/types";
-import { all_routes } from "../../../router/all_routes";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
-import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
-import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
-import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
-import { useNoteEditorHandlers } from "../../notes/hooks/useNoteEditorHandlers";
-import type { Document, Attachment } from "../../../app/adapter/api/documents.api";
+import { handleApiError } from "@/app/adapter/api/client";
+import { deleteFolder } from "@/features/folders/services/folders.api";
+import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { useFolderAuditLogs } from "@/features/activity/hooks/useFolderAuditLogs";
+import type { ActivityViewMode } from "@/features/activity/types";
+import { all_routes } from "@/router/all_routes";
+import { formatRelativeTime } from "@/shared/utils/format/date";
+import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { useAttachmentOperations, useDocumentOperations, useSelection } from "@/shared/hooks";
+import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
+import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
+import type { Document, Attachment } from "@/app/adapter/api/documents.api";
 import {
   useFolderDetailIds,
   useFolderDetailData,
@@ -22,7 +22,7 @@ import {
   useFolderUploadPanel,
   useFolderSignaturesAndEditRequests,
   useFolderTransfer,
-} from "../hooks/folderDetail";
+} from "@/features/folders/hooks/folderDetail";
 
 /**
  * Composes folder-detail hooks and returns the stable shape consumed by FolderDetailPage and FolderDetailModals.
@@ -53,7 +53,7 @@ export const useFolderDetailPageContainer = () => {
     handleAttachmentsDocIdChange,
   } = useFolderAttachments(attachmentsDocId, setAttachmentsDocId);
 
-  const managers = useFolderManagers(folder?.department_id);
+  const { managers } = useFolderManagers(folder?.department_id);
 
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
   const {

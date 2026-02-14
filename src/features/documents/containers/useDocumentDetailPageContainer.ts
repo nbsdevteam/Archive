@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { useAuth } from "../../auth/hooks/useAuth";
-import { all_routes } from "../../../router/all_routes";
-import { useDocumentOperations } from "../../../shared/hooks";
-import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
-import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
-import { useNoteEditorHandlers } from "../../notes/hooks/useNoteEditorHandlers";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { all_routes } from "@/router/all_routes";
+import { useDocumentOperations } from "@/shared/hooks";
+import { convertToArabianStandardTime } from "@/shared/utils/format/date";
+import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
+import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
 import {
   useDocumentDetailIds,
   useDocumentDetailData,
@@ -19,7 +19,7 @@ import {
   useDocumentOcr,
   useDocumentRelations,
   useDocumentSignatures,
-} from "../hooks/documentDetail";
+} from "@/features/documents/hooks/documentDetail";
 
 /**
  * Composes document-detail hooks and returns the stable shape consumed by DocumentDetailPage and DocumentDetail* components.

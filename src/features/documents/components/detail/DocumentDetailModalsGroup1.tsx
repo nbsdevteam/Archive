@@ -1,8 +1,8 @@
-import { Button, Modal, ModalFooter, Spinner, ConfirmModal, Icon } from "../../../../shared/components/ui";
-import type { DocumentDetailModalsProps } from "./DocumentDetailModals";
+import { Button, Modal, ModalFooter, Spinner, ConfirmModal, Icon } from "@/shared/components/ui";
+import type { DocumentDetailModalsGroup1Props } from "./DocumentDetailModals";
 
 /** Upload version, request sign, upload signed, add relation + confirm dialogs. */
-export function DocumentDetailModalsGroup1(props: DocumentDetailModalsProps) {
+export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Props) {
   const { t, data, loading, modals, actions, selection, attachmentTrashModalProps, batchAttachmentTrashModalProps, noteDeleteModalProps } = props;
   return (
     <>

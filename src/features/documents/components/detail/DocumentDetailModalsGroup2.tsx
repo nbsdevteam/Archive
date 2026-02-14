@@ -1,9 +1,9 @@
-import { Button, Modal, ModalFooter, Spinner } from "../../../../shared/components/ui";
-import { NoteEditor, NoteImageViewerModal } from "../../../notes/components";
-import type { DocumentDetailModalsProps } from "./DocumentDetailModals";
+import { Button, Modal, ModalFooter, Spinner } from "@/shared/components/ui";
+import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
+import type { DocumentDetailModalsGroup2Props } from "./DocumentDetailModals";
 
 /** Edit attachment, note editor, note image viewer modals. */
-export function DocumentDetailModalsGroup2({ t, data, loading, modals, actions }: DocumentDetailModalsProps) {
+export function DocumentDetailModalsGroup2({ t, data, loading, modals, actions }: DocumentDetailModalsGroup2Props) {
   return (
     <>
       <Modal

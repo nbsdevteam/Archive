@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Button } from "../../../../shared/components/ui";
+import { Button } from "@/shared/components/ui";
 
 export interface UploadDocumentActionsProps {
   onClose: () => void;

@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "../../../../core/common/collapse-header/collapse-header";
-import { PageLayout } from "../../../../shared/layout/PageLayout";
-import { useConfirmDialog, useConfirmDialogEmpty } from "../../../../shared/hooks";
-import type { Document } from "../../../../app/adapter/api/documents.api";
-import { buildRowActions } from "../../../../shared/utils/buildRowActions";
-import { useDocumentsPageContainer } from "../../containers/useDocumentsPageContainer";
-import { getDocumentTableColumns } from "../../utils/documentTableColumns";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
+import type { Document } from "@/app/adapter/api/documents.api";
+import { buildRowActions } from "@/shared/utils/buildRowActions";
+import { useDocumentsPageContainer } from "@/features/documents/containers/useDocumentsPageContainer";
+import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
-import "../../styles/documents.css";
+import "@/features/documents/styles/documents.css";
 
 /**
  * Documents list page: orchestrates container, table columns/row actions, and composes

@@ -1,34 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
-import { documentsApi } from "@/app/adapter/api/documents.api";
+import { useCallback } from "react";
 import type { Attachment } from "@/app/adapter/api/documents.api";
+import { useAttachmentsList } from "@/shared/hooks";
 
 /**
  * Manages attachments for the selected document in folder detail.
- * Fetches attachments when attachmentsDocId changes.
+ * Uses shared useAttachmentsList; fetches when attachmentsDocId is a number.
  */
 export function useFolderAttachments(
   attachmentsDocId: number | "",
   setAttachmentsDocId: (id: number | "") => void
 ) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const documentId = typeof attachmentsDocId === "number" ? attachmentsDocId : null;
+  const { attachments, loadingAttachments, refreshAttachments } = useAttachmentsList(documentId, {
+    enabled: documentId != null,
+  });
 
-  const loadAttachmentsForDocument = useCallback(async (documentId: number) => {
-    setLoadingAttachments(true);
-    try {
-      const r = await documentsApi.listAttachments(documentId);
-      setAttachments(r.data ?? []);
-    } catch {
-      setAttachments([]);
-    } finally {
-      setLoadingAttachments(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (attachmentsDocId === "" || typeof attachmentsDocId !== "number") return;
-    loadAttachmentsForDocument(attachmentsDocId);
-  }, [attachmentsDocId, loadAttachmentsForDocument]);
+  /** Refetch attachments for the current document. Argument is ignored (documentId comes from hook state). */
+  const loadAttachmentsForDocument = useCallback((_documentId?: number) => {
+    refreshAttachments();
+  }, [refreshAttachments]);
 
   const handleAttachmentsDocIdChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,7 +28,7 @@ export function useFolderAttachments(
   );
 
   return {
-    attachments,
+    attachments: attachments as Attachment[],
     loadingAttachments,
     loadAttachmentsForDocument,
     handleAttachmentsDocIdChange,

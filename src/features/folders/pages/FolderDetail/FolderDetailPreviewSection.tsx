@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
-import { Button, Icon } from "../../../../shared/components/ui";
-import { FilePreview } from "../../../../shared/components/FilePreview";
+import { Button, Icon } from "@/shared/components/ui";
+import { FilePreview } from "@/shared/components/FilePreview";
 
 export interface FolderDetailPreviewSectionProps {
   t: TFunction;

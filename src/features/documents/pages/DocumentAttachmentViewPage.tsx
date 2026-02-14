@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { all_routes } from "../../../router/all_routes";
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { FilePreview } from "../../../shared/components/FilePreview";
-import { Alert, Button, Icon, Spinner } from "../../../shared/components/ui";
-import { PageLayout } from "../../../shared/layout/PageLayout";
-import { documentsApi } from "../../../app/adapter/api/documents.api";
-import "../styles/documents.css";
+import { all_routes } from "@/router/all_routes";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { FilePreview } from "@/shared/components/FilePreview";
+import { Alert, Button, Icon, Spinner } from "@/shared/components/ui";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { documentsApi } from "@/app/adapter/api/documents.api";
+import "@/features/documents/styles/documents.css";
 
 /**
  * Page to view a single attachment (preview) for a document.

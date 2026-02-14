@@ -1,0 +1,50 @@
+/* PrimeReact component overrides (.p-dropdown, .p-datepicker, .p-component, etc.). */
+
+span.p-dropdown-label.p-inputtext span {
+  font-family: "Roboto", sans-serif;
+}
+
+.p-dropdown-label.p-inputtext .p-d-flex.p-ai-center img,
+.p-dropdown-item-label .p-d-flex.p-ai-center,
+.p-dropdown-label.p-inputtext .p-clearfix img,
+.p-dropdown-item-label .p-clearfix img {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.p-d-flex.p-ai-center {
+  display: flex;
+  align-items: center;
+}
+
+.p-dropdown-items-wrapper ul.p-dropdown-items,
+.p-dropdown-panel.p-component.p-ripple-disabled.p-connected-overlay-enter-done {
+  z-index: 100000000000 !important;
+}
+
+.p-dropdown.p-component.p-inputwrapper {
+  height: 42px;
+  line-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: #e8e8e8;
+  color: #6f6f6f;
+  box-shadow: 0px 4px 4px 0px #dbdbdb40;
+}
+
+div.p-clearfix {
+  display: flex;
+  align-items: center;
+}
+
+div.p-clearfix span,
+span.p-dropdown-label.p-inputtext.p-placeholder {
+  font-size: 14px;
+}
+
+.p-dropdown-trigger svg {
+  width: 13px;
+}

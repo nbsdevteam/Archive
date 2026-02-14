@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
-import { Button, Icon } from "../../../../shared/components/ui";
-import { NotesList } from "../../../notes/components";
-import type { NoteListItem } from "../../../notes/types/notes.types";
+import { Button, Icon } from "@/shared/components/ui";
+import { NotesList } from "@/features/notes/components";
+import type { NoteListItem } from "@/features/notes/types/notes.types";
 
 export interface FolderDetailNotesSectionProps {
   t: TFunction;

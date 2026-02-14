@@ -81,7 +81,7 @@ export const AUDIT_ACTION_OPTIONS: AuditAction[] = [
   "document_type_archived",
 ];
 
-export type ActivityViewMode = "timeline" | "tree";
+export type { ActivityViewMode } from "@/shared/types/activity";
 
 export interface AuditLogEntry {
   id: number;

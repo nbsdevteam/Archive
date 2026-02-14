@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import { Button, Spinner } from "../../../../shared/components/ui";
-import { AuditActivityPanel } from "../../../../shared/components/Activity";
-import { NotesList } from "../../../notes/components";
-import type { ActivityViewMode } from "../../../activity/types/auditLogs.types";
+import { Button, Spinner, Icon } from "@/shared/components/ui";
+import { AuditActivityPanel } from "@/shared/components/Activity";
+import { NotesList } from "@/features/notes/components";
+import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
 import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";
-import { Icon } from "../../../../shared/components/ui";
 
 /** Renders notes, ocr, signatures, relations, and audit tabs for document detail. */
 export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {

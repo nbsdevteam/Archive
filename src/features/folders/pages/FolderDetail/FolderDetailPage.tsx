@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
-import CollapseHeader from "../../../../core/common/collapse-header/collapse-header";
-import { Alert, Button, Icon, Spinner } from "../../../../shared/components/ui";
-import { PageLayout } from "../../../../shared/layout/PageLayout";
-import { useConfirmDialog, useConfirmDialogEmpty } from "../../../../shared/hooks";
-import type { ActivityViewMode } from "../../../activity/types";
-import { useFolderDetailPageContainer } from "../../containers/useFolderDetailPageContainer";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { Alert, Button, Icon, Spinner } from "@/shared/components/ui";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import type { ActivityViewMode } from "@/features/activity/types";
+import { useFolderDetailPageContainer } from "@/features/folders/containers/useFolderDetailPageContainer";
+import { useFolderDetailDialogs } from "@/features/folders/hooks/useFolderDetailDialogs";
 import { FolderDetailInfoSection } from "./FolderDetailInfoSection";
 import { FolderDetailMainDocSection } from "./FolderDetailMainDocSection";
 import { FolderDetailSubDocsSection } from "./FolderDetailSubDocsSection";
@@ -19,13 +19,21 @@ import { FolderDetailModals } from "./FolderDetailModals";
 const FolderDetailPage = () => {
   const { t, routes, data, loadingState, errors, activity, selection, actions, modals } =
     useFolderDetailPageContainer();
-
-  const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmDeleteFolder });
-  const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmSubDocTrash });
-  const batchSubDocTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchSubDocTrash });
-  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmAttachmentTrash });
-  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchAttachmentTrash });
-  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteNote });
+  const {
+    deleteFolderDialog,
+    subDocTrashDialog,
+    batchSubDocTrashDialog,
+    attachmentTrashDialog,
+    batchAttachmentTrashDialog,
+    noteDeleteDialog,
+  } = useFolderDetailDialogs({
+    confirmDeleteFolder: actions.confirmDeleteFolder,
+    confirmSubDocTrash: actions.confirmSubDocTrash,
+    confirmBatchSubDocTrash: actions.confirmBatchSubDocTrash,
+    confirmAttachmentTrash: actions.confirmAttachmentTrash,
+    confirmBatchAttachmentTrash: actions.confirmBatchAttachmentTrash,
+    confirmDeleteNote: actions.confirmDeleteNote,
+  });
 
   const handleActivityRefresh = useCallback(() => void activity.refreshActivityLogs(), [activity.refreshActivityLogs]);
   const handleActivityViewModeChange = useCallback((nextMode: ActivityViewMode) => activity.setActivityViewMode(nextMode), [activity.setActivityViewMode]);

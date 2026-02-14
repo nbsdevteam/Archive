@@ -3,3 +3,14 @@
 .ant-tooltip {
   display: none;
 }
+
+:where(.css-dev-only-do-not-override-djtmh8).ant-table-wrapper
+  .ant-table-tbody
+  .ant-table-row.ant-table-row-selected
+  > .ant-table-cell {
+  background-color: #fff;
+}
+
+span.ant-picker-suffix {
+  display: none !important;
+}

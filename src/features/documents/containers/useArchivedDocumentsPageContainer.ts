@@ -2,15 +2,15 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { all_routes } from "../../../router/all_routes";
-import { handleApiError } from "../../../app/adapter/api/client";
-import { documentsApi } from "../../../app/adapter/api/documents.api";
-import { useDocumentOperations } from "../../../shared/hooks";
-import type { Document } from "../../../app/adapter/api/documents.api";
-import { useDocumentStore } from "../stores/documentStore";
-import { getDocumentStatusBadgeVariant } from "../utils/getDocumentStatusBadgeVariant";
-import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
-import { useDocumentListWithFilters } from "../hooks/useDocumentListWithFilters";
+import { all_routes } from "@/router/all_routes";
+import { handleApiError } from "@/app/adapter/api/client";
+import { documentsApi } from "@/app/adapter/api/documents.api";
+import { useDocumentOperations } from "@/shared/hooks";
+import type { Document } from "@/app/adapter/api/documents.api";
+import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
+import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { useDocumentListWithFilters } from "@/features/documents/hooks/useDocumentListWithFilters";
 
 export interface ArchivedDocumentsFilterState {
   department_id?: number;

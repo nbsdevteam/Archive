@@ -1,9 +1,9 @@
 import type { TFunction } from "i18next";
-import type { Document } from "../../../../app/adapter/api/documents.api";
-import type { ColumnDef } from "../../../../shared/components/ui/DataTable/DataTable.types";
-import type { RowAction } from "../../../../shared/components/ui/DataTable/DataTable.types";
-import type { SelectionConfig } from "../../../../shared/components/ui/DataTable/DataTable.types";
-import { Alert, Button, DataTable } from "../../../../shared/components/ui";
+import type { Document } from "@/app/adapter/api/documents.api";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
+import { Alert, Button, DataTable } from "@/shared/components/ui";
 
 /** Props for the documents table card (error alert + DataTable). */
 export interface DocumentsTableCardProps {

@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import type { TFunction } from "i18next";
-import { Button, Icon } from "../../../../shared/components/ui";
+import { Button, Icon } from "@/shared/components/ui";
 
 export interface UploadDocumentFileSectionProps {
   fileInputRef: RefObject<HTMLInputElement | null>;

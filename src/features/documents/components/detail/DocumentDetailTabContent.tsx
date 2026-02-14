@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
-import type { ActivityViewMode } from "../../../activity/types/auditLogs.types";
-import type { NoteListItem } from "../../../notes/types/notes.types";
+import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
+import type { NoteListItem } from "@/features/notes/types/notes.types";
 import { DocumentDetailTabsGroup1 } from "./DocumentDetailTabsGroup1";
 import { DocumentDetailTabsGroup2 } from "./DocumentDetailTabsGroup2";
 

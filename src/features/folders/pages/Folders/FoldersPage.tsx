@@ -1,10 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "../../../../core/common/collapse-header/collapse-header";
-import { PageLayout } from "../../../../shared/layout/PageLayout";
-import { useConfirmDialog } from "../../../../shared/hooks";
-import { useFoldersPageContainer } from "../../containers/useFoldersPageContainer";
-import "../../styles/folders.css";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { useConfirmDialog } from "@/shared/hooks";
+import { useFoldersPageContainer } from "@/features/folders/containers/useFoldersPageContainer";
+import "@/features/folders/styles/folders.css";
 import { FoldersToolbar } from "./FoldersToolbar";
 import { FoldersContent } from "./FoldersContent";
 import { FoldersModals } from "./FoldersModals";

@@ -1,11 +1,11 @@
 import type { TFunction } from "i18next";
-import { Modal, ModalFooter, Button, ConfirmModal } from "../../../../shared/components/ui";
-import { EditFolderSidePanel, TransferToFolderModal } from "../../components";
-import { UploadDocumentSidePanel } from "../../../documents/components";
-import { NoteEditor, NoteImageViewerModal } from "../../../notes/components";
-import type { FolderDetail } from "../../types/folders.types";
-import type { Document } from "../../../../app/adapter/api/documents.api";
-import type { NoteListItem } from "../../../notes/types/notes.types";
+import { Modal, ModalFooter, Button, ConfirmModal } from "@/shared/components/ui";
+import { EditFolderSidePanel, TransferToFolderModal } from "@/features/folders/components";
+import { UploadDocumentSidePanel } from "@/features/documents/components";
+import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
+import type { FolderDetail } from "@/features/folders/types/folders.types";
+import type { Document } from "@/app/adapter/api/documents.api";
+import type { NoteListItem } from "@/features/notes/types/notes.types";
 
 /** Props for all folder detail modals (signature, edit request, confirm dialogs, transfer, edit folder, upload, note editor, note image viewer). */
 export interface FolderDetailModalsProps {

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { FilePreview } from "../../../../shared/components/FilePreview";
-import { Button, Icon, DataTable } from "../../../../shared/components/ui";
-import { buildRowActions } from "../../../../shared/utils/buildRowActions";
-import type { ColumnDef } from "../../../../shared/components/ui/DataTable/DataTable.types";
+import { FilePreview } from "@/shared/components/FilePreview";
+import { Button, Icon, DataTable } from "@/shared/components/ui";
+import { buildRowActions } from "@/shared/utils/buildRowActions";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";
 
 type AttachmentRow = { id: number; name: string; file_name: string; description?: string | null };

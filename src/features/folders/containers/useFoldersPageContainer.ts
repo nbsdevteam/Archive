@@ -2,17 +2,18 @@ import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "r
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { all_routes } from "../../../router/all_routes";
-import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
-import { handleApiError } from "../../../app/adapter/api/client";
-import type { SelectOption } from "../../../shared/components/ui";
-import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
-import { deleteFolder } from "../services/folders.api";
-import { useFolders } from "../hooks/useFolders";
-import type { Folder } from "../types/folders.types";
-import { filterFoldersBySearch } from "../utils/filterFoldersBySearch";
-import { getFolderStatusBadgeVariant } from "../utils/getFolderStatusBadgeVariant";
+import { all_routes } from "@/router/all_routes";
+import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
+import { useDraftAppliedFilters } from "@/shared/hooks";
+import { handleApiError } from "@/app/adapter/api/client";
+import type { SelectOption } from "@/shared/components/ui";
+import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
+import { formatRelativeTime } from "@/shared/utils/format/date";
+import { deleteFolder } from "@/features/folders/services/folders.api";
+import { useFolders } from "@/features/folders/hooks/useFolders";
+import type { Folder } from "@/features/folders/types/folders.types";
+import { filterFoldersBySearch } from "@/features/folders/utils/filterFoldersBySearch";
+import { getFolderStatusBadgeVariant } from "@/features/folders/utils/getFolderStatusBadgeVariant";
 
 const VIEW_MODE = { grid: "grid", list: "list" } as const;
 type ViewMode = (typeof VIEW_MODE)[keyof typeof VIEW_MODE];
@@ -35,7 +36,9 @@ export function useFoldersPageContainer() {
   // ─── View & list state ─────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
   const [searchQuery, setSearchQuery] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState<FoldersFilterState>({});
+
+  const filterState = useDraftAppliedFilters<FoldersFilterState>();
+  const { appliedFilters, draftFilters, setDraftFilters, isFilterOpen, filterApplyDisabled, handleOpenFilter, handleCloseFilter, handleApplyFilter: baseHandleApplyFilter, handleClearFilter: baseHandleClearFilter } = filterState;
 
   const listParams = useMemo(
     () => ({
@@ -56,11 +59,6 @@ export function useFoldersPageContainer() {
     [folders, searchQuery]
   );
 
-  // ─── Filter UI state ───────────────────────────────────────────────────────
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [draftFilters, setDraftFilters] = useState<FoldersFilterState>({});
-  
-  // Use centralized departments store
   const { departments, fetchDepartments } = useDepartmentsStore();
 
   const departmentOptions: SelectOption<number>[] = useMemo(
@@ -77,17 +75,15 @@ export function useFoldersPageContainer() {
     [t]
   );
 
-  const filterApplyDisabled = useMemo(
-    () =>
-      draftFilters.department_id === appliedFilters.department_id &&
-      draftFilters.folder_type === appliedFilters.folder_type,
-    [
-      draftFilters.department_id,
-      draftFilters.folder_type,
-      appliedFilters.department_id,
-      appliedFilters.folder_type,
-    ]
-  );
+  const handleApplyFilter = useCallback(() => {
+    baseHandleApplyFilter();
+    fetchFolders({ department_id: draftFilters.department_id, folder_type: draftFilters.folder_type });
+  }, [baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, fetchFolders]);
+
+  const handleClearFilter = useCallback(() => {
+    baseHandleClearFilter();
+    fetchFolders({});
+  }, [baseHandleClearFilter, fetchFolders]);
 
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -132,45 +128,19 @@ export function useFoldersPageContainer() {
     [handleNavigateToFolder]
   );
 
-  // ─── Filter handlers ──────────────────────────────────────────────────────
-  const handleOpenFilter = useCallback(() => {
-    setDraftFilters(appliedFilters);
-    setIsFilterOpen(true);
-  }, [appliedFilters]);
-
-  const handleCloseFilter = useCallback(() => {
-    setIsFilterOpen(false);
-  }, []);
-
   const handlePrimaryFilterChange = useCallback((value: number | string | null) => {
     setDraftFilters((prev) => ({
       ...prev,
       department_id: value != null && typeof value === "number" ? value : undefined,
     }));
-  }, []);
+  }, [setDraftFilters]);
 
   const handleSecondaryFilterChange = useCallback((value: number | string | null) => {
     setDraftFilters((prev) => ({
       ...prev,
       folder_type: value != null && typeof value === "string" ? value : undefined,
     }));
-  }, []);
-
-  const handleApplyFilter = useCallback(() => {
-    setAppliedFilters(draftFilters);
-    fetchFolders({
-      department_id: draftFilters.department_id,
-      folder_type: draftFilters.folder_type,
-    });
-    setIsFilterOpen(false);
-  }, [draftFilters, fetchFolders]);
-
-  const handleClearFilter = useCallback(() => {
-    setDraftFilters({});
-    setAppliedFilters({});
-    fetchFolders({});
-    setIsFilterOpen(false);
-  }, [fetchFolders]);
+  }, [setDraftFilters]);
 
   /** Single-folder delete: call from useConfirmDialog onConfirm. Throws on failure so modal stays open. */
   const confirmDeleteFolder = useCallback(

@@ -1,50 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
-import { documentsApi } from "@/app/adapter/api/documents.api";
-import { useAttachmentOperations, useSelection } from "@/shared/hooks";
-
-type AttachmentListItem = {
-  id: number;
-  name: string;
-  file_name: string;
-  file_size?: number;
-  description?: string | null;
-  attachment_type?: string;
-};
+import { useCallback, useState } from "react";
+import { useAttachmentOperations, useSelection, useAttachmentsList } from "@/shared/hooks";
+import type { AttachmentListItem } from "@/shared/hooks";
 
 /**
  * Lists and manages attachments for document detail; includes selection and edit-attachment modal.
+ * Uses shared useAttachmentsList for fetch/loading; layers selection and edit modal on top.
  */
 export function useDocumentAttachments(docId: number | null, activeTab: string) {
-  const [attachments, setAttachments] = useState<AttachmentListItem[]>([]);
-  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const { attachments, loadingAttachments, refreshAttachments } = useAttachmentsList(docId, {
+    enabled: activeTab === "attachments",
+  });
 
   const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
-
-  const refreshAttachments = useCallback(async () => {
-    if (!docId) return;
-    setLoadingAttachments(true);
-    try {
-      const r = await documentsApi.listAttachments(docId);
-      setAttachments((r.data ?? []) as AttachmentListItem[]);
-    } catch {
-      setAttachments([]);
-    } finally {
-      setLoadingAttachments(false);
-    }
-  }, [docId]);
-
-  useEffect(() => {
-    if (!docId || activeTab !== "attachments") return;
-    setLoadingAttachments(true);
-    documentsApi
-      .listAttachments(docId)
-      .then((r) => setAttachments((r.data ?? []) as AttachmentListItem[]))
-      .catch(() => setAttachments([]))
-      .finally(() => setLoadingAttachments(false));
-  }, [docId, activeTab]);
 
   const {
     selectedIds: attachmentSelectedIds,

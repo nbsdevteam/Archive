@@ -1,4 +1,5 @@
-/* Misc overrides (components not in tables/forms/sidebar/pagination/links/badges/ant/react-select). */
+/* Misc overrides (components not in tables/forms/sidebar/pagination/links/badges/ant/react-select).
+   Ant, PrimeReact, slick, swiper, datepicker have dedicated override files. */
 
 // manage columns in datatable page
 h4,
@@ -12,35 +13,9 @@ h4,
   border: 1px solid rgb(var(--primary-rgb));
 }
 
-// compaign page datatable
-// .list-progress {
-//   width: 380px;
-// }
-:where(.css-dev-only-do-not-override-djtmh8).ant-table-wrapper
-  .ant-table-tbody
-  .ant-table-row.ant-table-row-selected
-  > .ant-table-cell {
-  background-color: #fff;
-}
-
 .stickybar {
   top: 0;
   position: sticky;
-}
-
-span.p-dropdown-label.p-inputtext span {
-  font-family: "Roboto", sans-serif;
-}
-
-// datepicker
-.deals-details.react-datepicker__input-container {
-  width: 450px !important;
-}
-
-div.react-datepicker-wrapper {
-  display: block;
-  padding: 0;
-  border: 0;
 }
 
 span.form-icon {
@@ -49,42 +24,11 @@ span.form-icon {
 
 .img-checked {
   padding: 10px;
-  // width: 30px;
   background: rgb(49, 132, 199);
   color: white;
   border-radius: 20px;
   font-weight: 400;
   position: relative;
-  /* margin-top: 2px ; */
-}
-
-.section-notes-slider .notes-slider .slick-list .slick-slide div {
-  margin-left: 12px !important;
-}
-
-.notes-slider .slick-list .slick-slide {
-  padding-right: 16px !important;
-}
-
-.teacher-slider .slick-list .slick-slide > div,
-.student-slider .slick-list .slick-slide > div {
-  margin-right: 0;
-  display: contents;
-}
-
-.teacher-slider .slick-list .slick-slide,
-.student-slider .slick-list .slick-slide {
-  padding-right: 0;
-}
-
-.teacher-slider.slick-slider,
-.student-slider.slick-slider {
-  display: flex;
-}
-
-.teacher-slider .slick-track,
-.student-slider .slick-track {
-  height: 100%;
 }
 
 .page-add-notes {
@@ -96,63 +40,8 @@ span.form-icon {
   margin-left: 25px !important;
 }
 
-// .bx-microphone:before {
-//   content: "\eb89";
-// }
 .form-sorts.dropdown .radio-btn-items {
   margin-top: 10px;
-}
-
-// .slick-slide {
-//   margin-right: 5px;
-// }
-.p-dropdown-label.p-inputtext .p-d-flex.p-ai-center img,
-.p-dropdown-item-label .p-d-flex.p-ai-center,
-.p-dropdown-label.p-inputtext .p-clearfix img,
-.p-dropdown-item-label .p-clearfix img {
-  width: 16px;
-  height: 16px;
-  border-radius: 5px;
-  margin-right: 5px;
-}
-
-.p-d-flex.p-ai-center {
-  display: flex;
-  align-items: center;
-}
-
-.p-dropdown-items-wrapper ul.p-dropdown-items,
-.p-dropdown-panel.p-component.p-ripple-disabled.p-connected-overlay-enter-done {
-  z-index: 100000000000 !important;
-}
-
-.swiper-container .slick-list {
-  margin-left: -236px;
-}
-
-.p-dropdown.p-component.p-inputwrapper {
-  height: 42px;
-  line-height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-color: #e8e8e8;
-  color: #6f6f6f;
-  box-shadow: 0px 4px 4px 0px #dbdbdb40;
-}
-
-div.p-clearfix {
-  display: flex;
-  align-items: center;
-}
-
-div.p-clearfix span,
-span.p-dropdown-label.p-inputtext.p-placeholder {
-  font-size: 14px;
-}
-
-.p-dropdown-trigger svg {
-  width: 13px;
 }
 
 .rti--container:focus-within {
@@ -167,15 +56,6 @@ span.rti--tag button {
 .filter-dropdown-menu.dropdown-menu.dropdown-menu-md-end.show,
 .filter-dropdown-menu.dropdown-menu {
   z-index: 11;
-}
-
-span.ant-picker-suffix {
-  display: none !important;
-}
-
-.stickybar {
-  position: sticky;
-  top: 0;
 }
 
 .right-user-side.chat-rooms.theiaStickySidebar {

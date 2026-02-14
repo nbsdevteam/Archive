@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { Button, Spinner, Alert, Icon, Card, InfoWrapper } from "../../../../shared/components/ui";
+import { Button, Spinner, Alert, Icon, Card, InfoWrapper } from "@/shared/components/ui";
 import type { Folder } from "../../types/folders.types";
 
 export interface FoldersContentProps {

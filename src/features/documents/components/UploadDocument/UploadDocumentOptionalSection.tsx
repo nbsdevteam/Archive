@@ -1,9 +1,9 @@
 import type { TFunction } from "i18next";
 import type { Control, FieldErrors } from "react-hook-form";
 import type { UploadFormValues } from "./types";
-import { Input, MultiSelectField } from "../../../../shared/components/ui";
-import type { SelectOption } from "../../../../shared/components/ui";
-import { Icon } from "../../../../shared/components/ui";
+import { Input, MultiSelectField } from "@/shared/components/ui";
+import type { SelectOption } from "@/shared/components/ui";
+import { Icon } from "@/shared/components/ui";
 
 export interface UploadDocumentOptionalSectionProps {
   uploadKind: "main" | "sub" | "attachment";

@@ -1,9 +1,9 @@
 import type { TFunction } from "i18next";
-import type { CreateNotePayload } from "../../../notes/types/notes.types";
+import type { CreateNotePayload } from "@/features/notes/types/notes.types";
 import { DocumentDetailModalsGroup1 } from "./DocumentDetailModalsGroup1";
 import { DocumentDetailModalsGroup2 } from "./DocumentDetailModalsGroup2";
 
-/** Props for document detail modals: modal state, actions, loading, data, and confirm dialog spread props. */
+/** Full props for document detail modals (parent passes sliced props to Group1/Group2). */
 export interface DocumentDetailModalsProps {
   t: TFunction;
   data: {
@@ -81,10 +81,22 @@ export interface DocumentDetailModalsProps {
   noteDeleteModalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading?: boolean };
 }
 
-/** Renders all document detail modals (delegates to Group1 and Group2). */
+/** Narrow props for Group1: version/signature/relation/attachment edit modals and confirm dialogs. */
+export type DocumentDetailModalsGroup1Props = Pick<
+  DocumentDetailModalsProps,
+  "t" | "data" | "loading" | "modals" | "actions" | "selection" | "attachmentTrashModalProps" | "batchAttachmentTrashModalProps" | "noteDeleteModalProps"
+>;
+
+/** Narrow props for Group2: edit attachment, note editor, note image viewer. */
+export type DocumentDetailModalsGroup2Props = Pick<
+  DocumentDetailModalsProps,
+  "t" | "data" | "loading" | "modals" | "actions"
+>;
+
+/** Renders all document detail modals (delegates to Group1 and Group2 with same props). */
 export const DocumentDetailModals = (props: DocumentDetailModalsProps) => (
   <>
-    <DocumentDetailModalsGroup1 {...props} />
-    <DocumentDetailModalsGroup2 {...props} />
+    <DocumentDetailModalsGroup1 {...(props as DocumentDetailModalsGroup1Props)} />
+    <DocumentDetailModalsGroup2 {...(props as DocumentDetailModalsGroup2Props)} />
   </>
 );

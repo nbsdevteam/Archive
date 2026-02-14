@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
-import { ConfirmModal } from "../../../../shared/components/ui";
-import { UploadDocumentSidePanel } from "../../components";
-import { TransferToFolderModal } from "../../../folders/components";
+import { ConfirmModal } from "@/shared/components/ui";
+import { UploadDocumentSidePanel } from "@/features/documents/components";
+import { TransferToFolderModal } from "@/features/folders/components";
 
 /** Props for document list modals: upload panel, confirm dialogs, transfer modal. */
 export interface DocumentsModalsProps {

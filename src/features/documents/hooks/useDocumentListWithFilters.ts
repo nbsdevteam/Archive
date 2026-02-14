@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { adminApi } from "../../../app/adapter/api/admin.api";
-import type { Document } from "../../../app/adapter/api/documents.api";
-import type { SelectOption } from "../../../shared/components/ui";
-import { useDocumentStore } from "../stores/documentStore";
-import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
-import { useRunOnceOnMount, useSelection } from "../../../shared/hooks";
+import { adminApi } from "@/app/adapter/api/admin.api";
+import type { Document } from "@/app/adapter/api/documents.api";
+import type { SelectOption } from "@/shared/components/ui";
+import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
+import { useRunOnceOnMount, useSelection } from "@/shared/hooks";
 
 export interface DocumentListFilterState {
   department_id?: number;

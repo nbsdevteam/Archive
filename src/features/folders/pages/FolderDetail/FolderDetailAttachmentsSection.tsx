@@ -1,8 +1,8 @@
 import type { ChangeEvent } from "react";
 import type { TFunction } from "i18next";
-import type { Document } from "../../../../app/adapter/api/documents.api";
-import type { Attachment } from "../../../../app/adapter/api/documents.api";
-import { Button, Icon, Spinner } from "../../../../shared/components/ui";
+import type { Document } from "@/app/adapter/api/documents.api";
+import type { Attachment } from "@/app/adapter/api/documents.api";
+import { Button, Icon, Spinner } from "@/shared/components/ui";
 
 export interface AttachmentsSelectionConfig {
   selectedIds: (string | number)[];

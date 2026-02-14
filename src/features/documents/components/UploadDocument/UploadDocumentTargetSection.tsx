@@ -1,12 +1,12 @@
 import type { TFunction } from "i18next";
 import type { Control, UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
 import type { UploadFormValues } from "./types";
-import { Input, SelectField, InfoWrapper } from "../../../../shared/components/ui";
-import type { SelectOption } from "../../../../shared/components/ui";
-import { FOLDER_TYPE_VALUES } from "../../../../shared/constants/folderTypeOptions";
-import type { Department } from "../../../../app/adapter/api/admin.api";
-import type { DocumentType } from "../../../../app/adapter/api/admin.api";
-import type { Folder } from "../../../folders/types/folders.types";
+import { Input, SelectField, InfoWrapper } from "@/shared/components/ui";
+import type { SelectOption } from "@/shared/components/ui";
+import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
+import type { Department } from "@/app/adapter/api/admin.api";
+import type { DocumentType } from "@/app/adapter/api/admin.api";
+import type { Folder } from "@/features/folders/types/folders.types";
 
 export interface UploadDocumentTargetSectionProps {
   control: Control<UploadFormValues>;

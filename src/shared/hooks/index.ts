@@ -4,6 +4,9 @@ export { usePrefersColorScheme } from "./usePrefersColorScheme";
 export { useSelection } from "./useSelection";
 export { useDocumentOperations } from "./useDocumentOperations";
 export { useAttachmentOperations } from "./useAttachmentOperations";
+export { useDraftAppliedFilters } from "./useDraftAppliedFilters";
+export { useAttachmentsList } from "./useAttachmentsList";
+export type { AttachmentListItem } from "./useAttachmentsList";
 export {
   useConfirmDialog,
   useConfirmDialogEmpty,
