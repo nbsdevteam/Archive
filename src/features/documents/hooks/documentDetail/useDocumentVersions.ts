@@ -53,15 +53,13 @@ export function useDocumentVersions(
 
   const handleUploadVersionSubmit = useCallback(async () => {
     if (!doc?.id || !uploadVersionFile) return;
-    const isLocked = doc.is_locked === true;
-    if (isLocked && !uploadVersionUnlockToken.trim()) return;
     setUploadingVersion(true);
     try {
       const fileData = await fileToBase64(uploadVersionFile);
       await uploadVersion(doc.id, {
         file_data: fileData,
         file_name: uploadVersionFile.name,
-        unlock_token: isLocked ? uploadVersionUnlockToken.trim() : "",
+        unlock_token: "", // All documents treated as unlocked; lock feature to be implemented later.
         change_description: uploadVersionDescription.trim() || "New version",
       });
       toast.success(t("documents.versionUploaded", { defaultValue: "New version uploaded." }));
@@ -76,14 +74,7 @@ export function useDocumentVersions(
     } finally {
       setUploadingVersion(false);
     }
-  }, [
-    doc?.id,
-    uploadVersionFile,
-    uploadVersionUnlockToken,
-    uploadVersionDescription,
-    uploadVersion,
-    t,
-  ]);
+  }, [doc?.id, uploadVersionFile, uploadVersionDescription, uploadVersion, t]);
 
   return {
     modalUploadVersion,

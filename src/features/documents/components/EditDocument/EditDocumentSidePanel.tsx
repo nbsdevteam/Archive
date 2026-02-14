@@ -210,7 +210,8 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   }, [setValue]);
 
   const isSubDoc = doc ? !(doc.is_main_document === true) : false;
-  const isLocked = doc?.is_locked === true;
+  /** Frontend treats all documents as unlocked until lock feature is implemented. */
+  const isLocked = false;
   const isInFolder = doc?.folder_id != null && doc.folder_id > 0;
   /** Display name for "Link to folder": from API (folder_name) or resolved from folders list when editing from folder context. */
   const folderDisplayName = doc
@@ -221,11 +222,6 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   const onSubmit = useCallback(
     async (values: EditDocumentFormValues) => {
       if (!documentId || !doc) return;
-      if (replaceFile && isLocked && !(values.unlockToken ?? "").trim()) {
-        setSubmitError(t("documents.unlockTokenRequiredWhenLocked", { defaultValue: "Unlock token is required to upload a new version for a locked document." }));
-        toast.error(t("documents.unlockTokenRequiredWhenLocked", { defaultValue: "Unlock token is required to upload a new version for a locked document." }));
-        return;
-      }
       setIsSubmitting(true);
       setSubmitError(null);
       try {
@@ -235,7 +231,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
             documentId,
             fileData,
             replaceFile.name,
-            isLocked ? (values.unlockToken ?? "").trim() : "",
+            "", // Unlock token not used; all documents treated as unlocked for now.
             (values.changeDescription ?? "").trim() || "New version from edit"
           );
         }
@@ -255,7 +251,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         setIsSubmitting(false);
       }
     },
-    [documentId, doc, isSubDoc, isLocked, replaceFile, onSuccess, onClose, t]
+    [documentId, doc, isSubDoc, replaceFile, onSuccess, onClose, t]
   );
 
   const handleSaveClick = useCallback(async () => {
