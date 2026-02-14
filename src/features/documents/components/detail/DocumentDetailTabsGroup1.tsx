@@ -50,7 +50,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
       )}
 
       {tabState.activeTab === "download" && (
-        <div>
+        <>
           <p className="text-muted mb-2">{t("documents.downloadCurrentVersion", { defaultValue: "Download current version" })}</p>
           <Button variant="secondary" onClick={actions.handleDownloadCurrent}>
             <Icon name="download" className="me-1" />
@@ -69,11 +69,11 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
               </div>
             </>
           )}
-        </div>
+        </>
       )}
 
       {tabState.activeTab === "versions" && (
-        <div>
+        <>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.versionHistory", { defaultValue: "Version history" })}</span>
             <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.setModalUploadVersion(true)}>
@@ -116,11 +116,11 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
               </tbody>
             </table>
           </div>
-        </div>
+        </>
       )}
 
       {tabState.activeTab === "attachments" && (
-        <div>
+        <>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
             <div className="d-flex align-items-center gap-2">
@@ -146,7 +146,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             tableClassName="table table-sm mb-0"
           />
-        </div>
+        </>
       )}
     </>
   );

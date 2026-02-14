@@ -295,7 +295,37 @@ Base path: `/api/documents`. All document endpoints below that are **JSON-RPC** 
 
 ---
 
-### 5.3 Upload document
+### 5.3 Update document metadata
+
+| Item | Value |
+|------|--------|
+| **Method** | `PUT` |
+| **URL** | `/api/documents/<document_id>/update` |
+| **Body** | JSON-RPC |
+
+**Params:** All fields are optional. Only send the fields you want to update.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| title | string | Document title |
+| department_id | int | Department ID |
+| document_type_id | int | Document type ID |
+| confidentiality_level | string | `public`, `internal`, `confidential`, or `strict` |
+| folder_id | int or null | Folder assignment (null to remove) |
+| po_number | string | Purchase order number |
+| bl_number | string | Bill of lading number |
+| container_number | string | Container number |
+| invoice_number | string | Invoice number |
+| envoy_number | string | Envoy number |
+| tags | array of int | Tag IDs |
+
+**Response:** `{ "success": true, "data": { document details }, "message": "..." }`
+
+**Note:** For secondary documents (sub-documents), changing `department_id` or `document_type_id` may not be allowed or may have restrictions. For main documents in folders, changing `department_id` is restricted since folders are department-specific.
+
+---
+
+### 5.4 Upload document
 
 | Item | Value |
 |------|--------|
@@ -330,7 +360,7 @@ Base path: `/api/documents`. All document endpoints below that are **JSON-RPC** 
 
 ---
 
-### 5.4 Download document
+### 5.5 Download document
 
 | Item | Value |
 |------|--------|
@@ -343,7 +373,7 @@ Base path: `/api/documents`. All document endpoints below that are **JSON-RPC** 
 
 ---
 
-### 5.5 List versions
+### 5.6 List versions
 
 | Item | Value |
 |------|--------|
@@ -680,7 +710,7 @@ Use these for dropdowns and filters. **JSON-RPC.**
 
 - Get: `POST /api/document-types/<doc_type_id>`, JSON-RPC.
 - Create: `POST /api/document-types/create`, params: `name`, `code`, `department_id`, `description`, `sequence`.
-- Update: `POST /api/document-types/<doc_type_id>/update`, params as needed.
+- Update: `UPDATE /api/document-types/<doc_type_id>/update`, params as needed.
 - Delete: `DELETE /api/document-types/<doc_type_id>`.
 
 ---

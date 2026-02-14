@@ -21,6 +21,7 @@ export interface EditDocumentFormContentProps {
   errors: FieldErrors<EditDocumentFormValues>;
   setValue: UseFormSetValue<EditDocumentFormValues>;
   isSubDoc: boolean;
+  isInFolder: boolean;
   departmentId: number;
   departments: Department[];
   documentTypes: DocumentType[];
@@ -41,6 +42,7 @@ export function EditDocumentFormContent({
   errors,
   setValue,
   isSubDoc,
+  isInFolder,
   departmentId,
   departments,
   documentTypes,
@@ -63,6 +65,14 @@ export function EditDocumentFormContent({
   return (
     <>
       <h6 className="fw-semibold mb-2">{t("documents.basicDocumentInfo", { defaultValue: "Basic document info" })}</h6>
+      {(isSubDoc || isInFolder) && (
+        <div className="alert alert-info py-2 mb-2 small">
+          <Icon name="info" className="me-1" />
+          {isSubDoc
+            ? t("documents.editRestrictionSubDoc", { defaultValue: "Department and document type cannot be changed for secondary documents." })
+            : t("documents.editRestrictionFolder", { defaultValue: "Department cannot be changed for documents in folders." })}
+        </div>
+      )}
       <div className="d-flex flex-column gap-2 mb-3">
         <SelectField
           control={control}
@@ -72,6 +82,7 @@ export function EditDocumentFormContent({
           placeholder={t("common.selectDepartment", { defaultValue: "Select department" })}
           required
           error={errors.department_id?.message as string | undefined}
+          isDisabled={isSubDoc || isInFolder}
         />
         <SelectField
           control={control}
@@ -79,7 +90,7 @@ export function EditDocumentFormContent({
           options={documentTypeOptions}
           label={t("documents.documentType", { defaultValue: "Document type" })}
           placeholder={departmentId ? t("common.selectDocumentType") : t("common.selectDepartmentFirst")}
-          isDisabled={!departmentId || departmentId < 1}
+          isDisabled={isSubDoc || !departmentId || departmentId < 1}
           required
           error={errors.document_type_id?.message as string | undefined}
         />

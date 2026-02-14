@@ -208,6 +208,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, onClose, onSuccess }
 
   const isSubDoc = doc ? !(doc.is_main_document === true) : false;
   const isLocked = doc?.is_locked === true;
+  const isInFolder = doc?.folder_id != null && doc.folder_id > 0;
   const tagOptions: SelectOption[] = useMemo(() => tags.map((tag) => ({ value: tag.id, label: tag.name })), [tags]);
 
   const onSubmit = useCallback(
@@ -300,6 +301,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, onClose, onSuccess }
             errors={errors}
             setValue={setValue}
             isSubDoc={isSubDoc}
+            isInFolder={isInFolder}
             departmentId={departmentId}
             departments={departments}
             documentTypes={documentTypes}

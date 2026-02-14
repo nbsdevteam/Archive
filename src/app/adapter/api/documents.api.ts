@@ -316,13 +316,13 @@ export const documentsApi = {
   },
 
   /**
-   * Update document metadata (main or sub). POST /api/documents/<document_id>/update (JSON-RPC).
+   * Update document metadata (main or sub). PUT /api/documents/<document_id>/update (JSON-RPC).
    */
   updateDocument: async (
     documentId: number,
     params: UpdateDocumentParams
   ): Promise<UpdateDocumentResponse> => {
-    const response = await apiClient.post(
+    const response = await apiClient.put(
       `/api/documents/${documentId}/update`,
       {
         jsonrpc: '2.0',
