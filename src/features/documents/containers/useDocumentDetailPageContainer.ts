@@ -282,30 +282,36 @@ export const useDocumentDetailPageContainer = () => {
     }
   }, [activeTab, docId, refreshNotes]);
 
-  const handleDownloadVersion = async (versionId: number, fName: string) => {
-    if (!doc?.id) return;
-    try {
-      await downloadVersion(doc.id, versionId, fName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
-  };
+  const handleDownloadVersion = useCallback(
+    async (versionId: number, fName: string) => {
+      if (!doc?.id) return;
+      try {
+        await downloadVersion(doc.id, versionId, fName);
+        toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
+      } catch (e) {
+        toast.error(
+          (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
+        );
+      }
+    },
+    [doc?.id, downloadVersion, t]
+  );
 
-  const handleDownloadCurrent = async () => {
+  const handleDownloadCurrent = useCallback(async () => {
     if (!doc?.id || !fileName) return;
     await downloadDocumentWithToast(doc.id, fileName, t);
-  };
+  }, [doc?.id, fileName, t]);
 
-  const handleDownloadAttachment = async (attachmentId: number, fName: string) => {
-    await downloadAttachment(
-      attachmentId,
-      fName,
-      t("documents.downloadSuccess", { defaultValue: "Download started." })
-    );
-  };
+  const handleDownloadAttachment = useCallback(
+    async (attachmentId: number, fName: string) => {
+      await downloadAttachment(
+        attachmentId,
+        fName,
+        t("documents.downloadSuccess", { defaultValue: "Download started." })
+      );
+    },
+    [downloadAttachment, t]
+  );
 
   /** Single attachment delete: call from useConfirmDialog onConfirm. */
   const confirmAttachmentTrash = useCallback(
@@ -323,25 +329,25 @@ export const useDocumentDetailPageContainer = () => {
     if (didDelete) clearAttachmentSelection();
   }, [attachmentSelectedIds, deleteAttachments, clearAttachmentSelection]);
 
-  const handleOpenEditAttachment = (attachmentId: number) => {
-    const target = attachments.find((attachment) => attachment.id === attachmentId);
-    if (!target) return;
-    setEditAttachmentId(target.id);
-    setEditAttachmentName(target.name ?? "");
-    setEditAttachmentDescription(target.description ?? "");
-    setIsEditAttachmentModalOpen(true);
-  };
-
-  const handleCloseEditAttachment = () => {
+  const handleCloseEditAttachment = useCallback(() => {
     if (!isUpdatingAttachment) {
       setIsEditAttachmentModalOpen(false);
       setEditAttachmentId(null);
       setEditAttachmentName("");
       setEditAttachmentDescription("");
     }
-  };
+  }, [isUpdatingAttachment]);
 
-  const handleConfirmEditAttachment = async () => {
+  const handleOpenEditAttachment = useCallback((attachmentId: number) => {
+    const target = attachments.find((attachment) => attachment.id === attachmentId);
+    if (!target) return;
+    setEditAttachmentId(target.id);
+    setEditAttachmentName(target.name ?? "");
+    setEditAttachmentDescription(target.description ?? "");
+    setIsEditAttachmentModalOpen(true);
+  }, [attachments]);
+
+  const handleConfirmEditAttachment = useCallback(async () => {
     if (!editAttachmentId) return;
     const didUpdate = await updateAttachment(editAttachmentId, {
       name: editAttachmentName.trim() || undefined,
@@ -350,27 +356,27 @@ export const useDocumentDetailPageContainer = () => {
     if (didUpdate) {
       handleCloseEditAttachment();
     }
-  };
+  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment]);
 
-  const handleArchive = async () => {
+  const handleArchive = useCallback(async () => {
     if (!doc?.id) return;
     await archiveDocument(doc.id, {
       successMessage: t("documents.archived", { defaultValue: "Document archived." }),
       errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
       onSuccess: () => fetchDocument(doc.id),
     });
-  };
+  }, [doc?.id, archiveDocument, t, fetchDocument]);
 
-  const handleUnarchive = async () => {
+  const handleUnarchive = useCallback(async () => {
     if (!doc?.id) return;
     await unarchiveDocument(doc.id, {
       successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
       errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
       onSuccess: () => fetchDocument(doc.id),
     });
-  };
+  }, [doc?.id, unarchiveDocument, t, fetchDocument]);
 
-  const handleRunOcr = async () => {
+  const handleRunOcr = useCallback(async () => {
     if (!docId) return;
     setRunOcrLoading(true);
     try {
@@ -382,9 +388,9 @@ export const useDocumentDetailPageContainer = () => {
     } finally {
       setRunOcrLoading(false);
     }
-  };
+  }, [docId, t, fetchDocument]);
 
-  const handleTrashDocument = async () => {
+  const handleTrashDocument = useCallback(async () => {
     if (!doc?.id) return;
     const didTrash = await trashDocument(doc.id, {
       successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
@@ -394,18 +400,18 @@ export const useDocumentDetailPageContainer = () => {
       setModalTrashConfirm(false);
       navigate(routes.documents);
     }
-  };
+  }, [doc?.id, trashDocument, t, navigate, routes.documents]);
 
-  const handleRestoreDocument = async () => {
+  const handleRestoreDocument = useCallback(async () => {
     if (!doc?.id) return;
     await restoreDocument(doc.id, {
       successMessage: t("documents.restored", { defaultValue: "Document restored." }),
       errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
       onSuccess: () => fetchDocument(doc.id),
     });
-  };
+  }, [doc?.id, restoreDocument, t, fetchDocument]);
 
-  const handlePermanentDelete = async () => {
+  const handlePermanentDelete = useCallback(async () => {
     if (!doc?.id) return;
     const didDelete = await permanentDeleteSingle(doc.id, {
       successMessage: t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }),
@@ -415,7 +421,7 @@ export const useDocumentDetailPageContainer = () => {
       setModalPermanentDelete(false);
       navigate(routes.documentsTrash);
     }
-  };
+  }, [doc?.id, permanentDeleteSingle, t, navigate, routes.documentsTrash]);
 
   const handleUploadVersionSubmit = async () => {
     if (!doc?.id || !uploadVersionFile || !uploadVersionUnlockToken.trim()) return;
@@ -534,10 +540,13 @@ export const useDocumentDetailPageContainer = () => {
   };
 
   /** Navigate to the dedicated attachment view (preview) page for the current document. */
-  const handleViewAttachment = (attachmentId: number) => {
-    if (!docId) return;
-    navigate(routes.documentAttachmentView.replace(":id", String(docId)).replace(":attachmentId", String(attachmentId)));
-  };
+  const handleViewAttachment = useCallback(
+    (attachmentId: number) => {
+      if (!docId) return;
+      navigate(routes.documentAttachmentView.replace(":id", String(docId)).replace(":attachmentId", String(attachmentId)));
+    },
+    [docId, navigate, routes.documentAttachmentView]
+  );
 
   const tabs = [
     { id: "preview", label: t("documents.preview", { defaultValue: "Preview" }) },
@@ -552,9 +561,9 @@ export const useDocumentDetailPageContainer = () => {
   ];
 
   /** Formats API timestamp (UTC) as Arabia Standard Time for document/version/request dates. */
-  const formatDate = (value?: string) => {
+  const formatDate = useCallback((value?: string) => {
     return convertToArabianStandardTime(value);
-  };
+  }, []);
 
   /** Grouped return shape: data, loading, error, tabs, selection, actions, modals (KISS/consistency with list containers). */
   return {
