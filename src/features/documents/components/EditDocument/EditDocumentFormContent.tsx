@@ -69,7 +69,7 @@ export function EditDocumentFormContent({
         <div className="alert alert-info py-2 mb-2 small">
           <Icon name="info" className="me-1" />
           {isSubDoc
-            ? t("documents.editRestrictionSubDoc", { defaultValue: "Department and document type cannot be changed for secondary documents." })
+            ? t("documents.editRestrictionSubDoc", { defaultValue: "Department, document type, and link to folder cannot be changed for secondary documents." })
             : t("documents.editRestrictionFolder", { defaultValue: "Department cannot be changed for documents in folders." })}
         </div>
       )}
@@ -110,6 +110,7 @@ export function EditDocumentFormContent({
             placeholder={t("common.none", { defaultValue: "None" })}
             allowZero
             error={errors.folder_id?.message as string | undefined}
+            isDisabled
           />
         )}
         <SelectField

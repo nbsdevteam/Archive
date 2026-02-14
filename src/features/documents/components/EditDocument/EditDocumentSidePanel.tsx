@@ -40,12 +40,13 @@ function getDefaultEditFormValues(): EditDocumentFormValues {
 /** Maps document detail to form default values for prefill. */
 function documentToEditFormValues(doc: DocumentDetail): EditDocumentFormValues {
   const tags = (doc as DocumentDetail).tags?.map((t) => t.id) ?? [];
+  const folderId = doc.folder_id != null && doc.folder_id > 0 ? doc.folder_id : 0;
   return {
     title: doc.title ?? (doc as { name?: string }).name ?? "",
     department_id: doc.department_id ?? 0,
     document_type_id: doc.document_type_id ?? 0,
     confidentiality_level: (doc.confidentiality_level as EditDocumentFormValues["confidentiality_level"]) ?? "internal",
-    folder_id: doc.folder_id ?? undefined,
+    folder_id: folderId,
     po_number: typeof doc.po_number === "string" ? doc.po_number : "",
     bl_number: typeof doc.bl_number === "string" ? doc.bl_number : "",
     container_number: typeof doc.container_number === "string" ? doc.container_number : "",
