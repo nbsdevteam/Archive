@@ -71,15 +71,7 @@ const DocumentsTrashPage = () => {
       title={pageTitle}
       breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents }]}
       homeTo={routes.adminDashboard}
-      rightContent={
-        <>
-          <Link to={routes.documents} className="btn btn-outline-secondary btn-sm">
-            <Icon name="arrow-left" className="me-1" />
-            {t("common.back", { defaultValue: "Back" })}
-          </Link>
-          <CollapseHeader />
-        </>
-      }
+      rightContent={<CollapseHeader />}
     >
         <div className="card documents__table-card">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -133,7 +125,7 @@ const DocumentsTrashPage = () => {
               )}
             </div>
           </div>
-          <div className="card-body h-100">
+          <div className="card-body h-min-50vh">
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}

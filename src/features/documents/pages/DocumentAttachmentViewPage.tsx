@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
+import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { Alert, Button, Icon, Spinner } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
@@ -122,12 +123,7 @@ const DocumentAttachmentViewPage = () => {
         { label: docTitle ?? t("documents.details", { defaultValue: "Document" }), to: documentDetailUrl },
       ]}
       homeTo={routes.adminDashboard}
-      rightContent={
-        <Link to={documentDetailUrl} className="btn btn-outline-secondary btn-sm">
-          <Icon name="arrow-left" className="me-1" />
-          {t("documents.backToDocument", { defaultValue: "Back to document" })}
-        </Link>
-      }
+      rightContent={<CollapseHeader />}
     >
         <div className="card">
           <div className="card-header d-flex flex-wrap align-items-center gap-2">

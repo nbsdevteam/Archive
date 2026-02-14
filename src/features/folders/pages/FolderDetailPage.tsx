@@ -104,10 +104,8 @@ const FolderDetailPage = () => {
             <Icon name="trash" className="me-1" />
             {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
           </Button>
-          <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
-            {t("common.back", { defaultValue: "Back" })}
-          </Link>
           <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.loadFolderDocuments}>
+            <Icon name="refresh-cw" className="me-1" />
             {t("common.refresh", { defaultValue: "Refresh" })}
           </Button>
           <CollapseHeader />

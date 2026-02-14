@@ -9,7 +9,7 @@ import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailP
 import "../styles/documents.css";
 
 const DocumentDetailPage = () => {
-  const { t, routes, data, loading, error, tabs, selection, actions, modals } = useDocumentDetailPageContainer();
+  const { t, routes, data, loading, error, tabState, selection, actions, modals } = useDocumentDetailPageContainer();
 
   const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmAttachmentTrash });
   const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchAttachmentTrash });
@@ -51,21 +51,20 @@ const DocumentDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Link to={routes.archiveDocuments} className="btn btn-outline-secondary btn-sm">
-            <Icon name="arrow-left" className="me-1" />
-            {t("common.back", { defaultValue: "Back" })}
-          </Link>
           {data.isArchived ? (
             <Button variant="secondary" size="sm" onClick={actions.handleUnarchive}>
+              <Icon name="archive" className="me-1" />
               {t("documents.unarchive", { defaultValue: "Unarchive" })}
             </Button>
           ) : (
             <Button variant="danger" size="sm" onClick={actions.handleArchive}>
+              <Icon name="archive" className="me-1" />
               {t("documents.archive", { defaultValue: "Archive" })}
             </Button>
           )}
           {data.isTrashed && (
             <Button variant="secondary" size="sm" onClick={actions.handleRestoreDocument} disabled={loading.isRestoring}>
+              <Icon name="refresh-cw" className="me-1" />
               {t("documents.restore", { defaultValue: "Restore" })}
             </Button>
           )}
@@ -92,12 +91,12 @@ const DocumentDetailPage = () => {
         />
 
         <ul className="nav nav-tabs mb-2">
-          {tabs.tabs.map((tab) => (
+          {tabState.tabs.map((tab) => (
             <li className="nav-item" key={tab.id}>
               <button
                 type="button"
-                className={`nav-link ${tabs.activeTab === tab.id ? "active" : ""}`}
-                onClick={() => tabs.setActiveTab(tab.id)}
+                className={`nav-link ${tabState.activeTab === tab.id ? "active" : ""}`}
+                onClick={() => tabState.setActiveTab(tab.id)}
               >
                 {tab.label}
               </button>
@@ -109,12 +108,12 @@ const DocumentDetailPage = () => {
           <div className="card-body">
             <DocumentDetailTabContent
               t={t}
-              tabs={{ ...tabs, setActivityViewMode: (m: unknown) => tabs.setActivityViewMode(m as "timeline" | "tree") }}
-              data={data as Parameters<typeof DocumentDetailTabContent>[0]["data"]}
+              tabState={tabState}
+              data={data}
               loading={loading}
               error={error}
               selection={selection}
-              actions={actions as Parameters<typeof DocumentDetailTabContent>[0]["actions"]}
+              actions={actions}
               attachmentTrashDialog={attachmentTrashDialog}
               batchAttachmentTrashDialog={batchAttachmentTrashDialog}
               noteDeleteDialog={noteDeleteDialog}
@@ -149,7 +148,7 @@ const DocumentDetailPage = () => {
           isUpdatingNote: loading.isUpdatingNote,
         }}
         modals={modals}
-        actions={actions as Parameters<typeof DocumentDetailModals>[0]["actions"]}
+        actions={actions}
         selection={selection}
         attachmentTrashModalProps={attachmentTrashDialog.modalProps}
         batchAttachmentTrashModalProps={batchAttachmentTrashDialog.modalProps}

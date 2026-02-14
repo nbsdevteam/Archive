@@ -63,7 +63,7 @@ export function PageLayout({
           </div>
           {rightContent != null && (
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-              <div className="ms-2 head-icons">{rightContent}</div>
+              <div className="ms-2 head-icons d-flex align-items-center gap-2">{rightContent}</div>
             </div>
           )}
         </div>
