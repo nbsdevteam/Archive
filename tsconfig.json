@@ -57,8 +57,8 @@
       "@/styles/*": ["src/assets/scss/*"]
     },
 
-    /* Type checking */
-    "types": ["node"],
+    /* Type checking - include node and React so react/jsx-runtime types resolve */
+    "types": ["node", "react", "react-dom"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
 
     /* Performance */
