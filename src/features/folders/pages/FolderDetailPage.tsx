@@ -17,134 +17,32 @@ import { convertToArabianStandardTime } from "../../../shared/utils/format/date"
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../../notes/components";
 
 const FolderDetailPage = () => {
-  const {
-    t,
-    routes,
-    folderId,
-    folder,
-    documents,
-    mainDoc,
-    subDocs,
-    loading,
-    error,
-    attachmentsDocId,
-    attachments,
-    loadingAttachments,
-    managers,
-    signatureOpen,
-    signatureSignerId,
-    signatureMessage,
-    editOpen,
-    editReason,
-    isEditFolderOpen,
-    handleOpenEditFolder,
-    handleCloseEditFolder,
-    handleEditFolderSuccess,
-    confirmDeleteFolder,
-    isUploadOpen,
-    uploadPanelInitialValues,
-    uploadPanelLockFolderContext,
-    previewDoc,
-    previewFileName,
-    formatDate,
-    handleNavigateToDocument,
-    handleUploadInFolder,
-    handleAttachmentsDocIdChange,
-    handleAddAttachment,
-    handleDownloadMainDocument,
-    handleDownloadDocument,
-    handleDownloadAttachment,
-    handleArchiveFolderDocument,
-    handleUnarchiveFolderDocument,
-    setSignatureOpen,
-    setSignatureSignerId,
-    setSignatureMessage,
-    openSignature,
-    submitSignature,
-    setEditOpen,
-    setEditReason,
-    openEditRequest,
-    submitEditRequest,
-    loadFolderDocuments,
-    handleCloseUploadPanel,
-    refreshAttachmentsForCurrentDocument,
-    subDocsSelectionConfig,
-    subDocSelectedIds,
-    clearSubDocsSelection,
-    isSubDocArchiving,
-    isSubDocUnarchiving,
-    isSubDocTrashing,
-    confirmSubDocTrash,
-    confirmBatchSubDocTrash,
-    attachmentsSelectionConfig,
-    attachmentSelectedIds,
-    clearAttachmentsSelection,
-    isAttachmentTrashing,
-    confirmAttachmentTrash,
-    confirmBatchAttachmentTrash,
-    handleViewAttachment,
-    openTransferDocs,
-    openTransferAttachments,
-    transferModalOpen,
-    transferMode,
-    transferDocIds,
-    transferAttachmentIds,
-    transferDepartmentId,
-    transferSubmitting,
-    closeTransferModal,
-    handleTransferConfirm,
-    activityLogs,
-    activityLoading,
-    activityError,
-    activityDocumentCount,
-    refreshActivityLogs,
-    activityViewMode,
-    setActivityViewMode,
-    notes,
-    loadingNotes,
-    notesError,
-    isNotesEditorOpen,
-    editingNote,
-    isCreatingNote,
-    isUpdatingNote,
-    isDeletingNote,
-    noteImageViewerId,
-    noteImageViewerTitle,
-    noteImageViewerFilename,
-    handleLoadNotes,
-    handleCreateNote,
-    handleEditNote,
-    handleCloseNoteEditor,
-    handleSaveNote,
-    confirmDeleteNote,
-    handleViewNoteImage,
-    handleCloseNoteImageViewer,
-  } = useFolderDetailPageContainer();
+  const { t, routes, data, loading, error, activity, selection, actions, modals } = useFolderDetailPageContainer();
 
-  const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: confirmDeleteFolder });
-  const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: confirmSubDocTrash });
-  const batchSubDocTrashDialog = useConfirmDialogEmpty({ onConfirm: confirmBatchSubDocTrash });
-  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: confirmAttachmentTrash });
-  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: confirmBatchAttachmentTrash });
-  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: confirmDeleteNote });
+  const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmDeleteFolder });
+  const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmSubDocTrash });
+  const batchSubDocTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchSubDocTrash });
+  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmAttachmentTrash });
+  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchAttachmentTrash });
+  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteNote });
 
   const handleActivityRefresh = useCallback(() => {
-    void refreshActivityLogs();
-  }, [refreshActivityLogs]);
+    void activity.refreshActivityLogs();
+  }, [activity.refreshActivityLogs]);
   const handleActivityViewModeChange = useCallback(
     (nextMode: ActivityViewMode) => {
-      setActivityViewMode(nextMode);
+      activity.setActivityViewMode(nextMode);
     },
-    [setActivityViewMode]
+    [activity.setActivityViewMode]
   );
   const handleTimelineDocumentClick = useCallback(
     (documentId: number, _log?: unknown) => {
-      handleNavigateToDocument(documentId);
+      actions.handleNavigateToDocument(documentId);
     },
-    [handleNavigateToDocument]
+    [actions.handleNavigateToDocument]
   );
 
-  if (!folderId) {
+  if (!data.folderId) {
     return (
       <div className="page-wrapper">
         <div className="content">
@@ -154,7 +52,7 @@ const FolderDetailPage = () => {
     );
   }
 
-  if (loading) {
+  if (loading.loading) {
     return (
       <div className="page-wrapper">
         <div className="content">
@@ -166,7 +64,7 @@ const FolderDetailPage = () => {
     );
   }
 
-  if (!folder) {
+  if (!data.folder) {
     return (
       <div className="page-wrapper">
         <div className="content">
@@ -179,7 +77,7 @@ const FolderDetailPage = () => {
     );
   }
 
-  const pageTitle = folder.name || `Folder #${folderId}`;
+  const pageTitle = data.folder.name || `Folder #${data.folderId}`;
 
   return (
     <PageLayout
@@ -188,11 +86,11 @@ const FolderDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder}>
             <Icon name="upload" className="me-1" />
             {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
           </Button>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenEditFolder}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleOpenEditFolder}>
             <Icon name="edit" className="me-1" />
             {t("folders.editFolder", { defaultValue: "Edit folder" })}
           </Button>
@@ -209,17 +107,17 @@ const FolderDetailPage = () => {
           <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
             {t("common.back", { defaultValue: "Back" })}
           </Link>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={loadFolderDocuments}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.loadFolderDocuments}>
             {t("common.refresh", { defaultValue: "Refresh" })}
           </Button>
           <CollapseHeader />
         </>
       }
     >
-        {error && (
+        {error.error && (
           <Alert variant="danger" className="mb-3">
-            {error}
-            <Button variant="outline" size="sm" className="ms-2 btn-outline-secondary" onClick={loadFolderDocuments}>
+            {error.error}
+            <Button variant="outline" size="sm" className="ms-2 btn-outline-secondary" onClick={actions.loadFolderDocuments}>
               {t("common.retry", { defaultValue: "Retry" })}
             </Button>
           </Alert>
@@ -227,9 +125,9 @@ const FolderDetailPage = () => {
 
         <FolderDetailInfoCard
           t={t}
-          folder={folder}
-          folderId={folderId}
-          documentCount={documents.length}
+          folder={data.folder}
+          folderId={data.folderId}
+          documentCount={data.documents.length}
           formatUpdated={(date) => convertToArabianStandardTime(date) ?? ""}
         />
 
@@ -237,15 +135,15 @@ const FolderDetailPage = () => {
         <div className="card mb-3">
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h6 className="mb-0">📌 {t("folders.mainDocument", { defaultValue: "Main document" })}</h6>
-            {mainDoc && (
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleDownloadMainDocument}>
+            {data.mainDoc && (
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleDownloadMainDocument}>
                 <Icon name="download" className="me-1" />
                 {t("documents.download", { defaultValue: "Download" })}
               </Button>
             )}
           </div>
           <div className="card-body">
-            {!mainDoc ? (
+            {!data.mainDoc ? (
               <p className="text-muted mb-0">{t("common.noData", { defaultValue: "No data" })}</p>
             ) : (
               <div className="table-responsive">
@@ -263,28 +161,28 @@ const FolderDetailPage = () => {
                   <tbody>
                     <tr
                       style={{ cursor: "pointer" }}
-                      onClick={() => handleNavigateToDocument(mainDoc.id)}
+                      onClick={() => actions.handleNavigateToDocument(data.mainDoc!.id)}
                     >
-                      <td>{mainDoc.barcode ?? "–"}</td>
-                      <td>{mainDoc.title ?? mainDoc.name ?? "–"}</td>
-                      <td>{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</td>
-                      <td>{formatDate(mainDoc.upload_date)}</td>
-                      <td>{mainDoc.status ?? "–"}</td>
+                      <td>{data.mainDoc!.barcode ?? "–"}</td>
+                      <td>{data.mainDoc!.title ?? data.mainDoc!.name ?? "–"}</td>
+                      <td>{data.mainDoc!.document_type_name ?? (data.mainDoc!.document_type as { name?: string })?.name ?? "–"}</td>
+                      <td>{actions.formatDate(data.mainDoc!.upload_date)}</td>
+                      <td>{data.mainDoc!.status ?? "–"}</td>
                       <td className="text-end">
-                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); handleDownloadMainDocument(); }}>
+                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); actions.handleDownloadMainDocument(); }}>
                           <Icon name="download" className="me-1" />
                           {t("documents.download", { defaultValue: "Download" })}
                         </Button>
-                        {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
+                        {(data.mainDoc!.status ?? "").toLowerCase() === "archived" ? (
                           <Button
                             variant="outline"
                             size="sm"
                             className="btn-outline-secondary me-1"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleUnarchiveFolderDocument(mainDoc.id);
+                              actions.handleUnarchiveFolderDocument(data.mainDoc!.id);
                             }}
-                            disabled={isSubDocUnarchiving}
+                            disabled={loading.isSubDocUnarchiving}
                           >
                             {t("documents.unarchive", { defaultValue: "Unarchive" })}
                           </Button>
@@ -295,14 +193,14 @@ const FolderDetailPage = () => {
                             className="btn-outline-secondary me-1"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleArchiveFolderDocument(mainDoc.id);
+                              actions.handleArchiveFolderDocument(data.mainDoc!.id);
                             }}
-                            disabled={isSubDocArchiving}
+                            disabled={loading.isSubDocArchiving}
                           >
                             {t("documents.archive", { defaultValue: "Archive" })}
                           </Button>
                         )}
-                        <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); handleNavigateToDocument(mainDoc.id); }}>
+                        <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={(e) => { e.stopPropagation(); actions.handleNavigateToDocument(data.mainDoc!.id); }}>
                           {t("common.view", { defaultValue: "View" })}
                         </Button>
                       </td>
@@ -318,14 +216,14 @@ const FolderDetailPage = () => {
         <div className="card mb-3">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h6 className="mb-0">🧩 {t("folders.secondaryDocuments", { defaultValue: "Secondary documents" })}</h6>
-            {subDocs.length > 0 && subDocSelectedIds.length > 0 && (
+            {data.subDocs.length > 0 && selection.subDocSelectedIds.length > 0 && (
               <div className="d-flex align-items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   className="btn-outline-secondary"
-                  onClick={() => openTransferDocs(subDocSelectedIds.map((id) => Number(id)))}
-                  disabled={transferSubmitting}
+                  onClick={() => actions.openTransferDocs(selection.subDocSelectedIds.map((id) => Number(id)))}
+                  disabled={loading.transferSubmitting}
                 >
                   <Icon name="arrow-right-left" className="me-1" />
                   {t("documents.transferSelected", {
@@ -337,14 +235,14 @@ const FolderDetailPage = () => {
                   size="sm"
                   className="btn-outline-danger"
                   onClick={batchSubDocTrashDialog.open}
-                  disabled={isSubDocTrashing}
+                  disabled={loading.isSubDocTrashing}
                 >
                   <Icon name="trash-2" className="me-1" />
                   {t("documents.moveSelectedToTrash", {
                     defaultValue: "Move selected to trash",
                   })}
                 </Button>
-                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearSubDocsSelection}>
+                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.clearSubDocsSelection}>
                   {t("common.clearSelection", { defaultValue: "Clear selection" })}
                 </Button>
               </div>
@@ -355,16 +253,16 @@ const FolderDetailPage = () => {
               <table className="table table-sm mb-0">
                 <thead>
                   <tr>
-                    {subDocsSelectionConfig && (
+                    {selection.subDocsSelectionConfig && (
                       <th style={{ width: "2.5rem" }} className="text-center">
-                        {subDocs.length > 0 && (
+                        {data.subDocs.length > 0 && (
                           <div className="form-check d-inline-flex justify-content-center mb-0">
                             <input
                               type="checkbox"
                               className="form-check-input"
-                              checked={subDocsSelectionConfig.isAllSelected}
-                              onChange={subDocsSelectionConfig.onToggleAll}
-                              aria-label={subDocsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                              checked={selection.subDocsSelectionConfig.isAllSelected}
+                              onChange={selection.subDocsSelectionConfig.onToggleAll}
+                              aria-label={selection.subDocsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
                             />
                           </div>
                         )}
@@ -379,30 +277,30 @@ const FolderDetailPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {subDocs.length === 0 ? (
+                  {data.subDocs.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-4 text-muted">
                         {t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
                       </td>
                     </tr>
                   ) : (
-                    subDocs.map((doc) => {
-                      const isSelected = subDocsSelectionConfig && subDocsSelectionConfig.selectedIds.includes(doc.id);
+                    data.subDocs.map((doc: Document) => {
+                      const isSelected = selection.subDocsSelectionConfig && selection.subDocsSelectionConfig.selectedIds.includes(doc.id);
                       const isArchived = (doc.status ?? "").toLowerCase() === "archived";
                       return (
                         <tr
                           key={doc.id}
                           style={{ cursor: "pointer" }}
-                          onClick={() => handleNavigateToDocument(doc.id)}
+                          onClick={() => actions.handleNavigateToDocument(doc.id)}
                         >
-                          {subDocsSelectionConfig && (
+                          {selection.subDocsSelectionConfig && (
                             <td onClick={(e) => e.stopPropagation()}>
                               <div className="form-check mb-0">
                                 <input
                                   type="checkbox"
                                   className="form-check-input"
                                   checked={isSelected}
-                                  onChange={() => subDocsSelectionConfig.onToggle(doc.id)}
+                                  onChange={() => selection.subDocsSelectionConfig.onToggle(doc.id)}
                                   onClick={(e) => e.stopPropagation()}
                                   aria-label={`Select document ${doc.barcode || doc.id}`}
                                 />
@@ -412,14 +310,14 @@ const FolderDetailPage = () => {
                           <td>{doc.barcode ?? "–"}</td>
                           <td>{doc.title ?? doc.name ?? "–"}</td>
                           <td>{doc.document_type_name ?? (doc.document_type as { name?: string })?.name ?? "–"}</td>
-                          <td>{formatDate(doc.upload_date)}</td>
+                          <td>{actions.formatDate(doc.upload_date)}</td>
                           <td>{doc.status ?? "–"}</td>
                           <td className="text-end" onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="outline"
                               size="sm"
                               className="btn-outline-secondary me-1"
-                              onClick={() => handleNavigateToDocument(doc.id)}
+                              onClick={() => actions.handleNavigateToDocument(doc.id)}
                             >
                               {t("common.view", { defaultValue: "View" })}
                             </Button>
@@ -429,7 +327,7 @@ const FolderDetailPage = () => {
                               className="btn-outline-secondary me-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDownloadDocument(doc.id);
+                                actions.handleDownloadDocument(doc.id);
                               }}
                             >
                               {t("documents.download", { defaultValue: "Download" })}
@@ -440,9 +338,9 @@ const FolderDetailPage = () => {
                               className="btn-outline-secondary me-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openTransferDocs([doc.id]);
+                                actions.openTransferDocs([doc.id]);
                               }}
-                              disabled={transferSubmitting}
+                              disabled={loading.transferSubmitting}
                             >
                               <Icon name="arrow-right-left" className="me-1" />
                               {t("documents.transfer", { defaultValue: "Transfer" })}
@@ -454,9 +352,9 @@ const FolderDetailPage = () => {
                                 className="btn-outline-secondary me-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleUnarchiveFolderDocument(doc.id);
+                                  actions.handleUnarchiveFolderDocument(doc.id);
                                 }}
-                                disabled={isSubDocUnarchiving}
+                                disabled={loading.isSubDocUnarchiving}
                               >
                                 <Icon name="archive" className="me-1" />
                                 {t("documents.unarchive", { defaultValue: "Unarchive" })}
@@ -468,9 +366,9 @@ const FolderDetailPage = () => {
                                 className="btn-outline-secondary me-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleArchiveFolderDocument(doc.id);
+                                  actions.handleArchiveFolderDocument(doc.id);
                                 }}
-                                disabled={isSubDocArchiving}
+                                disabled={loading.isSubDocArchiving}
                               >
                                 <Icon name="archive" className="me-1" />
                                 {t("documents.archive", { defaultValue: "Archive" })}
@@ -504,46 +402,46 @@ const FolderDetailPage = () => {
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
             <div className="d-flex align-items-center gap-2">
-              {documents.length > 0 && (
+              {data.documents.length > 0 && (
                 <select
                   className="form-select form-select-sm"
                   style={{ width: "auto", minWidth: 200 }}
-                  value={attachmentsDocId}
-                  onChange={handleAttachmentsDocIdChange}
+                  value={data.attachmentsDocId}
+                  onChange={actions.handleAttachmentsDocIdChange}
                 >
-                  {documents.map((d) => (
+                  {data.documents.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.title ?? d.name ?? "–"} — {d.barcode}
                     </option>
                   ))}
                 </select>
               )}
-              {attachments.length > 0 && attachmentSelectedIds.length > 0 && (
+              {data.attachments.length > 0 && selection.attachmentSelectedIds.length > 0 && (
                 <>
                   <Button
                     variant="outline"
                     size="sm"
                     className="btn-outline-danger"
                     onClick={batchAttachmentTrashDialog.open}
-                    disabled={isAttachmentTrashing}
+                    disabled={loading.isAttachmentTrashing}
                   >
                     <Icon name="trash" className="me-1" />
                     {t("documents.deleteSelectedAttachments", {
                       defaultValue: "Delete selected",
                     })}
                   </Button>
-                  <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={clearAttachmentsSelection}>
+                  <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.clearAttachmentsSelection}>
                     {t("common.clearSelection", { defaultValue: "Clear selection" })}
                   </Button>
                 </>
               )}
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleAddAttachment}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleAddAttachment}>
                 {t("folders.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
             </div>
           </div>
           <div className="card-body">
-            {loadingAttachments ? (
+            {loading.loadingAttachments ? (
               <div className="text-center py-4">
                 <Spinner size="md" />
               </div>
@@ -552,16 +450,16 @@ const FolderDetailPage = () => {
                 <table className="table table-sm mb-0">
                   <thead>
                     <tr>
-                      {attachmentsSelectionConfig && (
+                      {selection.attachmentsSelectionConfig && (
                         <th style={{ width: "2.5rem" }} className="text-center">
-                          {attachments.length > 0 && (
+                          {data.attachments.length > 0 && (
                             <div className="form-check d-inline-flex justify-content-center mb-0">
                               <input
                                 type="checkbox"
                                 className="form-check-input"
-                                checked={attachmentsSelectionConfig.isAllSelected}
-                                onChange={attachmentsSelectionConfig.onToggleAll}
-                                aria-label={attachmentsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                                checked={selection.attachmentsSelectionConfig.isAllSelected}
+                                onChange={selection.attachmentsSelectionConfig.onToggleAll}
+                                aria-label={selection.attachmentsSelectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
                               />
                             </div>
                           )}
@@ -573,25 +471,25 @@ const FolderDetailPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {attachments.length === 0 ? (
+                    {data.attachments.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="text-center py-4 text-muted">
                           {t("common.noData", { defaultValue: "No data" })}
                         </td>
                       </tr>
                     ) : (
-                      attachments.map((attachment) => {
-                        const isSelected = attachmentsSelectionConfig && attachmentsSelectionConfig.selectedIds.includes(attachment.id);
+                      data.attachments.map((attachment) => {
+                        const isSelected = selection.attachmentsSelectionConfig && selection.attachmentsSelectionConfig.selectedIds.includes(attachment.id);
                         return (
                           <tr key={attachment.id}>
-                            {attachmentsSelectionConfig && (
-                              <td onClick={(e) => e.stopPropagation()}>
+                            {selection.attachmentsSelectionConfig && (
+                                <td onClick={(e) => e.stopPropagation()}>
                                 <div className="form-check mb-0">
                                   <input
                                     type="checkbox"
                                     className="form-check-input"
                                     checked={isSelected}
-                                    onChange={() => attachmentsSelectionConfig.onToggle(attachment.id)}
+                                    onChange={() => selection.attachmentsSelectionConfig.onToggle(attachment.id)}
                                     onClick={(e) => e.stopPropagation()}
                                     aria-label={`Select attachment ${attachment.name}`}
                                   />
@@ -607,7 +505,7 @@ const FolderDetailPage = () => {
                                 className="btn-outline-secondary me-1"
                                 onClick={(e) => {
                                   e?.stopPropagation();
-                                  handleViewAttachment(attachment.id);
+                                  actions.handleViewAttachment(attachment.id);
                                 }}
                               >
                                 <Icon name="eye" className="me-1" />
@@ -617,7 +515,7 @@ const FolderDetailPage = () => {
                                 variant="outline"
                                 size="sm"
                                 className="btn-outline-secondary me-1"
-                                onClick={() => handleDownloadAttachment(attachment.id, attachment.file_name)}
+                                onClick={() => actions.handleDownloadAttachment(attachment.id, attachment.file_name)}
                               >
                                 {t("documents.download", { defaultValue: "Download" })}
                               </Button>
@@ -653,11 +551,11 @@ const FolderDetailPage = () => {
               {t("notes.folderNotes", { defaultValue: "Folder Notes" })}
             </h6>
             <div className="d-flex gap-2">
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleLoadNotes}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleLoadNotes}>
                 <Icon name="refresh-cw" className="me-1" />
                 {t("common.refresh", { defaultValue: "Refresh" })}
               </Button>
-              <Button variant="secondary" size="sm" onClick={handleCreateNote}>
+              <Button variant="secondary" size="sm" onClick={actions.handleCreateNote}>
                 <Icon name="upload" className="me-1" />
                 {t("notes.createNote", { defaultValue: "Create note" })}
               </Button>
@@ -665,12 +563,12 @@ const FolderDetailPage = () => {
           </div>
           <div className="card-body">
             <NotesList
-              notes={notes}
-              loading={loadingNotes}
-              error={notesError}
-              onEdit={handleEditNote}
+              notes={data.notes}
+              loading={loading.loadingNotes}
+              error={error.notesError}
+              onEdit={actions.handleEditNote}
               onDelete={(note) => noteDeleteDialog.open(note.id)}
-              onViewImage={handleViewNoteImage}
+              onViewImage={actions.handleViewNoteImage}
               showDocument={true}
               showFolder={false}
               emptyMessage={t("notes.noNotesForFolder", {
@@ -684,8 +582,8 @@ const FolderDetailPage = () => {
         <div className="card mb-3">
           <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h6 className="mb-0">📄 {t("documents.preview", { defaultValue: "Preview" })}</h6>
-            {mainDoc && previewDoc?.id && previewFileName && (
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleDownloadMainDocument}>
+            {data.mainDoc && data.previewDoc?.id && data.previewFileName && (
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleDownloadMainDocument}>
                 <Icon name="download" className="me-1" />
                 {t("documents.download", { defaultValue: "Download" })}
               </Button>
@@ -694,10 +592,10 @@ const FolderDetailPage = () => {
           <div className="card-body">
             <div className="row">
               <div className="col-12 col-lg-6">
-                {previewDoc?.id && previewFileName ? (
+                {data.previewDoc?.id && data.previewFileName ? (
                   <FilePreview
-                    documentId={previewDoc.id}
-                    fileName={previewFileName}
+                    documentId={data.previewDoc.id}
+                    fileName={data.previewFileName}
                     maxHeight="500px"
                     notPreviewableMessage={t("documents.previewNotAvailable", { defaultValue: "Preview not available for this file type" })}
                   />
@@ -712,69 +610,69 @@ const FolderDetailPage = () => {
         {/* Folder activity */}
         <AuditActivityPanel
           t={t}
-          logs={activityLogs}
-          loading={activityLoading}
-          error={activityError}
-          viewMode={activityViewMode}
+          logs={activity.activityLogs}
+          loading={activity.activityLoading}
+          error={activity.activityError}
+          viewMode={activity.activityViewMode}
           onViewModeChange={handleActivityViewModeChange}
           title={t("activity.folderTitle", { defaultValue: "Folder activity" })}
           subtitle={t("activity.folderCoverage", {
             defaultValue: "Showing events from {{count}} documents",
-            count: activityDocumentCount,
+            count: activity.activityDocumentCount,
           })}
           showRefresh
           onRefresh={handleActivityRefresh}
           showDocument
-          onDocumentClick={handleNavigateToDocument}
+          onDocumentClick={actions.handleNavigateToDocument}
           treeGroupBy="document"
         />
 
       {/* Signature modal */}
-      <Modal isOpen={signatureOpen} onClose={() => setSignatureOpen(false)} title={t("folders.signatureRequestOnMain", { defaultValue: "Request signature (main document)" })} size="md">
-        {mainDoc && (
+      <Modal isOpen={modals.signatureOpen} onClose={() => actions.setSignatureOpen(false)} title={t("folders.signatureRequestOnMain", { defaultValue: "Request signature (main document)" })} size="md">
+        {data.mainDoc && (
           <p className="small mb-2">
-            {mainDoc.title ?? mainDoc.name} — {mainDoc.barcode}
+            {data.mainDoc.title ?? data.mainDoc.name} — {data.mainDoc.barcode}
           </p>
         )}
         <div className="mb-3">
           <label className="form-label">{t("folders.signerRequired", { defaultValue: "Signer" })} *</label>
-          <select className="form-select" value={signatureSignerId} onChange={(e) => setSignatureSignerId(e.target.value ? Number(e.target.value) : "")}>
+          <select className="form-select" value={modals.signatureSignerId} onChange={(e) => actions.setSignatureSignerId(e.target.value ? Number(e.target.value) : "")}>
             <option value="">{t("folders.selectSigner", { defaultValue: "Select signer…" })}</option>
-            {managers.map((m) => (
+            {data.managers.map((m) => (
               <option key={m.id} value={m.id}>{m.name} {m.login ? `(${m.login})` : ""}</option>
             ))}
           </select>
         </div>
         <div className="mb-3">
           <label className="form-label">{t("folders.messageOptional", { defaultValue: "Message (optional)" })}</label>
-          <textarea className="form-control" rows={3} value={signatureMessage} onChange={(e) => setSignatureMessage(e.target.value)} />
+          <textarea className="form-control" rows={3} value={modals.signatureMessage} onChange={(e) => actions.setSignatureMessage(e.target.value)} />
         </div>
         <ModalFooter>
-          <Button variant="outline" className="btn-outline-secondary" onClick={() => setSignatureOpen(false)}>
+          <Button variant="outline" className="btn-outline-secondary" onClick={() => actions.setSignatureOpen(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
-          <Button variant="secondary" disabled={!signatureSignerId} onClick={submitSignature}>
+          <Button variant="secondary" disabled={!modals.signatureSignerId} onClick={actions.submitSignature}>
             {t("folders.create", { defaultValue: "Create" })}
           </Button>
         </ModalFooter>
       </Modal>
 
       {/* Edit request modal */}
-      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={t("folders.editRequestOnMain", { defaultValue: "Edit request (main document)" })} size="md">
-        {mainDoc && (
+      <Modal isOpen={modals.editOpen} onClose={() => actions.setEditOpen(false)} title={t("folders.editRequestOnMain", { defaultValue: "Edit request (main document)" })} size="md">
+        {data.mainDoc && (
           <p className="small mb-2">
-            {mainDoc.title ?? mainDoc.name} — {mainDoc.barcode}
+            {data.mainDoc.title ?? data.mainDoc.name} — {data.mainDoc.barcode}
           </p>
         )}
         <div className="mb-3">
           <label className="form-label">{t("folders.editReasonRequired", { defaultValue: "Reason" })} *</label>
-          <textarea className="form-control" rows={4} value={editReason} onChange={(e) => setEditReason(e.target.value)} />
+          <textarea className="form-control" rows={4} value={modals.editReason} onChange={(e) => actions.setEditReason(e.target.value)} />
         </div>
         <ModalFooter>
-          <Button variant="outline" className="btn-outline-secondary" onClick={() => setEditOpen(false)}>
+          <Button variant="outline" className="btn-outline-secondary" onClick={() => actions.setEditOpen(false)}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
-          <Button variant="secondary" disabled={!mainDoc || !editReason.trim()} onClick={submitEditRequest}>
+          <Button variant="secondary" disabled={!data.mainDoc || !modals.editReason.trim()} onClick={actions.submitEditRequest}>
             {t("folders.create", { defaultValue: "Create" })}
           </Button>
         </ModalFooter>
@@ -807,7 +705,7 @@ const FolderDetailPage = () => {
         })}
         message={t("documents.confirmBatchMoveToTrash", {
           defaultValue: "Move {{count}} document(s) to trash?",
-          count: subDocSelectedIds.length,
+          count: selection.subDocSelectedIds.length,
         })}
         confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
@@ -832,7 +730,7 @@ const FolderDetailPage = () => {
         })}
         message={t("documents.confirmBatchDeleteAttachments", {
           defaultValue: "Delete {{count}} attachment(s)? This cannot be undone.",
-          count: attachmentSelectedIds.length,
+          count: selection.attachmentSelectedIds.length,
         })}
         confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
@@ -840,69 +738,69 @@ const FolderDetailPage = () => {
       />
 
       <TransferToFolderModal
-        isOpen={transferModalOpen}
-        onClose={closeTransferModal}
-        departmentId={transferDepartmentId}
+        isOpen={modals.transferModalOpen}
+        onClose={actions.closeTransferModal}
+        departmentId={modals.transferDepartmentId}
         title={t("folders.selectDestinationFolder", { defaultValue: "Select destination folder" })}
         subtitle={
-          transferMode === "docs"
-            ? t("folders.transferSubtitleDocs", { count: transferDocIds.length, defaultValue: "Transfer {{count}} document(s) to a folder in the same department." })
-            : transferMode === "attachments"
-              ? t("folders.transferSubtitleAttachments", { count: transferAttachmentIds.length, defaultValue: "Transfer {{count}} attachment(s) to a folder in the same department." })
+          modals.transferMode === "docs"
+            ? t("folders.transferSubtitleDocs", { count: modals.transferDocIds.length, defaultValue: "Transfer {{count}} document(s) to a folder in the same department." })
+            : modals.transferMode === "attachments"
+              ? t("folders.transferSubtitleAttachments", { count: modals.transferAttachmentIds.length, defaultValue: "Transfer {{count}} attachment(s) to a folder in the same department." })
               : undefined
         }
-        excludeFolderId={folderId ?? undefined}
-        onConfirm={handleTransferConfirm}
-        isSubmitting={transferSubmitting}
+        excludeFolderId={data.folderId ?? undefined}
+        onConfirm={actions.handleTransferConfirm}
+        isSubmitting={loading.transferSubmitting}
       />
 
       <EditFolderSidePanel
-        isOpen={isEditFolderOpen}
-        onClose={handleCloseEditFolder}
-        folder={folder}
-        onSuccess={handleEditFolderSuccess}
+        isOpen={modals.isEditFolderOpen}
+        onClose={actions.handleCloseEditFolder}
+        folder={data.folder}
+        onSuccess={actions.handleEditFolderSuccess}
       />
 
       <UploadDocumentSidePanel
-        isOpen={isUploadOpen}
-        onClose={handleCloseUploadPanel}
+        isOpen={modals.isUploadOpen}
+        onClose={actions.handleCloseUploadPanel}
         onSuccess={() => {
-          loadFolderDocuments();
-          refreshAttachmentsForCurrentDocument();
-          handleCloseUploadPanel();
+          actions.loadFolderDocuments();
+          actions.refreshAttachmentsForCurrentDocument();
+          actions.handleCloseUploadPanel();
         }}
-        initialValues={uploadPanelInitialValues}
-        lockFolderContext={uploadPanelLockFolderContext}
+        initialValues={modals.uploadPanelInitialValues}
+        lockFolderContext={modals.uploadPanelLockFolderContext}
       />
 
       {/* Note editor modal */}
       <Modal
-        isOpen={isNotesEditorOpen}
-        onClose={handleCloseNoteEditor}
+        isOpen={modals.isNotesEditorOpen}
+        onClose={actions.handleCloseNoteEditor}
         title={
-          editingNote
+          modals.editingNote
             ? t("notes.editNote", { defaultValue: "Edit note" })
             : t("notes.createNote", { defaultValue: "Create note" })
         }
         size="lg"
       >
         <NoteEditor
-          note={editingNote}
-          folderId={folderId ?? undefined}
-          departmentId={folder?.department_id}
-          onSave={handleSaveNote}
-          onCancel={handleCloseNoteEditor}
-          isSaving={isCreatingNote || isUpdatingNote}
+          note={modals.editingNote}
+          folderId={data.folderId ?? undefined}
+          departmentId={data.folder?.department_id}
+          onSave={actions.handleSaveNote}
+          onCancel={actions.handleCloseNoteEditor}
+          isSaving={loading.isCreatingNote || loading.isUpdatingNote}
         />
       </Modal>
 
       {/* Note image viewer modal */}
       <NoteImageViewerModal
-        isOpen={noteImageViewerId != null}
-        onClose={handleCloseNoteImageViewer}
-        noteId={noteImageViewerId}
-        noteTitle={noteImageViewerTitle}
-        imageFilename={noteImageViewerFilename}
+        isOpen={modals.noteImageViewerId != null}
+        onClose={actions.handleCloseNoteImageViewer}
+        noteId={modals.noteImageViewerId}
+        noteTitle={modals.noteImageViewerTitle}
+        imageFilename={modals.noteImageViewerFilename}
       />
 
       {/* Note delete confirmation modal */}
