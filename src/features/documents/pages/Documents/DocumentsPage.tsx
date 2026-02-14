@@ -94,6 +94,8 @@ const DocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger",
+          /** Hide move-to-trash for main documents on /documents (main docs are managed via folder). */
+          visible: (row) => row.is_main_document !== true,
           onClick: (row) => trashDialog.open(row.id),
         },
       ]),
