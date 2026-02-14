@@ -2,31 +2,24 @@
  * Standalone Notes page for browsing all notes (document/folder/standalone)
  */
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ConfirmModal, Icon, Modal, Spinner } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog } from "../../../shared/hooks";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
+import { useNoteEditorHandlers } from "../hooks/useNoteEditorHandlers";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
-import type { NoteEditorSavePayload } from "../components/NoteEditor";
-import type { NoteListItem, UpdateNotePayload } from "../types/notes.types";
+import type { NoteListItem } from "../types/notes.types";
 
 const NotesPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
 
-  const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
-  const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
-  const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
-  const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
-
-  // Load all notes (no document/folder filter)
   const {
     notes,
     loading,
@@ -49,79 +42,25 @@ const NotesPage = () => {
     isDeleting,
   } = useNoteMutations();
 
-  /** Open note editor for creating a new note */
-  const handleCreateNote = useCallback(() => {
-    setEditingNote(null);
-    setIsNotesEditorOpen(true);
-  }, []);
+  const noteEditor = useNoteEditorHandlers({
+    refreshNotes: refresh,
+    createNote,
+    updateNote,
+    deleteNote,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    createContext: undefined,
+  });
 
-  /** Open note editor for editing an existing note */
-  const handleEditNote = useCallback((note: NoteListItem) => {
-    setEditingNote(note);
-    setIsNotesEditorOpen(true);
-  }, []);
+  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: noteEditor.confirmDeleteNote });
 
-  /** Close note editor */
-  const handleCloseNoteEditor = useCallback(() => {
-    setIsNotesEditorOpen(false);
-    setEditingNote(null);
-  }, []);
-
-  /** Save note (create or update), now supports optional folder/document linking */
-  const handleSaveNote = useCallback(
-    async (payload: NoteEditorSavePayload) => {
-      if (editingNote) {
-        // Update existing note — strip linking fields not accepted by update endpoint
-        const { folder_id, document_id, ...updateFields } = payload;
-        const success = await updateNote(editingNote.id, updateFields as UpdateNotePayload);
-        if (success) {
-          handleCloseNoteEditor();
-          refresh();
-        }
-      } else {
-        // Create note — pass full payload including optional folder/document IDs
-        const noteId = await createNote(payload);
-        if (noteId) {
-          handleCloseNoteEditor();
-          refresh();
-        }
-      }
-    },
-    [editingNote, updateNote, createNote, handleCloseNoteEditor, refresh]
-  );
-
-  /** Confirm delete: used by useConfirmDialog onConfirm. */
-  const confirmDeleteNote = useCallback(
-    async (noteId: number) => {
-      const success = await deleteNote(noteId);
-      if (success) refresh();
-    },
-    [deleteNote, refresh]
-  );
-
-  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: confirmDeleteNote });
-
-  /** Open delete confirmation modal for a note */
   const handleDeleteNote = useCallback(
     (note: NoteListItem) => {
       noteDeleteDialog.open(note.id);
     },
     [noteDeleteDialog]
   );
-
-  /** Open image viewer for a note */
-  const handleViewNoteImage = useCallback((note: NoteListItem) => {
-    setNoteImageViewerId(note.id);
-    setNoteImageViewerTitle(note.title ?? "");
-    setNoteImageViewerFilename(note.image_filename ?? "");
-  }, []);
-
-  /** Close image viewer */
-  const handleCloseNoteImageViewer = useCallback(() => {
-    setNoteImageViewerId(null);
-    setNoteImageViewerTitle("");
-    setNoteImageViewerFilename("");
-  }, []);
 
   /** Navigate to document detail */
   const handleNavigateToDocument = useCallback(
@@ -152,7 +91,7 @@ const NotesPage = () => {
             <Icon name="refresh-cw" className="me-1" />
             {t("common.refresh", { defaultValue: "Refresh" })}
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleCreateNote}>
+          <Button variant="secondary" size="sm" onClick={noteEditor.handleCreateNote}>
             <Icon name="upload" className="me-1" />
             {t("notes.createNote", { defaultValue: "Create note" })}
           </Button>
@@ -184,9 +123,9 @@ const NotesPage = () => {
               notes={notes}
               loading={loading}
               error={error}
-              onEdit={handleEditNote}
+              onEdit={noteEditor.handleEditNote}
               onDelete={handleDeleteNote}
-              onViewImage={handleViewNoteImage}
+              onViewImage={noteEditor.handleViewNoteImage}
               onFolderClick={handleNavigateToFolder}
               showDocument={true}
               showFolder={true}
@@ -253,30 +192,30 @@ const NotesPage = () => {
 
       {/* Note editor modal */}
       <Modal
-        isOpen={isNotesEditorOpen}
-        onClose={handleCloseNoteEditor}
+        isOpen={noteEditor.isNotesEditorOpen}
+        onClose={noteEditor.handleCloseNoteEditor}
         title={
-          editingNote
+          noteEditor.editingNote
             ? t("notes.editNote", { defaultValue: "Edit note" })
             : t("notes.createNote", { defaultValue: "Create note" })
         }
         size="lg"
       >
         <NoteEditor
-          note={editingNote}
-          onSave={handleSaveNote}
-          onCancel={handleCloseNoteEditor}
-          isSaving={isCreating || isUpdating}
+          note={noteEditor.editingNote}
+          onSave={noteEditor.handleSaveNote}
+          onCancel={noteEditor.handleCloseNoteEditor}
+          isSaving={noteEditor.isCreatingNote || noteEditor.isUpdatingNote}
         />
       </Modal>
 
       {/* Note image viewer modal */}
       <NoteImageViewerModal
-        isOpen={noteImageViewerId != null}
-        onClose={handleCloseNoteImageViewer}
-        noteId={noteImageViewerId}
-        noteTitle={noteImageViewerTitle}
-        imageFilename={noteImageViewerFilename}
+        isOpen={noteEditor.noteImageViewerId != null}
+        onClose={noteEditor.handleCloseNoteImageViewer}
+        noteId={noteEditor.noteImageViewerId}
+        noteTitle={noteEditor.noteImageViewerTitle}
+        imageFilename={noteEditor.noteImageViewerFilename}
       />
 
       {/* Note delete confirmation modal */}

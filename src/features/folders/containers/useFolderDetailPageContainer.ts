@@ -18,7 +18,8 @@ import { downloadDocumentWithToast } from "../../../shared/utils/documents/downl
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
-import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../../notes/types/notes.types";
+import { useNoteEditorHandlers } from "../../notes/hooks/useNoteEditorHandlers";
+import type { NoteListItem } from "../../notes/types/notes.types";
 
 export const useFolderDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -125,18 +126,26 @@ export const useFolderDetailPageContainer = () => {
     isDeleting: isDeletingNote,
   } = useNoteMutations();
 
+  const noteEditor = useNoteEditorHandlers({
+    refreshNotes,
+    createNote,
+    updateNote,
+    deleteNote,
+    isCreating: isCreatingNote,
+    isUpdating: isUpdatingNote,
+    isDeleting: isDeletingNote,
+    createContext:
+      folderId != null
+        ? { folder_id: folderId, department_id: folder?.department_id }
+        : undefined,
+  });
+
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [transferMode, setTransferMode] = useState<"docs" | "attachments" | null>(null);
   const [transferDocIds, setTransferDocIds] = useState<number[]>([]);
   const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
   const [transferDepartmentId, setTransferDepartmentId] = useState(0);
   const [transferSubmitting, setTransferSubmitting] = useState(false);
-  // Notes state
-  const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
-  const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
-  const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
-  const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
 
   /** Fetches folder and its documents from GET /api/folders/:id/documents; folder includes last_modified (UTC) for "Updated" display. */
   const loadFolderDocuments = useCallback(async () => {
@@ -560,75 +569,6 @@ export const useFolderDetailPageContainer = () => {
     }
   }, [folderId, refreshNotes]);
 
-  /** Open note editor for creating a new note */
-  const handleCreateNote = useCallback(() => {
-    setEditingNote(null);
-    setIsNotesEditorOpen(true);
-  }, []);
-
-  /** Open note editor for editing an existing note */
-  const handleEditNote = useCallback((note: NoteListItem) => {
-    setEditingNote(note);
-    setIsNotesEditorOpen(true);
-  }, []);
-
-  /** Close note editor */
-  const handleCloseNoteEditor = useCallback(() => {
-    setIsNotesEditorOpen(false);
-    setEditingNote(null);
-  }, []);
-
-  /** Save note (create or update) */
-  const handleSaveNote = useCallback(
-    async (payload: Omit<CreateNotePayload, 'folder_id'>) => {
-      if (!folderId) return;
-
-      if (editingNote) {
-        // Update existing note
-        const success = await updateNote(editingNote.id, payload as UpdateNotePayload);
-        if (success) {
-          handleCloseNoteEditor();
-          refreshNotes();
-        }
-      } else {
-        // Create new note
-        const noteId = await createNote({
-          ...payload,
-          folder_id: folderId,
-          department_id: folder?.department_id,
-        });
-        if (noteId) {
-          handleCloseNoteEditor();
-          refreshNotes();
-        }
-      }
-    },
-    [folderId, editingNote, updateNote, createNote, folder?.department_id, handleCloseNoteEditor, refreshNotes]
-  );
-
-  /** Note delete: call from useConfirmDialog onConfirm. */
-  const confirmDeleteNote = useCallback(
-    async (noteId: number) => {
-      const success = await deleteNote(noteId);
-      if (success) refreshNotes();
-    },
-    [deleteNote, refreshNotes]
-  );
-
-  /** Open image viewer for a note */
-  const handleViewNoteImage = useCallback((note: NoteListItem) => {
-    setNoteImageViewerId(note.id);
-    setNoteImageViewerTitle(note.title ?? "");
-    setNoteImageViewerFilename(note.image_filename ?? "");
-  }, []);
-
-  /** Close image viewer */
-  const handleCloseNoteImageViewer = useCallback(() => {
-    setNoteImageViewerId(null);
-    setNoteImageViewerTitle("");
-    setNoteImageViewerFilename("");
-  }, []);
-
   /** Grouped return shape: loadingState (avoids loading.loading), errors (avoids error.error), plus data/activity/selection/actions/modals. */
   return {
     t,
@@ -657,9 +597,9 @@ export const useFolderDetailPageContainer = () => {
       isSubDocTrashing: isTrashing,
       isAttachmentTrashing,
       transferSubmitting,
-      isCreatingNote,
-      isUpdatingNote,
-      isDeletingNote,
+      isCreatingNote: noteEditor.isCreatingNote,
+      isUpdatingNote: noteEditor.isUpdatingNote,
+      isDeletingNote: noteEditor.isDeletingNote,
     },
     errors: {
       main: error,
@@ -721,13 +661,13 @@ export const useFolderDetailPageContainer = () => {
       handleEditFolderSuccess,
       confirmDeleteFolder,
       handleLoadNotes,
-      handleCreateNote,
-      handleEditNote,
-      handleCloseNoteEditor,
-      handleSaveNote,
-      confirmDeleteNote,
-      handleViewNoteImage,
-      handleCloseNoteImageViewer,
+      handleCreateNote: noteEditor.handleCreateNote,
+      handleEditNote: noteEditor.handleEditNote,
+      handleCloseNoteEditor: noteEditor.handleCloseNoteEditor,
+      handleSaveNote: noteEditor.handleSaveNote,
+      confirmDeleteNote: noteEditor.confirmDeleteNote,
+      handleViewNoteImage: noteEditor.handleViewNoteImage,
+      handleCloseNoteImageViewer: noteEditor.handleCloseNoteImageViewer,
     },
     modals: {
       signatureOpen,
@@ -744,11 +684,11 @@ export const useFolderDetailPageContainer = () => {
       transferDocIds,
       transferAttachmentIds,
       transferDepartmentId,
-      isNotesEditorOpen,
-      editingNote,
-      noteImageViewerId,
-      noteImageViewerTitle,
-      noteImageViewerFilename,
+      isNotesEditorOpen: noteEditor.isNotesEditorOpen,
+      editingNote: noteEditor.editingNote,
+      noteImageViewerId: noteEditor.noteImageViewerId,
+      noteImageViewerTitle: noteEditor.noteImageViewerTitle,
+      noteImageViewerFilename: noteEditor.noteImageViewerFilename,
     },
   };
 };

@@ -18,7 +18,8 @@ import { convertToArabianStandardTime } from "../../../shared/utils/format/date"
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
 import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
 import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
-import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../../notes/types/notes.types";
+import { useNoteEditorHandlers } from "../../notes/hooks/useNoteEditorHandlers";
+import type { NoteListItem } from "../../notes/types/notes.types";
 
 export const useDocumentDetailPageContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -107,12 +108,6 @@ export const useDocumentDetailPageContainer = () => {
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
   const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
 
-  // Notes state
-  const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
-  const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
-  const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
-  const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
   const {
     selectedIds: attachmentSelectedIds,
     selectionConfig: attachmentSelectionConfig,
@@ -154,6 +149,21 @@ export const useDocumentDetailPageContainer = () => {
   };
 
   const doc = currentDocument as DocumentDetail | null;
+
+  const noteEditor = useNoteEditorHandlers({
+    refreshNotes,
+    createNote,
+    updateNote,
+    deleteNote,
+    isCreating: isCreatingNote,
+    isUpdating: isUpdatingNote,
+    isDeleting: isDeletingNote,
+    createContext:
+      docId != null
+        ? { document_id: docId, department_id: doc?.department_id }
+        : undefined,
+  });
+
   const title = doc?.name ?? doc?.title ?? "–";
   const documentTypeName =
     (doc?.document_type as { name?: string })?.name ?? doc?.document_type_name ?? "–";
@@ -546,77 +556,6 @@ export const useDocumentDetailPageContainer = () => {
     return convertToArabianStandardTime(value);
   };
 
-  // ── Note handlers ──
-
-  /** Open note editor for creating a new note */
-  const handleCreateNote = useCallback(() => {
-    setEditingNote(null);
-    setIsNotesEditorOpen(true);
-  }, []);
-
-  /** Open note editor for editing an existing note */
-  const handleEditNote = useCallback((note: NoteListItem) => {
-    setEditingNote(note);
-    setIsNotesEditorOpen(true);
-  }, []);
-
-  /** Close note editor */
-  const handleCloseNoteEditor = useCallback(() => {
-    setIsNotesEditorOpen(false);
-    setEditingNote(null);
-  }, []);
-
-  /** Save note (create or update) for this document */
-  const handleSaveNote = useCallback(
-    async (payload: Omit<CreateNotePayload, 'document_id'>) => {
-      if (!docId) return;
-
-      if (editingNote) {
-        // Update existing note
-        const success = await updateNote(editingNote.id, payload as UpdateNotePayload);
-        if (success) {
-          handleCloseNoteEditor();
-          refreshNotes();
-        }
-      } else {
-        // Create new note linked to this document
-        const noteId = await createNote({
-          ...payload,
-          document_id: docId,
-          department_id: doc?.department_id,
-        });
-        if (noteId) {
-          handleCloseNoteEditor();
-          refreshNotes();
-        }
-      }
-    },
-    [docId, editingNote, updateNote, createNote, doc?.department_id, handleCloseNoteEditor, refreshNotes]
-  );
-
-  /** Note delete: call from useConfirmDialog onConfirm. */
-  const confirmDeleteNote = useCallback(
-    async (noteId: number) => {
-      const success = await deleteNote(noteId);
-      if (success) refreshNotes();
-    },
-    [deleteNote, refreshNotes]
-  );
-
-  /** Open image viewer for a note */
-  const handleViewNoteImage = useCallback((note: NoteListItem) => {
-    setNoteImageViewerId(note.id);
-    setNoteImageViewerTitle(note.title ?? "");
-    setNoteImageViewerFilename(note.image_filename ?? "");
-  }, []);
-
-  /** Close image viewer */
-  const handleCloseNoteImageViewer = useCallback(() => {
-    setNoteImageViewerId(null);
-    setNoteImageViewerTitle("");
-    setNoteImageViewerFilename("");
-  }, []);
-
   /** Grouped return shape: data, loading, error, tabs, selection, actions, modals (KISS/consistency with list containers). */
   return {
     t,
@@ -662,9 +601,9 @@ export const useDocumentDetailPageContainer = () => {
       uploadingSigned,
       addingRelation,
       runOcrLoading,
-      isCreatingNote,
-      isUpdatingNote,
-      isDeletingNote,
+      isCreatingNote: noteEditor.isCreatingNote,
+      isUpdatingNote: noteEditor.isUpdatingNote,
+      isDeletingNote: noteEditor.isDeletingNote,
     },
     error: {
       storeError,
@@ -708,13 +647,13 @@ export const useDocumentDetailPageContainer = () => {
       handleUploadSignedSubmit,
       handleAddRelationSubmit,
       handleSetParent,
-      handleCreateNote,
-      handleEditNote,
-      handleCloseNoteEditor,
-      handleSaveNote,
-      confirmDeleteNote,
-      handleViewNoteImage,
-      handleCloseNoteImageViewer,
+      handleCreateNote: noteEditor.handleCreateNote,
+      handleEditNote: noteEditor.handleEditNote,
+      handleCloseNoteEditor: noteEditor.handleCloseNoteEditor,
+      handleSaveNote: noteEditor.handleSaveNote,
+      confirmDeleteNote: noteEditor.confirmDeleteNote,
+      handleViewNoteImage: noteEditor.handleViewNoteImage,
+      handleCloseNoteImageViewer: noteEditor.handleCloseNoteImageViewer,
       setIsAddAttachmentPanelOpen,
       setModalUploadVersion,
       setUploadVersionFile,
@@ -766,14 +705,14 @@ export const useDocumentDetailPageContainer = () => {
       isPermanentDeleting,
       isDeletingAttachment,
       isUpdatingAttachment,
-      isNotesEditorOpen,
-      editingNote,
-      isCreatingNote,
-      isUpdatingNote,
-      isDeletingNote,
-      noteImageViewerId,
-      noteImageViewerTitle,
-      noteImageViewerFilename,
+      isNotesEditorOpen: noteEditor.isNotesEditorOpen,
+      editingNote: noteEditor.editingNote,
+      isCreatingNote: noteEditor.isCreatingNote,
+      isUpdatingNote: noteEditor.isUpdatingNote,
+      isDeletingNote: noteEditor.isDeletingNote,
+      noteImageViewerId: noteEditor.noteImageViewerId,
+      noteImageViewerTitle: noteEditor.noteImageViewerTitle,
+      noteImageViewerFilename: noteEditor.noteImageViewerFilename,
     },
   };
 };
