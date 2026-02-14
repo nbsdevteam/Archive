@@ -80,17 +80,20 @@
   color: #fff;
 }
 
-/* Grid card fixed height layout */
+/* Grid card fixed height and width layout */
 .folders__grid-card-wrapper {
   cursor: pointer;
+  width: 100% !important;
   min-height: 220px;
   max-height: 220px;
   display: flex;
   flex-direction: column;
+  margin-bottom: 1rem;
 }
 
 .folders__grid-card {
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   display: flex;
   flex-direction: column;
 }
@@ -100,13 +103,21 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* Folder name ellipsis with full width */
+/* Folder name ellipsis with 80% max width */
 .folders__folder-name-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 80% !important;
+  width: 100%;
+  display: inline-block !important;
+  cursor: pointer;
+}
+
+.folders__folder-name-wrapper {
   max-width: 100%;
-  display: block;
+  overflow: hidden;
 }

@@ -54,10 +54,10 @@ export function FoldersContent(props: FoldersContentProps) {
             <div className="col-12 text-center py-5 text-muted">{t("folders.noFoldersFound", { defaultValue: "No folders found" })}</div>
           ) : (
             filteredFolders.map((folder) => (
-              <div className="col-xl-3 col-md-6 d-flex" key={folder.id}>
-                <div className="flex-fill folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)}>
-                  <Card className="flex-fill folders__grid-card" bordered={false}>
-                    <div className="card-body d-flex flex-column folders__grid-card-body">
+              <div className="col-xl-3 col-md-6" key={folder.id}>
+                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)}>
+                  <Card className="folders__grid-card" bordered={false}>
+                    <div className="card-body folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <span className="folders__folder-icon p-2 br-10 d-flex align-items-center justify-content-center">
                           <Icon name="folder" className="folders__folder-icon-symbol fs-18" />
@@ -66,15 +66,17 @@ export function FoldersContent(props: FoldersContentProps) {
                           {t("folders.updated", { defaultValue: "Updated" })} {formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}
                         </span>
                       </div>
-                      <InfoWrapper
-                        content={folder.name}
-                        position="top"
-                        trigger={
-                          <h5 className="mb-1 folders__folder-name-ellipsis">
-                            {folder.name}
-                          </h5>
-                        }
-                      />
+                      <div className="folders__folder-name-wrapper mb-1">
+                        <InfoWrapper
+                          content={folder.name}
+                          position="top"
+                          trigger={
+                            <h5 className="folders__folder-name-ellipsis mb-0">
+                              {folder.name}
+                            </h5>
+                          }
+                        />
+                      </div>
                       <p className="text-muted mb-2">
                         <small>{t("folders.code", { defaultValue: "Code" })}: {folder.code}</small>
                       </p>
