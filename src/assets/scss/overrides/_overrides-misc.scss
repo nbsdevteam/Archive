@@ -1,8 +1,8 @@
 /* Misc overrides (base links, tooltips, components not in tables/forms/sidebar/pagination). */
 
 /* Height utility: 50% of viewport height */
-.h-50vh {
-  height: 50vh;
+.h-min-50vh {
+  min-height: 50vh;
 }
 
 a {
