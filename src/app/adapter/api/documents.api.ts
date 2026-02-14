@@ -28,27 +28,29 @@ export interface Document {
   confidentiality_level: string;
   barcode: string;
   file_name: string;
+  /** File size in bytes; API may return 0 when unknown. */
   file_size: number;
-  /** Optional shipping/logistics fields (API may send false when not set) */
+  /** Optional shipping/logistics fields; API returns false when not set. */
   po_number?: string | false;
   bl_number?: string | false;
   container_number?: string | false;
   invoice_number?: string | false;
   envoy_number?: string | false;
-  /** Folder assignment; null when document is not in a folder */
+  /** Folder assignment; null when document is not in a folder. */
   folder_id?: number | null;
+  /** Display name of the folder (e.g. "FIN-RCPT-testyTarget_398"). */
   folder_name?: string | null;
-  /** For sub-documents: parent main document id */
+  /** For sub-documents: parent main document id. */
   parent_document_id?: number | null;
-  /** True when this document is a main document (can be transferred to folder); false for sub/attachment */
+  /** True when this document is a main document (can be transferred to folder); false for sub/attachment. */
   is_main_document?: boolean;
-  /** Document role: e.g. "main" | "sub" */
+  /** Document role: e.g. "main" | "sub". */
   document_role?: string;
-  /** Relation type when linked to another document, e.g. "secondary_document" */
+  /** Relation type when linked to another document, e.g. "secondary_document". */
   relation_type?: string | null;
-  /** Notes system: number of notes on this document (API 1.1) */
+  /** Number of notes on this document. */
   note_count?: number;
-  /** Notes system: last modified including versions/notes (API 1.1) */
+  /** Last modified timestamp (including versions/notes). */
   last_modified?: string | null;
 }
 
@@ -316,13 +318,14 @@ export const documentsApi = {
   },
 
   /**
-   * Update document metadata (main or sub). PUT /api/documents/<document_id>/update (JSON-RPC).
+   * Update document metadata (main or sub). POST /api/documents/<document_id>/update (JSON-RPC).
+   * Backend may reject PUT with 405; use POST for JSON-RPC compatibility.
    */
   updateDocument: async (
     documentId: number,
     params: UpdateDocumentParams
   ): Promise<UpdateDocumentResponse> => {
-    const response = await apiClient.put(
+    const response = await apiClient.post(
       `/api/documents/${documentId}/update`,
       {
         jsonrpc: '2.0',
@@ -782,8 +785,9 @@ export const documentsApi = {
   },
 
   /**
-   * Update attachment metadata.
+   * Update attachment metadata and optionally replace file.
    * POST /api/documents/<document_id>/attachments/<attachment_id>/update (JSON-RPC)
+   * Params: name, description, attachment_type; optional file_data (base64), file_name for replace.
    */
   updateAttachment: async (
     documentId: number,
@@ -792,6 +796,8 @@ export const documentsApi = {
       name?: string;
       description?: string | null;
       attachment_type?: string;
+      file_data?: string;
+      file_name?: string;
     }
   ): Promise<{ success: boolean; error?: string }> => {
     const response = await apiClient.post(

@@ -200,7 +200,7 @@ export const useFolderDetailPageContainer = () => {
     { onSuccess: refreshAttachmentsForCurrentDocument }
   );
 
-  const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
+  const [isAttachmentPanelOpen, setIsAttachmentPanelOpen] = useState(false);
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
@@ -337,35 +337,64 @@ export const useFolderDetailPageContainer = () => {
     [attachmentsDocId, navigate, routes.documentAttachmentView]
   );
 
-  /** Closes the edit-attachment modal and clears form state; no-op while update is in progress. */
+  /** Clears edit state so the attachment sidebar shows add form. */
+  const clearEditAttachmentState = useCallback(() => {
+    setEditAttachmentId(null);
+    setEditAttachmentName("");
+    setEditAttachmentDescription("");
+  }, []);
+
+  /** Closes the attachment sidebar and clears edit state; no-op while update is in progress. */
   const handleCloseEditAttachment = useCallback(() => {
     if (!isUpdatingAttachment) {
-      setIsEditAttachmentModalOpen(false);
+      setIsAttachmentPanelOpen(false);
       setEditAttachmentId(null);
       setEditAttachmentName("");
       setEditAttachmentDescription("");
     }
   }, [isUpdatingAttachment]);
 
-  /** Opens the edit-attachment modal with the selected attachment’s name and description. */
+  /** Opens the attachment sidebar in edit mode for the given attachment’s name and description. */
   const handleOpenEditAttachment = useCallback((attachmentId: number) => {
     const target = attachments.find((a) => a.id === attachmentId);
     if (!target) return;
     setEditAttachmentId(target.id);
     setEditAttachmentName(target.name ?? "");
     setEditAttachmentDescription(target.description ?? "");
-    setIsEditAttachmentModalOpen(true);
+    setIsAttachmentPanelOpen(true);
   }, [attachments]);
 
-  /** Saves attachment name/description via update API and closes modal on success. */
-  const handleConfirmEditAttachment = useCallback(async () => {
-    if (!editAttachmentId) return;
-    const didUpdate = await updateAttachment(editAttachmentId, {
-      name: editAttachmentName.trim() || undefined,
-      description: editAttachmentDescription.trim() || null,
-    });
-    if (didUpdate) handleCloseEditAttachment();
-  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment]);
+  /** Opens the attachment sidebar in add mode (clears edit state). */
+  const openAddAttachmentPanel = useCallback(() => {
+    clearEditAttachmentState();
+    setIsAttachmentPanelOpen(true);
+  }, [clearEditAttachmentState]);
+
+  /** Closes the attachment sidebar and clears edit state. */
+  const handleCloseAttachmentPanel = useCallback(() => {
+    handleCloseEditAttachment();
+  }, [handleCloseEditAttachment]);
+
+  /** Saves attachment (name/description and optional replace file) and closes sidebar on success. */
+  const handleConfirmEditAttachment = useCallback(
+    async (replaceFile?: File | null) => {
+      if (!editAttachmentId || typeof attachmentsDocId !== "number") return;
+      const name = String(editAttachmentName ?? "").trim() || undefined;
+      const description = String(editAttachmentDescription ?? "").trim() || null;
+      const payload: { name?: string; description?: string | null; file_data?: string; file_name?: string } = {
+        name,
+        description,
+      };
+      if (replaceFile instanceof File) {
+        const { fileToBase64 } = await import("@/shared/utils/files/fileToBase64");
+        payload.file_data = await fileToBase64(replaceFile);
+        payload.file_name = replaceFile.name;
+      }
+      const didUpdate = await updateAttachment(editAttachmentId, payload);
+      if (didUpdate) handleCloseEditAttachment();
+    },
+    [editAttachmentId, editAttachmentName, editAttachmentDescription, attachmentsDocId, updateAttachment, handleCloseEditAttachment]
+  );
 
   const handleOpenEditFolder = useCallback(() => setIsEditFolderOpen(true), []);
   const handleCloseEditFolder = useCallback(() => setIsEditFolderOpen(false), []);
@@ -488,6 +517,8 @@ export const useFolderDetailPageContainer = () => {
       handleViewAttachment,
       handleOpenEditAttachment,
       handleCloseEditAttachment,
+      handleCloseAttachmentPanel,
+      openAddAttachmentPanel,
       setEditAttachmentName,
       setEditAttachmentDescription,
       handleConfirmEditAttachment,
@@ -525,7 +556,8 @@ export const useFolderDetailPageContainer = () => {
       transferDocIds,
       transferAttachmentIds,
       transferDepartmentId,
-      isEditAttachmentModalOpen,
+      isAttachmentPanelOpen,
+      editAttachmentId,
       editAttachmentName,
       editAttachmentDescription,
       isNotesEditorOpen: noteEditor.isNotesEditorOpen,

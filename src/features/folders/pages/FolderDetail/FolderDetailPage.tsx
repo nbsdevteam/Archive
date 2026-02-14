@@ -14,6 +14,7 @@ import { FolderDetailNotesSection } from "./FolderDetailNotesSection";
 import { FolderDetailPreviewSection } from "./FolderDetailPreviewSection";
 import { FolderDetailActivitySection } from "./FolderDetailActivitySection";
 import { FolderDetailModals } from "./FolderDetailModals";
+import { AttachmentSidePanel } from "@/features/documents/components";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 
 /** Folder detail page: guards, layout, and composition of info, main doc, sub-docs, attachments, notes, preview, activity, and modals. */
@@ -155,7 +156,7 @@ const FolderDetailPage = () => {
         loadingAttachments={loadingState.loadingAttachments}
         selectionConfig={selection.attachmentsSelectionConfig}
         onAttachmentsDocIdChange={actions.handleAttachmentsDocIdChange}
-        onAddAttachment={actions.handleAddAttachment}
+        onAddAttachment={actions.openAddAttachmentPanel}
         onViewAttachment={actions.handleViewAttachment}
         onDownloadAttachment={actions.handleDownloadAttachment}
         onEditAttachment={actions.handleOpenEditAttachment}
@@ -232,6 +233,25 @@ const FolderDetailPage = () => {
         batchAttachmentTrashDialog={batchAttachmentTrashDialog}
         noteDeleteDialog={noteDeleteDialog}
       />
+      {typeof data.attachmentsDocId === "number" && (
+        <AttachmentSidePanel
+          isOpen={modals.isAttachmentPanelOpen}
+          onClose={actions.handleCloseAttachmentPanel}
+          editAttachmentId={modals.editAttachmentId}
+          editAttachmentName={modals.editAttachmentName}
+          editAttachmentDescription={modals.editAttachmentDescription}
+          setEditAttachmentName={actions.setEditAttachmentName}
+          setEditAttachmentDescription={actions.setEditAttachmentDescription}
+          onSaveEdit={actions.handleConfirmEditAttachment}
+          isSavingEdit={loadingState.isUpdatingAttachment}
+          documentId={data.attachmentsDocId}
+          onAddSuccess={() => {
+            actions.handleCloseAttachmentPanel();
+            actions.refreshAttachmentsForCurrentDocument();
+          }}
+          t={t}
+        />
+      )}
       <EditDocumentSidePanel
         isOpen={modals.editDocumentId != null}
         documentId={modals.editDocumentId}

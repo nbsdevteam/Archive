@@ -61,16 +61,29 @@ export function useDocumentAttachments(docId: number | null, activeTab: string, 
     setEditAttachmentDescription(target.description ?? "");
   }, [attachments]);
 
-  const handleConfirmEditAttachment = useCallback(async () => {
-    if (!editAttachmentId) return;
-    const name = String(editAttachmentName ?? "").trim() || undefined;
-    const description = String(editAttachmentDescription ?? "").trim() || null;
-    const didUpdate = await updateAttachment(editAttachmentId, { name, description });
-    if (didUpdate) {
-      handleCloseEditAttachment();
-      onEditSuccess?.();
-    }
-  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment, onEditSuccess]);
+  /** Saves attachment (name/description and optional replace file). */
+  const handleConfirmEditAttachment = useCallback(
+    async (replaceFile?: File | null) => {
+      if (!editAttachmentId) return;
+      const name = String(editAttachmentName ?? "").trim() || undefined;
+      const description = String(editAttachmentDescription ?? "").trim() || null;
+      const payload: { name?: string; description?: string | null; file_data?: string; file_name?: string } = {
+        name,
+        description,
+      };
+      if (replaceFile instanceof File) {
+        const { fileToBase64 } = await import("@/shared/utils/files/fileToBase64");
+        payload.file_data = await fileToBase64(replaceFile);
+        payload.file_name = replaceFile.name;
+      }
+      const didUpdate = await updateAttachment(editAttachmentId, payload);
+      if (didUpdate) {
+        handleCloseEditAttachment();
+        onEditSuccess?.();
+      }
+    },
+    [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment, onEditSuccess]
+  );
 
   return {
     attachments,

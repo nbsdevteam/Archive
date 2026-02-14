@@ -80,7 +80,13 @@ export const useAttachmentOperations = (
   const updateAttachment = useCallback(
     async (
       attachmentId: number,
-      payload: { name?: string; description?: string | null; attachment_type?: string }
+      payload: {
+        name?: string;
+        description?: string | null;
+        attachment_type?: string;
+        file_data?: string;
+        file_name?: string;
+      }
     ) => {
       if (!documentId) return false;
       setIsUpdatingAttachment(true);
