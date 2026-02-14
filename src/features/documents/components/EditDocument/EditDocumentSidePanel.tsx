@@ -212,6 +212,10 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   const isSubDoc = doc ? !(doc.is_main_document === true) : false;
   const isLocked = doc?.is_locked === true;
   const isInFolder = doc?.folder_id != null && doc.folder_id > 0;
+  /** Display name for "Link to folder": from API (folder_name) or resolved from folders list when editing from folder context. */
+  const folderDisplayName = doc
+    ? (doc.folder_name ?? (doc.folder_id != null && doc.folder_id > 0 ? folders.find((f) => f.id === doc.folder_id)?.name : undefined))
+    : undefined;
   const tagOptions: SelectOption[] = useMemo(() => tags.map((tag) => ({ value: tag.id, label: tag.name })), [tags]);
 
   const onSubmit = useCallback(
@@ -305,6 +309,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
             setValue={setValue}
             isSubDoc={isSubDoc}
             isInFolder={isInFolder}
+            folderName={folderDisplayName}
             departmentId={departmentId}
             departments={departments}
             documentTypes={documentTypes}

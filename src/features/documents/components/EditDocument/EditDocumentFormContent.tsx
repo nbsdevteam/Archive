@@ -22,6 +22,8 @@ export interface EditDocumentFormContentProps {
   setValue: UseFormSetValue<EditDocumentFormValues>;
   isSubDoc: boolean;
   isInFolder: boolean;
+  /** Folder display name from API; shown in disabled "Link to folder" field when document is in a folder. */
+  folderName?: string | null;
   departmentId: number;
   departments: Department[];
   documentTypes: DocumentType[];
@@ -43,6 +45,7 @@ export function EditDocumentFormContent({
   setValue,
   isSubDoc,
   isInFolder,
+  folderName,
   departmentId,
   departments,
   documentTypes,
@@ -61,6 +64,8 @@ export function EditDocumentFormContent({
     { value: 0, label: t("common.none", { defaultValue: "None" }) },
     ...folders.map((f) => ({ value: f.id, label: `${f.name} — ${f.code}` })),
   ];
+  /** Show "Link to folder" when document is in a folder (sub-doc or main in folder); always disabled and populated with folder_name. */
+  const showLinkToFolder = isSubDoc || isInFolder;
 
   return (
     <>
@@ -101,17 +106,27 @@ export function EditDocumentFormContent({
           required
           autoComplete="off"
         />
-        {isSubDoc && (
-          <SelectField
-            control={control}
-            name="folder_id"
-            options={folderOptions}
-            label={t("documents.linkToFolder", { defaultValue: "Link to folder" })}
-            placeholder={t("common.none", { defaultValue: "None" })}
-            allowZero
-            error={errors.folder_id?.message as string | undefined}
-            isDisabled
-          />
+        {showLinkToFolder && (
+          folderName ? (
+            <Input
+              label={t("documents.linkToFolder", { defaultValue: "Link to folder" })}
+              value={folderName}
+              readOnly
+              disabled
+              autoComplete="off"
+            />
+          ) : (
+            <SelectField
+              control={control}
+              name="folder_id"
+              options={folderOptions}
+              label={t("documents.linkToFolder", { defaultValue: "Link to folder" })}
+              placeholder={t("common.none", { defaultValue: "None" })}
+              allowZero
+              error={errors.folder_id?.message as string | undefined}
+              isDisabled
+            />
+          )
         )}
         <SelectField
           control={control}
