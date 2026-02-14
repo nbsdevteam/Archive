@@ -14,7 +14,7 @@ import { useFolderAuditLogs } from "../../activity/hooks/useFolderAuditLogs";
 import type { ActivityViewMode } from "../../activity/types";
 import { all_routes } from "../../../router/all_routes";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
-import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { sortFolderDocumentsByUploadDate } from "../utils/sortFolderDocumentsByUploadDate";
 import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
@@ -246,31 +246,15 @@ export const useFolderDetailPageContainer = () => {
 
   const handleDownloadMainDocument = async () => {
     if (!mainDoc) return;
-    try {
-      const blob = await documentsApi.downloadDocument(mainDoc.id);
-      const fileName =
-        mainDoc.file_name ?? mainDoc.title ?? mainDoc.name ?? "document";
-      downloadBlobAsFile(blob, fileName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e: unknown) {
-      toast.error((e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." }));
-    }
+    const fileName = mainDoc.file_name ?? mainDoc.title ?? mainDoc.name ?? "document";
+    await downloadDocumentWithToast(mainDoc.id, fileName, t);
   };
 
   const handleDownloadDocument = async (documentId: number) => {
     const target = documents.find((document) => document.id === documentId);
     if (!target) return;
-    try {
-      const blob = await documentsApi.downloadDocument(target.id);
-      const fileName = target.file_name ?? target.title ?? target.name ?? "document";
-      downloadBlobAsFile(blob, fileName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e: unknown) {
-      toast.error(
-        (e as Error)?.message ??
-          t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
+    const fileName = target.file_name ?? target.title ?? target.name ?? "document";
+    await downloadDocumentWithToast(target.id, fileName, t);
   };
 
   const handleDownloadAttachment = async (attachmentId: number, fileName: string) => {

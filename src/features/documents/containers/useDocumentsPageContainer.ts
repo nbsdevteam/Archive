@@ -9,7 +9,7 @@ import { useDocumentOperations } from "../../../shared/hooks";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { useDocumentStore } from "../stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "../utils/getDocumentStatusBadgeVariant";
-import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
 import { useDocumentListWithFilters } from "../hooks/useDocumentListWithFilters";
 
 export interface DocumentsFilterState {
@@ -74,17 +74,8 @@ export const useDocumentsPageContainer = () => {
 
   const handleDownloadDocument = useCallback(
     async (document: Document) => {
-      try {
-        const blob = await documentsApi.downloadDocument(document.id);
-        const fileName = document.file_name ?? document.title ?? document.name ?? "document";
-        downloadBlobAsFile(blob, fileName);
-        toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-      } catch (err) {
-        toast.error(
-          handleApiError(err) ||
-            t("documents.downloadFailed", { defaultValue: "Download failed." })
-        );
-      }
+      const fileName = document.file_name ?? document.title ?? document.name ?? "document";
+      await downloadDocumentWithToast(document.id, fileName, t);
     },
     [t]
   );

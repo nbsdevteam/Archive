@@ -16,7 +16,7 @@ import type { ActivityViewMode } from "../../activity/types";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "../../../shared/hooks";
 import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { fileToBase64 } from "../../../shared/utils/files/fileToBase64";
-import { downloadBlobAsFile } from "../../../shared/utils/files/downloadBlobAsFile";
+import { downloadDocumentWithToast } from "../../../shared/utils/documents/downloadDocumentWithToast";
 import { useNotes, useNoteMutations } from "../../notes/hooks/useNotes";
 import type { NoteListItem, CreateNotePayload, UpdateNotePayload } from "../../notes/types/notes.types";
 
@@ -286,15 +286,7 @@ export const useDocumentDetailPageContainer = () => {
 
   const handleDownloadCurrent = async () => {
     if (!doc?.id || !fileName) return;
-    try {
-      const blob = await documentsApi.downloadDocument(doc.id);
-      downloadBlobAsFile(blob, fileName);
-      toast.success(t("documents.downloadSuccess", { defaultValue: "Download started." }));
-    } catch (e) {
-      toast.error(
-        (e as Error)?.message ?? t("documents.downloadFailed", { defaultValue: "Download failed." })
-      );
-    }
+    await downloadDocumentWithToast(doc.id, fileName, t);
   };
 
   const handleDownloadAttachment = async (attachmentId: number, fName: string) => {
