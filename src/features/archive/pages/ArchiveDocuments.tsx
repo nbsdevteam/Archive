@@ -11,9 +11,10 @@ import {
   DataTable,
   ConfirmModal,
 } from "../../../shared/components/ui";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { useArchivedDocumentsPageContainer } from "../../documents/containers/useArchivedDocumentsPageContainer";
+import { getDocumentTableColumns } from "../../documents/utils/documentTableColumns";
 import "../../documents/styles/documents.css";
 import "../styles/archive.css";
 
@@ -69,51 +70,11 @@ const ArchiveDocuments = () => {
   const total = pagination?.total ?? 0;
 
   const columns = useMemo(
-    () => [
-      {
-        id: "name",
-        header: t("documents.name", { defaultValue: "Name" }),
-        render: (row: Document) => row.name || row.title || "-",
-      },
-      {
-        id: "barcode",
-        header: t("documents.barcode", { defaultValue: "Barcode" }),
-        render: (row: Document) => (
-          <span className="Num">{row.barcode || "-"}</span>
-        ),
-      },
-      {
-        id: "type",
-        header: t("documents.type", { defaultValue: "Type" }),
-        render: (row: Document) =>
-          row.document_type_name || row.document_type?.name || "-",
-      },
-      {
-        id: "department",
-        header: t("documents.department", { defaultValue: "Department" }),
-        render: (row: Document) =>
-          row.department_name || row.department?.name || "-",
-      },
-      {
-        id: "uploadDate",
-        header: t("documents.uploadDate", { defaultValue: "Upload Date" }),
-        render: (row: Document) =>
-          row.upload_date
-            ? formatRelativeTime(new Date(row.upload_date))
-            : "-",
-      },
-      {
-        id: "status",
-        header: t("documents.status", { defaultValue: "Status" }),
-        render: (row: Document) => (
-          <span
-            className={`badge bg-${getDocumentStatusBadgeVariant(row.status)}`}
-          >
-            {row.status || "unknown"}
-          </span>
-        ),
-      },
-    ],
+    () =>
+      getDocumentTableColumns({
+        t,
+        getDocumentStatusBadgeVariant,
+      }),
     [t, getDocumentStatusBadgeVariant]
   );
 
@@ -171,37 +132,15 @@ const ArchiveDocuments = () => {
     ]
   );
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">
-              {t("dashboard.archivedDocuments", { defaultValue: "Archived Documents" })}
-            </h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.documents}>{t("documents.title", { defaultValue: "Documents" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {t("dashboard.archivedDocuments", { defaultValue: "Archived Documents" })}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
+  const pageTitle = t("dashboard.archivedDocuments", { defaultValue: "Archived Documents" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents }]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card documents__table-card">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="d-flex align-items-center gap-2">
@@ -377,7 +316,6 @@ const ArchiveDocuments = () => {
             )}
           </div>
         </div>
-      </div>
 
       <ConfirmModal
         isOpen={trashTargetId != null}
@@ -422,7 +360,7 @@ const ArchiveDocuments = () => {
         confirmVariant="primary"
         isLoading={isBatchUnarchiving}
       />
-    </div>
+    </PageLayout>
   );
 };
 

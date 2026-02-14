@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Button, Spinner, Alert, Icon, SearchInput, Card, ListFilter, ConfirmModal } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { EditFolderSidePanel } from "../components";
 import { useFoldersPageContainer } from "../containers/useFoldersPageContainer";
 import "../styles/folders.css";
@@ -48,32 +49,15 @@ const FoldersPage = () => {
     handleEditFolderSuccess,
   } = useFoldersPageContainer();
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Folders</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Folders
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
+  const pageTitle = t("folders.title", { defaultValue: "Folders" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card folders__table-card">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="d-flex align-items-center gap-2">
@@ -359,8 +343,7 @@ const FoldersPage = () => {
           folder={editingFolder}
           onSuccess={handleEditFolderSuccess}
         />
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

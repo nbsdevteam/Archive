@@ -5,9 +5,10 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import { UploadDocumentSidePanel } from "../components";
 import { TransferToFolderModal } from "../../folders/components";
 import { Button, Alert, Icon, SearchInput, ListFilter, DataTable, ConfirmModal } from "../../../shared/components/ui";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { useDocumentsPageContainer } from "../containers/useDocumentsPageContainer";
+import { getDocumentTableColumns } from "../utils/documentTableColumns";
 import "../styles/documents.css";
 
 /**
@@ -75,59 +76,19 @@ const DocumentsPage = () => {
   } = useDocumentsPageContainer();
 
   const columns = useMemo(
-    () => [
-      {
-        id: "name",
-        header: "Name",
-        render: (row: Document) => row.name || row.title || "-",
-      },
-      {
-        id: "barcode",
-        header: "Barcode",
-        render: (row: Document) => (
-          <span className="Num">{row.barcode || "-"}</span>
-        ),
-      },
-      {
-        id: "type",
-        header: "Type",
-        render: (row: Document) =>
-          row.document_type_name || row.document_type?.name || "-",
-      },
-      {
-        id: "department",
-        header: "Department",
-        render: (row: Document) =>
-          row.department_name || row.department?.name || "-",
-      },
-      {
-        id: "uploadDate",
-        header: "Upload Date",
-        render: (row: Document) =>
-          row.upload_date
-            ? formatRelativeTime(new Date(row.upload_date))
-            : "-",
-      },
-      {
-        id: "status",
-        header: "Status",
-        render: (row: Document) => (
-          <span
-            className={`badge bg-${getDocumentStatusBadgeVariant(row.status)}`}
-          >
-            {row.status || "unknown"}
-          </span>
-        ),
-      },
-    ],
-    [getDocumentStatusBadgeVariant]
+    () =>
+      getDocumentTableColumns({
+        t,
+        getDocumentStatusBadgeVariant,
+      }),
+    [t, getDocumentStatusBadgeVariant]
   );
 
   const rowActions = useMemo(
     () => [
       {
         id: "view",
-        label: "View",
+        label: t("common.view", { defaultValue: "View" }),
         variant: "light" as const,
         onClick: (row: Document, e: React.MouseEvent) => {
           e.stopPropagation();
@@ -137,7 +98,7 @@ const DocumentsPage = () => {
       {
         id: "download",
         label: t("documents.download", { defaultValue: "Download" }),
-        icon: "download",
+        icon: "download" as const,
         variant: "outline" as const,
         className: "btn-outline-secondary me-1",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -148,7 +109,7 @@ const DocumentsPage = () => {
       {
         id: "transfer",
         label: t("documents.transfer", { defaultValue: "Transfer to folder" }),
-        icon: "arrow-right-left",
+        icon: "arrow-right-left" as const,
         variant: "outline" as const,
         className: "btn-outline-secondary me-1",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -159,7 +120,7 @@ const DocumentsPage = () => {
       {
         id: "archive",
         label: t("documents.archive", { defaultValue: "Archive" }),
-        icon: "archive",
+        icon: "archive" as const,
         variant: "outline" as const,
         className: "btn-outline-secondary me-1",
         visible: (row: Document) =>
@@ -172,7 +133,7 @@ const DocumentsPage = () => {
       {
         id: "trash",
         label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
-        icon: "trash-2",
+        icon: "trash-2" as const,
         variant: "outline" as const,
         className: "btn-outline-danger",
         onClick: (row: Document, e: React.MouseEvent) => {
@@ -191,38 +152,30 @@ const DocumentsPage = () => {
     ]
   );
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Documents</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Documents
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
+  const pageTitle = t("documents.title", { defaultValue: "Documents" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card documents__table-card">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="d-flex align-items-center gap-2">
-              <h5 className="card-title mb-0">Documents</h5>
+              <h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>
               <span className="text-muted fs-13">
-                {isLoading ? "Loading..." : <><span className="Num">{documents?.length ?? 0}</span> {documents?.length === 1 ? "document" : "documents"}</>}
+                {isLoading
+                  ? t("common.loading", { defaultValue: "Loading..." })
+                  : (documents?.length != null && (
+                      <>
+                        <span className="Num">{documents.length}</span>{" "}
+                        {documents.length === 1
+                          ? t("documents.document", { defaultValue: "document" })
+                          : t("documents.documents", { defaultValue: "documents" })}
+                      </>
+                    )) || null}
               </span>
             </div>
             <div className="d-flex align-items-center gap-2 documents__header-actions">
@@ -273,7 +226,7 @@ const DocumentsPage = () => {
                 </>
               )}
               <SearchInput
-                placeholder="Search documents..."
+                placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
                 debounceMs={300}
                 onDebouncedChange={handleSearchDebounced}
                 icon="file-search-corner"
@@ -281,7 +234,7 @@ const DocumentsPage = () => {
                 highlight
                 className="documents__search-wrap"
                 inputClassName="documents__search-input"
-                aria-label="Search documents"
+                aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
               />
               <div className="position-relative d-inline-block">
                 <Button
@@ -321,7 +274,7 @@ const DocumentsPage = () => {
               </div>
               <Button variant="outline" size="md" className="d-inline-flex align-items-center btn-outline-secondary" onClick={handleOpenUpload}>
                 <Icon name="file-up" className="me-2" />
-                Upload Documents
+                {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
               </Button>
               <Link to={routes.documentsTrash} className="btn btn-outline-secondary btn-md d-inline-flex align-items-center">
                 <Icon name="trash" className="me-2" />
@@ -333,7 +286,7 @@ const DocumentsPage = () => {
                 className="d-inline-flex align-items-center btn-outline-secondary"
                 onClick={handleRefresh}
                 disabled={isLoading}
-                aria-label="Refresh documents"
+                aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
               >
                 <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
               </Button>
@@ -344,7 +297,7 @@ const DocumentsPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <Button variant="outline" size="sm" className="btn-outline-secondary ms-2" onClick={handleRetry}>
-                  Retry
+                  {t("common.retry", { defaultValue: "Retry" })}
                 </Button>
               </Alert>
             )}
@@ -353,7 +306,7 @@ const DocumentsPage = () => {
               getRowId={(row) => row.id}
               columns={columns}
               loading={isLoading}
-              emptyMessage="No documents found"
+              emptyMessage={t("documents.noDocumentsFound", { defaultValue: "No documents found" })}
               onRowClick={(row) => handleNavigateToDocument(row.id)}
               rowActions={rowActions}
               selection={selectionConfig}
@@ -361,7 +314,6 @@ const DocumentsPage = () => {
             />
           </div>
         </div>
-      </div>
 
       <UploadDocumentSidePanel
         isOpen={isUploadOpen}
@@ -435,7 +387,7 @@ const DocumentsPage = () => {
         onConfirm={handleConfirmBatchMove}
         isSubmitting={isMoveSubmitting}
       />
-    </div>
+    </PageLayout>
   );
 };
 

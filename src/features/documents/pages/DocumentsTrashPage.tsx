@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "../../../shared/components/ui";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useDocumentsTrashPageContainer } from "../containers/useDocumentsTrashPageContainer";
-import type { Document } from "../../../app/adapter/api/documents.api";
+import {
+  getDocumentTableColumnsForTrash,
+  type TrashDocument,
+} from "../utils/documentTableColumns";
 import "../styles/documents.css";
-
-type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();
@@ -40,48 +41,7 @@ const DocumentsTrashPage = () => {
   } = useDocumentsTrashPageContainer();
 
   const columns = useMemo(
-    () => [
-      {
-        id: "name",
-        header: t("documents.name", { defaultValue: "Document name" }),
-        render: (row: TrashDoc) => row.name || row.title || "-",
-      },
-      {
-        id: "barcode",
-        header: t("documents.barcode", { defaultValue: "Barcode" }),
-        render: (row: TrashDoc) => (
-          <span className="Num">{row.barcode || "-"}</span>
-        ),
-      },
-      {
-        id: "type",
-        header: t("documents.type", { defaultValue: "Type" }),
-        render: (row: TrashDoc) =>
-          row.document_type_name || row.document_type?.name || "-",
-      },
-      {
-        id: "department",
-        header: t("documents.department", { defaultValue: "Department" }),
-        render: (row: TrashDoc) =>
-          row.department_name || row.department?.name || "-",
-      },
-      {
-        id: "deletedAt",
-        header: t("documents.deletedAt", { defaultValue: "Deleted at" }),
-        render: (row: TrashDoc) =>
-          row.deleted_at
-            ? formatRelativeTime(new Date(row.deleted_at))
-            : "–",
-      },
-      {
-        id: "restoreDeadline",
-        header: t("documents.restoreDeadline", { defaultValue: "Restore deadline" }),
-        render: (row: TrashDoc) =>
-          row.restore_deadline
-            ? formatRelativeTime(new Date(row.restore_deadline))
-            : "–",
-      },
-    ],
+    () => getDocumentTableColumnsForTrash({ t }),
     [t]
   );
 
@@ -92,8 +52,8 @@ const DocumentsTrashPage = () => {
         label: t("documents.restore", { defaultValue: "Restore" }),
         variant: "outline" as const,
         className: "btn-outline-secondary me-1",
-        disabled: (row: TrashDoc) => restoreLoadingId === row.id,
-        renderLabel: (row: TrashDoc) =>
+        disabled: (row: TrashDocument) => restoreLoadingId === row.id,
+        renderLabel: (row: TrashDocument) =>
           restoreLoadingId === row.id ? (
             <>
               <Spinner size="sm" />
@@ -102,7 +62,7 @@ const DocumentsTrashPage = () => {
           ) : (
             t("documents.restore", { defaultValue: "Restore" })
           ),
-        onClick: (row: TrashDoc, e: React.MouseEvent) => {
+        onClick: (row: TrashDocument, e: React.MouseEvent) => {
           e.stopPropagation();
           handleRestore(row.id);
         },
@@ -110,11 +70,11 @@ const DocumentsTrashPage = () => {
       {
         id: "permanentDelete",
         label: t("documents.permanentDelete", { defaultValue: "Permanent delete" }),
-        icon: "trash",
+        icon: "trash" as const,
         variant: "outline" as const,
         className: "btn-outline-danger",
         visible: () => isAdmin,
-        onClick: (row: TrashDoc, e: React.MouseEvent) => {
+        onClick: (row: TrashDocument, e: React.MouseEvent) => {
           e.stopPropagation();
           handleOpenPermanentDelete(row.id);
         },
@@ -123,37 +83,23 @@ const DocumentsTrashPage = () => {
     [t, isAdmin, restoreLoadingId, handleRestore, handleOpenPermanentDelete]
   );
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">{t("documents.trashView", { defaultValue: "Trash" })}</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.documents}>{t("documents.title", { defaultValue: "Documents" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {t("documents.trashView", { defaultValue: "Trash" })}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Link to={routes.documents} className="btn btn-outline-secondary btn-sm">
-              <Icon name="arrow-left" className="me-1" />
-              {t("common.back", { defaultValue: "Back" })}
-            </Link>
-            <CollapseHeader />
-          </div>
-        </div>
+  const pageTitle = t("documents.trashView", { defaultValue: "Trash" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Link to={routes.documents} className="btn btn-outline-secondary btn-sm">
+            <Icon name="arrow-left" className="me-1" />
+            {t("common.back", { defaultValue: "Back" })}
+          </Link>
+          <CollapseHeader />
+        </>
+      }
+    >
         <div className="card documents__table-card">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="d-flex align-items-center gap-2">
@@ -212,7 +158,7 @@ const DocumentsTrashPage = () => {
                 {error}
               </Alert>
             )}
-            <DataTable<TrashDoc>
+            <DataTable<TrashDocument>
               data={documents}
               getRowId={(row) => row.id}
               columns={columns}
@@ -266,8 +212,7 @@ const DocumentsTrashPage = () => {
           confirmVariant="danger"
           isLoading={isPermanentDeleting}
         />
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 
