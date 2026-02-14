@@ -1,50 +1,32 @@
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { useArchiveFolders } from "../hooks";
 import { Icon } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
+import { useArchiveFolders } from "../hooks";
 
 const ArchiveFolders = () => {
   const routes = all_routes;
-  // Use container with static data by default (useApi=false)
   const { folders } = useArchiveFolders({ useApi: false });
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Folders</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">Archive</li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Folders
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="me-2 mb-2">
-              <Link
-                to={routes.archiveUpload}
-                className="btn btn-secondary d-inline-flex align-items-center"
-              >
-                <Icon name="folder-plus" className="me-2" />
-                New Folder
-              </Link>
-            </div>
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
-
+    <PageLayout
+      title="Folders"
+      breadcrumbItems={[{ label: "Archive" }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Link
+            to={routes.archiveUpload}
+            className="btn btn-secondary d-inline-flex align-items-center me-2 mb-2"
+          >
+            <Icon name="folder-plus" className="me-2" />
+            New Folder
+          </Link>
+          <CollapseHeader />
+        </>
+      }
+    >
         <div className="row">
           <div className="col-xl-3 col-md-6 d-flex">
             <div className="card flex-fill">
@@ -109,8 +91,7 @@ const ArchiveFolders = () => {
             </div>
           ))}
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

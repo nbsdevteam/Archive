@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { Spinner, Alert } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useNotificationsPageContainer } from "../containers/useNotificationsPageContainer";
 import "../styles/notifications.css";
@@ -23,31 +23,12 @@ const NotificationsPage = () => {
   } = useNotificationsPageContainer();
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Notifications</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Notifications
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
-
+    <PageLayout
+      title="Notifications"
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between notifications__header">
             <h5 className="card-title mb-0">Notifications</h5>
@@ -111,7 +92,7 @@ const NotificationsPage = () => {
                       {notif.message}
                     </div>
                     <span className="text-muted notifications__itemTime">
-                      {formatRelativeTime(new Date(notif.created_at))}
+                      {notif.created_at ? formatRelativeTime(new Date(notif.created_at)) : ""}
                     </span>
                   </div>
                 ))}
@@ -119,8 +100,7 @@ const NotificationsPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, Spinner, Alert, Icon, Card } from "../../../shared/components/ui";
+import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
@@ -39,32 +40,15 @@ const DashboardPage = () => {
     refreshDashboardCounts,
   } = useDashboardPageContainer();
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">{t("dashboard.title")}</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.dashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {t("dashboard.title")}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
+  const pageTitle = t("dashboard.title");
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[]}
+      homeTo={routes.dashboard}
+      rightContent={<CollapseHeader />}
+    >
         {hasError && (
           <Alert variant="danger" className="mb-3">
             {statsError || foldersError || notificationsError}
@@ -254,8 +238,7 @@ const DashboardPage = () => {
             </div>
           </>
         )}
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

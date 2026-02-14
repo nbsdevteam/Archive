@@ -247,7 +247,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     set({ error: null });
     try {
       await documentsApi.permanentDeleteDocuments(documentIds);
-      if (get().currentDocument && documentIds.includes(get().currentDocument.id)) {
+      const current = get().currentDocument;
+      if (current != null && documentIds.includes(current.id)) {
         set({ currentDocument: null });
       }
       await get().fetchDocuments();

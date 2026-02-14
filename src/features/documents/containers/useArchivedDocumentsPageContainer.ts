@@ -67,9 +67,6 @@ export const useArchivedDocumentsPageContainer = () => {
     isSomeSelected,
   } = list;
 
-  const [trashTargetId, setTrashTargetId] = useState<number | null>(null);
-  const [isBatchTrashConfirmOpen, setIsBatchTrashConfirmOpen] = useState(false);
-  const [isBatchUnarchiveConfirmOpen, setIsBatchUnarchiveConfirmOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
   const [moveDepartmentId, setMoveDepartmentId] = useState(0);
@@ -114,29 +111,18 @@ export const useArchivedDocumentsPageContainer = () => {
     [unarchiveDocument, t, refetch]
   );
 
-  const handleOpenTrashConfirm = useCallback((documentId: number) => {
-    setTrashTargetId(documentId);
-  }, []);
-  const handleCloseTrashConfirm = useCallback(() => {
-    if (!isTrashing) setTrashTargetId(null);
-  }, [isTrashing]);
-  const handleConfirmTrash = useCallback(async () => {
-    if (!trashTargetId) return;
-    const didTrash = await trashDocument(trashTargetId, {
-      successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
-      errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
-      onSuccess: refetch,
-    });
-    if (didTrash) setTrashTargetId(null);
-  }, [trashDocument, trashTargetId, t, refetch]);
+  const confirmTrash = useCallback(
+    async (documentId: number) => {
+      await trashDocument(documentId, {
+        successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
+        errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
+        onSuccess: refetch,
+      });
+    },
+    [trashDocument, t, refetch]
+  );
 
-  const handleOpenBatchTrashConfirm = useCallback(() => {
-    if (selectedDocumentIds.length > 0) setIsBatchTrashConfirmOpen(true);
-  }, [selectedDocumentIds.length]);
-  const handleCloseBatchTrashConfirm = useCallback(() => {
-    if (!isTrashing) setIsBatchTrashConfirmOpen(false);
-  }, [isTrashing]);
-  const handleConfirmBatchTrash = useCallback(async () => {
+  const confirmBatchTrash = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didTrash = await trashDocument(selectedDocumentIds, {
       successMessage: t("documents.batchTrashed", {
@@ -148,25 +134,10 @@ export const useArchivedDocumentsPageContainer = () => {
       }),
       onSuccess: refetch,
     });
-    if (didTrash) {
-      clearSelection();
-      setIsBatchTrashConfirmOpen(false);
-    }
-  }, [
-    clearSelection,
-    refetch,
-    selectedDocumentIds,
-    t,
-    trashDocument,
-  ]);
+    if (didTrash) clearSelection();
+  }, [clearSelection, refetch, selectedDocumentIds, t, trashDocument]);
 
-  const handleOpenBatchUnarchiveConfirm = useCallback(() => {
-    if (selectedDocumentIds.length > 0) setIsBatchUnarchiveConfirmOpen(true);
-  }, [selectedDocumentIds.length]);
-  const handleCloseBatchUnarchiveConfirm = useCallback(() => {
-    if (!isUnarchiving) setIsBatchUnarchiveConfirmOpen(false);
-  }, [isUnarchiving]);
-  const handleConfirmBatchUnarchive = useCallback(async () => {
+  const confirmBatchUnarchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didUnarchive = await unarchiveDocument(selectedDocumentIds, {
       successMessage: t("documents.batchUnarchived", {
@@ -178,17 +149,8 @@ export const useArchivedDocumentsPageContainer = () => {
       }),
       onSuccess: refetch,
     });
-    if (didUnarchive) {
-      clearSelection();
-      setIsBatchUnarchiveConfirmOpen(false);
-    }
-  }, [
-    clearSelection,
-    refetch,
-    selectedDocumentIds,
-    t,
-    unarchiveDocument,
-  ]);
+    if (didUnarchive) clearSelection();
+  }, [clearSelection, refetch, selectedDocumentIds, t, unarchiveDocument]);
 
   const openMoveModalForIds = useCallback(
     (documentIds: number[]) => {
@@ -253,57 +215,61 @@ export const useArchivedDocumentsPageContainer = () => {
     [clearSelection, moveDocumentIds, refetch, t]
   );
 
+  /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
-    routes,
-    documents,
-    isLoading,
+    data: {
+      documents,
+      pagination,
+      routes,
+    },
+    loading: isLoading,
     error,
-    pagination,
-    handleSearchDebounced,
-    handleNavigateToDocument,
-    handleDownloadDocument,
-    handleRetry,
-    handleRefresh,
-    getDocumentStatusBadgeVariant,
-    isFilterOpen,
-    draftFilters,
-    departmentOptions,
-    documentTypeOptions,
-    handleOpenFilter,
-    handleCloseFilter,
-    handlePrimaryFilterChange,
-    handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
-    filterApplyDisabled,
-    handleUnarchive,
-    handlePageChange,
-    selectedDocumentIds,
-    selectionConfig,
-    clearSelection,
-    isSomeSelected,
-    isMoveModalOpen,
-    moveDocumentIdsCount: moveDocumentIds.length,
-    moveDepartmentId,
-    isMoveSubmitting,
-    handleOpenSingleMoveConfirm,
-    handleOpenBatchMoveConfirm,
-    handleCloseBatchMoveConfirm,
-    handleConfirmBatchMove,
-    trashTargetId,
-    isTrashing,
-    handleOpenTrashConfirm,
-    handleCloseTrashConfirm,
-    handleConfirmTrash,
-    isBatchTrashConfirmOpen,
-    isBatchTrashing: isTrashing,
-    handleOpenBatchTrashConfirm,
-    handleCloseBatchTrashConfirm,
-    handleConfirmBatchTrash,
-    isBatchUnarchiveConfirmOpen,
-    isBatchUnarchiving: isUnarchiving,
-    handleOpenBatchUnarchiveConfirm,
-    handleCloseBatchUnarchiveConfirm,
-    handleConfirmBatchUnarchive,
+    filter: {
+      isFilterOpen,
+      draftFilters,
+      departmentOptions,
+      documentTypeOptions,
+      handleOpenFilter,
+      handleCloseFilter,
+      handlePrimaryFilterChange,
+      handleSecondaryFilterChange,
+      handleApplyFilter,
+      handleClearFilter,
+      filterApplyDisabled,
+      handleSearchDebounced,
+    },
+    selection: {
+      selectedDocumentIds,
+      selectionConfig,
+      clearSelection,
+      isSomeSelected,
+    },
+    paging: {
+      pagination,
+      handlePageChange,
+    },
+    actions: {
+      handleNavigateToDocument,
+      handleDownloadDocument,
+      handleRetry,
+      handleRefresh,
+      getDocumentStatusBadgeVariant,
+      handleUnarchive,
+      confirmTrash,
+      confirmBatchTrash,
+      confirmBatchUnarchive,
+      handleOpenSingleMoveConfirm,
+      handleOpenBatchMoveConfirm,
+      handleCloseBatchMoveConfirm,
+      handleConfirmBatchMove,
+    },
+    modals: {
+      isMoveModalOpen,
+      moveDocumentIdsCount: moveDocumentIds.length,
+      moveDepartmentId,
+      isMoveSubmitting,
+      isTrashing,
+      isUnarchiving,
+    },
   };
 };

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { Alert, Button, Icon, Spinner } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { documentsApi } from "../../../app/adapter/api/documents.api";
 import "../styles/documents.css";
 
@@ -111,42 +112,23 @@ const DocumentAttachmentViewPage = () => {
   }
 
   const documentDetailUrl = routes.documentDetail.replace(":id", String(docId));
+  const attachmentTitle = attachment.name || attachment.file_name;
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">
-              {t("documents.viewAttachment", { defaultValue: "View attachment" })}
-            </h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.archiveDocuments}>{t("documents.title", { defaultValue: "Documents" })}</Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={documentDetailUrl}>{docTitle ?? t("documents.details", { defaultValue: "Document" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {attachment.name || attachment.file_name}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Link to={documentDetailUrl} className="btn btn-outline-secondary btn-sm">
-              <Icon name="arrow-left" className="me-1" />
-              {t("documents.backToDocument", { defaultValue: "Back to document" })}
-            </Link>
-          </div>
-        </div>
-
+    <PageLayout
+      title={attachmentTitle}
+      breadcrumbItems={[
+        { label: t("documents.title", { defaultValue: "Documents" }), to: routes.archiveDocuments },
+        { label: docTitle ?? t("documents.details", { defaultValue: "Document" }), to: documentDetailUrl },
+      ]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <Link to={documentDetailUrl} className="btn btn-outline-secondary btn-sm">
+          <Icon name="arrow-left" className="me-1" />
+          {t("documents.backToDocument", { defaultValue: "Back to document" })}
+        </Link>
+      }
+    >
         <div className="card">
           <div className="card-header d-flex flex-wrap align-items-center gap-2">
             <h5 className="card-title mb-0">{attachment.name || attachment.file_name}</h5>
@@ -165,8 +147,7 @@ const DocumentAttachmentViewPage = () => {
             />
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

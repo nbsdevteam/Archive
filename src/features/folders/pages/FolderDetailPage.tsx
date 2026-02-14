@@ -7,6 +7,7 @@ import { AuditActivityPanel } from "../../../shared/components/Activity";
 import type { ActivityViewMode } from "../../activity/types";
 import { EditFolderSidePanel, TransferToFolderModal } from "../components";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
@@ -188,57 +189,43 @@ const FolderDetailPage = () => {
     );
   }
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">{t("folders.details", { defaultValue: "Folder details" })}</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.folders}>{t("folders.title", { defaultValue: "Folders" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {folder.name || `Folder #${folderId}`}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
-              <Icon name="upload" className="me-1" />
-              {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
-            </Button>
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenEditFolder}>
-              <Icon name="edit" className="me-1" />
-              {t("folders.editFolder", { defaultValue: "Edit folder" })}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="btn-outline-danger"
-              onClick={handleOpenDeleteFolder}
-              aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
-            >
-              <Icon name="trash" className="me-1" />
-              {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
-            </Button>
-            <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
-              {t("common.back", { defaultValue: "Back" })}
-            </Link>
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={loadFolderDocuments}>
-              {t("common.refresh", { defaultValue: "Refresh" })}
-            </Button>
-            <CollapseHeader />
-          </div>
-        </div>
+  const pageTitle = folder.name || `Folder #${folderId}`;
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("folders.title", { defaultValue: "Folders" }), to: routes.folders }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUploadInFolder}>
+            <Icon name="upload" className="me-1" />
+            {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
+          </Button>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenEditFolder}>
+            <Icon name="edit" className="me-1" />
+            {t("folders.editFolder", { defaultValue: "Edit folder" })}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-outline-danger"
+            onClick={handleOpenDeleteFolder}
+            aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+          >
+            <Icon name="trash" className="me-1" />
+            {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+          </Button>
+          <Link to={routes.folders} className="btn btn-outline-secondary btn-sm">
+            {t("common.back", { defaultValue: "Back" })}
+          </Link>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={loadFolderDocuments}>
+            {t("common.refresh", { defaultValue: "Refresh" })}
+          </Button>
+          <CollapseHeader />
+        </>
+      }
+    >
         {error && (
           <Alert variant="danger" className="mb-3">
             {error}
@@ -380,7 +367,7 @@ const FolderDetailPage = () => {
                   variant="outline"
                   size="sm"
                   className="btn-outline-secondary"
-                  onClick={() => openTransferDocs(subDocSelectedIds)}
+                  onClick={() => openTransferDocs(subDocSelectedIds.map((id) => Number(id)))}
                   disabled={transferSubmitting}
                 >
                   <Icon name="arrow-right-left" className="me-1" />
@@ -785,8 +772,6 @@ const FolderDetailPage = () => {
           treeGroupBy="document"
         />
 
-      </div>
-
       {/* Signature modal */}
       <Modal isOpen={signatureOpen} onClose={() => setSignatureOpen(false)} title={t("folders.signatureRequestOnMain", { defaultValue: "Request signature (main document)" })} size="md">
         {mainDoc && (
@@ -992,7 +977,7 @@ const FolderDetailPage = () => {
         confirmVariant="danger"
         isLoading={isDeletingNote}
       />
-    </div>
+    </PageLayout>
   );
 };
 

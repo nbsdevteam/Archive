@@ -40,11 +40,6 @@ export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
         position: "bottom",
         fontSize: "13px",
         fontFamily: "\"Inter\", sans-serif",
-        markers: {
-          width: 10,
-          height: 10,
-          radius: 6,
-        },
         itemMargin: {
           horizontal: 8,
           vertical: 4,
@@ -52,7 +47,7 @@ export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
       },
       dataLabels: {
         enabled: true,
-        formatter: (value) => `${Math.round(value)}%`,
+        formatter: (value: number) => `${Math.round(value)}%`,
         style: {
           fontSize: "11px",
           fontWeight: 400,

@@ -60,10 +60,6 @@ export const useDocumentsPageContainer = () => {
   } = list;
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [trashTargetId, setTrashTargetId] = useState<number | null>(null);
-  const [archiveTargetId, setArchiveTargetId] = useState<number | null>(null);
-  const [isBatchTrashConfirmOpen, setIsBatchTrashConfirmOpen] = useState(false);
-  const [isBatchArchiveConfirmOpen, setIsBatchArchiveConfirmOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
   const [moveDepartmentId, setMoveDepartmentId] = useState(0);
@@ -100,45 +96,30 @@ export const useDocumentsPageContainer = () => {
     setIsUploadOpen(false);
   }, [fetchDocuments, getFetchParams]);
 
-  const handleOpenTrashConfirm = useCallback((documentId: number) => {
-    setTrashTargetId(documentId);
-  }, []);
-  const handleCloseTrashConfirm = useCallback(() => {
-    if (!isTrashing) setTrashTargetId(null);
-  }, [isTrashing]);
-  const handleConfirmTrash = useCallback(async () => {
-    if (!trashTargetId) return;
-    const didTrash = await trashDocument(trashTargetId, {
-      successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
-      errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
-    });
-    if (didTrash) setTrashTargetId(null);
-  }, [trashDocument, trashTargetId, t, fetchDocuments, getFetchParams]);
+  /** Single-doc confirm: call from useConfirmDialog onConfirm. */
+  const confirmTrash = useCallback(
+    async (documentId: number) => {
+      await trashDocument(documentId, {
+        successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
+        errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
+        onSuccess: () => fetchDocuments(getFetchParams()),
+      });
+    },
+    [trashDocument, t, fetchDocuments, getFetchParams]
+  );
 
-  const handleOpenArchiveConfirm = useCallback((documentId: number) => {
-    setArchiveTargetId(documentId);
-  }, []);
-  const handleCloseArchiveConfirm = useCallback(() => {
-    if (!isArchiving) setArchiveTargetId(null);
-  }, [isArchiving]);
-  const handleConfirmArchive = useCallback(async () => {
-    if (!archiveTargetId) return;
-    const didArchive = await archiveDocument(archiveTargetId, {
-      successMessage: t("documents.archived", { defaultValue: "Document archived." }),
-      errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
-    });
-    if (didArchive) setArchiveTargetId(null);
-  }, [archiveDocument, archiveTargetId, fetchDocuments, getFetchParams, t]);
+  const confirmArchive = useCallback(
+    async (documentId: number) => {
+      await archiveDocument(documentId, {
+        successMessage: t("documents.archived", { defaultValue: "Document archived." }),
+        errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
+        onSuccess: () => fetchDocuments(getFetchParams()),
+      });
+    },
+    [archiveDocument, t, fetchDocuments, getFetchParams]
+  );
 
-  const handleOpenBatchTrashConfirm = useCallback(() => {
-    if (selectedDocumentIds.length > 0) setIsBatchTrashConfirmOpen(true);
-  }, [selectedDocumentIds.length]);
-  const handleCloseBatchTrashConfirm = useCallback(() => {
-    if (!isTrashing) setIsBatchTrashConfirmOpen(false);
-  }, [isTrashing]);
-  const handleConfirmBatchTrash = useCallback(async () => {
+  const confirmBatchTrash = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didTrash = await trashDocument(selectedDocumentIds, {
       successMessage: t("documents.batchTrashed", {
@@ -150,19 +131,10 @@ export const useDocumentsPageContainer = () => {
       }),
       onSuccess: () => fetchDocuments(getFetchParams()),
     });
-    if (didTrash) {
-      clearSelection();
-      setIsBatchTrashConfirmOpen(false);
-    }
+    if (didTrash) clearSelection();
   }, [clearSelection, fetchDocuments, getFetchParams, selectedDocumentIds, t, trashDocument]);
 
-  const handleOpenBatchArchiveConfirm = useCallback(() => {
-    if (selectedDocumentIds.length > 0) setIsBatchArchiveConfirmOpen(true);
-  }, [selectedDocumentIds.length]);
-  const handleCloseBatchArchiveConfirm = useCallback(() => {
-    if (!isArchiving) setIsBatchArchiveConfirmOpen(false);
-  }, [isArchiving]);
-  const handleConfirmBatchArchive = useCallback(async () => {
+  const confirmBatchArchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didArchive = await archiveDocument(selectedDocumentIds, {
       successMessage: t("documents.batchArchived", {
@@ -174,10 +146,7 @@ export const useDocumentsPageContainer = () => {
       }),
       onSuccess: () => fetchDocuments(getFetchParams()),
     });
-    if (didArchive) {
-      clearSelection();
-      setIsBatchArchiveConfirmOpen(false);
-    }
+    if (didArchive) clearSelection();
   }, [
     archiveDocument,
     clearSelection,
@@ -250,64 +219,61 @@ export const useDocumentsPageContainer = () => {
     [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
   );
 
+  /** Grouped return shape: data, loading, error, filter, selection, actions, modals (KISS/DRY). */
   return {
-    routes,
-    documents,
-    isLoading,
+    data: {
+      documents,
+      pagination: list.pagination,
+      routes,
+    },
+    loading: isLoading,
     error,
-    pagination: list.pagination,
-    isUploadOpen,
-    handleSearchDebounced,
-    handleNavigateToDocument,
-    handleDownloadDocument,
-    handleOpenUpload,
-    handleCloseUpload,
-    handleUploadSuccess,
-    handleRetry,
-    handleRefresh,
-    getDocumentStatusBadgeVariant,
-    isFilterOpen,
-    draftFilters,
-    departmentOptions,
-    documentTypeOptions,
-    handleOpenFilter,
-    handleCloseFilter,
-    handlePrimaryFilterChange,
-    handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
-    filterApplyDisabled,
-    trashTargetId,
-    isTrashing,
-    handleOpenTrashConfirm,
-    handleCloseTrashConfirm,
-    handleConfirmTrash,
-    archiveTargetId,
-    isArchiving,
-    handleOpenArchiveConfirm,
-    handleCloseArchiveConfirm,
-    handleConfirmArchive,
-    isBatchArchiveConfirmOpen,
-    isBatchArchiving: isArchiving,
-    handleOpenBatchArchiveConfirm,
-    handleCloseBatchArchiveConfirm,
-    handleConfirmBatchArchive,
-    selectedDocumentIds,
-    selectionConfig,
-    clearSelection,
-    isSomeSelected,
-    isMoveModalOpen,
-    moveDocumentIdsCount: moveDocumentIds.length,
-    moveDepartmentId,
-    isMoveSubmitting,
-    handleOpenSingleMoveConfirm,
-    handleOpenBatchMoveConfirm,
-    handleCloseBatchMoveConfirm,
-    handleConfirmBatchMove,
-    isBatchTrashConfirmOpen,
-    isBatchTrashing: isTrashing,
-    handleOpenBatchTrashConfirm,
-    handleCloseBatchTrashConfirm,
-    handleConfirmBatchTrash,
+    filter: {
+      isFilterOpen,
+      draftFilters,
+      departmentOptions,
+      documentTypeOptions,
+      handleOpenFilter,
+      handleCloseFilter,
+      handlePrimaryFilterChange,
+      handleSecondaryFilterChange,
+      handleApplyFilter,
+      handleClearFilter,
+      filterApplyDisabled,
+      handleSearchDebounced,
+    },
+    selection: {
+      selectedDocumentIds,
+      selectionConfig,
+      clearSelection,
+      isSomeSelected,
+    },
+    actions: {
+      handleNavigateToDocument,
+      handleDownloadDocument,
+      handleRetry,
+      handleRefresh,
+      getDocumentStatusBadgeVariant,
+      handleOpenUpload,
+      handleCloseUpload,
+      handleUploadSuccess,
+      confirmTrash,
+      confirmArchive,
+      confirmBatchTrash,
+      confirmBatchArchive,
+      handleOpenSingleMoveConfirm,
+      handleOpenBatchMoveConfirm,
+      handleCloseBatchMoveConfirm,
+      handleConfirmBatchMove,
+    },
+    modals: {
+      isUploadOpen,
+      isMoveModalOpen,
+      moveDocumentIdsCount: moveDocumentIds.length,
+      moveDepartmentId,
+      isMoveSubmitting,
+      isTrashing,
+      isArchiving,
+    },
   };
 };

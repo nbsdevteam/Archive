@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import { UploadDocumentSidePanel } from "../components";
 import { Button, Icon } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useUploadDocumentPageContainer } from "../containers/useUploadDocumentPageContainer";
 
 /**
@@ -12,29 +12,11 @@ const UploadDocumentPage = () => {
   const { panelOpen, initialValues, handleOpenPanel, handleClosePanel } = useUploadDocumentPageContainer();
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Upload Document</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={all_routes.dashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={all_routes.documents}>Documents</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Upload
-                </li>
-              </ol>
-            </nav>
-          </div>
-        </div>
-
+    <PageLayout
+      title="Upload Document"
+      breadcrumbItems={[{ label: "Documents", to: all_routes.documents }]}
+      homeTo={all_routes.dashboard}
+    >
         <div className="card border-0">
           <div className="card-body text-center py-5">
             <p className="text-muted mb-4">
@@ -52,8 +34,7 @@ const UploadDocumentPage = () => {
           onClose={handleClosePanel}
           initialValues={initialValues}
         />
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

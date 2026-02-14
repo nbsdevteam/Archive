@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import "../styles/edit-requests.css";
-import { Spinner, Alert, Icon } from "../../../shared/components/ui";
+import { Spinner, Alert } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { useEditRequestsPageContainer } from "../containers/useEditRequestsPageContainer";
 
@@ -13,31 +13,12 @@ const EditRequestsPage = () => {
     useEditRequestsPageContainer();
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Edit Requests</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Edit Requests
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
-
+    <PageLayout
+      title="Edit Requests"
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between">
             <h5 className="card-title mb-0">Pending Edit Requests</h5>
@@ -125,8 +106,7 @@ const EditRequestsPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

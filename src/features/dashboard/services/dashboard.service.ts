@@ -36,10 +36,11 @@ export const getDashboardStats = async (
 ): Promise<DashboardStats> => {
   if (useApi) {
     try {
-      return await dashboardApi.getDashboardStats();
+      const raw = await dashboardApi.getDashboardStats();
+      const stats = (raw as { stats?: Record<string, unknown> }).stats;
+      return stats ? ({ ...stats } as DashboardStats) : staticDashboardStats;
     } catch (error) {
       console.error("Failed to fetch dashboard stats from API:", error);
-      // Fall back to static data on error
       return staticDashboardStats;
     }
   }

@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { Spinner, Alert, Input, Icon } from "../../../shared/components/ui";
+import { Spinner, Alert, Input } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";
 import "../styles/search.css";
@@ -24,31 +24,12 @@ const SearchPage = () => {
   } = useSearchPageContainer();
 
   return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">Search</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Search
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div className="ms-2 head-icons">
-              <CollapseHeader />
-            </div>
-          </div>
-        </div>
-
+    <PageLayout
+      title="Search"
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
         <div className="card search__search-card mb-3">
           <div className="card-body">
             <div className="d-flex gap-2 mb-2">
@@ -155,8 +136,7 @@ const SearchPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

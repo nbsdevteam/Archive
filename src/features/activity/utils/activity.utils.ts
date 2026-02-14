@@ -20,8 +20,8 @@ export const formatDateForAuditApi = (date: Date | string, endOfDay: boolean): s
 export const humanizeAction = (action: string): string => {
   if (!action) return "Unknown";
   return action
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (ch: string) => ch.toUpperCase());
 };
 
 /** Formats an audit timestamp (API UTC) to Arabia Standard Time for table, timeline and tree views. */

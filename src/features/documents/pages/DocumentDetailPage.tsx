@@ -3,6 +3,7 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import { all_routes } from "../../../router/all_routes";
 import { FilePreview } from "../../../shared/components/FilePreview";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal, DataTable } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { UploadDocumentSidePanel } from "../components";
 import { useDocumentDetailPageContainer } from "../containers/useDocumentDetailPageContainer";
@@ -40,51 +41,37 @@ const DocumentDetailPage = () => {
     );
   }
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">{t("documents.details", { defaultValue: "Document details" })}</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.archiveDocuments}>{t("documents.title", { defaultValue: "Documents" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {title} {doc.barcode && `(${doc.barcode})`}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Link to={routes.archiveDocuments} className="btn btn-outline-secondary btn-sm">
-              <Icon name="arrow-left" className="me-1" />
-              {t("common.back", { defaultValue: "Back" })}
-            </Link>
-            {isArchived ? (
-              <Button variant="secondary" size="sm" onClick={handleUnarchive}>
-                {t("documents.unarchive", { defaultValue: "Unarchive" })}
-              </Button>
-            ) : (
-              <Button variant="danger" size="sm" onClick={handleArchive}>
-                {t("documents.archive", { defaultValue: "Archive" })}
-              </Button>
-            )}
-            {isTrashed && (
-              <Button variant="secondary" size="sm" onClick={handleRestoreDocument} disabled={isRestoring}>
-                {t("documents.restore", { defaultValue: "Restore" })}
-              </Button>
-            )}
-            <CollapseHeader />
-          </div>
-        </div>
+  const pageTitle = `${title}${doc.barcode ? ` (${doc.barcode})` : ""}`;
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.archiveDocuments }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Link to={routes.archiveDocuments} className="btn btn-outline-secondary btn-sm">
+            <Icon name="arrow-left" className="me-1" />
+            {t("common.back", { defaultValue: "Back" })}
+          </Link>
+          {isArchived ? (
+            <Button variant="secondary" size="sm" onClick={handleUnarchive}>
+              {t("documents.unarchive", { defaultValue: "Unarchive" })}
+            </Button>
+          ) : (
+            <Button variant="danger" size="sm" onClick={handleArchive}>
+              {t("documents.archive", { defaultValue: "Archive" })}
+            </Button>
+          )}
+          {isTrashed && (
+            <Button variant="secondary" size="sm" onClick={handleRestoreDocument} disabled={isRestoring}>
+              {t("documents.restore", { defaultValue: "Restore" })}
+            </Button>
+          )}
+          <CollapseHeader />
+        </>
+      }
+    >
         {storeError && (
           <Alert variant="danger" className="mb-3">
             {storeError}
@@ -458,7 +445,7 @@ const DocumentDetailPage = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <span>{t("documents.notes", { defaultValue: "Notes" })}</span>
                   <Button variant="secondary" size="sm" onClick={handleCreateNote}>
-                    <Icon name="plus" className="me-1" />
+                    <Icon name="folder-plus" className="me-1" />
                     {t("notes.createNote", { defaultValue: "Create note" })}
                   </Button>
                 </div>
@@ -629,7 +616,6 @@ const DocumentDetailPage = () => {
             )}
           </div>
         </div>
-      </div>
 
       {doc && (
         <UploadDocumentSidePanel
@@ -964,7 +950,7 @@ const DocumentDetailPage = () => {
         confirmVariant="danger"
         isLoading={isDeletingNote}
       />
-    </div>
+    </PageLayout>
   );
 };
 

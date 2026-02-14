@@ -3,11 +3,12 @@
  */
 
 import { useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, ConfirmModal, Icon, Modal, Spinner } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
 import type { NoteEditorSavePayload } from "../components/NoteEditor";
@@ -139,42 +140,27 @@ const NotesPage = () => {
     [navigate, routes.folderDetail]
   );
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        {/* Breadcrumb */}
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">
-              <Icon name="file-text" className="me-2" />
-              {t("notes.title", { defaultValue: "Notes" })}
-            </h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.dashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {t("notes.title", { defaultValue: "Notes" })}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={refresh}>
-              <Icon name="refresh-cw" className="me-1" />
-              {t("common.refresh", { defaultValue: "Refresh" })}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleCreateNote}>
-              <Icon name="upload" className="me-1" />
-              {t("notes.createNote", { defaultValue: "Create note" })}
-            </Button>
-            <CollapseHeader />
-          </div>
-        </div>
+  const pageTitle = t("notes.title", { defaultValue: "Notes" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[]}
+      homeTo={routes.dashboard}
+      rightContent={
+        <>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={refresh}>
+            <Icon name="refresh-cw" className="me-1" />
+            {t("common.refresh", { defaultValue: "Refresh" })}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleCreateNote}>
+            <Icon name="upload" className="me-1" />
+            {t("notes.createNote", { defaultValue: "Create note" })}
+          </Button>
+          <CollapseHeader />
+        </>
+      }
+    >
         {/* Error alert */}
         {error && (
           <div className="alert alert-danger" role="alert">
@@ -265,7 +251,6 @@ const NotesPage = () => {
             })}
           </div>
         )}
-      </div>
 
       {/* Note editor modal */}
       <Modal
@@ -309,7 +294,7 @@ const NotesPage = () => {
         confirmVariant="danger"
         isLoading={isDeleting}
       />
-    </div>
+    </PageLayout>
   );
 };
 

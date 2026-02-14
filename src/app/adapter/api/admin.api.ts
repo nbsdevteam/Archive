@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { AuditLogsApiParams } from '../../features/activity/types/auditLogs.types';
+import type { AuditLogsApiParams } from '../../../features/activity/types/auditLogs.types';
 
 export interface Department {
   id: number;

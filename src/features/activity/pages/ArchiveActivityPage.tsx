@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Icon, Button } from "../../../shared/components/ui";
+import { Button } from "../../../shared/components/ui";
+import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
 import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../../../shared/components/Activity";
@@ -71,63 +71,49 @@ const ArchiveActivityPage = () => {
     ];
   }, []);
 
-  return (
-    <div className="page-wrapper">
-      <div className="content">
-        <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-          <div className="my-auto mb-2">
-            <h2 className="mb-1 page-heading">{t("activity.title", { defaultValue: "Activity" })}</h2>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={routes.adminDashboard}>
-                    <Icon name="smart-home" />
-                  </Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={routes.documents}>{t("documents.title", { defaultValue: "Documents" })}</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  {t("activity.title", { defaultValue: "Activity" })}
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="btn-outline-secondary"
-              onClick={() => {
-                const defaultParams = { date_from: getDateDaysAgoFormatted(7), page: 1, per_page: 50 };
-                setDateFromInput("");
-                setDateToInput("");
-                setActionInput("");
-                setParams(defaultParams);
-                fetchLogs(defaultParams).catch(() => undefined);
-              }}
-            >
-              {t("activity.last7Days", { defaultValue: "Last 7 days" })}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="btn-outline-secondary"
-              onClick={() => {
-                const defaultParams = { date_from: getDateDaysAgoFormatted(1), page: 1, per_page: 50 };
-                setDateFromInput("");
-                setDateToInput("");
-                setActionInput("");
-                setParams(defaultParams);
-                fetchLogs(defaultParams).catch(() => undefined);
-              }}
-            >
-              {t("activity.last24Hours", { defaultValue: "Last 24h" })}
-            </Button>
-            <CollapseHeader />
-          </div>
-        </div>
+  const pageTitle = t("activity.title", { defaultValue: "Activity" });
 
+  return (
+    <PageLayout
+      title={pageTitle}
+      breadcrumbItems={[{ label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents }]}
+      homeTo={routes.adminDashboard}
+      rightContent={
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-outline-secondary"
+            onClick={() => {
+              const defaultParams = { date_from: getDateDaysAgoFormatted(7), page: 1, per_page: 50 };
+              setDateFromInput("");
+              setDateToInput("");
+              setActionInput("");
+              setParams(defaultParams);
+              fetchLogs(defaultParams).catch(() => undefined);
+            }}
+          >
+            {t("activity.last7Days", { defaultValue: "Last 7 days" })}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="btn-outline-secondary"
+            onClick={() => {
+              const defaultParams = { date_from: getDateDaysAgoFormatted(1), page: 1, per_page: 50 };
+              setDateFromInput("");
+              setDateToInput("");
+              setActionInput("");
+              setParams(defaultParams);
+              fetchLogs(defaultParams).catch(() => undefined);
+            }}
+          >
+            {t("activity.last24Hours", { defaultValue: "Last 24h" })}
+          </Button>
+          <CollapseHeader />
+        </>
+      }
+    >
         <div className="card mb-3">
           <div className="card-body">
             <form
@@ -165,7 +151,7 @@ const ArchiveActivityPage = () => {
                   <option value="">{t("activity.filters.allActions", { defaultValue: "All actions" })}</option>
                   {actionOptions.map((action) => (
                     <option key={action} value={action}>
-                      {t(`activity.actions.${action}`, { defaultValue: action.replaceAll("_", " ") })}
+                      {t(`activity.actions.${action}`, { defaultValue: action.replace(/_/g, " ") })}
                     </option>
                   ))}
                 </select>
@@ -247,8 +233,7 @@ const ArchiveActivityPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

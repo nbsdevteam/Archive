@@ -19,7 +19,8 @@ export const useLogin = () => {
     try {
       const response = await loginApi(credentials);
       if (!response.success) {
-        throw new Error(response.error || "Login failed");
+        const err = (response as { error?: string }).error;
+        throw new Error(err ?? "Login failed");
       }
       
       // Preload departments after successful login to prevent duplicate calls later

@@ -12,7 +12,9 @@ import {
   ConfirmModal,
 } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
+import { useConfirmDialog, useConfirmDialogEmpty } from "../../../shared/hooks";
 import type { Document } from "../../../app/adapter/api/documents.api";
+import { buildRowActions } from "../../../shared/utils/buildRowActions";
 import { useArchivedDocumentsPageContainer } from "../../documents/containers/useArchivedDocumentsPageContainer";
 import { getDocumentTableColumns } from "../../documents/utils/documentTableColumns";
 import "../../documents/styles/documents.css";
@@ -20,50 +22,13 @@ import "../styles/archive.css";
 
 const ArchiveDocuments = () => {
   const { t } = useTranslation();
-  const {
-    routes,
-    documents,
-    isLoading,
-    error,
-    handleSearchDebounced,
-    handleNavigateToDocument,
-    handleDownloadDocument,
-    handleRetry,
-    handleRefresh,
-    getDocumentStatusBadgeVariant,
-    isFilterOpen,
-    draftFilters,
-    departmentOptions,
-    documentTypeOptions,
-    handleOpenFilter,
-    handleCloseFilter,
-    handlePrimaryFilterChange,
-    handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
-    filterApplyDisabled,
-    handleUnarchive,
-    handlePageChange,
-    pagination,
-    selectedDocumentIds,
-    isSomeSelected,
-    selectionConfig,
-    trashTargetId,
-    isTrashing,
-    handleOpenTrashConfirm,
-    handleCloseTrashConfirm,
-    handleConfirmTrash,
-    isBatchTrashConfirmOpen,
-    isBatchTrashing,
-    handleOpenBatchTrashConfirm,
-    handleCloseBatchTrashConfirm,
-    handleConfirmBatchTrash,
-    isBatchUnarchiveConfirmOpen,
-    isBatchUnarchiving,
-    handleOpenBatchUnarchiveConfirm,
-    handleCloseBatchUnarchiveConfirm,
-    handleConfirmBatchUnarchive,
-  } = useArchivedDocumentsPageContainer();
+  const { data, loading, error, filter, selection, paging, actions, modals } = useArchivedDocumentsPageContainer();
+  const { documents, pagination, routes } = data;
+  const { selectedDocumentIds, selectionConfig, isSomeSelected } = selection;
+
+  const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
+  const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
+  const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
 
   const totalPages = pagination?.total_pages ?? 1;
   const currentPage = pagination?.page ?? 1;
@@ -73,62 +38,55 @@ const ArchiveDocuments = () => {
     () =>
       getDocumentTableColumns({
         t,
-        getDocumentStatusBadgeVariant,
+        getDocumentStatusBadgeVariant: actions.getDocumentStatusBadgeVariant,
       }),
-    [t, getDocumentStatusBadgeVariant]
+    [t, actions.getDocumentStatusBadgeVariant]
   );
 
   const rowActions = useMemo(
-    () => [
-      {
-        id: "view",
-        label: t("common.view", { defaultValue: "View" }),
-        variant: "light" as const,
-        onClick: (row: Document, e: React.MouseEvent) => {
-          e.stopPropagation();
-          handleNavigateToDocument(row.id);
+    () =>
+      buildRowActions<Document>(t, [
+        {
+          id: "view",
+          labelKey: "common.view",
+          defaultValue: "View",
+          variant: "light",
+          onClick: (row) => actions.handleNavigateToDocument(row.id),
         },
-      },
-      {
-        id: "download",
-        label: t("documents.download", { defaultValue: "Download" }),
-        icon: "download" as const,
-        variant: "outline" as const,
-        className: "btn-outline-secondary me-1",
-        onClick: (row: Document, e: React.MouseEvent) => {
-          e.stopPropagation();
-          void handleDownloadDocument(row);
+        {
+          id: "download",
+          labelKey: "documents.download",
+          defaultValue: "Download",
+          icon: "download",
+          variant: "outline",
+          className: "btn-outline-secondary me-1",
+          onClick: (row) => void actions.handleDownloadDocument(row),
         },
-      },
-      {
-        id: "unarchive",
-        label: t("documents.unarchive", { defaultValue: "Unarchive" }),
-        icon: "archive" as const,
-        variant: "outline" as const,
-        className: "btn-outline-secondary",
-        onClick: (row: Document, e: React.MouseEvent) => {
-          e.stopPropagation();
-          handleUnarchive(row.id);
+        {
+          id: "unarchive",
+          labelKey: "documents.unarchive",
+          defaultValue: "Unarchive",
+          icon: "archive",
+          variant: "outline",
+          className: "btn-outline-secondary",
+          onClick: (row) => actions.handleUnarchive(row.id),
         },
-      },
-      {
-        id: "trash",
-        label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
-        icon: "trash-2" as const,
-        variant: "outline" as const,
-        className: "btn-outline-danger",
-        onClick: (row: Document, e: React.MouseEvent) => {
-          e.stopPropagation();
-          handleOpenTrashConfirm(row.id);
+        {
+          id: "trash",
+          labelKey: "documents.moveToTrash",
+          defaultValue: "Move to trash",
+          icon: "trash-2",
+          variant: "outline",
+          className: "btn-outline-danger",
+          onClick: (row) => trashDialog.open(row.id),
         },
-      },
-    ],
+      ]),
     [
       t,
-      handleDownloadDocument,
-      handleNavigateToDocument,
-      handleUnarchive,
-      handleOpenTrashConfirm,
+      actions.handleDownloadDocument,
+      actions.handleNavigateToDocument,
+      actions.handleUnarchive,
+      trashDialog.open,
     ]
   );
 
@@ -148,7 +106,7 @@ const ArchiveDocuments = () => {
                 {t("dashboard.archivedDocuments", { defaultValue: "Archived Documents" })}
               </h5>
               <span className="text-muted fs-13">
-                {isLoading
+                {loading
                   ? t("common.loading", { defaultValue: "Loading..." })
                   : (total > 0 && (
                       <>
@@ -168,8 +126,8 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="md"
                     className="btn-outline-success d-inline-flex align-items-center me-2"
-                    onClick={handleOpenBatchUnarchiveConfirm}
-                    disabled={isBatchUnarchiving}
+                    onClick={batchUnarchiveDialog.open}
+                    disabled={modals.isUnarchiving}
                     aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
                   >
                     <Icon name="archive" className="me-1" />
@@ -182,8 +140,8 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="md"
                     className="btn-outline-danger d-inline-flex align-items-center me-2"
-                    onClick={handleOpenBatchTrashConfirm}
-                    disabled={isBatchTrashing}
+                    onClick={batchTrashDialog.open}
+                    disabled={modals.isTrashing}
                     aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
                   >
                     <Icon name="trash-2" className="me-1" />
@@ -197,44 +155,44 @@ const ArchiveDocuments = () => {
               <SearchInput
                 placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
                 debounceMs={300}
-                onDebouncedChange={handleSearchDebounced}
+                onDebouncedChange={filter.handleSearchDebounced}
                 icon="file-search-corner"
                 wide
                 highlight
                 className="documents__search-wrap"
                 inputClassName="documents__search-input"
-                aria-label="Search archived documents"
+                aria-label={t("documents.searchAria", { defaultValue: "Search archived documents" })}
               />
               <div className="position-relative d-inline-block">
                 <Button
                   variant="outline"
                   size="md"
                   className="d-inline-flex align-items-center btn-outline-secondary"
-                  onClick={handleOpenFilter}
+                  onClick={filter.handleOpenFilter}
                   aria-label={t("documents.filter", { defaultValue: "Filter" })}
-                  aria-expanded={isFilterOpen}
+                  aria-expanded={filter.isFilterOpen}
                 >
                   <Icon name="filter" className="me-1" />
                   {t("documents.filter", { defaultValue: "Filter" })}
                 </Button>
                 <ListFilter
-                  isOpen={isFilterOpen}
-                  onClose={handleCloseFilter}
+                  isOpen={filter.isFilterOpen}
+                  onClose={filter.handleCloseFilter}
                   primaryFilter={{
                     label: t("documents.department", { defaultValue: "Department" }),
-                    value: draftFilters.department_id ?? null,
-                    options: departmentOptions,
-                    onChange: handlePrimaryFilterChange,
+                    value: filter.draftFilters.department_id ?? null,
+                    options: filter.departmentOptions,
+                    onChange: filter.handlePrimaryFilterChange,
                   }}
                   secondaryFilter={{
                     label: t("documents.documentType", { defaultValue: "Document type" }),
-                    value: draftFilters.document_type_id ?? null,
-                    options: documentTypeOptions,
-                    onChange: handleSecondaryFilterChange,
+                    value: filter.draftFilters.document_type_id ?? null,
+                    options: filter.documentTypeOptions,
+                    onChange: filter.handleSecondaryFilterChange,
                   }}
-                  onApply={handleApplyFilter}
-                  onClear={handleClearFilter}
-                  applyDisabled={filterApplyDisabled}
+                  onApply={filter.handleApplyFilter}
+                  onClear={filter.handleClearFilter}
+                  applyDisabled={filter.filterApplyDisabled}
                   applyLabel={t("common.apply", { defaultValue: "Apply" })}
                   clearLabel={t("common.clear", { defaultValue: "Clear" })}
                   closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
@@ -252,9 +210,9 @@ const ArchiveDocuments = () => {
                 variant="outline"
                 size="md"
                 className="d-inline-flex align-items-center btn-outline-secondary"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                aria-label="Refresh"
+                onClick={actions.handleRefresh}
+                disabled={loading}
+                aria-label={t("documents.refreshAria", { defaultValue: "Refresh" })}
               >
                 <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
               </Button>
@@ -268,7 +226,7 @@ const ArchiveDocuments = () => {
                   variant="outline"
                   size="sm"
                   className="btn-outline-secondary ms-2"
-                  onClick={handleRetry}
+                  onClick={actions.handleRetry}
                 >
                   {t("common.retry", { defaultValue: "Retry" })}
                 </Button>
@@ -278,14 +236,14 @@ const ArchiveDocuments = () => {
               data={documents}
               getRowId={(row) => row.id}
               columns={columns}
-              loading={isLoading}
+              loading={loading}
               emptyMessage={t("documents.noDocumentsFound", { defaultValue: "No documents found" })}
-              onRowClick={(row) => handleNavigateToDocument(row.id)}
+              onRowClick={(row) => actions.handleNavigateToDocument(row.id)}
               rowActions={rowActions}
               selection={selectionConfig}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             />
-            {!isLoading && totalPages > 1 && (
+            {!loading && totalPages > 1 && (
               <div className="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2">
                 <span className="text-muted small">
                   {t("documents.pageInfo", {
@@ -299,7 +257,7 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage <= 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
+                    onClick={() => paging.handlePageChange(currentPage - 1)}
                   >
                     {t("common.previous", { defaultValue: "Previous" })}
                   </Button>
@@ -307,7 +265,7 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage >= totalPages}
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    onClick={() => paging.handlePageChange(currentPage + 1)}
                   >
                     {t("common.next", { defaultValue: "Next" })}
                   </Button>
@@ -318,9 +276,7 @@ const ArchiveDocuments = () => {
         </div>
 
       <ConfirmModal
-        isOpen={trashTargetId != null}
-        onClose={handleCloseTrashConfirm}
-        onConfirm={handleConfirmTrash}
+        {...trashDialog.modalProps}
         title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         message={t("documents.confirmMoveToTrash", {
           defaultValue: "Are you sure you want to move this document to trash?",
@@ -328,13 +284,10 @@ const ArchiveDocuments = () => {
         confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isTrashing}
       />
 
       <ConfirmModal
-        isOpen={isBatchTrashConfirmOpen}
-        onClose={handleCloseBatchTrashConfirm}
-        onConfirm={handleConfirmBatchTrash}
+        {...batchTrashDialog.modalProps}
         title={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
         message={t("documents.confirmBatchMoveToTrash", {
           defaultValue: "Move {{count}} document(s) to trash?",
@@ -343,13 +296,10 @@ const ArchiveDocuments = () => {
         confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isBatchTrashing}
       />
 
       <ConfirmModal
-        isOpen={isBatchUnarchiveConfirmOpen}
-        onClose={handleCloseBatchUnarchiveConfirm}
-        onConfirm={handleConfirmBatchUnarchive}
+        {...batchUnarchiveDialog.modalProps}
         title={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
         message={t("documents.confirmBatchUnarchive", {
           defaultValue: "Unarchive {{count}} document(s)?",
@@ -358,7 +308,6 @@ const ArchiveDocuments = () => {
         confirmLabel={t("documents.unarchive", { defaultValue: "Unarchive" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="primary"
-        isLoading={isBatchUnarchiving}
       />
     </PageLayout>
   );

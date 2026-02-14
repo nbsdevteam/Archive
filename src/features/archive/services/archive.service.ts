@@ -98,14 +98,14 @@ export const uploadDocument = async (
       };
     }
   }
-  // Static mode: simulate success
+  // Static mode: simulate success (minimal mock; full Document type not required for static UI)
   return {
     success: true,
     data: {
       name: params.file_name,
       type: params.file_name.split(".").pop() || "File",
       updated: "Just now",
-    },
+    } as Document,
   };
 };
 
