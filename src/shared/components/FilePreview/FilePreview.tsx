@@ -84,7 +84,17 @@ function isCacheStale(
   
   // If we have version information from both cache and latest, compare them
   if (latestVersionId != null && cached.latestVersionId != null) {
-    return cached.latestVersionId !== latestVersionId;
+    const isStale = cached.latestVersionId !== latestVersionId;
+    if (isStale) {
+      console.log(`[isCacheStale] Version mismatch - cached: ${cached.latestVersionId}, latest: ${latestVersionId}`);
+    }
+    return isStale;
+  }
+  
+  // If we have a new latestVersionId but cache doesn't have one, consider it stale
+  if (latestVersionId != null && cached.latestVersionId == null) {
+    console.log(`[isCacheStale] Cache has no version info but latest version is ${latestVersionId}, considering stale`);
+    return true;
   }
   
   return false;
@@ -195,12 +205,14 @@ export function FilePreview({
     const isStale = isCacheStale(cacheKey, latestVersionId);
     if (isStale) {
       // Invalidate stale cache - new version detected from version history
+      console.log(`[FilePreview] Cache stale detected for document ${documentId}, invalidating and re-downloading`);
       invalidateCache(cacheKey);
     }
 
     // Serve from enhanced cache if already downloaded and not stale
     const cachedMetadata = enhancedPreviewCache.get(cacheKey);
     if (cachedMetadata && !isStale) {
+      console.log(`[FilePreview] Serving from cache for document ${documentId}, version ${cachedMetadata.latestVersionId}`);
       setBlobUrl(cachedMetadata.blobUrl);
       setIsLoading(false);
       return;
@@ -209,6 +221,7 @@ export function FilePreview({
     // Fallback to legacy cache for backward compatibility
     const legacyCached = previewCache.get(cacheKey);
     if (legacyCached && !isStale) {
+      console.log(`[FilePreview] Serving from legacy cache for document ${documentId}`);
       setBlobUrl(legacyCached);
       setIsLoading(false);
       return;
@@ -220,6 +233,8 @@ export function FilePreview({
       try {
         setIsLoading(true);
         setError(null);
+
+        console.log(`[FilePreview] Downloading preview for document ${documentId}, latest version ${latestVersionId}`);
 
         const blob =
           attachmentId != null
@@ -238,11 +253,13 @@ export function FilePreview({
         });
         evictOldestIfNeeded();
 
+        console.log(`[FilePreview] Cached preview for document ${documentId}, version ${latestVersionId}`);
         setBlobUrl(url);
         setIsLoading(false);
       } catch (err: unknown) {
         if (!isCancelled) {
           const msg = err instanceof Error ? err.message : 'Failed to load file for preview';
+          console.error(`[FilePreview] Error loading preview for document ${documentId}:`, err);
           setError(errorMessage ?? msg);
           setIsLoading(false);
         }

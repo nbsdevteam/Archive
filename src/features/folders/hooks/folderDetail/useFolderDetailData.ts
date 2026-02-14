@@ -33,7 +33,8 @@ export function useFolderDetailData(
       if (docs.length > 0) {
         const first = sortFolderDocumentsByUploadDate(docs)[0];
         if (first?.id) {
-          fetchDocument(first.id);
+          // Always fetch full document details (including versions) to ensure preview cache validation works
+          await fetchDocument(first.id);
           if (attachmentsDocId === "") setAttachmentsDocId(first.id);
         }
       }

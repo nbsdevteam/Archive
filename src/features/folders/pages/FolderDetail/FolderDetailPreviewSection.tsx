@@ -1,10 +1,11 @@
 import type { TFunction } from "i18next";
 import { Button, Icon } from "@/shared/components/ui";
 import { FilePreview } from "@/shared/components/FilePreview";
+import type { DocumentDetail } from "@/app/adapter/api/documents.api";
 
 export interface FolderDetailPreviewSectionProps {
   t: TFunction;
-  previewDoc: { id?: number; file_name?: string; versions?: Array<{ id: number }> } | null;
+  previewDoc: DocumentDetail | null;
   previewFileName: string;
   onDownload: () => void;
 }
@@ -19,9 +20,19 @@ export function FolderDetailPreviewSection({
   const hasPreview = previewDoc?.id && previewFileName;
   
   // Extract the latest version ID from version history to validate cache freshness
+  // Versions array is sorted newest first, so versions[0] is the most recent upload
   const latestVersionId = previewDoc?.versions?.length 
     ? previewDoc.versions[0]?.id 
     : undefined;
+
+  // Debug logging to help troubleshoot cache invalidation
+  console.log('[FolderDetailPreviewSection] Preview state:', {
+    documentId: previewDoc?.id,
+    fileName: previewFileName,
+    versionsCount: previewDoc?.versions?.length ?? 0,
+    latestVersionId,
+    allVersions: previewDoc?.versions?.map(v => ({ id: v.id, version: v.version_number })),
+  });
 
   return (
     <div className="card mb-3">

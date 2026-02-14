@@ -205,7 +205,8 @@ export const useFolderDetailPageContainer = () => {
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
 
-  const previewDoc = currentDocument as { id?: number; file_name?: string } | null;
+  // Use currentDocument directly - it's already DocumentDetail with versions array
+  const previewDoc = currentDocument;
   const previewFileName = previewDoc?.file_name ?? "";
 
   const formatDate = useCallback((dateStr?: string | null) => {
