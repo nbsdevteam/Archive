@@ -29,12 +29,23 @@ export interface Document {
   barcode: string;
   file_name: string;
   file_size: number;
-  /** Optional shipping/logistics fields */
-  po_number?: string;
-  bl_number?: string;
-  container_number?: string;
-  invoice_number?: string;
-  envoy_number?: string;
+  /** Optional shipping/logistics fields (API may send false when not set) */
+  po_number?: string | false;
+  bl_number?: string | false;
+  container_number?: string | false;
+  invoice_number?: string | false;
+  envoy_number?: string | false;
+  /** Folder assignment; null when document is not in a folder */
+  folder_id?: number | null;
+  folder_name?: string | null;
+  /** For sub-documents: parent main document id */
+  parent_document_id?: number | null;
+  /** True when this document is a main document (can be transferred to folder); false for sub/attachment */
+  is_main_document?: boolean;
+  /** Document role: e.g. "main" | "sub" */
+  document_role?: string;
+  /** Relation type when linked to another document, e.g. "secondary_document" */
+  relation_type?: string | null;
   /** Notes system: number of notes on this document (API 1.1) */
   note_count?: number;
   /** Notes system: last modified including versions/notes (API 1.1) */

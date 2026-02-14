@@ -63,6 +63,7 @@ const DocumentsPage = () => {
           icon: "arrow-right-left",
           variant: "outline",
           className: "btn-outline-secondary me-1",
+          visible: (row) => row.is_main_document === true,
           onClick: (row) => actions.handleOpenSingleMoveConfirm(row.id),
         },
         {
