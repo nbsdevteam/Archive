@@ -10,10 +10,11 @@ Previously, when a user uploaded a new version of a document, the preview sectio
 
 ## Solution
 
-An automatic cache invalidation system that:
-1. Tracks the latest version ID from the document's version history
-2. Compares cached version with the current latest version
-3. Automatically re-downloads and caches the new preview when a version mismatch is detected
+A simple key-value cache system where:
+1. Cache key = `documentId-versionId-attachmentId` 
+2. When a new version is uploaded, the version ID changes
+3. Different cache key = cache miss = automatic re-download
+4. No complex version comparison needed - the cache key itself handles versioning
 
 ## Implementation Details
 
@@ -31,47 +32,56 @@ interface CacheMetadata {
 const enhancedPreviewCache = new Map<string, CacheMetadata>();
 ```
 
-### 2. Cache Validation Function
+### 2. Simple Cache Lookup
 
 ```typescript
-function isCacheStale(cacheKey: string, latestVersionId?: number): boolean {
-  const cached = enhancedPreviewCache.get(cacheKey);
-  if (!cached) return false;
-  
-  // Compare cached version with latest version from version history
-  if (latestVersionId != null && cached.latestVersionId != null) {
-    return cached.latestVersionId !== latestVersionId;
-  }
-  
-  return false;
+// Cache key includes version ID
+const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
+
+// Simple key-value lookup - no version comparison needed
+const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+if (cachedMetadata) {
+  // Cache hit - serve from cache
+  return cachedMetadata.blobUrl;
 }
+
+// Cache miss - download and cache
 ```
 
-### 3. Cache Invalidation
+### 3. Automatic Cache Invalidation
 
-When a stale cache is detected:
-1. The old blob URL is revoked (frees memory)
-2. Cache entry is deleted
-3. File is automatically re-downloaded
-4. New preview is cached with updated version ID
+No manual invalidation needed! When version changes:
+1. Component receives new `versionId` from version history
+2. Cache key changes (includes version ID)
+3. Cache lookup fails (different key)
+4. File is automatically downloaded
+5. Cached with the new key
 
 ### 4. Component Integration
 
 **FilePreview Component:**
-- Added `latestVersionId` prop
-- Checks for stale cache on mount/update
-- Automatically invalidates and re-downloads when version changes
+- Pass `versionId` to download a specific version
+- Cache key includes version ID
+- Different version = different key = automatic cache miss
 
 **Usage Example:**
 
 ```tsx
+// Get current version from version history (first item, sorted newest first)
+const currentVersionId = document.versions?.[0]?.id;
+
 <FilePreview
   documentId={123}
+  versionId={currentVersionId}  // Download this specific version
   fileName="document.pdf"
-  latestVersionId={versions[0]?.id}  // First item from version history
   maxHeight="500px"
 />
 ```
+
+**How it works:**
+- Version 1: `versionId={456}` → cache key = `"123-456-none"` → downloads and caches
+- Version 2 uploaded: `versionId={789}` → cache key = `"123-789-none"` → cache miss → downloads new version
+- Simple key-value logic - no complex version comparison needed!
 
 ## Files Modified
 
@@ -126,7 +136,7 @@ const latestVersionId = document?.versions?.length
 // - "123-latest-789"       (document 123, attachment 789)
 ```
 
-### 4. Validation Flow
+### 4. Simple Cache Flow
 ```
 ┌─────────────────────────────────────────────────────┐
 │ User uploads new version                            │
@@ -134,25 +144,32 @@ const latestVersionId = document?.versions?.length
                     │
                     ▼
 ┌─────────────────────────────────────────────────────┐
-│ Version history updated (new version at index 0)    │
+│ Version history updated                             │
+│ versions[0].id = 789 (was 456)                      │
 └───────────────────┬─────────────────────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────────────────────┐
-│ Component re-renders with new latestVersionId       │
+│ Component re-renders with new versionId=789         │
 └───────────────────┬─────────────────────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────────────────────┐
-│ FilePreview checks: cached.versionId ≠ latest?      │
+│ FilePreview builds cache key: "123-789-none"        │
+│ (was "123-456-none")                                │
+└───────────────────┬─────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────┐
+│ Cache lookup with new key                           │
 └───────┬────────────────────────────────────┬────────┘
         │                                    │
-     YES│                                    │NO
+     MISS│                                   │HIT
         ▼                                    ▼
 ┌──────────────────┐              ┌─────────────────┐
-│ Invalidate cache │              │ Use cached blob │
-│ Re-download file │              └─────────────────┘
-│ Update cache     │
+│ Download file    │              │ Use cached blob │
+│ Cache with key   │              └─────────────────┘
+│ "123-789-none"   │
 └──────────────────┘
 ```
 

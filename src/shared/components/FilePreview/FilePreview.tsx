@@ -72,35 +72,6 @@ function evictOldestIfNeeded(): void {
 }
 
 /**
- * Checks if the cached preview is outdated by comparing version IDs.
- * Returns true if cache should be invalidated and re-downloaded.
- */
-function isCacheStale(
-  cacheKey: string,
-  latestVersionId?: number,
-): boolean {
-  const cached = enhancedPreviewCache.get(cacheKey);
-  if (!cached) return false;
-  
-  // If we have version information from both cache and latest, compare them
-  if (latestVersionId != null && cached.latestVersionId != null) {
-    const isStale = cached.latestVersionId !== latestVersionId;
-    if (isStale) {
-      console.log(`[isCacheStale] Version mismatch - cached: ${cached.latestVersionId}, latest: ${latestVersionId}`);
-    }
-    return isStale;
-  }
-  
-  // If we have a new latestVersionId but cache doesn't have one, consider it stale
-  if (latestVersionId != null && cached.latestVersionId == null) {
-    console.log(`[isCacheStale] Cache has no version info but latest version is ${latestVersionId}, considering stale`);
-    return true;
-  }
-  
-  return false;
-}
-
-/**
  * Invalidates cache entry for a specific document when a new version is detected.
  * Revokes the blob URL to free memory.
  */
@@ -152,6 +123,11 @@ export function clearPreviewCache(
 
 export interface FilePreviewProps {
   documentId: number;
+  /** 
+   * Version ID to preview. When provided, downloads that specific version.
+   * When omitted, downloads the current/latest version from the server.
+   * Cache key includes version ID, so different versions are cached separately.
+   */
   versionId?: number;
   /** When set, preview is loaded via attachment endpoint instead of document version. */
   attachmentId?: number;
@@ -162,11 +138,6 @@ export interface FilePreviewProps {
   notPreviewableMessage?: string;
   /** Optional i18n message for load error */
   errorMessage?: string;
-  /**
-   * The latest version ID from version history. Used to detect when a new version
-   * has been uploaded and cache should be invalidated.
-   */
-  latestVersionId?: number;
 }
 
 export function FilePreview({
@@ -178,7 +149,6 @@ export function FilePreview({
   maxHeight = '600px',
   notPreviewableMessage = 'Preview not available for this file type',
   errorMessage,
-  latestVersionId,
 }: FilePreviewProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -199,20 +169,16 @@ export function FilePreview({
       return;
     }
 
+    // Simple key-value cache: key = documentId-versionId-attachmentId
+    // If version changes, the key changes = automatic cache miss = re-download
     const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
 
-    // Check if cache exists and if it's stale (new version uploaded)
-    const isStale = isCacheStale(cacheKey, latestVersionId);
-    if (isStale) {
-      // Invalidate stale cache - new version detected from version history
-      console.log(`[FilePreview] Cache stale detected for document ${documentId}, invalidating and re-downloading`);
-      invalidateCache(cacheKey);
-    }
+    console.log(`[FilePreview] Cache key: ${cacheKey} (doc: ${documentId}, version: ${versionId ?? 'latest'})`);
 
-    // Serve from enhanced cache if already downloaded and not stale
+    // Check if we have this exact version cached (simple key-value lookup)
     const cachedMetadata = enhancedPreviewCache.get(cacheKey);
-    if (cachedMetadata && !isStale) {
-      console.log(`[FilePreview] Serving from cache for document ${documentId}, version ${cachedMetadata.latestVersionId}`);
+    if (cachedMetadata) {
+      console.log(`[FilePreview] ✓ Cache HIT - Serving from cache for ${cacheKey}`);
       setBlobUrl(cachedMetadata.blobUrl);
       setIsLoading(false);
       return;
@@ -220,12 +186,15 @@ export function FilePreview({
 
     // Fallback to legacy cache for backward compatibility
     const legacyCached = previewCache.get(cacheKey);
-    if (legacyCached && !isStale) {
-      console.log(`[FilePreview] Serving from legacy cache for document ${documentId}`);
+    if (legacyCached) {
+      console.log(`[FilePreview] ✓ Cache HIT (legacy) - Serving from cache for ${cacheKey}`);
       setBlobUrl(legacyCached);
       setIsLoading(false);
       return;
     }
+
+    // Cache miss - download the file
+    console.log(`[FilePreview] ✗ Cache MISS - Downloading preview for ${cacheKey}`);
 
     let isCancelled = false;
 
@@ -233,8 +202,6 @@ export function FilePreview({
       try {
         setIsLoading(true);
         setError(null);
-
-        console.log(`[FilePreview] Downloading preview for document ${documentId}, latest version ${latestVersionId}`);
 
         const blob =
           attachmentId != null
@@ -245,21 +212,21 @@ export function FilePreview({
 
         const url = window.URL.createObjectURL(blob);
 
-        // Store in enhanced cache with version metadata for future validation
+        // Store in cache with the specific version ID as part of the key
         enhancedPreviewCache.set(cacheKey, {
           blobUrl: url,
-          latestVersionId: latestVersionId,
+          latestVersionId: versionId,
           timestamp: Date.now(),
         });
         evictOldestIfNeeded();
 
-        console.log(`[FilePreview] Cached preview for document ${documentId}, version ${latestVersionId}`);
+        console.log(`[FilePreview] ✓ Downloaded and cached ${cacheKey}`);
         setBlobUrl(url);
         setIsLoading(false);
       } catch (err: unknown) {
         if (!isCancelled) {
           const msg = err instanceof Error ? err.message : 'Failed to load file for preview';
-          console.error(`[FilePreview] Error loading preview for document ${documentId}:`, err);
+          console.error(`[FilePreview] ✗ Error loading ${cacheKey}:`, err);
           setError(errorMessage ?? msg);
           setIsLoading(false);
         }
@@ -273,7 +240,7 @@ export function FilePreview({
     return () => {
       isCancelled = true;
     };
-  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage, latestVersionId]);
+  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage]);
 
   if (!isPreviewable) {
     return (

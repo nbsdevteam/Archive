@@ -19,18 +19,18 @@ export function FolderDetailPreviewSection({
 }: FolderDetailPreviewSectionProps) {
   const hasPreview = previewDoc?.id && previewFileName;
   
-  // Extract the latest version ID from version history to validate cache freshness
-  // Versions array is sorted newest first, so versions[0] is the most recent upload
-  const latestVersionId = previewDoc?.versions?.length 
+  // Extract the latest/current version ID from version history
+  // Versions array is sorted newest first, so versions[0] is the CURRENT version
+  const currentVersionId = previewDoc?.versions?.length 
     ? previewDoc.versions[0]?.id 
     : undefined;
 
-  // Debug logging to help troubleshoot cache invalidation
+  // Debug logging to help troubleshoot cache and version
   console.log('[FolderDetailPreviewSection] Preview state:', {
     documentId: previewDoc?.id,
     fileName: previewFileName,
     versionsCount: previewDoc?.versions?.length ?? 0,
-    latestVersionId,
+    currentVersionId,
     allVersions: previewDoc?.versions?.map(v => ({ id: v.id, version: v.version_number })),
   });
 
@@ -51,9 +51,9 @@ export function FolderDetailPreviewSection({
             {hasPreview ? (
               <FilePreview
                 documentId={previewDoc!.id!}
+                versionId={currentVersionId}
                 fileName={previewFileName}
                 maxHeight="500px"
-                latestVersionId={latestVersionId}
                 notPreviewableMessage={t("documents.previewNotAvailable", {
                   defaultValue: "Preview not available for this file type",
                 })}
