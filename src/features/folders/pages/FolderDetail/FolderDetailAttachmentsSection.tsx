@@ -93,11 +93,11 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table table-sm mb-0">
+            <table className="table table-sm mb-0 folders-detail-attachments-table">
               <thead>
                 <tr>
                   {selectionConfig && (
-                    <th style={{ width: "2.5rem" }} className="text-center">
+                    <th style={{ width: "3%" }} className="text-center">
                       {attachments.length > 0 && (
                         <div className="form-check d-inline-flex justify-content-center mb-0">
                           <input type="checkbox" className="form-check-input" checked={selectionConfig.isAllSelected} onChange={selectionConfig.onToggleAll} aria-label={selectionConfig.isIndeterminate ? "Uncheck all" : "Check all"} />
@@ -105,15 +105,16 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                       )}
                     </th>
                   )}
-                  <th>{t("folders.name", { defaultValue: "Name" })}</th>
-                  <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
-                  <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
+                  <th style={{ width: selectionConfig ? "17%" : "20%" }}>{t("folders.name", { defaultValue: "Name" })}</th>
+                  <th style={{ width: selectionConfig ? "17%" : "20%" }}>{t("documents.fileName", { defaultValue: "File name" })}</th>
+                  <th style={{ width: selectionConfig ? "27%" : "28%" }}>{t("documents.description", { defaultValue: "Description" })}</th>
+                  <th style={{ width: selectionConfig ? "36%" : "32%" }} className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
                 </tr>
               </thead>
               <tbody>
                 {attachments.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-muted">{t("common.noData", { defaultValue: "No data" })}</td>
+                    <td colSpan={selectionConfig ? 5 : 4} className="text-center py-4 text-muted">{t("common.noData", { defaultValue: "No data" })}</td>
                   </tr>
                 ) : (
                   attachments.map((attachment) => {
@@ -127,8 +128,9 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                             </div>
                           </td>
                         )}
-                        <td>{attachment.name}</td>
-                        <td>{attachment.file_name}</td>
+                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.name}>{attachment.name}</td>
+                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.file_name}>{attachment.file_name}</td>
+                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.description ?? undefined}>{(attachment.description ?? "–").trim() || "–"}</td>
                         <td className="text-end">
                           <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e?.stopPropagation(); onViewAttachment(attachment.id); }}>
                             <Icon name="eye" className="me-1" />{t("documents.view", { defaultValue: "View" })}

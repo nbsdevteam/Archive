@@ -131,3 +131,16 @@
   cursor: pointer;
   margin: 0 !important;
 }
+
+/* Folder detail attachments table: fixed column widths with ellipsis overflow */
+.folders-detail-attachments-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.folders-detail-attachments-table .folders-detail-attachments-cell-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
