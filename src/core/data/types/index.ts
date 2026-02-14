@@ -77,18 +77,19 @@ export interface HorizontalMainMenu {
 
 import type { ColumnType } from "antd/es/table";
 
-export interface TableColumn {
+/** Table column definition; RecordType defaults to unknown for type-safe render/sort/filter. */
+export interface TableColumn<RecordType = unknown> {
   title: string;
   dataIndex: string;
   key?: string;
-  render?: (text: string, record: any, index?: number) => React.ReactNode;
-  sorter?: (a: any, b: any) => number;
+  render?: (text: string, record: RecordType, index?: number) => React.ReactNode;
+  sorter?: (a: RecordType, b: RecordType) => number;
   filters?: { text: string; value: string }[];
-  onFilter?: (value: string, record: any) => boolean;
+  onFilter?: (value: string, record: RecordType) => boolean;
   width?: number | string;
   fixed?: "left" | "right";
   ellipsis?: boolean;
-  children?: TableColumn[];
+  children?: TableColumn<RecordType>[];
 }
 
 export interface DatatableProps<T extends object = TableData> {

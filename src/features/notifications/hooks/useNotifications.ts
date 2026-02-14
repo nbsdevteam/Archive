@@ -32,8 +32,9 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
           useApi
         );
         setNotifications(response.notifications || []);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load notifications");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to load notifications";
+        setError(String(message));
         setNotifications([]);
       } finally {
         setLoading(false);
@@ -46,7 +47,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     try {
       const response = await notificationsService.getUnreadCount(useApi);
       setUnreadCount(response.count || 0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to fetch unread count:", err);
     }
   }, [useApi]);
@@ -63,7 +64,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
           await fetchUnreadCount();
         }
         return response;
-      } catch (err: any) {
+      } catch (err: unknown) {
         throw err;
       }
     },
@@ -78,7 +79,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         await fetchUnreadCount();
       }
       return response;
-    } catch (err: any) {
+    } catch (err: unknown) {
       throw err;
     }
   }, [useApi, fetchNotifications, fetchUnreadCount]);

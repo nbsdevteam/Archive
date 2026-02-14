@@ -4,6 +4,7 @@ import { Spinner, Alert, Input } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";
+import type { SearchResult } from "../types/search.types";
 import "../styles/search.css";
 
 /**
@@ -125,7 +126,7 @@ const SearchPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((doc: any) => (
+                    {results.map((doc: SearchResult) => (
                       <tr key={doc.id} style={{ cursor: "pointer" }} onClick={() => handleNavigateToDocument(doc.id)}>
                         <td>{doc.name || doc.title || "-"}</td>
                         <td>{doc.barcode || "-"}</td>

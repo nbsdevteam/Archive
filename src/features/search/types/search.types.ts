@@ -10,8 +10,12 @@ export interface SearchResult {
   title?: string;
   name?: string;
   department_name?: string;
+  department?: { name?: string };
   status?: string;
   barcode?: string;
+  document_type_name?: string;
+  document_type?: { name?: string };
+  upload_date?: string;
   created_at?: string;
 }
 
