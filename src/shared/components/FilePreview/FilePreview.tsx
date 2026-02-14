@@ -7,9 +7,9 @@ const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
 const PDF_EXTENSION = 'pdf';
 
 // ─── Module-level blob URL cache ────────────────────────────────────────────
-// Keeps downloaded preview blob URLs in memory so the same file is only fetched
-// once per browser session. The cache owns the blob URLs; they are only revoked
-// when an entry is evicted to free memory.
+// Keeps blob URLs in memory so the same file is only requested once per session.
+// Persistence across full page reloads is handled in the API layer (Cache API in
+// documents.api getDocumentForPreview / getAttachmentForPreview).
 
 /** Maximum number of cached blob URLs before the oldest entry is evicted. */
 const MAX_PREVIEW_CACHE_SIZE = 20;

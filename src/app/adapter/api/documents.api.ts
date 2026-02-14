@@ -292,6 +292,48 @@ const toDocumentIds = (documentIds: number | number[]): number[] =>
     (id): id is number => Number.isFinite(id)
   );
 
+/** Cache name for document/attachment preview blobs; survives full page reload. */
+const PREVIEW_CACHE_NAME = 'nbs-document-previews';
+
+/**
+ * Returns a Response from the Cache API if present, otherwise fetches, stores in cache, and returns.
+ * Uses the request URL as cache key so reloads reuse the same preview without hitting the API.
+ */
+async function getCachedOrFetchPreview(fullUrl: string, fetchOptions: RequestInit): Promise<Response> {
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(PREVIEW_CACHE_NAME);
+      const cached = await cache.match(fullUrl);
+      if (cached) return cached;
+    } catch {
+      // Cache API unavailable (e.g. private mode); fall through to fetch.
+    }
+  }
+  const response = await fetch(fullUrl, fetchOptions);
+  if (response.ok && typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(PREVIEW_CACHE_NAME);
+      await cache.put(new Request(fullUrl), response.clone());
+    } catch {
+      // Ignore cache write failures.
+    }
+  }
+  return response;
+}
+
+/** Infers MIME type for preview blob from response header and file extension. */
+function inferPreviewContentType(headerType: string, ext: string): string {
+  if (headerType && headerType !== 'application/octet-stream') return headerType;
+  if (ext === 'pdf') return 'application/pdf';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  if (ext === 'gif') return 'image/gif';
+  if (ext === 'webp') return 'image/webp';
+  if (ext === 'bmp') return 'image/bmp';
+  if (ext === 'svg') return 'image/svg+xml';
+  return headerType || 'application/octet-stream';
+}
+
 export const documentsApi = {
   /**
    * Get list of documents
@@ -380,9 +422,9 @@ export const documentsApi = {
   },
 
   /**
-   * Get document blob for preview (doesn't trigger download)
-   * Uses fetch API and creates blob from response to prevent automatic download
-   * even when server sends Content-Disposition: attachment header
+   * Get document blob for preview (doesn't trigger download).
+   * Uses fetch + Cache API so previews survive full page reloads; in-memory cache in
+   * FilePreview only avoids refetch within the same session.
    */
   getDocumentForPreview: async (
     documentId: number,
@@ -392,53 +434,34 @@ export const documentsApi = {
     const url = versionId
       ? `/api/documents/${documentId}/download?version_id=${versionId}&preview=1`
       : `/api/documents/${documentId}/download?preview=1`;
-    
-    // Use fetch API and read as arrayBuffer first, then create blob
-    // This prevents browser from processing Content-Disposition headers
+
     const token = localStorage.getItem('access_token');
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     const fullUrl = `${baseURL}${url}`;
-    
-    const response = await fetch(fullUrl, {
+
+    const fetchOptions: RequestInit = {
       method: 'GET',
       credentials: 'include',
       headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Accept': '*/*', // Accept any content type
+        Authorization: token ? `Bearer ${token}` : '',
+        Accept: '*/*',
       },
-    });
+    };
+
+    const response = await getCachedOrFetchPreview(fullUrl, fetchOptions);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
       throw new Error(`Failed to fetch document for preview: ${response.statusText} - ${errorText}`);
     }
 
-    // Read as arrayBuffer first to prevent browser from processing download headers
     const arrayBuffer = await response.arrayBuffer();
-
-    // Determine content type
     const headerType = (response.headers.get('content-type') || '').toLowerCase();
     const ext = (fileName?.split('.').pop() || '').toLowerCase();
 
-    const inferredType = (() => {
-      // Prefer server-provided type when it's specific
-      if (headerType && headerType !== 'application/octet-stream') return headerType;
+    const inferredType = inferPreviewContentType(headerType, ext);
 
-      if (ext === 'pdf') return 'application/pdf';
-      if (ext === 'png') return 'image/png';
-      if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
-      if (ext === 'gif') return 'image/gif';
-      if (ext === 'webp') return 'image/webp';
-      if (ext === 'bmp') return 'image/bmp';
-      if (ext === 'svg') return 'image/svg+xml';
-
-      return headerType || 'application/octet-stream';
-    })();
-
-    // Create blob from arrayBuffer - this bypasses Content-Disposition header processing
-    // and sets a proper MIME type so the browser renders instead of downloading.
-    const blob = new Blob([arrayBuffer], { type: inferredType });
-    return blob;
+    return new Blob([arrayBuffer], { type: inferredType });
   },
 
   /**
@@ -817,7 +840,7 @@ export const documentsApi = {
   },
 
   /**
-   * Get attachment blob for preview (fetch with token, arrayBuffer -> Blob to avoid download)
+   * Get attachment blob for preview. Uses Cache API so previews survive reloads (same as document preview).
    */
   getAttachmentForPreview: async (
     documentId: number,
@@ -829,14 +852,16 @@ export const documentsApi = {
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
     const fullUrl = `${baseURL}${url}`;
 
-    const response = await fetch(fullUrl, {
+    const fetchOptions: RequestInit = {
       method: 'GET',
       credentials: 'include',
       headers: {
         Authorization: token ? `Bearer ${token}` : '',
         Accept: '*/*',
       },
-    });
+    };
+
+    const response = await getCachedOrFetchPreview(fullUrl, fetchOptions);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
@@ -846,18 +871,7 @@ export const documentsApi = {
     const arrayBuffer = await response.arrayBuffer();
     const headerType = (response.headers.get('content-type') || '').toLowerCase();
     const ext = (fileName?.split('.').pop() || '').toLowerCase();
-
-    const inferredType = (() => {
-      if (headerType && headerType !== 'application/octet-stream') return headerType;
-      if (ext === 'pdf') return 'application/pdf';
-      if (ext === 'png') return 'image/png';
-      if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
-      if (ext === 'gif') return 'image/gif';
-      if (ext === 'webp') return 'image/webp';
-      if (ext === 'bmp') return 'image/bmp';
-      if (ext === 'svg') return 'image/svg+xml';
-      return headerType || 'application/octet-stream';
-    })();
+    const inferredType = inferPreviewContentType(headerType, ext);
 
     return new Blob([arrayBuffer], { type: inferredType });
   },
