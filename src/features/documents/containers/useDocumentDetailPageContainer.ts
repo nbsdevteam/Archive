@@ -84,15 +84,18 @@ export const useDocumentDetailPageContainer = () => {
     deleteAttachments,
     isDeletingAttachment,
     isUpdatingAttachment,
-    isEditAttachmentModalOpen,
+    editAttachmentId,
     editAttachmentName,
     editAttachmentDescription,
     setEditAttachmentName,
     setEditAttachmentDescription,
-    handleOpenEditAttachment,
+    handleOpenEditAttachment: openEditAttachmentState,
     handleCloseEditAttachment,
     handleConfirmEditAttachment,
-  } = useDocumentAttachments(docId, activeTab);
+    clearEditAttachmentState,
+  } = useDocumentAttachments(docId, activeTab, {
+    onEditSuccess: () => setIsAddAttachmentPanelOpen(false),
+  });
 
   const {
     modalUploadVersion,
@@ -167,6 +170,24 @@ export const useDocumentDetailPageContainer = () => {
   } = useDocumentOperations();
 
   const [isAddAttachmentPanelOpen, setIsAddAttachmentPanelOpen] = useState(false);
+  /** Opens the attachment sidebar in edit mode for the given attachment. */
+  const handleOpenEditAttachment = useCallback(
+    (id: number) => {
+      openEditAttachmentState(id);
+      setIsAddAttachmentPanelOpen(true);
+    },
+    [openEditAttachmentState]
+  );
+  /** Opens the attachment sidebar in add mode (clears any edit state). */
+  const openAddAttachmentPanel = useCallback(() => {
+    clearEditAttachmentState();
+    setIsAddAttachmentPanelOpen(true);
+  }, [clearEditAttachmentState]);
+  /** Closes the attachment sidebar and clears edit state. */
+  const handleCloseAttachmentPanel = useCallback(() => {
+    handleCloseEditAttachment();
+    setIsAddAttachmentPanelOpen(false);
+  }, [handleCloseEditAttachment]);
   const [modalTrashConfirm, setModalTrashConfirm] = useState(false);
   const [modalPermanentDelete, setModalPermanentDelete] = useState(false);
 
@@ -376,6 +397,8 @@ export const useDocumentDetailPageContainer = () => {
       handleOpenEditAttachment,
       handleCloseEditAttachment,
       handleConfirmEditAttachment,
+      handleCloseAttachmentPanel,
+      openAddAttachmentPanel,
       handleViewAttachment,
       handleOpenEdit,
       handleCloseEdit,
@@ -442,7 +465,7 @@ export const useDocumentDetailPageContainer = () => {
       addingRelation,
       modalTrashConfirm,
       modalPermanentDelete,
-      isEditAttachmentModalOpen,
+      editAttachmentId,
       editAttachmentName,
       editAttachmentDescription,
       isTrashing,

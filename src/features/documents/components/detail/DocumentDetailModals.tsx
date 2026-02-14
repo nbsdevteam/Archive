@@ -37,7 +37,7 @@ export interface DocumentDetailModalsProps {
     modalAddRelation: boolean;
     relatedDocId: string;
     relationNotes: string;
-    isEditAttachmentModalOpen: boolean;
+    editAttachmentId: number | null;
     editAttachmentName: string;
     editAttachmentDescription: string;
     isNotesEditorOpen: boolean;

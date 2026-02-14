@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
 import { PageLayout } from "@/shared/layout/PageLayout";
-import { UploadDocumentSidePanel } from "@/features/documents/components";
+import { AttachmentSidePanel } from "@/features/documents/components";
 import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";
 import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "@/features/documents/components/detail";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
@@ -128,17 +128,22 @@ const DocumentDetailPage = () => {
         </div>
 
       {data.doc && (
-        <UploadDocumentSidePanel
+        <AttachmentSidePanel
           isOpen={modals.isAddAttachmentPanelOpen}
-          onClose={() => actions.setIsAddAttachmentPanelOpen(false)}
-          onSuccess={() => {
-            actions.setIsAddAttachmentPanelOpen(false);
+          onClose={actions.handleCloseAttachmentPanel}
+          editAttachmentId={modals.editAttachmentId}
+          editAttachmentName={modals.editAttachmentName}
+          editAttachmentDescription={modals.editAttachmentDescription}
+          setEditAttachmentName={actions.setEditAttachmentName}
+          setEditAttachmentDescription={actions.setEditAttachmentDescription}
+          onSaveEdit={actions.handleConfirmEditAttachment}
+          isSavingEdit={loading.isUpdatingAttachment}
+          documentId={data.doc.id}
+          onAddSuccess={() => {
+            actions.handleCloseAttachmentPanel();
             actions.refreshAttachments();
           }}
-          initialValues={{
-            upload_kind: "attachment",
-            target_document_id: data.doc.id,
-          }}
+          t={t}
         />
       )}
 

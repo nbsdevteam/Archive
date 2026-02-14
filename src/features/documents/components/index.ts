@@ -4,3 +4,4 @@ export {
   type UploadDocumentFormValues,
   type UploadFormValues,
 } from "./UploadDocument";
+export { AttachmentSidePanel, type AttachmentSidePanelProps } from "./AttachmentSidePanel";

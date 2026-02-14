@@ -130,7 +130,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
                   {t("documents.deleteSelectedAttachments", { defaultValue: "Delete selected" })}
                 </Button>
               )}
-              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={() => actions.setIsAddAttachmentPanelOpen(true)}>
+              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={actions.openAddAttachmentPanel}>
                 {t("documents.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
             </div>

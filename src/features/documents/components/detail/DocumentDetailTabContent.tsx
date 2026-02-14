@@ -59,6 +59,7 @@ export interface DocumentDetailTabContentProps {
     handleDownloadVersion: (id: number, fileName: string) => void;
     handleDownloadCurrent: () => void;
     setIsAddAttachmentPanelOpen: (v: boolean) => void;
+    openAddAttachmentPanel: () => void;
     handleViewAttachment: (id: number) => void;
     handleDownloadAttachment: (id: number, fileName: string) => void;
     handleOpenEditAttachment: (id: number) => void;

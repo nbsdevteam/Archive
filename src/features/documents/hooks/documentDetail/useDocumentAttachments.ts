@@ -3,15 +3,20 @@ import { useAttachmentOperations, useSelection, useAttachmentsList } from "@/sha
 import type { AttachmentListItem } from "@/shared/hooks";
 
 /**
- * Lists and manages attachments for document detail; includes selection and edit-attachment modal.
- * Uses shared useAttachmentsList for fetch/loading; layers selection and edit modal on top.
+ * Lists and manages attachments for document detail; includes selection and edit-attachment state.
+ * Edit uses the same sidebar as add attachment (panel open + editAttachmentId set = edit mode).
  */
-export function useDocumentAttachments(docId: number | null, activeTab: string) {
+export interface UseDocumentAttachmentsOptions {
+  /** Called after attachment metadata is successfully updated (e.g. to close the sidebar). */
+  onEditSuccess?: () => void;
+}
+
+export function useDocumentAttachments(docId: number | null, activeTab: string, options?: UseDocumentAttachmentsOptions) {
+  const { onEditSuccess } = options ?? {};
   const { attachments, loadingAttachments, refreshAttachments } = useAttachmentsList(docId, {
     enabled: activeTab === "attachments",
   });
 
-  const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
@@ -31,32 +36,41 @@ export function useDocumentAttachments(docId: number | null, activeTab: string) 
     updateAttachment,
   } = useAttachmentOperations(docId, { onSuccess: refreshAttachments });
 
+  /** Closes edit state (used when closing the attachment sidebar). */
   const handleCloseEditAttachment = useCallback(() => {
     if (!isUpdatingAttachment) {
-      setIsEditAttachmentModalOpen(false);
       setEditAttachmentId(null);
       setEditAttachmentName("");
       setEditAttachmentDescription("");
     }
   }, [isUpdatingAttachment]);
 
+  /** Clears edit state so the attachment sidebar shows add form. */
+  const clearEditAttachmentState = useCallback(() => {
+    setEditAttachmentId(null);
+    setEditAttachmentName("");
+    setEditAttachmentDescription("");
+  }, []);
+
+  /** Fills edit state for the given attachment (caller should open the attachment sidebar). */
   const handleOpenEditAttachment = useCallback((attachmentId: number) => {
     const target = attachments.find((a) => a.id === attachmentId);
     if (!target) return;
     setEditAttachmentId(target.id);
     setEditAttachmentName(target.name ?? "");
     setEditAttachmentDescription(target.description ?? "");
-    setIsEditAttachmentModalOpen(true);
   }, [attachments]);
 
   const handleConfirmEditAttachment = useCallback(async () => {
     if (!editAttachmentId) return;
-    const didUpdate = await updateAttachment(editAttachmentId, {
-      name: editAttachmentName.trim() || undefined,
-      description: editAttachmentDescription.trim() || null,
-    });
-    if (didUpdate) handleCloseEditAttachment();
-  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment]);
+    const name = String(editAttachmentName ?? "").trim() || undefined;
+    const description = String(editAttachmentDescription ?? "").trim() || null;
+    const didUpdate = await updateAttachment(editAttachmentId, { name, description });
+    if (didUpdate) {
+      handleCloseEditAttachment();
+      onEditSuccess?.();
+    }
+  }, [editAttachmentId, editAttachmentName, editAttachmentDescription, updateAttachment, handleCloseEditAttachment, onEditSuccess]);
 
   return {
     attachments,
@@ -71,7 +85,6 @@ export function useDocumentAttachments(docId: number | null, activeTab: string) 
     updateAttachment,
     isDeletingAttachment,
     isUpdatingAttachment,
-    isEditAttachmentModalOpen,
     editAttachmentId,
     editAttachmentName,
     editAttachmentDescription,
@@ -80,5 +93,6 @@ export function useDocumentAttachments(docId: number | null, activeTab: string) 
     handleOpenEditAttachment,
     handleCloseEditAttachment,
     handleConfirmEditAttachment,
+    clearEditAttachmentState,
   };
 }
