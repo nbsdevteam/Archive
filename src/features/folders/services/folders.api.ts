@@ -76,7 +76,9 @@ export const getFolderDocuments = async (
     {}
   );
 
-  console.log("[getFolderDocuments] raw response for folderId", folderId, raw);
+  if (import.meta.env.DEV) {
+    console.log("[getFolderDocuments] raw response for folderId", folderId, raw);
+  }
 
   // Extract the documents array from whichever key the backend uses
   let docs: Document[] = [];

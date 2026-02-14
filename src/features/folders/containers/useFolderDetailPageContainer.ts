@@ -6,7 +6,7 @@ import { handleApiError } from "../../../app/adapter/api/client";
 import { documentsApi, type Document, type Attachment } from "../../../app/adapter/api/documents.api";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { editRequestsApi } from "../../../app/adapter/api/editRequests.api";
-import { getFolder, getFolderDocuments, deleteFolder, updateFolder } from "../services/folders.api";
+import { getFolderDocuments, deleteFolder, updateFolder } from "../services/folders.api";
 import type { FolderDetail } from "../types/folders.types";
 import { useDocumentStore } from "../../documents/stores/documentStore";
 import { useSignatureStore } from "../../signatures/stores/signatureStore";
@@ -189,18 +189,6 @@ export const useFolderDetailPageContainer = () => {
 
   useEffect(() => {
     loadFolderDocuments();
-  }, [folderId]);
-
-  /** Dummy call to GET folder by id when opening folder; log response to inspect latest_changes / last_modified etc. in Network or Console. */
-  useEffect(() => {
-    if (folderId == null) return;
-    getFolder(folderId)
-      .then((response) => {
-        console.log("[folders/id] response for folderId", folderId, response);
-      })
-      .catch((err) => {
-        console.warn("[folders/id] failed for folderId", folderId, err);
-      });
   }, [folderId]);
 
   useEffect(() => {

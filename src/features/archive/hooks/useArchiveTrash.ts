@@ -101,17 +101,17 @@ export const useArchiveTrash = (options: UseArchiveTrashOptions = {}) => {
 
   const restoreItem = async (itemId: number) => {
     // TODO: Implement restore API call when useApi is true
-    console.log("Restore item:", itemId);
+    if (import.meta.env.DEV) console.log("Restore item:", itemId);
   };
 
   const deletePermanently = async (itemId: number) => {
     // TODO: Implement permanent delete API call when useApi is true
-    console.log("Delete permanently:", itemId);
+    if (import.meta.env.DEV) console.log("Delete permanently:", itemId);
   };
 
   const emptyTrash = async () => {
     // TODO: Implement empty trash API call when useApi is true
-    console.log("Empty trash");
+    if (import.meta.env.DEV) console.log("Empty trash");
   };
 
   return {
