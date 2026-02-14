@@ -22,9 +22,6 @@ export const useDocumentsTrashPageContainer = () => {
   const [pagination, setPagination] = useState<TrashDocumentsResponse["pagination"] | undefined>(undefined);
 
   const [restoreLoadingId, setRestoreLoadingId] = useState<number | null>(null);
-  const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
-  const [isBatchRestoreConfirmOpen, setIsBatchRestoreConfirmOpen] = useState(false);
-  const [isBatchPermanentDeleteConfirmOpen, setIsBatchPermanentDeleteConfirmOpen] = useState(false);
 
   const fetchTrash = useCallback(async () => {
     setLoading(true);
@@ -77,114 +74,74 @@ export const useDocumentsTrashPageContainer = () => {
     setRestoreLoadingId(null);
   }, [fetchTrash, restoreDocument, t]);
 
-  const handleOpenPermanentDelete = useCallback((documentId: number) => {
-    setPermanentDeleteId(documentId);
-  }, []);
+  /** Single permanent delete: call from useConfirmDialog onConfirm. */
+  const confirmPermanentDelete = useCallback(
+    async (documentId: number) => {
+      await permanentDeleteSingle(documentId, {
+        successMessage: t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }),
+        errorMessage: t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }),
+        onSuccess: fetchTrash,
+      });
+    },
+    [fetchTrash, permanentDeleteSingle, t]
+  );
 
-  const handleClosePermanentDelete = useCallback(() => {
-    if (!isPermanentDeleting) setPermanentDeleteId(null);
-  }, [isPermanentDeleting]);
-
-  const handleConfirmPermanentDelete = useCallback(async () => {
-    if (!permanentDeleteId) return;
-    const didDelete = await permanentDeleteSingle(permanentDeleteId, {
-      successMessage: t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }),
-      errorMessage: t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }),
-      onSuccess: fetchTrash,
-    });
-    if (didDelete) {
-      setPermanentDeleteId(null);
-    }
-  }, [fetchTrash, permanentDeleteId, permanentDeleteSingle, t]);
-
-  const handleOpenBatchPermanentDelete = useCallback(() => {
-    if (selectedDocumentIds.length > 0) {
-      setIsBatchPermanentDeleteConfirmOpen(true);
-    }
-  }, [selectedDocumentIds.length]);
-
-  const handleOpenBatchRestore = useCallback(() => {
-    if (selectedDocumentIds.length > 0) {
-      setIsBatchRestoreConfirmOpen(true);
-    }
-  }, [selectedDocumentIds.length]);
-
-  const handleCloseBatchRestore = useCallback(() => {
-    if (!isRestoring) {
-      setIsBatchRestoreConfirmOpen(false);
-    }
-  }, [isRestoring]);
-
-  const handleConfirmBatchRestore = useCallback(async () => {
+  const confirmBatchRestore = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
-    const selectedCount = selectedDocumentIds.length;
     const didRestore = await restoreDocument(selectedDocumentIds, {
       successMessage: t("documents.batchRestored", {
         defaultValue: "{{count}} document(s) restored.",
-        count: selectedCount,
+        count: selectedDocumentIds.length,
       }),
       errorMessage: t("documents.batchRestoreFailed", {
         defaultValue: "Failed to restore selected documents.",
       }),
       onSuccess: fetchTrash,
     });
-    if (didRestore) {
-      clearSelection();
-      setIsBatchRestoreConfirmOpen(false);
-    }
+    if (didRestore) clearSelection();
   }, [clearSelection, fetchTrash, restoreDocument, selectedDocumentIds, t]);
 
-  const handleCloseBatchPermanentDelete = useCallback(() => {
-    if (!isPermanentDeleting) {
-      setIsBatchPermanentDeleteConfirmOpen(false);
-    }
-  }, [isPermanentDeleting]);
-
-  const handleConfirmBatchPermanentDelete = useCallback(async () => {
+  const confirmBatchPermanentDelete = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
-    const selectedCount = selectedDocumentIds.length;
     const didDelete = await permanentDeleteBatch(selectedDocumentIds, {
       successMessage: t("documents.batchPermanentlyDeleted", {
         defaultValue: "{{count}} document(s) permanently deleted.",
-        count: selectedCount,
+        count: selectedDocumentIds.length,
       }),
       errorMessage: t("documents.batchPermanentDeleteFailed", {
         defaultValue: "Failed to permanently delete selected documents.",
       }),
       onSuccess: fetchTrash,
     });
-    if (didDelete) {
-      clearSelection();
-      setIsBatchPermanentDeleteConfirmOpen(false);
-    }
+    if (didDelete) clearSelection();
   }, [clearSelection, fetchTrash, permanentDeleteBatch, selectedDocumentIds, t]);
 
+  /** Grouped return shape: data, loading, error, selection, actions, modals (KISS/DRY). */
   return {
-    routes,
-    isAdmin,
-    documents,
+    data: {
+      routes,
+      documents,
+      pagination,
+      isAdmin,
+    },
     loading,
     error,
-    pagination,
-    selectedDocumentIds,
-    isSomeSelected,
-    selectionConfig,
-    restoreLoadingId: isRestoring ? restoreLoadingId : null,
-    permanentDeleteId,
-    isBatchRestoreConfirmOpen,
-    isBatchPermanentDeleteConfirmOpen,
-    isRestoring,
-    isPermanentDeleting,
-    fetchTrash,
-    handleRestore,
-    handleOpenPermanentDelete,
-    handleClosePermanentDelete,
-    handleConfirmPermanentDelete,
-    handleOpenBatchRestore,
-    handleCloseBatchRestore,
-    handleConfirmBatchRestore,
-    handleOpenBatchPermanentDelete,
-    handleCloseBatchPermanentDelete,
-    handleConfirmBatchPermanentDelete,
+    selection: {
+      selectedDocumentIds,
+      isSomeSelected,
+      selectionConfig,
+    },
+    actions: {
+      fetchTrash,
+      handleRestore,
+      confirmPermanentDelete,
+      confirmBatchRestore,
+      confirmBatchPermanentDelete,
+    },
+    modals: {
+      restoreLoadingId: isRestoring ? restoreLoadingId : null,
+      isRestoring,
+      isPermanentDeleting,
+    },
   };
 };

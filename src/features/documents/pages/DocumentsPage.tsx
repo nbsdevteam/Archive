@@ -6,6 +6,7 @@ import { UploadDocumentSidePanel } from "../components";
 import { TransferToFolderModal } from "../../folders/components";
 import { Button, Alert, Icon, SearchInput, ListFilter, DataTable, ConfirmModal } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
+import { TablePageToolbar } from "../../../shared/components/TablePageToolbar";
 import { useConfirmDialog, useConfirmDialogEmpty } from "../../../shared/hooks";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { buildRowActions } from "../../../shared/utils/buildRowActions";
@@ -105,23 +106,22 @@ const DocumentsPage = () => {
       rightContent={<CollapseHeader />}
     >
         <div className="card documents__table-card">
-          <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <div className="d-flex align-items-center gap-2">
-              <h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>
-              <span className="text-muted fs-13">
-                {loading
-                  ? t("common.loading", { defaultValue: "Loading..." })
-                  : (documents?.length != null && (
-                      <>
-                        <span className="Num">{documents.length}</span>{" "}
-                        {documents.length === 1
-                          ? t("documents.document", { defaultValue: "document" })
-                          : t("documents.documents", { defaultValue: "documents" })}
-                      </>
-                    )) || null}
-              </span>
-            </div>
-            <div className="d-flex align-items-center gap-2 documents__header-actions">
+          <TablePageToolbar
+            title={<h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>}
+            countSlot={
+              loading
+                ? t("common.loading", { defaultValue: "Loading..." })
+                : (documents?.length != null && (
+                    <>
+                      <span className="Num">{documents.length}</span>{" "}
+                      {documents.length === 1
+                        ? t("documents.document", { defaultValue: "document" })
+                        : t("documents.documents", { defaultValue: "documents" })}
+                    </>
+                  )) || null
+            }
+            rightClassName="documents__header-actions"
+          >
               {documents.length > 0 && isSomeSelected && (
                 <>
                   <Button
@@ -233,8 +233,7 @@ const DocumentsPage = () => {
               >
                 <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
               </Button>
-            </div>
-          </div>
+          </TablePageToolbar>
           <div className="card-body h-min-50vh">
             {error && (
               <Alert variant="danger" className="mb-3">

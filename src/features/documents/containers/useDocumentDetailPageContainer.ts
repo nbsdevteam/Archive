@@ -101,8 +101,6 @@ export const useDocumentDetailPageContainer = () => {
   const [runOcrLoading, setRunOcrLoading] = useState(false);
   const [modalTrashConfirm, setModalTrashConfirm] = useState(false);
   const [modalPermanentDelete, setModalPermanentDelete] = useState(false);
-  const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
-  const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
   const [isEditAttachmentModalOpen, setIsEditAttachmentModalOpen] = useState(false);
   const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
   const [editAttachmentName, setEditAttachmentName] = useState("");
@@ -115,8 +113,6 @@ export const useDocumentDetailPageContainer = () => {
   const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
   const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
   const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
-  const [noteDeleteTarget, setNoteDeleteTarget] = useState<NoteListItem | null>(null);
-
   const {
     selectedIds: attachmentSelectedIds,
     selectionConfig: attachmentSelectionConfig,
@@ -309,46 +305,21 @@ export const useDocumentDetailPageContainer = () => {
     );
   };
 
-  const handleOpenAttachmentTrashConfirm = (attachmentId: number) => {
-    setAttachmentTrashTargetId(attachmentId);
-  };
+  /** Single attachment delete: call from useConfirmDialog onConfirm. */
+  const confirmAttachmentTrash = useCallback(
+    async (attachmentId: number) => {
+      const didDelete = await deleteAttachment(attachmentId);
+      if (didDelete) clearAttachmentSelection();
+    },
+    [deleteAttachment, clearAttachmentSelection]
+  );
 
-  const handleCloseAttachmentTrashConfirm = () => {
-    if (!isDeletingAttachment) {
-      setAttachmentTrashTargetId(null);
-    }
-  };
-
-  const handleConfirmAttachmentTrash = async () => {
-    if (!attachmentTrashTargetId) return;
-    const didDelete = await deleteAttachment(attachmentTrashTargetId);
-    if (didDelete) {
-      clearAttachmentSelection();
-      setAttachmentTrashTargetId(null);
-    }
-  };
-
-  const handleOpenBatchAttachmentTrashConfirm = () => {
-    if (attachmentSelectedIds.length > 0) {
-      setIsBatchAttachmentTrashConfirmOpen(true);
-    }
-  };
-
-  const handleCloseBatchAttachmentTrashConfirm = () => {
-    if (!isDeletingAttachment) {
-      setIsBatchAttachmentTrashConfirmOpen(false);
-    }
-  };
-
-  const handleConfirmBatchAttachmentTrash = async () => {
+  const confirmBatchAttachmentTrash = useCallback(async () => {
     const selected = attachmentSelectedIds.map((id) => Number(id));
     if (selected.length === 0) return;
     const didDelete = await deleteAttachments(selected);
-    if (didDelete) {
-      clearAttachmentSelection();
-      setIsBatchAttachmentTrashConfirmOpen(false);
-    }
-  };
+    if (didDelete) clearAttachmentSelection();
+  }, [attachmentSelectedIds, deleteAttachments, clearAttachmentSelection]);
 
   const handleOpenEditAttachment = (attachmentId: number) => {
     const target = attachments.find((attachment) => attachment.id === attachmentId);
@@ -631,25 +602,14 @@ export const useDocumentDetailPageContainer = () => {
     [docId, editingNote, updateNote, createNote, doc?.department_id, handleCloseNoteEditor, refreshNotes]
   );
 
-  /** Open delete confirmation modal for a note */
-  const handleDeleteNote = useCallback((note: NoteListItem) => {
-    setNoteDeleteTarget(note);
-  }, []);
-
-  /** Close delete confirmation modal (only allow closing when not actively deleting a note) */
-  const handleCloseNoteDeleteConfirm = useCallback(() => {
-    if (!isDeletingNote) setNoteDeleteTarget(null);
-  }, [isDeletingNote]);
-
-  /** Confirm and execute note deletion */
-  const handleConfirmDeleteNote = useCallback(async () => {
-    if (!noteDeleteTarget) return;
-    const success = await deleteNote(noteDeleteTarget.id);
-    if (success) {
-      setNoteDeleteTarget(null);
-      refreshNotes();
-    }
-  }, [noteDeleteTarget, deleteNote, refreshNotes]);
+  /** Note delete: call from useConfirmDialog onConfirm. */
+  const confirmDeleteNote = useCallback(
+    async (noteId: number) => {
+      const success = await deleteNote(noteId);
+      if (success) refreshNotes();
+    },
+    [deleteNote, refreshNotes]
+  );
 
   /** Open image viewer for a note */
   const handleViewNoteImage = useCallback((note: NoteListItem) => {
@@ -725,8 +685,8 @@ export const useDocumentDetailPageContainer = () => {
     runOcrLoading,
     modalTrashConfirm,
     modalPermanentDelete,
-    attachmentTrashTargetId,
-    isBatchAttachmentTrashConfirmOpen,
+    confirmAttachmentTrash,
+    confirmBatchAttachmentTrash,
     isEditAttachmentModalOpen,
     editAttachmentName,
     editAttachmentDescription,
@@ -763,12 +723,6 @@ export const useDocumentDetailPageContainer = () => {
     handleDownloadVersion,
     handleDownloadCurrent,
     handleDownloadAttachment,
-    handleOpenAttachmentTrashConfirm,
-    handleCloseAttachmentTrashConfirm,
-    handleConfirmAttachmentTrash,
-    handleOpenBatchAttachmentTrashConfirm,
-    handleCloseBatchAttachmentTrashConfirm,
-    handleConfirmBatchAttachmentTrash,
     handleOpenEditAttachment,
     handleCloseEditAttachment,
     handleConfirmEditAttachment,
@@ -800,10 +754,7 @@ export const useDocumentDetailPageContainer = () => {
     handleEditNote,
     handleCloseNoteEditor,
     handleSaveNote,
-    handleDeleteNote,
-    noteDeleteTarget,
-    handleCloseNoteDeleteConfirm,
-    handleConfirmDeleteNote,
+    confirmDeleteNote,
     handleViewNoteImage,
     handleCloseNoteImageViewer,
   };

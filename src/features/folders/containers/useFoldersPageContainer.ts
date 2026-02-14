@@ -89,10 +89,6 @@ export function useFoldersPageContainer() {
     ]
   );
 
-  // ─── Delete confirmation state ─────────────────────────────────────────────
-  const [deleteFolderId, setDeleteFolderId] = useState<number | null>(null);
-  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
-
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
@@ -176,35 +172,24 @@ export function useFoldersPageContainer() {
     setIsFilterOpen(false);
   }, [fetchFolders]);
 
-  // ─── Delete handlers ───────────────────────────────────────────────────────
-  const handleOpenDeleteFolder = useCallback((id: number) => {
-    setDeleteFolderId(id);
-  }, []);
-
-  const handleCloseDeleteConfirm = useCallback(() => {
-    if (!isDeletingFolder) setDeleteFolderId(null);
-  }, [isDeletingFolder]);
-
-  const handleConfirmDeleteFolder = useCallback(async () => {
-    const id = deleteFolderId;
-    if (id == null) return;
-
-    setIsDeletingFolder(true);
-    try {
-      const result = await deleteFolder(id);
-      if (!result?.ok) {
-        toast.error(t("folders.deleteFailed"));
-        return;
+  /** Single-folder delete: call from useConfirmDialog onConfirm. Throws on failure so modal stays open. */
+  const confirmDeleteFolder = useCallback(
+    async (id: number) => {
+      try {
+        const result = await deleteFolder(id);
+        if (!result?.ok) {
+          toast.error(t("folders.deleteFailed"));
+          throw new Error("Delete failed");
+        }
+        toast.success(t("folders.folderDeleted"));
+        fetchFolders();
+      } catch (e: unknown) {
+        toast.error(getErrorMessage(e, t("folders.deleteFailed")));
+        throw e;
       }
-      toast.success(t("folders.folderDeleted"));
-      setDeleteFolderId(null);
-      fetchFolders();
-    } catch (e: unknown) {
-      toast.error(getErrorMessage(e, t("folders.deleteFailed")));
-    } finally {
-      setIsDeletingFolder(false);
-    }
-  }, [deleteFolderId, t, fetchFolders]);
+    },
+    [t, fetchFolders]
+  );
 
   // ─── Edit panel handlers ───────────────────────────────────────────────────
   const handleOpenEditFolder = useCallback((folder: Folder) => {
@@ -229,42 +214,46 @@ export function useFoldersPageContainer() {
     return `${count} ${count === 1 ? singular : plural}`;
   }, [filteredFolders.length, loading, t]);
 
-  // ─── Return (grouped for consumers) ─────────────────────────────────────────
+  /** Grouped return shape: data, loading, error, filter, actions, modals (KISS/DRY). */
   return {
-    routes: all_routes,
-    viewMode,
-    setViewMode,
-    folders,
-    filteredFolders,
+    data: {
+      routes: all_routes,
+      folders,
+      filteredFolders,
+      pagination,
+      foldersCountLabel,
+      formatDate,
+      viewMode,
+      setViewMode,
+    },
     loading,
     error,
-    pagination,
-    foldersCountLabel,
-    formatDate,
-    handleSearchDebounced,
-    handleNavigateToFolder,
-    handleRefresh,
-    handleGridKeyDown,
-    getFolderStatusBadgeVariant,
-    isFilterOpen,
-    draftFilters,
-    departmentOptions,
-    folderTypeOptions,
-    filterApplyDisabled,
-    handleOpenFilter,
-    handleCloseFilter,
-    handlePrimaryFilterChange,
-    handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
-    deleteFolderId,
-    isDeletingFolder,
-    handleOpenDeleteFolder,
-    handleCloseDeleteConfirm,
-    handleConfirmDeleteFolder,
-    editingFolder,
-    handleOpenEditFolder,
-    handleCloseEditFolder,
-    handleEditFolderSuccess,
+    filter: {
+      isFilterOpen,
+      draftFilters,
+      departmentOptions,
+      folderTypeOptions,
+      filterApplyDisabled,
+      handleOpenFilter,
+      handleCloseFilter,
+      handlePrimaryFilterChange,
+      handleSecondaryFilterChange,
+      handleApplyFilter,
+      handleClearFilter,
+    },
+    actions: {
+      handleSearchDebounced,
+      handleNavigateToFolder,
+      handleRefresh,
+      handleGridKeyDown,
+      getFolderStatusBadgeVariant,
+      confirmDeleteFolder,
+      handleOpenEditFolder,
+      handleCloseEditFolder,
+      handleEditFolderSuccess,
+    },
+    modals: {
+      editingFolder,
+    },
   };
 }

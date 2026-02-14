@@ -1,0 +1,133 @@
+import type { TFunction } from "i18next";
+import type { Document } from "../../../../app/adapter/api/documents.api";
+
+export interface DocumentDetailInfoCardProps {
+  t: TFunction;
+  doc: Document;
+  title: string;
+  documentTypeName: string;
+  departmentName: string;
+  uploaderName: string;
+  isArchived: boolean;
+  formatDate: (date?: string | null) => string;
+  tags: Array<{ id?: number; name?: string }>;
+}
+
+/**
+ * Document detail header card: title, barcode, status, and two-column metadata tables.
+ */
+export function DocumentDetailInfoCard({
+  t,
+  doc,
+  title,
+  documentTypeName,
+  departmentName,
+  uploaderName,
+  isArchived,
+  formatDate,
+  tags,
+}: DocumentDetailInfoCardProps) {
+  return (
+    <div className="card mb-3">
+      <div className="card-header d-flex flex-wrap align-items-center gap-2">
+        <h5 className="card-title mb-0">{title}</h5>
+        {doc.barcode && (
+          <span className="badge bg-secondary">{doc.barcode}</span>
+        )}
+        <span
+          className={`badge ${
+            isArchived ? "bg-warning" : "bg-success"
+          }`}
+        >
+          {doc.status ?? "–"}
+        </span>
+      </div>
+      <div className="card-body">
+        <div className="row">
+          <div className="col-md-6">
+            <table className="table table-sm table-borderless">
+              <tbody>
+                <tr>
+                  <td className="text-muted">{t("documents.barcode", { defaultValue: "Barcode" })}</td>
+                  <td>{doc.barcode ?? "–"}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.type", { defaultValue: "Type" })}</td>
+                  <td>{documentTypeName}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.department", { defaultValue: "Department" })}</td>
+                  <td>{departmentName}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.uploader", { defaultValue: "Uploader" })}</td>
+                  <td>{uploaderName}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.uploadDate", { defaultValue: "Upload date" })}</td>
+                  <td>{formatDate(doc.upload_date)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="col-md-6">
+            <table className="table table-sm table-borderless">
+              <tbody>
+                <tr>
+                  <td className="text-muted">{t("documents.status", { defaultValue: "Status" })}</td>
+                  <td>{doc.status ?? "–"}</td>
+                </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.confidentialityLabel", { defaultValue: "Confidentiality" })}</td>
+                  <td>{doc.confidentiality_level ?? "–"}</td>
+                </tr>
+                {doc.po_number && (
+                  <tr>
+                    <td className="text-muted">{t("documents.poNumber", { defaultValue: "PO Number" })}</td>
+                    <td>{doc.po_number}</td>
+                  </tr>
+                )}
+                {doc.bl_number && (
+                  <tr>
+                    <td className="text-muted">{t("documents.blNumber", { defaultValue: "BL Number" })}</td>
+                    <td>{doc.bl_number}</td>
+                  </tr>
+                )}
+                {doc.container_number && (
+                  <tr>
+                    <td className="text-muted">{t("documents.containerNumber", { defaultValue: "Container Number" })}</td>
+                    <td>{doc.container_number}</td>
+                  </tr>
+                )}
+                {doc.invoice_number && (
+                  <tr>
+                    <td className="text-muted">{t("documents.invoiceNumber", { defaultValue: "Invoice Number" })}</td>
+                    <td>{doc.invoice_number}</td>
+                  </tr>
+                )}
+                {doc.envoy_number && (
+                  <tr>
+                    <td className="text-muted">{t("documents.envoyNumber", { defaultValue: "Envoy Number" })}</td>
+                    <td>{doc.envoy_number}</td>
+                  </tr>
+                )}
+                {tags.length > 0 && (
+                  <tr>
+                    <td className="text-muted">{t("documents.tags", { defaultValue: "Tags" })}</td>
+                    <td>
+                      {tags.map((tag: { id?: number; name?: string }) => (
+                        <span key={tag.id ?? tag.name} className="badge bg-light text-dark me-1">
+                          {tag.name ?? "–"}
+                        </span>
+                      ))}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

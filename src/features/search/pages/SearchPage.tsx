@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Spinner, Alert, Input } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
@@ -6,9 +7,10 @@ import { useSearchPageContainer } from "../containers/useSearchPageContainer";
 import "../styles/search.css";
 
 /**
- * SearchPage - Search page with API integration
+ * SearchPage - Search page with API integration. Uses i18n for all user-facing strings.
  */
 const SearchPage = () => {
+  const { t } = useTranslation();
   const {
     routes,
     results,
@@ -25,7 +27,7 @@ const SearchPage = () => {
 
   return (
     <PageLayout
-      title="Search"
+      title={t("search.title", { defaultValue: "Search" })}
       breadcrumbItems={[]}
       homeTo={routes.adminDashboard}
       rightContent={<CollapseHeader />}
@@ -34,40 +36,56 @@ const SearchPage = () => {
           <div className="card-body">
             <div className="d-flex gap-2 mb-2">
               <button
-                className={`btn btn-sm ${searchType === 'standard' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                type="button"
+                className={`btn btn-sm ${searchType === "standard" ? "btn-secondary" : "btn-outline-secondary"}`}
                 onClick={() => setSearchType("standard")}
+                aria-pressed={searchType === "standard"}
+                aria-label={t("search.standardSearch", { defaultValue: "Standard search" })}
               >
-                Standard
+                {t("search.standard", { defaultValue: "Standard" })}
               </button>
               <button
-                className={`btn btn-sm ${searchType === 'global' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                type="button"
+                className={`btn btn-sm ${searchType === "global" ? "btn-secondary" : "btn-outline-secondary"}`}
                 onClick={() => setSearchType("global")}
+                aria-pressed={searchType === "global"}
+                aria-label={t("search.globalSearch", { defaultValue: "Global search" })}
               >
-                Global
+                {t("search.global", { defaultValue: "Global" })}
               </button>
               <button
-                className={`btn btn-sm ${searchType === 'barcode' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                type="button"
+                className={`btn btn-sm ${searchType === "barcode" ? "btn-secondary" : "btn-outline-secondary"}`}
                 onClick={() => setSearchType("barcode")}
+                aria-pressed={searchType === "barcode"}
+                aria-label={t("search.barcodeSearch", { defaultValue: "Barcode search" })}
               >
-                Barcode
+                {t("search.barcode", { defaultValue: "Barcode" })}
               </button>
             </div>
             <Input
               type="text"
-              placeholder={searchType === 'barcode' ? "Enter barcode..." : "Search documents..."}
+              placeholder={
+                searchType === "barcode"
+                  ? t("search.placeholderBarcode", { defaultValue: "Enter barcode..." })
+                  : t("search.placeholderDocuments", { defaultValue: "Search documents..." })
+              }
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
               className="search__search-input"
+              aria-label={t("search.inputAria", { defaultValue: "Search input" })}
             />
           </div>
         </div>
 
         <div className="card search__results-card">
           <div className="card-header d-flex align-items-center justify-content-between">
-            <h5 className="card-title mb-0">Search Results</h5>
+            <h5 className="card-title mb-0">{t("search.resultsTitle", { defaultValue: "Search Results" })}</h5>
             <span className="text-muted fs-13">
-              {isLoading ? "Searching..." : `${results?.length ?? 0} ${results?.length === 1 ? "result" : "results"}`}
+              {isLoading
+                ? t("search.searching", { defaultValue: "Searching..." })
+                : `${results?.length ?? 0} ${results?.length === 1 ? t("search.result", { defaultValue: "result" }) : t("search.results", { defaultValue: "results" })}`}
             </span>
           </div>
           <div className="card-body">
@@ -75,10 +93,11 @@ const SearchPage = () => {
               <Alert variant="danger" className="mb-3">
                 {error}
                 <button
+                  type="button"
                   className="btn btn-sm btn-outline-secondary ms-2"
                   onClick={handleRetry}
                 >
-                  Retry
+                  {t("common.retry", { defaultValue: "Retry" })}
                 </button>
               </Alert>
             )}
@@ -88,19 +107,21 @@ const SearchPage = () => {
               </div>
             ) : results.length === 0 ? (
               <div className="text-center py-4 text-muted">
-                {searchQuery.trim() ? "No results found" : "Enter a search query to begin"}
+                {searchQuery.trim()
+                  ? t("search.noResultsFound", { defaultValue: "No results found" })
+                  : t("search.enterQueryToBegin", { defaultValue: "Enter a search query to begin" })}
               </div>
             ) : (
               <div className="table-responsive">
                 <table className="table table-striped mb-0">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Barcode</th>
-                      <th>Type</th>
-                      <th>Department</th>
-                      <th>Upload Date</th>
-                      <th className="text-end">Actions</th>
+                      <th>{t("documents.name", { defaultValue: "Name" })}</th>
+                      <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
+                      <th>{t("documents.type", { defaultValue: "Type" })}</th>
+                      <th>{t("documents.department", { defaultValue: "Department" })}</th>
+                      <th>{t("documents.uploadDate", { defaultValue: "Upload Date" })}</th>
+                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -125,7 +146,7 @@ const SearchPage = () => {
                               handleNavigateToDocument(doc.id);
                             }}
                           >
-                            View
+                            {t("common.view", { defaultValue: "View" })}
                           </button>
                         </td>
                       </tr>

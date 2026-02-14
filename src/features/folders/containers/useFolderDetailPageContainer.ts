@@ -45,8 +45,6 @@ export const useFolderDetailPageContainer = () => {
   const [editReason, setEditReason] = useState("");
 
   const [isEditFolderOpen, setIsEditFolderOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadPanelLockFolderContext, setUploadPanelLockFolderContext] = useState(false);
@@ -133,18 +131,12 @@ export const useFolderDetailPageContainer = () => {
   const [transferAttachmentIds, setTransferAttachmentIds] = useState<number[]>([]);
   const [transferDepartmentId, setTransferDepartmentId] = useState(0);
   const [transferSubmitting, setTransferSubmitting] = useState(false);
-  const [subDocTrashTargetId, setSubDocTrashTargetId] = useState<number | null>(null);
-  const [isBatchSubDocTrashConfirmOpen, setIsBatchSubDocTrashConfirmOpen] = useState(false);
-  const [attachmentTrashTargetId, setAttachmentTrashTargetId] = useState<number | null>(null);
-  const [isBatchAttachmentTrashConfirmOpen, setIsBatchAttachmentTrashConfirmOpen] = useState(false);
-
   // Notes state
   const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<NoteListItem | null>(null);
   const [noteImageViewerId, setNoteImageViewerId] = useState<number | null>(null);
   const [noteImageViewerTitle, setNoteImageViewerTitle] = useState<string>("");
   const [noteImageViewerFilename, setNoteImageViewerFilename] = useState<string>("");
-  const [noteDeleteTarget, setNoteDeleteTarget] = useState<NoteListItem | null>(null);
 
   /** Fetches folder and its documents from GET /api/folders/:id/documents; folder includes last_modified (UTC) for "Updated" display. */
   const loadFolderDocuments = useCallback(async () => {
@@ -379,42 +371,20 @@ export const useFolderDetailPageContainer = () => {
     [loadFolderDocuments, t, unarchiveDocument]
   );
 
-  const handleOpenSubDocTrashConfirm = useCallback((documentId: number) => {
-    setSubDocTrashTargetId(documentId);
-  }, []);
-
-  const handleCloseSubDocTrashConfirm = useCallback(() => {
-    if (!isTrashing) {
-      setSubDocTrashTargetId(null);
-    }
-  }, [isTrashing]);
-
-  const handleConfirmSubDocTrash = useCallback(async () => {
-    if (!subDocTrashTargetId) return;
-    const didTrash = await trashDocument(subDocTrashTargetId, {
-      successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
-      errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
-      onSuccess: loadFolderDocuments,
-    });
-    if (didTrash) {
+  /** Single sub-doc trash: call from useConfirmDialog onConfirm. */
+  const confirmSubDocTrash = useCallback(
+    async (documentId: number) => {
+      await trashDocument(documentId, {
+        successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
+        errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
+        onSuccess: loadFolderDocuments,
+      });
       clearSubDocsSelection();
-      setSubDocTrashTargetId(null);
-    }
-  }, [clearSubDocsSelection, loadFolderDocuments, subDocTrashTargetId, t, trashDocument]);
+    },
+    [clearSubDocsSelection, loadFolderDocuments, t, trashDocument]
+  );
 
-  const handleOpenBatchSubDocTrashConfirm = useCallback(() => {
-    if (subDocSelectedIds.length > 0) {
-      setIsBatchSubDocTrashConfirmOpen(true);
-    }
-  }, [subDocSelectedIds.length]);
-
-  const handleCloseBatchSubDocTrashConfirm = useCallback(() => {
-    if (!isTrashing) {
-      setIsBatchSubDocTrashConfirmOpen(false);
-    }
-  }, [isTrashing]);
-
-  const handleConfirmBatchSubDocTrash = useCallback(async () => {
+  const confirmBatchSubDocTrash = useCallback(async () => {
     const ids = subDocSelectedIds.map((id) => Number(id));
     if (ids.length === 0) return;
     const didTrash = await trashDocument(ids, {
@@ -427,10 +397,7 @@ export const useFolderDetailPageContainer = () => {
       }),
       onSuccess: loadFolderDocuments,
     });
-    if (didTrash) {
-      clearSubDocsSelection();
-      setIsBatchSubDocTrashConfirmOpen(false);
-    }
+    if (didTrash) clearSubDocsSelection();
   }, [clearSubDocsSelection, loadFolderDocuments, subDocSelectedIds, t, trashDocument]);
 
   const trashAttachmentsByIds = useCallback(
@@ -441,45 +408,20 @@ export const useFolderDetailPageContainer = () => {
     [deleteAttachments]
   );
 
-  const handleOpenAttachmentTrashConfirm = useCallback((attachmentId: number) => {
-    setAttachmentTrashTargetId(attachmentId);
-  }, []);
+  /** Single attachment trash: call from useConfirmDialog onConfirm. */
+  const confirmAttachmentTrash = useCallback(
+    async (attachmentId: number) => {
+      const didTrash = await trashAttachmentsByIds([attachmentId]);
+      if (didTrash) clearAttachmentsSelection();
+    },
+    [clearAttachmentsSelection, trashAttachmentsByIds]
+  );
 
-  const handleCloseAttachmentTrashConfirm = useCallback(() => {
-    if (!isAttachmentTrashing) {
-      setAttachmentTrashTargetId(null);
-    }
-  }, [isAttachmentTrashing]);
-
-  const handleConfirmAttachmentTrash = useCallback(async () => {
-    if (!attachmentTrashTargetId) return;
-    const didTrash = await trashAttachmentsByIds([attachmentTrashTargetId]);
-    if (didTrash) {
-      clearAttachmentsSelection();
-      setAttachmentTrashTargetId(null);
-    }
-  }, [attachmentTrashTargetId, clearAttachmentsSelection, trashAttachmentsByIds]);
-
-  const handleOpenBatchAttachmentTrashConfirm = useCallback(() => {
-    if (attachmentSelectedIds.length > 0) {
-      setIsBatchAttachmentTrashConfirmOpen(true);
-    }
-  }, [attachmentSelectedIds.length]);
-
-  const handleCloseBatchAttachmentTrashConfirm = useCallback(() => {
-    if (!isAttachmentTrashing) {
-      setIsBatchAttachmentTrashConfirmOpen(false);
-    }
-  }, [isAttachmentTrashing]);
-
-  const handleConfirmBatchAttachmentTrash = useCallback(async () => {
+  const confirmBatchAttachmentTrash = useCallback(async () => {
     const ids = attachmentSelectedIds.map((id) => Number(id));
     if (ids.length === 0) return;
     const didTrash = await trashAttachmentsByIds(ids);
-    if (didTrash) {
-      clearAttachmentsSelection();
-      setIsBatchAttachmentTrashConfirmOpen(false);
-    }
+    if (didTrash) clearAttachmentsSelection();
   }, [attachmentSelectedIds, clearAttachmentsSelection, trashAttachmentsByIds]);
 
   /** Opens transfer modal for selected sub-documents. Uses folder/mainDoc department when doc.department_id is missing (e.g. folder documents API may omit it). */
@@ -609,27 +551,21 @@ export const useFolderDetailPageContainer = () => {
     loadFolderDocuments();
   }, [folderId]);
 
-  const handleOpenDeleteFolder = useCallback(() => setIsDeleteConfirmOpen(true), []);
-  const handleCloseDeleteConfirm = useCallback(() => {
-    if (!isDeletingFolder) setIsDeleteConfirmOpen(false);
-  }, [isDeletingFolder]);
-  const handleConfirmDeleteFolder = useCallback(async () => {
+  /** Delete folder: call from useConfirmDialogEmpty onConfirm. */
+  const confirmDeleteFolder = useCallback(async () => {
     if (!folderId) return;
-    setIsDeletingFolder(true);
     try {
       const result = await deleteFolder(folderId);
       if (!result?.ok) {
         toast.error(t("folders.deleteFailed"));
-        return;
+        throw new Error("Delete failed");
       }
       toast.success(t("folders.folderDeleted"));
-      setIsDeleteConfirmOpen(false);
       navigate(routes.folders);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : handleApiError(e);
       toast.error(message || t("folders.deleteFailed"));
-    } finally {
-      setIsDeletingFolder(false);
+      throw e;
     }
   }, [folderId, t, navigate, routes.folders]);
 
@@ -686,25 +622,14 @@ export const useFolderDetailPageContainer = () => {
     [folderId, editingNote, updateNote, createNote, folder?.department_id, handleCloseNoteEditor, refreshNotes]
   );
 
-  /** Open delete confirmation modal for a note */
-  const handleDeleteNote = useCallback((note: NoteListItem) => {
-    setNoteDeleteTarget(note);
-  }, []);
-
-  /** Close delete confirmation modal (only allow closing when not actively deleting a note) */
-  const handleCloseNoteDeleteConfirm = useCallback(() => {
-    if (!isDeletingNote) setNoteDeleteTarget(null);
-  }, [isDeletingNote]);
-
-  /** Confirm and execute note deletion */
-  const handleConfirmDeleteNote = useCallback(async () => {
-    if (!noteDeleteTarget) return;
-    const success = await deleteNote(noteDeleteTarget.id);
-    if (success) {
-      setNoteDeleteTarget(null);
-      refreshNotes();
-    }
-  }, [noteDeleteTarget, deleteNote, refreshNotes]);
+  /** Note delete: call from useConfirmDialog onConfirm. */
+  const confirmDeleteNote = useCallback(
+    async (noteId: number) => {
+      const success = await deleteNote(noteId);
+      if (success) refreshNotes();
+    },
+    [deleteNote, refreshNotes]
+  );
 
   /** Open image viewer for a note */
   const handleViewNoteImage = useCallback((note: NoteListItem) => {
@@ -741,14 +666,10 @@ export const useFolderDetailPageContainer = () => {
     editOpen,
     editReason,
     isEditFolderOpen,
-    isDeleteConfirmOpen,
-    isDeletingFolder,
     handleOpenEditFolder,
     handleCloseEditFolder,
     handleEditFolderSuccess,
-    handleOpenDeleteFolder,
-    handleCloseDeleteConfirm,
-    handleConfirmDeleteFolder,
+    confirmDeleteFolder,
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
@@ -780,31 +701,18 @@ export const useFolderDetailPageContainer = () => {
     subDocsSelectionConfig,
     subDocSelectedIds,
     clearSubDocsSelection,
-    subDocTrashTargetId,
     isSubDocArchiving: isArchiving,
     isSubDocUnarchiving: isUnarchiving,
     isSubDocTrashing: isTrashing,
-    isBatchSubDocTrashConfirmOpen,
-    isBatchSubDocTrashing: isTrashing,
-    handleOpenSubDocTrashConfirm,
-    handleCloseSubDocTrashConfirm,
-    handleConfirmSubDocTrash,
-    handleOpenBatchSubDocTrashConfirm,
-    handleCloseBatchSubDocTrashConfirm,
-    handleConfirmBatchSubDocTrash,
+    confirmSubDocTrash,
+    confirmBatchSubDocTrash,
     openTransferDocs,
     attachmentsSelectionConfig,
     attachmentSelectedIds,
     clearAttachmentsSelection,
-    attachmentTrashTargetId,
     isAttachmentTrashing,
-    isBatchAttachmentTrashConfirmOpen,
-    handleOpenAttachmentTrashConfirm,
-    handleCloseAttachmentTrashConfirm,
-    handleConfirmAttachmentTrash,
-    handleOpenBatchAttachmentTrashConfirm,
-    handleCloseBatchAttachmentTrashConfirm,
-    handleConfirmBatchAttachmentTrash,
+    confirmAttachmentTrash,
+    confirmBatchAttachmentTrash,
     openTransferAttachments,
     handleViewAttachment,
     transferModalOpen,
@@ -839,10 +747,7 @@ export const useFolderDetailPageContainer = () => {
     handleEditNote,
     handleCloseNoteEditor,
     handleSaveNote,
-    handleDeleteNote,
-    noteDeleteTarget,
-    handleCloseNoteDeleteConfirm,
-    handleConfirmDeleteNote,
+    confirmDeleteNote,
     handleViewNoteImage,
     handleCloseNoteImageViewer,
   };

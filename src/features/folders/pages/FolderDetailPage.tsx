@@ -6,8 +6,10 @@ import { UploadDocumentSidePanel } from "../../documents/components";
 import { AuditActivityPanel } from "../../../shared/components/Activity";
 import type { ActivityViewMode } from "../../activity/types";
 import { EditFolderSidePanel, TransferToFolderModal } from "../components";
+import { FolderDetailInfoCard } from "../components/detail";
 import { Alert, Button, Spinner, Modal, ModalFooter, Icon, ConfirmModal } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
+import { useConfirmDialog, useConfirmDialogEmpty } from "../../../shared/hooks";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import type { Attachment } from "../../../app/adapter/api/documents.api";
 import { useFolderDetailPageContainer } from "../containers/useFolderDetailPageContainer";
@@ -35,14 +37,10 @@ const FolderDetailPage = () => {
     editOpen,
     editReason,
     isEditFolderOpen,
-    isDeleteConfirmOpen,
-    isDeletingFolder,
     handleOpenEditFolder,
     handleCloseEditFolder,
     handleEditFolderSuccess,
-    handleOpenDeleteFolder,
-    handleCloseDeleteConfirm,
-    handleConfirmDeleteFolder,
+    confirmDeleteFolder,
     isUploadOpen,
     uploadPanelInitialValues,
     uploadPanelLockFolderContext,
@@ -73,30 +71,17 @@ const FolderDetailPage = () => {
     subDocsSelectionConfig,
     subDocSelectedIds,
     clearSubDocsSelection,
-    subDocTrashTargetId,
     isSubDocArchiving,
     isSubDocUnarchiving,
     isSubDocTrashing,
-    isBatchSubDocTrashConfirmOpen,
-    isBatchSubDocTrashing,
-    handleOpenSubDocTrashConfirm,
-    handleCloseSubDocTrashConfirm,
-    handleConfirmSubDocTrash,
-    handleOpenBatchSubDocTrashConfirm,
-    handleCloseBatchSubDocTrashConfirm,
-    handleConfirmBatchSubDocTrash,
+    confirmSubDocTrash,
+    confirmBatchSubDocTrash,
     attachmentsSelectionConfig,
     attachmentSelectedIds,
     clearAttachmentsSelection,
-    attachmentTrashTargetId,
     isAttachmentTrashing,
-    isBatchAttachmentTrashConfirmOpen,
-    handleOpenAttachmentTrashConfirm,
-    handleCloseAttachmentTrashConfirm,
-    handleConfirmAttachmentTrash,
-    handleOpenBatchAttachmentTrashConfirm,
-    handleCloseBatchAttachmentTrashConfirm,
-    handleConfirmBatchAttachmentTrash,
+    confirmAttachmentTrash,
+    confirmBatchAttachmentTrash,
     handleViewAttachment,
     openTransferDocs,
     openTransferAttachments,
@@ -131,13 +116,18 @@ const FolderDetailPage = () => {
     handleEditNote,
     handleCloseNoteEditor,
     handleSaveNote,
-    handleDeleteNote,
-    noteDeleteTarget,
-    handleCloseNoteDeleteConfirm,
-    handleConfirmDeleteNote,
+    confirmDeleteNote,
     handleViewNoteImage,
     handleCloseNoteImageViewer,
   } = useFolderDetailPageContainer();
+
+  const deleteFolderDialog = useConfirmDialogEmpty({ onConfirm: confirmDeleteFolder });
+  const subDocTrashDialog = useConfirmDialog<number>({ onConfirm: confirmSubDocTrash });
+  const batchSubDocTrashDialog = useConfirmDialogEmpty({ onConfirm: confirmBatchSubDocTrash });
+  const attachmentTrashDialog = useConfirmDialog<number>({ onConfirm: confirmAttachmentTrash });
+  const batchAttachmentTrashDialog = useConfirmDialogEmpty({ onConfirm: confirmBatchAttachmentTrash });
+  const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: confirmDeleteNote });
+
   const handleActivityRefresh = useCallback(() => {
     void refreshActivityLogs();
   }, [refreshActivityLogs]);
@@ -210,7 +200,7 @@ const FolderDetailPage = () => {
             variant="outline"
             size="sm"
             className="btn-outline-danger"
-            onClick={handleOpenDeleteFolder}
+            onClick={deleteFolderDialog.open}
             aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
           >
             <Icon name="trash" className="me-1" />
@@ -235,46 +225,13 @@ const FolderDetailPage = () => {
           </Alert>
         )}
 
-        <div className="card mb-3">
-          <div className="card-header d-flex align-items-center justify-content-between">
-            <h5 className="card-title mb-0">{folder.name || `Folder #${folderId}`}</h5>
-            <span className="text-muted small">
-              {documents.length} {documents.length === 1 ? t("documents.document", { defaultValue: "document" }) : t("documents.documents", { defaultValue: "documents" })}
-            </span>
-          </div>
-          <div className="card-body">
-            <div className="row g-3">
-              <div className="col-md-4">
-                <div className="text-muted small">{t("folders.code", { defaultValue: "Code" })}</div>
-                <div className="fw-medium">{folder.code ?? "–"}</div>
-              </div>
-              <div className="col-md-4">
-                <div className="text-muted small">{t("folders.departmentName", { defaultValue: "Department" })}</div>
-                <div className="fw-medium">{folder.department_name ?? "–"}</div>
-              </div>
-              <div className="col-md-4">
-                <div className="text-muted small">{t("folders.type", { defaultValue: "Type" })}</div>
-                <div className="fw-medium">{folder.folder_type ?? "–"}</div>
-              </div>
-              <div className="col-md-4">
-                <div className="text-muted small">{t("folders.status", { defaultValue: "Status" })}</div>
-                <div className="fw-medium">{folder.state ?? "–"}</div>
-              </div>
-              <div className="col-md-4">
-                <div className="text-muted small">{t("folders.updated", { defaultValue: "Updated" })}</div>
-                <div className="fw-medium">
-                  {convertToArabianStandardTime(
-                    folder.last_modified ?? folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated
-                  ) || "–"}
-                </div>
-              </div>
-              <div className="col-12">
-                <div className="text-muted small">{t("folders.description", { defaultValue: "Description" })}</div>
-                <div className="fw-medium">{folder.description ?? "–"}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <FolderDetailInfoCard
+          t={t}
+          folder={folder}
+          folderId={folderId}
+          documentCount={documents.length}
+          formatUpdated={(date) => convertToArabianStandardTime(date) ?? ""}
+        />
 
         {/* Main document */}
         <div className="card mb-3">
@@ -379,8 +336,8 @@ const FolderDetailPage = () => {
                   variant="outline"
                   size="sm"
                   className="btn-outline-danger"
-                  onClick={handleOpenBatchSubDocTrashConfirm}
-                  disabled={isBatchSubDocTrashing}
+                  onClick={batchSubDocTrashDialog.open}
+                  disabled={isSubDocTrashing}
                 >
                   <Icon name="trash-2" className="me-1" />
                   {t("documents.moveSelectedToTrash", {
@@ -525,7 +482,7 @@ const FolderDetailPage = () => {
                               className="btn-outline-danger"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenSubDocTrashConfirm(doc.id);
+                                subDocTrashDialog.open(doc.id);
                               }}
                             >
                               <Icon name="trash-2" className="me-1" />
@@ -567,7 +524,7 @@ const FolderDetailPage = () => {
                     variant="outline"
                     size="sm"
                     className="btn-outline-danger"
-                    onClick={handleOpenBatchAttachmentTrashConfirm}
+                    onClick={batchAttachmentTrashDialog.open}
                     disabled={isAttachmentTrashing}
                   >
                     <Icon name="trash" className="me-1" />
@@ -670,7 +627,7 @@ const FolderDetailPage = () => {
                                 className="btn-outline-danger"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleOpenAttachmentTrashConfirm(attachment.id);
+                                  attachmentTrashDialog.open(attachment.id);
                                 }}
                               >
                                 <Icon name="trash" className="me-1" />
@@ -712,7 +669,7 @@ const FolderDetailPage = () => {
               loading={loadingNotes}
               error={notesError}
               onEdit={handleEditNote}
-              onDelete={handleDeleteNote}
+              onDelete={(note) => noteDeleteDialog.open(note.id)}
               onViewImage={handleViewNoteImage}
               showDocument={true}
               showFolder={false}
@@ -824,21 +781,16 @@ const FolderDetailPage = () => {
       </Modal>
 
       <ConfirmModal
-        isOpen={isDeleteConfirmOpen}
-        onClose={handleCloseDeleteConfirm}
-        onConfirm={handleConfirmDeleteFolder}
+        {...deleteFolderDialog.modalProps}
         title={t("folders.deleteFolder", { defaultValue: "Delete folder" })}
         message={t("folders.confirmDeleteFolder", { defaultValue: "Are you sure you want to delete this folder? Documents may be affected." })}
         confirmLabel={t("folders.delete", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel")}
         confirmVariant="danger"
-        isLoading={isDeletingFolder}
       />
 
       <ConfirmModal
-        isOpen={subDocTrashTargetId != null}
-        onClose={handleCloseSubDocTrashConfirm}
-        onConfirm={handleConfirmSubDocTrash}
+        {...subDocTrashDialog.modalProps}
         title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         message={t("documents.confirmMoveToTrash", {
           defaultValue: "Are you sure you want to move this document to trash?",
@@ -846,13 +798,10 @@ const FolderDetailPage = () => {
         confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isSubDocTrashing}
       />
 
       <ConfirmModal
-        isOpen={isBatchSubDocTrashConfirmOpen}
-        onClose={handleCloseBatchSubDocTrashConfirm}
-        onConfirm={handleConfirmBatchSubDocTrash}
+        {...batchSubDocTrashDialog.modalProps}
         title={t("documents.moveSelectedToTrash", {
           defaultValue: "Move selected to trash",
         })}
@@ -863,13 +812,10 @@ const FolderDetailPage = () => {
         confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isBatchSubDocTrashing}
       />
 
       <ConfirmModal
-        isOpen={attachmentTrashTargetId != null}
-        onClose={handleCloseAttachmentTrashConfirm}
-        onConfirm={handleConfirmAttachmentTrash}
+        {...attachmentTrashDialog.modalProps}
         title={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         message={t("documents.confirmDeleteAttachment", {
           defaultValue: "Are you sure you want to delete this attachment? This cannot be undone.",
@@ -877,13 +823,10 @@ const FolderDetailPage = () => {
         confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isAttachmentTrashing}
       />
 
       <ConfirmModal
-        isOpen={isBatchAttachmentTrashConfirmOpen}
-        onClose={handleCloseBatchAttachmentTrashConfirm}
-        onConfirm={handleConfirmBatchAttachmentTrash}
+        {...batchAttachmentTrashDialog.modalProps}
         title={t("documents.deleteSelectedAttachments", {
           defaultValue: "Delete selected",
         })}
@@ -894,7 +837,6 @@ const FolderDetailPage = () => {
         confirmLabel={t("documents.deleteAttachment", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isAttachmentTrashing}
       />
 
       <TransferToFolderModal
@@ -965,9 +907,7 @@ const FolderDetailPage = () => {
 
       {/* Note delete confirmation modal */}
       <ConfirmModal
-        isOpen={noteDeleteTarget != null}
-        onClose={handleCloseNoteDeleteConfirm}
-        onConfirm={handleConfirmDeleteNote}
+        {...noteDeleteDialog.modalProps}
         title={t("notes.deleteNote", { defaultValue: "Delete note" })}
         message={t("notes.confirmDelete", {
           defaultValue: "Are you sure you want to delete this note? This action cannot be undone.",
@@ -975,7 +915,6 @@ const FolderDetailPage = () => {
         confirmLabel={t("common.delete", { defaultValue: "Delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
-        isLoading={isDeletingNote}
       />
     </PageLayout>
   );
