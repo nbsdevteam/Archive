@@ -7,10 +7,12 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
   return (
     <>
       <Modal isOpen={modals.modalUploadVersion} onClose={() => actions.setModalUploadVersion(false)} title={t("documents.uploadNewVersion", { defaultValue: "Upload new version" })} size="md">
-        <div className="mb-3">
-          <label className="form-label">{t("documents.unlockToken", { defaultValue: "Unlock token" })} *</label>
-          <input type="text" className="form-control" value={modals.uploadVersionUnlockToken} onChange={(e) => actions.setUploadVersionUnlockToken(e.target.value)} placeholder={t("documents.unlockTokenPlaceholder", { defaultValue: "Enter unlock token" })} />
-        </div>
+        {data.doc?.is_locked === true && (
+          <div className="mb-3">
+            <label className="form-label">{t("documents.unlockToken", { defaultValue: "Unlock token" })} *</label>
+            <input type="text" className="form-control" value={modals.uploadVersionUnlockToken} onChange={(e) => actions.setUploadVersionUnlockToken(e.target.value)} placeholder={t("documents.unlockTokenPlaceholder", { defaultValue: "Enter unlock token" })} />
+          </div>
+        )}
         <div className="mb-3">
           <label className="form-label">{t("documents.changeDescription", { defaultValue: "Change description" })}</label>
           <input type="text" className="form-control" value={modals.uploadVersionDescription} onChange={(e) => actions.setUploadVersionDescription(e.target.value)} placeholder={t("documents.changeDescriptionPlaceholder", { defaultValue: "Optional" })} />
@@ -30,7 +32,7 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
         </div>
         <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={() => actions.setModalUploadVersion(false)}>{t("common.cancel", { defaultValue: "Cancel" })}</Button>
-          <Button variant="secondary" disabled={!modals.uploadVersionFile || !modals.uploadVersionUnlockToken.trim() || loading.uploadingVersion} onClick={actions.handleUploadVersionSubmit}>
+          <Button variant="secondary" disabled={!modals.uploadVersionFile || (data.doc?.is_locked === true && !modals.uploadVersionUnlockToken.trim()) || loading.uploadingVersion} onClick={actions.handleUploadVersionSubmit}>
             {loading.uploadingVersion ? <Spinner /> : t("documents.upload", { defaultValue: "Upload" })}
           </Button>
         </ModalFooter>

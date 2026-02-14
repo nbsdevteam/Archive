@@ -8,6 +8,7 @@ export interface FolderDetailMainDocSectionProps {
   formatDate: (date?: string | null) => string;
   onDownload: () => void;
   onNavigate: (documentId: number) => void;
+  onEdit?: (documentId: number) => void;
   onArchive: (documentId: number) => void;
   onUnarchive: (documentId: number) => void;
   isArchiving: boolean;
@@ -21,6 +22,7 @@ export function FolderDetailMainDocSection({
   formatDate,
   onDownload,
   onNavigate,
+  onEdit,
   onArchive,
   onUnarchive,
   isArchiving,
@@ -76,6 +78,20 @@ export function FolderDetailMainDocSection({
                       <Icon name="download" className="me-1" />
                       {t("documents.download", { defaultValue: "Download" })}
                     </Button>
+                    {onEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="btn-outline-secondary me-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(mainDoc.id);
+                        }}
+                      >
+                        <Icon name="pencil" className="me-1" />
+                        {t("common.edit", { defaultValue: "Edit" })}
+                      </Button>
+                    )}
                     {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
                       <Button
                         variant="outline"

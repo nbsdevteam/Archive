@@ -162,4 +162,30 @@ describe("useDocumentsPageContainer", () => {
 
     expect(mockBatchMoveDocumentsToFolder).toHaveBeenCalledWith([1], 99);
   });
+
+  it("exposes edit panel state: editDocumentId is null initially, set by handleOpenEdit, cleared by handleCloseEdit", async () => {
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+
+    expect(result.current.modals.editDocumentId).toBeNull();
+
+    result.current.actions.handleOpenEdit(5);
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBe(5));
+
+    result.current.actions.handleCloseEdit();
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBeNull());
+  });
+
+  it("handleEditSuccess clears editDocumentId and refetches documents", async () => {
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+    mockGetDocuments.mockClear();
+
+    result.current.actions.handleOpenEdit(3);
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBe(3));
+
+    result.current.actions.handleEditSuccess();
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBeNull());
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+  });
 });

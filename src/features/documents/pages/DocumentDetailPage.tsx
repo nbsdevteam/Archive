@@ -5,6 +5,7 @@ import { PageLayout } from "@/shared/layout/PageLayout";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
 import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";
 import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "@/features/documents/components/detail";
+import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 import { useDocumentDetailPageContainer } from "@/features/documents/containers/useDocumentDetailPageContainer";
 import "@/features/documents/styles/documents.css";
 
@@ -52,6 +53,10 @@ const DocumentDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
+          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={actions.handleOpenEdit}>
+            <Icon name="pencil" className="me-1" />
+            {t("common.edit", { defaultValue: "Edit" })}
+          </Button>
           {data.isArchived ? (
             <Button variant="secondary" size="sm" onClick={actions.handleUnarchive}>
               <Icon name="archive" className="me-1" />
@@ -106,7 +111,7 @@ const DocumentDetailPage = () => {
         </ul>
 
         <div className="card">
-          <div className="card-body h-min-50vh">
+          <div className="card-body h-min-25vh">
             <DocumentDetailTabContent
               t={t}
               tabState={tabState}
@@ -154,6 +159,12 @@ const DocumentDetailPage = () => {
         attachmentTrashModalProps={attachmentTrashDialog.modalProps}
         batchAttachmentTrashModalProps={batchAttachmentTrashDialog.modalProps}
         noteDeleteModalProps={noteDeleteDialog.modalProps}
+      />
+      <EditDocumentSidePanel
+        isOpen={modals.editDocumentId != null}
+        documentId={modals.editDocumentId}
+        onClose={actions.handleCloseEdit}
+        onSuccess={actions.handleEditSuccess}
       />
     </PageLayout>
   );

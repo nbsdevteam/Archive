@@ -60,10 +60,18 @@ export const useDocumentsPageContainer = () => {
   } = list;
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
   const [moveDepartmentId, setMoveDepartmentId] = useState(0);
   const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
+
+  const handleOpenEdit = useCallback((documentId: number) => setEditDocumentId(documentId), []);
+  const handleCloseEdit = useCallback(() => setEditDocumentId(null), []);
+  const handleEditSuccess = useCallback(() => {
+    fetchDocuments(getFetchParams());
+    setEditDocumentId(null);
+  }, [fetchDocuments, getFetchParams]);
 
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {
@@ -248,6 +256,9 @@ export const useDocumentsPageContainer = () => {
       handleOpenUpload,
       handleCloseUpload,
       handleUploadSuccess,
+      handleOpenEdit,
+      handleCloseEdit,
+      handleEditSuccess,
       confirmTrash,
       confirmArchive,
       confirmBatchTrash,
@@ -259,6 +270,7 @@ export const useDocumentsPageContainer = () => {
     },
     modals: {
       isUploadOpen,
+      editDocumentId,
       isMoveModalOpen,
       moveDocumentIdsCount: moveDocumentIds.length,
       moveDepartmentId,

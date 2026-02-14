@@ -17,6 +17,7 @@ export interface FolderDetailSubDocsSectionProps {
   formatDate: (date?: string | null) => string;
   onNavigate: (documentId: number) => void;
   onDownload: (documentId: number) => void;
+  onEdit?: (documentId: number) => void;
   onTransfer: (documentIds: number[]) => void;
   onArchive: (documentId: number) => void;
   onUnarchive: (documentId: number) => void;
@@ -37,6 +38,7 @@ export function FolderDetailSubDocsSection({
   formatDate,
   onNavigate,
   onDownload,
+  onEdit,
   onTransfer,
   onArchive,
   onUnarchive,
@@ -156,6 +158,20 @@ export function FolderDetailSubDocsSection({
                         >
                           {t("common.view", { defaultValue: "View" })}
                         </Button>
+                        {onEdit && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="btn-outline-secondary me-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(doc.id);
+                            }}
+                          >
+                            <Icon name="pencil" className="me-1" />
+                            {t("common.edit", { defaultValue: "Edit" })}
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

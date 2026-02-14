@@ -14,6 +14,7 @@ import { FolderDetailNotesSection } from "./FolderDetailNotesSection";
 import { FolderDetailPreviewSection } from "./FolderDetailPreviewSection";
 import { FolderDetailActivitySection } from "./FolderDetailActivitySection";
 import { FolderDetailModals } from "./FolderDetailModals";
+import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 
 /** Folder detail page: guards, layout, and composition of info, main doc, sub-docs, attachments, notes, preview, activity, and modals. */
 const FolderDetailPage = () => {
@@ -119,6 +120,7 @@ const FolderDetailPage = () => {
         formatDate={actions.formatDate}
         onDownload={actions.handleDownloadMainDocument}
         onNavigate={actions.handleNavigateToDocument}
+        onEdit={actions.handleOpenEditDocument}
         onArchive={actions.handleArchiveFolderDocument}
         onUnarchive={actions.handleUnarchiveFolderDocument}
         isArchiving={loadingState.isSubDocArchiving}
@@ -132,6 +134,7 @@ const FolderDetailPage = () => {
         formatDate={actions.formatDate}
         onNavigate={actions.handleNavigateToDocument}
         onDownload={actions.handleDownloadDocument}
+        onEdit={actions.handleOpenEditDocument}
         onTransfer={actions.openTransferDocs}
         onArchive={actions.handleArchiveFolderDocument}
         onUnarchive={actions.handleUnarchiveFolderDocument}
@@ -223,6 +226,12 @@ const FolderDetailPage = () => {
         attachmentTrashDialog={attachmentTrashDialog}
         batchAttachmentTrashDialog={batchAttachmentTrashDialog}
         noteDeleteDialog={noteDeleteDialog}
+      />
+      <EditDocumentSidePanel
+        isOpen={modals.editDocumentId != null}
+        documentId={modals.editDocumentId}
+        onClose={actions.handleCloseEditDocument}
+        onSuccess={actions.handleEditDocumentSuccess}
       />
     </PageLayout>
   );

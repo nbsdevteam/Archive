@@ -28,6 +28,7 @@ export const useDocumentDetailPageContainer = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const routes = all_routes;
+  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
 
   const { docId } = useDocumentDetailIds();
   const {
@@ -49,6 +50,15 @@ export const useDocumentDetailPageContainer = () => {
     storeError,
     fetchDocument,
   } = useDocumentDetailData(docId);
+
+  const handleOpenEdit = useCallback(() => {
+    if (docId != null) setEditDocumentId(docId);
+  }, [docId]);
+  const handleCloseEdit = useCallback(() => setEditDocumentId(null), []);
+  const handleEditSuccess = useCallback(() => {
+    if (docId != null) fetchDocument(docId);
+    setEditDocumentId(null);
+  }, [docId, fetchDocument]);
 
   const { tabs, activeTab, setActiveTab } = useDocumentTabs(t);
   const {
@@ -367,6 +377,9 @@ export const useDocumentDetailPageContainer = () => {
       handleCloseEditAttachment,
       handleConfirmEditAttachment,
       handleViewAttachment,
+      handleOpenEdit,
+      handleCloseEdit,
+      handleEditSuccess,
       handleArchive,
       handleUnarchive,
       handleRunOcr,
@@ -407,6 +420,7 @@ export const useDocumentDetailPageContainer = () => {
     },
     modals: {
       isAddAttachmentPanelOpen,
+      editDocumentId,
       modalUploadVersion,
       uploadVersionFile,
       uploadVersionUnlockToken,

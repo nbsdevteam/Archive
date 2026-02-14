@@ -34,6 +34,7 @@ export const useFolderDetailPageContainer = () => {
 
   const { folderId } = useFolderDetailIds();
   const [attachmentsDocId, setAttachmentsDocId] = useState<number | "">("");
+  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
 
   const {
     folder,
@@ -335,6 +336,13 @@ export const useFolderDetailPageContainer = () => {
     loadFolderDocuments();
   }, [loadFolderDocuments]);
 
+  const handleOpenEditDocument = useCallback((documentId: number) => setEditDocumentId(documentId), []);
+  const handleCloseEditDocument = useCallback(() => setEditDocumentId(null), []);
+  const handleEditDocumentSuccess = useCallback(() => {
+    loadFolderDocuments();
+    setEditDocumentId(null);
+  }, [loadFolderDocuments]);
+
   const confirmDeleteFolder = useCallback(async () => {
     if (!folderId) return;
     try {
@@ -445,6 +453,9 @@ export const useFolderDetailPageContainer = () => {
       handleOpenEditFolder,
       handleCloseEditFolder,
       handleEditFolderSuccess,
+      handleOpenEditDocument,
+      handleCloseEditDocument,
+      handleEditDocumentSuccess,
       confirmDeleteFolder,
       handleLoadNotes,
       handleCreateNote: noteEditor.handleCreateNote,
@@ -462,6 +473,7 @@ export const useFolderDetailPageContainer = () => {
       editOpen,
       editReason,
       isEditFolderOpen,
+      editDocumentId,
       isUploadOpen,
       uploadPanelInitialValues,
       uploadPanelLockFolderContext,

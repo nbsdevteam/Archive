@@ -141,4 +141,23 @@ describe("useDocumentDetailPageContainer", () => {
 
     expect(mockDeleteNote).toHaveBeenCalledWith(10);
   });
+
+  it("exposes edit panel state: editDocumentId null initially, set by handleOpenEdit, cleared by handleEditSuccess with refetch", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+
+    expect(result.current.modals.editDocumentId).toBeNull();
+
+    result.current.actions.handleOpenEdit();
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBe(docId));
+
+    mockGetDocument.mockClear();
+    result.current.actions.handleEditSuccess();
+    await waitFor(() => expect(result.current.modals.editDocumentId).toBeNull());
+    await waitFor(() => expect(mockGetDocument).toHaveBeenCalledWith(docId));
+  });
 });

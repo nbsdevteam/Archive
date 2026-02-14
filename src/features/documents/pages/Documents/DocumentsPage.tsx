@@ -5,6 +5,7 @@ import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
+import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 import { useDocumentsPageContainer } from "@/features/documents/containers/useDocumentsPageContainer";
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import { DocumentsToolbar } from "./DocumentsToolbar";
@@ -57,6 +58,16 @@ const DocumentsPage = () => {
           onClick: (row) => void actions.handleDownloadDocument(row),
         },
         {
+          id: "edit",
+          labelKey: "common.edit",
+          defaultValue: "Edit",
+          icon: "pencil",
+          variant: "outline",
+          className: "btn-outline-secondary me-1",
+          visible: (row) => row.is_main_document === true || row.is_main_document === false,
+          onClick: (row) => actions.handleOpenEdit(row.id),
+        },
+        {
           id: "transfer",
           labelKey: "documents.transfer",
           defaultValue: "Transfer to folder",
@@ -90,6 +101,7 @@ const DocumentsPage = () => {
       t,
       actions.handleDownloadDocument,
       actions.handleNavigateToDocument,
+      actions.handleOpenEdit,
       actions.handleOpenSingleMoveConfirm,
       archiveDialog.open,
       trashDialog.open,
@@ -151,6 +163,12 @@ const DocumentsPage = () => {
         batchArchiveDialog={batchArchiveDialog}
         batchTrashDialog={batchTrashDialog}
         selectedDocumentIds={selectedDocumentIds}
+      />
+      <EditDocumentSidePanel
+        isOpen={modals.editDocumentId != null}
+        documentId={modals.editDocumentId}
+        onClose={actions.handleCloseEdit}
+        onSuccess={actions.handleEditSuccess}
       />
     </PageLayout>
   );

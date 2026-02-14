@@ -157,6 +157,28 @@ export interface UploadDocumentResponse {
   error?: string;
 }
 
+/** Params for updating document metadata (main or sub). All fields optional. */
+export interface UpdateDocumentParams {
+  title?: string;
+  department_id?: number;
+  document_type_id?: number;
+  confidentiality_level?: ConfidentialityLevel;
+  folder_id?: number | null;
+  po_number?: string;
+  bl_number?: string;
+  container_number?: string;
+  invoice_number?: string;
+  envoy_number?: string;
+  tags?: number[];
+}
+
+export interface UpdateDocumentResponse {
+  success: boolean;
+  data?: DocumentDetail | Document;
+  error?: string;
+  message?: string;
+}
+
 export interface StartBulkUploadParams {
   department_id: number;
   document_type_id: number;
@@ -291,6 +313,27 @@ export const documentsApi = {
       params: { document_id: id },
     });
     return response.data.result || response.data;
+  },
+
+  /**
+   * Update document metadata (main or sub). POST /api/documents/<document_id>/update (JSON-RPC).
+   */
+  updateDocument: async (
+    documentId: number,
+    params: UpdateDocumentParams
+  ): Promise<UpdateDocumentResponse> => {
+    const response = await apiClient.post(
+      `/api/documents/${documentId}/update`,
+      {
+        jsonrpc: '2.0',
+        method: 'call',
+        params,
+        id: 1,
+      }
+    );
+    const result = getRpcResult<UpdateDocumentResponse>(response.data);
+    assertSuccess(result, 'Failed to update document');
+    return (result ?? { success: true }) as UpdateDocumentResponse;
   },
 
   /**

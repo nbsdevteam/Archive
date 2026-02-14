@@ -52,14 +52,16 @@ export function useDocumentVersions(
   }, [doc?.id, fileName, t]);
 
   const handleUploadVersionSubmit = useCallback(async () => {
-    if (!doc?.id || !uploadVersionFile || !uploadVersionUnlockToken.trim()) return;
+    if (!doc?.id || !uploadVersionFile) return;
+    const isLocked = doc.is_locked === true;
+    if (isLocked && !uploadVersionUnlockToken.trim()) return;
     setUploadingVersion(true);
     try {
       const fileData = await fileToBase64(uploadVersionFile);
       await uploadVersion(doc.id, {
         file_data: fileData,
         file_name: uploadVersionFile.name,
-        unlock_token: uploadVersionUnlockToken.trim(),
+        unlock_token: isLocked ? uploadVersionUnlockToken.trim() : "",
         change_description: uploadVersionDescription.trim() || "New version",
       });
       toast.success(t("documents.versionUploaded", { defaultValue: "New version uploaded." }));
