@@ -187,7 +187,6 @@ export interface StartBulkUploadParams {
   department_id: number;
   document_type_id: number;
   folder_id?: number;
-  upload_kind?: UploadKind;
   confidentiality_level?: ConfidentialityLevel;
   auto_ocr?: boolean;
   auto_barcode?: boolean;
