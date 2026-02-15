@@ -63,6 +63,8 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Alt" && !e.repeat) {
+        e.preventDefault();
+        e.stopPropagation();
         setOverlayOpen(true);
         return;
       }
@@ -73,24 +75,31 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
         ) as [ShortcutKeyId, string] | undefined)?.[0];
         if (id && handlersRef.current[id]) {
           e.preventDefault();
+          e.stopPropagation();
           runHandler(id);
           setOverlayOpen(false);
         }
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "Alt" && !e.repeat) setOverlayOpen(false);
+      if (e.key === "Alt" && !e.repeat) {
+        e.preventDefault();
+        e.stopPropagation();
+        setOverlayOpen(false);
+      }
     };
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOverlayOpen(false);
     };
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("keyup", handleKeyUp);
-    document.addEventListener("keydown", handleEscape);
+    // Listen on window with capture so Alt is received without requiring a prior click (works even when no element has focus).
+    const opts = { capture: true };
+    window.addEventListener("keydown", handleKeyDown, opts);
+    window.addEventListener("keyup", handleKeyUp, opts);
+    window.addEventListener("keydown", handleEscape, opts);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("keyup", handleKeyUp);
-      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("keydown", handleKeyDown, opts);
+      window.removeEventListener("keyup", handleKeyUp, opts);
+      window.removeEventListener("keydown", handleEscape, opts);
     };
   }, [overlayOpen, runHandler]);
 
