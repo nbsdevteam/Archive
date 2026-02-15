@@ -15,8 +15,6 @@ import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
-import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
-import { all_routes } from "@/router/all_routes";
 import "@/features/documents/styles/documents.css";
 
 /**
@@ -27,33 +25,24 @@ const DocumentsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { registerHandler } = useShortcuts();
-  const announce = useAnnounce();
   const { data, loading, error, filter, selection, actions, modals } = useDocumentsPageContainer();
   const { documents, routes } = data;
   const { selectedDocumentIds, selectionConfig, isSomeSelected } = selection;
 
   useEffect(() => {
-    registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => {
-      navigate(all_routes.documentsUpload);
-    });
+    registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => actions.handleOpenUpload());
     return () => registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, undefined);
-  }, [navigate, registerHandler]);
+  }, [registerHandler, actions.handleOpenUpload]);
 
   useEffect(() => {
-    registerHandler(
-      SHORTCUT_KEYS.DOWNLOAD_DOCUMENT,
-      selectedDocumentIds.length > 0
-        ? () => {
-            const firstId = selectedDocumentIds[0];
-            const doc = documents.find((d) => String(d.id) === String(firstId));
-            if (doc) void actions.handleDownloadDocument(doc);
-          }
-        : () => {
-            announce(t("documents.selectDocumentToDownload", { defaultValue: "Select a document to download." }));
-          }
-    );
-    return () => registerHandler(SHORTCUT_KEYS.DOWNLOAD_DOCUMENT, undefined);
-  }, [selectedDocumentIds, documents, actions.handleDownloadDocument, t, announce, registerHandler]);
+    registerHandler(SHORTCUT_KEYS.VIEW_TRASH, () => navigate(routes.documentsTrash));
+    return () => registerHandler(SHORTCUT_KEYS.VIEW_TRASH, undefined);
+  }, [navigate, routes.documentsTrash, registerHandler]);
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
+    return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
+  }, [registerHandler, actions.handleRefresh]);
 
   const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });

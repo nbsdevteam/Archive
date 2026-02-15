@@ -6,6 +6,9 @@ export const SHORTCUT_KEYS = {
   NEW_DOCUMENT: "new-document",
   DOWNLOAD_DOCUMENT: "download-document",
   CREATE_SUB_DOCUMENT: "create-sub-document",
+  VIEW_TRASH: "view-trash",
+  REFRESH_PAGE: "refresh-page",
+  CREATE_NOTE: "create-note",
 } as const;
 
 export type ShortcutKeyId = (typeof SHORTCUT_KEYS)[keyof typeof SHORTCUT_KEYS];
@@ -15,6 +18,9 @@ export const SHORTCUT_LABELS: Record<ShortcutKeyId, { label: string; keys: strin
   [SHORTCUT_KEYS.NEW_DOCUMENT]: { label: "New document", keys: "Alt + N" },
   [SHORTCUT_KEYS.DOWNLOAD_DOCUMENT]: { label: "Download document", keys: "Alt + D" },
   [SHORTCUT_KEYS.CREATE_SUB_DOCUMENT]: { label: "Create sub-document", keys: "Alt + S" },
+  [SHORTCUT_KEYS.VIEW_TRASH]: { label: "View trash", keys: "Alt + T" },
+  [SHORTCUT_KEYS.REFRESH_PAGE]: { label: "Refresh page", keys: "Alt + R" },
+  [SHORTCUT_KEYS.CREATE_NOTE]: { label: "Create note", keys: "Alt + C" },
 };
 
 /** Single key (without Alt) that triggers the shortcut when overlay is shown or when Alt was pressed. */
@@ -22,4 +28,7 @@ export const SHORTCUT_TRIGGER_KEYS: Record<ShortcutKeyId, string> = {
   [SHORTCUT_KEYS.NEW_DOCUMENT]: "n",
   [SHORTCUT_KEYS.DOWNLOAD_DOCUMENT]: "d",
   [SHORTCUT_KEYS.CREATE_SUB_DOCUMENT]: "s",
+  [SHORTCUT_KEYS.VIEW_TRASH]: "t",
+  [SHORTCUT_KEYS.REFRESH_PAGE]: "r",
+  [SHORTCUT_KEYS.CREATE_NOTE]: "c",
 };

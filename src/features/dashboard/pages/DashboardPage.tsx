@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/ui";
@@ -8,6 +9,8 @@ import { convertToArabianStandardTime } from "../../../shared/utils/format/date"
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "../styles/dashboard.css";
 
 /**
@@ -16,6 +19,8 @@ import "../styles/dashboard.css";
  */
 const DashboardPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { registerHandler } = useShortcuts();
   const routes = all_routes;
   const {
     stats,
@@ -39,6 +44,18 @@ const DashboardPage = () => {
     handleCloseUploadPanel,
     refreshDashboardCounts,
   } = useDashboardPageContainer();
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => handleOpenUploadPanel());
+    return () => registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, undefined);
+  }, [registerHandler, handleOpenUploadPanel]);
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.CREATE_SUB_DOCUMENT, () => {
+      navigate(`${all_routes.documentsUpload}?upload_kind=sub`);
+    });
+    return () => registerHandler(SHORTCUT_KEYS.CREATE_SUB_DOCUMENT, undefined);
+  }, [navigate, registerHandler]);
 
   const pageTitle = t("dashboard.title");
 

@@ -2,7 +2,7 @@
  * Standalone Notes page for browsing all notes (document/folder/standalone)
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
@@ -10,6 +10,8 @@ import { all_routes } from "../../../router/all_routes";
 import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog } from "../../../shared/hooks";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
 import { useNoteEditorHandlers } from "../hooks/useNoteEditorHandlers";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
@@ -19,6 +21,7 @@ const NotesPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
+  const { registerHandler } = useShortcuts();
 
   const {
     notes,
@@ -54,6 +57,11 @@ const NotesPage = () => {
   });
 
   const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: noteEditor.confirmDeleteNote });
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.CREATE_NOTE, () => noteEditor.handleCreateNote());
+    return () => registerHandler(SHORTCUT_KEYS.CREATE_NOTE, undefined);
+  }, [registerHandler, noteEditor.handleCreateNote]);
 
   const handleDeleteNote = useCallback(
     (note: NoteListItem) => {
