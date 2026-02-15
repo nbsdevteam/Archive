@@ -67,8 +67,11 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.intercept('POST', '**/api/folders/create', (req) => req.continue());
     // List folders (POST /api/folders without /create or /id) — allow so any wait('@listFolders') can resolve when app loads folder dropdowns.
     cy.intercept(
-      'POST',
-      (url) => url.includes('/api/folders') && !url.includes('/create') && !/\/api\/folders\/\d+/.test(url),
+      {
+        method: 'POST',
+        url: (url) =>
+          url.includes('/api/folders') && !url.includes('/create') && !/\/api\/folders\/\d+/.test(url),
+      },
       (req) => req.continue()
     ).as('listFolders');
   });
