@@ -47,6 +47,7 @@ export function UploadDocumentSidePanel({
   });
 
   const uploadKind = watch("upload_kind");
+  const uploadMultipleMain = watch("upload_multiple_main") ?? false;
   const departmentId = watch("department_id");
   const documentTypeId = watch("document_type_id");
   const title = watch("title");
@@ -58,6 +59,7 @@ export function UploadDocumentSidePanel({
 
   useEffect(() => {
     if (uploadKind !== "main") {
+      setValue("upload_multiple_main", false);
       setValue("folder_name", "");
       setValue("folder_code", "");
       setValue("folder_type", "other");
@@ -157,15 +159,18 @@ export function UploadDocumentSidePanel({
 
   const hasRequiredTitle = typeof title === "string" && title.trim().length > 0;
   const hasFile = selectedFile instanceof File;
+  const hasMainMultiFiles = uploadKind === "main" && uploadMultipleMain && selectedFiles.length >= 1;
   const canSubmit =
     uploadKind === "attachment"
       ? hasFile && Number(targetDocumentId) >= 1
-      : hasRequiredTitle &&
-        hasFile &&
-        Number(departmentId) >= 1 &&
-        Number(documentTypeId) >= 1 &&
-        (uploadKind !== "sub" || Number(folderId) >= 1) &&
-        (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
+      : uploadKind === "main" && uploadMultipleMain
+        ? hasMainMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1
+        : hasRequiredTitle &&
+          hasFile &&
+          Number(departmentId) >= 1 &&
+          Number(documentTypeId) >= 1 &&
+          (uploadKind !== "sub" || Number(folderId) >= 1) &&
+          (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
   const submitDisabled = !canSubmit || isUploading;
 
   /** Auto-fills folder name (only) from document title when uploading a main document; folder code is not prefilled. */
@@ -187,6 +192,23 @@ export function UploadDocumentSidePanel({
     setValue("file", undefined, { shouldValidate: true });
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, [setValue]);
+
+  /** Toggle for main-document batch upload; only relevant when upload_kind is "main". */
+  const handleUploadMultipleMainChange = useCallback(
+    (value: boolean) => {
+      setValue("upload_multiple_main", value, { shouldValidate: true });
+    },
+    [setValue]
+  );
+
+  /** Prefill title and folder name from filename when user selects a single main file. */
+  const handleMainSingleFileSelected = useCallback(
+    (baseName: string) => {
+      setValue("title", baseName, { shouldValidate: true });
+      setValue("folder_name", baseName, { shouldValidate: true });
+    },
+    [setValue]
+  );
 
   const tagOptions: SelectOption[] = useMemo(() => tags.map((tag) => ({ value: tag.id, label: tag.name })), [tags]);
 
@@ -233,6 +255,9 @@ export function UploadDocumentSidePanel({
           onFileChange={setSelectedFiles}
           onClearFile={handleClearFile}
           uploadWhatDocumentLabel={uploadWhatDocumentLabel}
+          uploadMultipleMain={uploadMultipleMain}
+          onUploadMultipleMainChange={handleUploadMultipleMainChange}
+          onMainSingleFileSelected={handleMainSingleFileSelected}
           tagOptions={tagOptions}
           bulkJobId={submitLogic.bulkJobId}
           bulkProgress={submitLogic.bulkProgress}

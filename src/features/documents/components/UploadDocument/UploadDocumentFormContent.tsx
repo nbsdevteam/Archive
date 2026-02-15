@@ -9,7 +9,6 @@ import type { Folder } from "@/features/folders/types/folders.types";
 import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
 import { Button } from "@/shared/components/ui";
 import { UploadDocumentTargetSection } from "./UploadDocumentTargetSection";
-import { UploadDocumentFileSection } from "./UploadDocumentFileSection";
 import { UploadDocumentOptionalSection } from "./UploadDocumentOptionalSection";
 
 export interface UploadDocumentFormContentProps {
@@ -37,6 +36,9 @@ export interface UploadDocumentFormContentProps {
   onFileChange: (files: File[]) => void;
   onClearFile: () => void;
   uploadWhatDocumentLabel: string;
+  uploadMultipleMain?: boolean;
+  onUploadMultipleMainChange?: (value: boolean) => void;
+  onMainSingleFileSelected?: (baseName: string) => void;
   tagOptions: SelectOption[];
   bulkJobId: string | null;
   bulkProgress: BulkUploadProgressData | null;
@@ -73,6 +75,9 @@ export function UploadDocumentFormContent({
   onFileChange,
   onClearFile,
   uploadWhatDocumentLabel,
+  uploadMultipleMain,
+  onUploadMultipleMainChange,
+  onMainSingleFileSelected,
   tagOptions,
   bulkJobId,
   bulkProgress,
@@ -110,19 +115,15 @@ export function UploadDocumentFormContent({
         folders={folders}
         t={t}
         fillFolderNameFromTitle={fillFolderNameFromTitle}
-      />
-
-      <UploadDocumentFileSection
         fileInputRef={fileInputRef}
         selectedFile={selectedFile}
         selectedFiles={selectedFiles}
         onFileChange={onFileChange}
-        onClear={onClearFile}
-        errorMessage={errors.file?.message as string | undefined}
-        uploadKind={uploadKind}
+        onClearFile={onClearFile}
         uploadWhatDocumentLabel={uploadWhatDocumentLabel}
-        t={t}
-        setValue={setValue}
+        uploadMultipleMain={uploadMultipleMain}
+        onUploadMultipleMainChange={onUploadMultipleMainChange}
+        onMainSingleFileSelected={onMainSingleFileSelected}
       />
 
       {uploadKind === "sub" && isUploading && bulkJobId && bulkProgress && (
@@ -137,6 +138,15 @@ export function UploadDocumentFormContent({
             <Button type="button" variant="outline" className="btn-outline-danger" onClick={onCancelBulkJob} disabled={isCancellingBulkJob}>
               {isCancellingBulkJob ? t("common.cancelling", { defaultValue: "Cancelling..." }) : t("documents.cancelJob", { defaultValue: "Cancel job" })}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {uploadKind === "main" && uploadMultipleMain && isUploading && bulkProgress && !bulkJobId && (
+        <div className="alert alert-info py-2 mb-3" role="status">
+          <div className="fw-semibold">{t("documents.batchMainUploadInProgress", { defaultValue: "Uploading main documents..." })}</div>
+          <div className="small">
+            {t("documents.processed", { defaultValue: "Processed" })}: {bulkProgress.processed ?? 0}/{bulkProgress.total ?? 0} | {t("documents.failed", { defaultValue: "Failed" })}: {bulkProgress.failed ?? 0}
           </div>
         </div>
       )}

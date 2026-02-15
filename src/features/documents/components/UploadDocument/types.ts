@@ -1,6 +1,8 @@
 /** Form state type for upload panel: all fields present, file optional until selected. */
 export type UploadFormValues = {
   upload_kind: "main" | "sub" | "attachment";
+  /** When true and upload_kind is "main", multiple files can be selected; one folder per file is auto-created from filename. */
+  upload_multiple_main?: boolean;
   target_document_id?: number;
   department_id: number;
   document_type_id: number;
@@ -36,6 +38,7 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
   const defaultKind = initialValues?.upload_kind ?? (lockFolderContext ? "sub" : "main");
   return {
     upload_kind: defaultKind,
+    upload_multiple_main: initialValues?.upload_multiple_main ?? false,
     target_document_id: initialValues?.target_document_id,
     department_id: initialValues?.department_id ?? 0,
     document_type_id: initialValues?.document_type_id ?? 0,

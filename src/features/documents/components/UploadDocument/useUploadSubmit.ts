@@ -6,6 +6,7 @@ import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
 import { createFolder } from "@/features/folders/services/folders.api";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
+import { getBaseName, toFolderCode } from "@/shared/utils/files/filename";
 import type { UploadFormValues } from "./types";
 
 export interface UseUploadSubmitParams {
@@ -73,8 +74,16 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       selectedFiles: File[],
       departmentId: number
     ) => {
+      const isMainMulti = data.upload_kind === "main" && data.upload_multiple_main === true;
       const file = data.file;
-      if (!(file instanceof File)) {
+      const filesToUse = isMainMulti ? selectedFiles : selectedFiles.length > 0 ? selectedFiles : file ? [file] : [];
+      if (!isMainMulti && !(file instanceof File)) {
+        const msg = t("documents.validation.fileRequired");
+        setSubmitError(msg);
+        announce(msg);
+        return;
+      }
+      if (isMainMulti && filesToUse.length === 0) {
         const msg = t("documents.validation.fileRequired");
         setSubmitError(msg);
         announce(msg);
@@ -158,7 +167,107 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         return;
       }
 
-      const fileData = await fileToBase64(file);
+      if (isMainMulti && filesToUse.length >= 1) {
+        setBulkProgress({ status: "processing", total: filesToUse.length, processed: 0, failed: 0 });
+        let processed = 0;
+        let failed = 0;
+        const usedCodes = new Set<string>();
+        for (let i = 0; i < filesToUse.length; i++) {
+          const f = filesToUse[i];
+          const baseName = getBaseName(f.name) || f.name;
+          const folderName = baseName;
+          let folderCode = toFolderCode(baseName) || `file_${i + 1}`;
+          let suffix = 0;
+          while (usedCodes.has(folderCode)) {
+            suffix += 1;
+            folderCode = `${toFolderCode(baseName) || `file_${i + 1}`}_${suffix}`;
+          }
+          usedCodes.add(folderCode);
+          setBulkProgress((prev) => ({ ...(prev ?? {}), status: "processing", total: filesToUse.length, processed, failed }));
+          let finalFolderId: number;
+          try {
+            const newFolder = await createFolder({
+              name: folderName,
+              code: folderCode,
+              department_id: departmentId,
+              folder_type: data.folder_type || "other",
+              description: null,
+            });
+            finalFolderId = newFolder.id;
+          } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            if (/exists|duplicate|already|conflict/i.test(errMsg) && suffix < 20) {
+              suffix += 1;
+              folderCode = `${toFolderCode(baseName) || `file_${i + 1}`}_${suffix}`;
+              usedCodes.add(folderCode);
+              const retryFolder = await createFolder({
+                name: folderName,
+                code: folderCode,
+                department_id: departmentId,
+                folder_type: data.folder_type || "other",
+                description: null,
+              });
+              finalFolderId = retryFolder.id;
+            } else {
+              failed += 1;
+              setBulkProgress((prev) => ({ ...(prev ?? {}), total: filesToUse.length, processed, failed: failed }));
+              toast.error(t("documents.batchMainUploadFileFailed", { fileName: f.name, defaultValue: `Failed: ${f.name}` }));
+              announce(errMsg);
+              continue;
+            }
+          }
+          try {
+            const fileData = await fileToBase64(f);
+            const resp = await documentsApi.uploadDocument({
+              department_id: Number(data.department_id),
+              document_type_id: Number(data.document_type_id),
+              title: baseName,
+              file_data: fileData,
+              file_name: f.name,
+              confidentiality_level: data.confidentiality_level,
+              upload_kind: "main",
+              folder_ids: [finalFolderId],
+              ...(data.po_number?.trim() ? { po_number: data.po_number.trim() } : {}),
+              ...(data.bl_number?.trim() ? { bl_number: data.bl_number.trim() } : {}),
+              ...(data.container_number?.trim() ? { container_number: data.container_number.trim() } : {}),
+              ...(data.invoice_number?.trim() ? { invoice_number: data.invoice_number.trim() } : {}),
+              ...(data.envoy_number?.trim() ? { envoy_number: data.envoy_number.trim() } : {}),
+              ...(data.tags?.length ? { tags: data.tags } : {}),
+            });
+            if (!resp?.success) throw new Error(resp?.error || "Upload failed");
+            processed += 1;
+            setBulkProgress((prev) => ({ ...(prev ?? {}), total: filesToUse.length, processed, failed }));
+          } catch (err) {
+            failed += 1;
+            setBulkProgress((prev) => ({ ...(prev ?? {}), total: filesToUse.length, processed, failed }));
+            const msg = err instanceof Error ? err.message : String(err);
+            toast.error(t("documents.batchMainUploadFileFailed", { fileName: f.name, defaultValue: `Failed: ${f.name}` }));
+            announce(msg);
+          }
+        }
+        const successMsg =
+          failed === 0
+            ? (t("documents.uploadSuccess") ?? "Document uploaded successfully.")
+            : t("documents.batchMainUploadPartialSuccess", {
+                processed,
+                total: filesToUse.length,
+                failed,
+                defaultValue: `Uploaded ${processed}/${filesToUse.length}; ${failed} failed.`,
+              });
+        if (failed === 0) toast.success(successMsg);
+        else toast.warning(successMsg);
+        announce(successMsg);
+        onSuccess?.();
+        onClose();
+        return;
+      }
+
+      const singleFile = file instanceof File ? file : filesToUse[0];
+      if (!(singleFile instanceof File)) {
+        setSubmitError(t("documents.validation.fileRequired"));
+        return;
+      }
+      const fileData = await fileToBase64(singleFile);
       let finalFolderId: number | undefined = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
       if (data.upload_kind === "main" && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
         const newFolder = await createFolder({
@@ -173,9 +282,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       const resp = await documentsApi.uploadDocument({
         department_id: Number(data.department_id),
         document_type_id: Number(data.document_type_id),
-        title: data.title.trim(),
+        title: (data.title ?? "").trim(),
         file_data: fileData,
-        file_name: file.name,
+        file_name: singleFile.name,
         confidentiality_level: data.confidentiality_level,
         upload_kind: data.upload_kind,
         ...(finalFolderId ? { folder_ids: [finalFolderId] } : {}),

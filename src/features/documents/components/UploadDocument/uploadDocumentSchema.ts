@@ -34,10 +34,11 @@ export function getUploadDocumentSchema(t: TFunction) {
   const mainSubSchema = z
     .object({
       upload_kind: z.enum(["main", "sub"]),
+      upload_multiple_main: z.boolean().optional(),
       department_id: z.coerce.number().min(1, t("documents.validation.departmentRequired")),
       document_type_id: z.coerce.number().min(1, t("documents.validation.documentTypeRequired")),
-      title: z.string().min(1, t("documents.validation.titleRequired")),
-      file: fileRequired,
+      title: z.string().optional(),
+      file: z.union([z.instanceof(File), z.undefined()]),
       target_document_id: optionalTargetDocumentId,
       folder_id: z.coerce.number().optional(),
       create_folder: z.boolean().optional(),
@@ -48,18 +49,30 @@ export function getUploadDocumentSchema(t: TFunction) {
       ...baseOptional,
     })
     .superRefine((data, ctx) => {
+      const isMainMulti = data.upload_kind === "main" && data.upload_multiple_main === true;
       if (data.upload_kind === "main") {
-        if (!(data.folder_name ?? "").trim()) {
-          ctx.addIssue({ path: ["folder_name"], message: t("documents.validation.folderNameRequired"), code: z.ZodIssueCode.custom });
-        }
-        if (!(data.folder_code ?? "").trim()) {
-          ctx.addIssue({ path: ["folder_code"], message: t("documents.validation.folderCodeRequired"), code: z.ZodIssueCode.custom });
+        if (!isMainMulti) {
+          if (!(data.title ?? "").trim()) {
+            ctx.addIssue({ path: ["title"], message: t("documents.validation.titleRequired"), code: z.ZodIssueCode.custom });
+          }
+          if (!(data.folder_name ?? "").trim()) {
+            ctx.addIssue({ path: ["folder_name"], message: t("documents.validation.folderNameRequired"), code: z.ZodIssueCode.custom });
+          }
+          if (!(data.folder_code ?? "").trim()) {
+            ctx.addIssue({ path: ["folder_code"], message: t("documents.validation.folderCodeRequired"), code: z.ZodIssueCode.custom });
+          }
+          if (!(data.file instanceof File)) {
+            ctx.addIssue({ path: ["file"], message: t("documents.validation.fileRequired"), code: z.ZodIssueCode.custom });
+          }
         }
       }
       if (data.upload_kind === "sub") {
         const fid = data.folder_id;
         if (fid == null || Number(fid) < 1) {
           ctx.addIssue({ path: ["folder_id"], message: t("documents.validation.folderRequiredForSubDocument"), code: z.ZodIssueCode.custom });
+        }
+        if (!(data.file instanceof File)) {
+          ctx.addIssue({ path: ["file"], message: t("documents.validation.fileRequired"), code: z.ZodIssueCode.custom });
         }
       }
     });

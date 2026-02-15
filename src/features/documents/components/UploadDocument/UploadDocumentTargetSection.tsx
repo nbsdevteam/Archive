@@ -1,12 +1,14 @@
+import type { RefObject } from "react";
 import type { TFunction } from "i18next";
 import type { Control, UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
 import type { UploadFormValues } from "./types";
-import { Input, SelectField, InfoWrapper } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
+import { Input, SelectField, InfoWrapper } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Folder } from "@/features/folders/types/folders.types";
+import { UploadDocumentFileSection } from "./UploadDocumentFileSection";
 
 export interface UploadDocumentTargetSectionProps {
   control: Control<UploadFormValues>;
@@ -28,6 +30,17 @@ export interface UploadDocumentTargetSectionProps {
   folders: Folder[];
   t: TFunction;
   fillFolderNameFromTitle: (titleValue: string) => void;
+  /** File section: rendered directly below document type when provided. */
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  selectedFile: File | undefined;
+  selectedFiles: File[];
+  onFileChange: (files: File[]) => void;
+  onClearFile: () => void;
+  uploadWhatDocumentLabel: string;
+  /** When true (main only), title and folder fields are hidden; one folder per file is auto-created. */
+  uploadMultipleMain?: boolean;
+  onUploadMultipleMainChange?: (value: boolean) => void;
+  onMainSingleFileSelected?: (baseName: string) => void;
 }
 
 const UPLOAD_KIND_OPTIONS = (t: TFunction): SelectOption<string>[] => [
@@ -43,11 +56,12 @@ const CONFIDENTIALITY_OPTIONS = (t: TFunction): SelectOption<string>[] => [
   { value: "strict", label: t("documents.confidentiality.strict") },
 ];
 
-/** Target and metadata fields: upload type, target doc, department, doc type, title, folder, new folder, confidentiality. */
+/** Target and metadata fields: upload type, target doc, department, doc type, file section, title, folder, new folder, confidentiality. */
 export function UploadDocumentTargetSection({
   control,
   register,
   errors,
+  setValue,
   uploadKind,
   departmentId,
   folderId,
@@ -58,6 +72,15 @@ export function UploadDocumentTargetSection({
   folders,
   t,
   fillFolderNameFromTitle,
+  fileInputRef,
+  selectedFile,
+  selectedFiles,
+  onFileChange,
+  onClearFile,
+  uploadWhatDocumentLabel,
+  uploadMultipleMain = false,
+  onUploadMultipleMainChange,
+  onMainSingleFileSelected,
 }: UploadDocumentTargetSectionProps) {
   const titleRegistration = register("title");
   const departmentOptions: SelectOption[] = departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
@@ -129,7 +152,23 @@ export function UploadDocumentTargetSection({
         </>
       )}
 
-      {uploadKind !== "attachment" && (
+      <UploadDocumentFileSection
+        fileInputRef={fileInputRef}
+        selectedFile={selectedFile}
+        selectedFiles={selectedFiles}
+        onFileChange={onFileChange}
+        onClear={onClearFile}
+        errorMessage={errors.file?.message as string | undefined}
+        uploadKind={uploadKind}
+        uploadMultipleMain={uploadMultipleMain}
+        onUploadMultipleMainChange={onUploadMultipleMainChange}
+        onMainSingleFileSelected={onMainSingleFileSelected}
+        uploadWhatDocumentLabel={uploadWhatDocumentLabel}
+        t={t}
+        setValue={setValue}
+      />
+
+      {uploadKind !== "attachment" && !(uploadKind === "main" && uploadMultipleMain) && (
         <Input
           label={t("documents.documentTitle", { defaultValue: "Document title" })}
           {...titleRegistration}
@@ -160,7 +199,7 @@ export function UploadDocumentTargetSection({
             />
           )}
 
-          {uploadKind === "main" && (
+          {uploadKind === "main" && !uploadMultipleMain && (
             <>
               <Input
                 label={t("documents.newFolderName", { defaultValue: "New folder name" })}

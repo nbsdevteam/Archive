@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import type { TFunction } from "i18next";
 import { Button, Icon } from "@/shared/components/ui";
+import { getBaseName } from "@/shared/utils/files/filename";
 
 export interface UploadDocumentFileSectionProps {
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -10,12 +11,17 @@ export interface UploadDocumentFileSectionProps {
   onClear: () => void;
   errorMessage?: string;
   uploadKind: "main" | "sub" | "attachment";
+  /** When true (main only), multiple files can be selected and one folder per file is auto-created from filename. */
+  uploadMultipleMain?: boolean;
+  onUploadMultipleMainChange?: (value: boolean) => void;
+  /** Called when a single main file is selected so parent can prefill title and folder name from filename. */
+  onMainSingleFileSelected?: (baseName: string) => void;
   uploadWhatDocumentLabel: string;
   t: TFunction;
   setValue: (name: "file", value: File | undefined, opts?: { shouldValidate?: boolean }) => void;
 }
 
-/** File input section: label, hidden input, select/clear buttons, and validation error. */
+/** File input section: label, optional "upload multiple" toggle (main), hidden input, select/clear buttons, and validation error. */
 export function UploadDocumentFileSection({
   fileInputRef,
   selectedFile,
@@ -24,16 +30,24 @@ export function UploadDocumentFileSection({
   onClear,
   errorMessage,
   uploadKind,
+  uploadMultipleMain = false,
+  onUploadMultipleMainChange,
+  onMainSingleFileSelected,
   uploadWhatDocumentLabel,
   t,
   setValue,
 }: UploadDocumentFileSectionProps) {
+  const allowMultiple = uploadKind === "attachment" || uploadKind === "sub" || (uploadKind === "main" && uploadMultipleMain);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     onFileChange(files);
     const file = files[0];
     if (file) {
       setValue("file", file, { shouldValidate: true });
+      if (uploadKind === "main" && !uploadMultipleMain && files.length === 1 && onMainSingleFileSelected) {
+        onMainSingleFileSelected(getBaseName(file.name));
+      }
     } else {
       setValue("file", undefined, { shouldValidate: true });
     }
@@ -41,6 +55,27 @@ export function UploadDocumentFileSection({
 
   return (
     <div className="mb-3">
+      {uploadKind === "main" && onUploadMultipleMainChange != null && (
+        <div className="mb-2">
+          <label className="form-check d-flex align-items-center gap-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              checked={uploadMultipleMain}
+              onChange={(e) => onUploadMultipleMainChange(e.target.checked)}
+              data-testid="upload-multiple-main-checkbox"
+            />
+            <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
+          </label>
+          {uploadMultipleMain && (
+            <p className="small text-muted mb-0 mt-1">
+              {t("documents.batchMainUploadInfo", {
+                defaultValue: "Automatic folders will be created using the name of each file. Each document title will be the file name.",
+              })}
+            </p>
+          )}
+        </div>
+      )}
       <label className="form-label">
         {uploadWhatDocumentLabel}
         <span className="text-danger ms-1">*</span>
@@ -51,7 +86,7 @@ export function UploadDocumentFileSection({
         id="upload-doc-file"
         accept="*/*"
         ref={fileInputRef}
-        multiple={uploadKind === "attachment" || uploadKind === "sub"}
+        multiple={allowMultiple}
         onChange={handleInputChange}
         data-testid="upload-file-input"
       />
