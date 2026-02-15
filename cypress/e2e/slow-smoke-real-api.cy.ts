@@ -1,8 +1,8 @@
 /**
  * Slow smoke against REAL API. All operations only on test-created data.
  * Phases (run separately from Cypress test list):
- * 1. Upload: Create MainBaseFile + MainTargetFile folders (main docs), edit them, upload one new doc while editing.
- * 2. Transfer: Open base folder, upload base secondary file, transfer it to target folder.
+ * 1. Upload: Create MainBaseFile (in MainBaseFolder), MainBaseSecondaryFile (sub in base), MainTargetFile (in MainTargetFolder). Edit all: add -edited to name.
+ * 2. Transfer: Use existing MainBaseFolder and MainTargetFolder. Transfer MainBaseSecondaryFile-edited to target, edit it there, transfer back to base.
  * 3. Trash and permanent delete: Only on phase 1+2 folders and their files (move to trash, permanent delete, delete folders).
  * 4. Batch: Create MainDocForBatchStuffYeahYeahh folder, bulk upload 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete (only this folder's files).
  * Run with: npm run e2e:slow:open (dev server + real backend). Deletion/trash/permanent-delete are allowed but tests must only act on data they created.
@@ -89,28 +89,25 @@ describe('Slow smoke (real API) — flow options', () => {
     ).as('listFolders');
   });
 
-  it('Phase 1 — Upload: MainBaseFile + MainTargetFile folders, edit, upload new doc while editing', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
-    const mainBaseTitle = `MainBaseFile ${suffix}`;
-    const mainBaseFolderName = `MainBaseFile Folder ${suffix}`;
-    const mainBaseFolderCode = `MBF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const mainTargetTitle = `MainTargetFile ${suffix}`;
-    const mainTargetFolderName = `MainTargetFile Folder ${suffix}`;
-    const mainTargetFolderCode = `MTF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const subWhileEditingTitle = `SubWhileEditing ${suffix}`;
+  it('Phase 1 — Upload: MainBaseFile, MainBaseFolder, MainBaseSecondaryFile, MainTargetFile, MainTargetFolder; edit all (add -edited)', () => {
+    const mainBaseFile = 'MainBaseFile';
+    const mainBaseFolder = 'MainBaseFolder';
+    const mainBaseSecondaryFile = 'MainBaseSecondaryFile';
+    const mainTargetFile = 'MainTargetFile';
+    const mainTargetFolder = 'MainTargetFolder';
 
-    loginAndFlash('Phase 1: MainBaseFile + MainTargetFile, edit, upload new doc');
+    loginAndFlash('Phase 1: MainBase + MainTarget folders and files, then edit all');
 
-    // Create MainBaseFile folder (main doc).
+    // Create MainBaseFile (main doc) in MainBaseFolder.
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
     selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(mainBaseTitle);
+    cy.get('input[name="title"]').clear().type(mainBaseFile);
     waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainBaseFolderName);
+    cy.get('input[name="folder_name"]').clear().type(mainBaseFolder);
     waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainBaseFolderCode);
+    cy.get('input[name="folder_code"]').clear().type('MBF');
     waitStep();
     cy.get('input[type="file"]').selectFile(
       { contents: Cypress.Buffer.from('main base'), fileName: 'main-base.pdf' },
@@ -123,15 +120,44 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainBaseDocId'));
 
-    // Create MainTargetFile folder (main doc).
+    // Create MainBaseSecondaryFile (sub) in MainBaseFolder.
+    cy.visit('/documents/upload');
+    waitStep();
+    cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
+    waitStep();
+    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('Sub Document').click();
+    waitStep();
+    selectDepartmentAndType();
+    cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains(mainBaseFolder).click();
+    waitStep();
+    cy.get('input[name="title"]').clear().type(mainBaseSecondaryFile);
+    waitStep();
+    cy.get('input[type="file"]').selectFile(
+      { contents: Cypress.Buffer.from('base secondary'), fileName: 'main-base-secondary.pdf' },
+      { force: true }
+    );
+    waitStep();
+    cy.get('[data-testid="upload-document-submit"]').click();
+    captureUploadDocId();
+    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
+    waitStep();
+    cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainBaseSecondaryDocId'));
+
+    // Create MainTargetFile (main doc) in MainTargetFolder.
+    cy.visit('/dashboard');
+    waitStep();
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(mainTargetTitle);
+    cy.get('input[name="title"]').clear().type(mainTargetFile);
     waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainTargetFolderName);
+    cy.get('input[name="folder_name"]').clear().type(mainTargetFolder);
     waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainTargetFolderCode);
+    cy.get('input[name="folder_code"]').clear().type('MTF');
     waitStep();
     cy.get('input[type="file"]').selectFile(
       { contents: Cypress.Buffer.from('main target'), fileName: 'main-target.pdf' },
@@ -144,54 +170,40 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainTargetDocId'));
 
-    // Edit main base document (title).
+    // Edit MainBaseFile: name → MainBaseFile-edited.
     cy.get('@mainBaseDocId').then((id: number) => {
       cy.visit(`/documents/${id}`);
       waitStep();
       cy.get('[data-testid="document-detail-edit-document-btn"]').click();
       waitStep();
       cy.get('[data-testid="edit-document-side-panel"]').should('be.visible');
-      cy.get('input[name="title"]').clear().type(`${mainBaseTitle} (edited)`);
+      cy.get('input[name="title"]').clear().type('MainBaseFile-edited');
       waitStep();
       cy.get('[data-testid="edit-document-save"]').click();
       waitStep();
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
     });
 
-    // Upload a new document while editing flow: open upload, add sub to MainBase folder.
-    cy.visit('/documents/upload');
-    waitStep();
-    cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
-    waitStep();
-    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
-    waitStep();
-    cy.get('.react-select__option').contains('Sub Document').click();
-    waitStep();
-    selectDepartmentAndType();
-    cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
-    waitStep();
-    cy.get('.react-select__option').contains(mainBaseFolderName).click();
-    waitStep();
-    cy.get('input[name="title"]').clear().type(subWhileEditingTitle);
-    waitStep();
-    cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('sub while editing'), fileName: 'sub-while-editing.pdf' },
-      { force: true }
-    );
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
-    captureUploadDocId();
-    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-    waitStep();
-    cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('phase1SubDocId'));
+    // Edit MainBaseSecondaryFile: name → MainBaseSecondaryFile-edited.
+    cy.get('@mainBaseSecondaryDocId').then((id: number) => {
+      cy.visit(`/documents/${id}`);
+      waitStep();
+      cy.get('[data-testid="document-detail-edit-document-btn"]').click();
+      waitStep();
+      cy.get('input[name="title"]').clear().type('MainBaseSecondaryFile-edited');
+      waitStep();
+      cy.get('[data-testid="edit-document-save"]').click();
+      waitStep();
+      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+    });
 
-    // Edit main target document (title).
+    // Edit MainTargetFile: name → MainTargetFile-edited.
     cy.get('@mainTargetDocId').then((id: number) => {
       cy.visit(`/documents/${id}`);
       waitStep();
       cy.get('[data-testid="document-detail-edit-document-btn"]').click();
       waitStep();
-      cy.get('input[name="title"]').clear().type(`${mainTargetTitle} (edited)`);
+      cy.get('input[name="title"]').clear().type('MainTargetFile-edited');
       waitStep();
       cy.get('[data-testid="edit-document-save"]').click();
       waitStep();
@@ -199,89 +211,21 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  it('Phase 2 — Transfer: open base folder, upload base secondary, transfer to target', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
-    const mainBaseTitle = `MainBaseFile ${suffix}`;
-    const mainBaseFolderName = `MainBaseFile Folder ${suffix}`;
-    const mainBaseFolderCode = `MBF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const mainTargetFolderName = `MainTargetFile Folder ${suffix}`;
-    const mainTargetFolderCode = `MTF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const baseSecondaryTitle = `BaseSecondaryForTransfer ${suffix}`;
-
-    loginAndFlash('Phase 2: Base + Target folders, secondary in base, transfer to target');
-
-    // Create base folder (main doc).
-    cy.get('[data-testid="upload-document-btn"]').click();
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').should('be.visible');
-    selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(mainBaseTitle);
-    waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainBaseFolderName);
-    waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainBaseFolderCode);
-    waitStep();
-    cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('base main'), fileName: 'base-main.pdf' },
-      { force: true }
-    );
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
-    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-    waitStep();
-
-    // Create target folder (main doc).
-    cy.get('[data-testid="upload-document-btn"]').click();
-    waitStep();
-    selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(`MainTargetFile ${suffix}`);
-    waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainTargetFolderName);
-    waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainTargetFolderCode);
-    waitStep();
-    cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('target main'), fileName: 'target-main.pdf' },
-      { force: true }
-    );
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
-    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-    waitStep();
+  it('Phase 2 — Transfer: use existing MainBaseSecondaryFile-edited, transfer to target, edit there, transfer back', () => {
+    loginAndFlash('Phase 2: Transfer secondary to target, edit in target, transfer back to base');
 
     cy.visit('/folders');
-    cy.contains(mainBaseFolderName, { timeout: 15000 }).should('be.visible');
-    cy.contains(mainTargetFolderName, { timeout: 5000 }).should('be.visible');
-    getFolderIdFromList(mainBaseFolderName).then((baseId) => cy.wrap(baseId).as('baseFolderId'));
-    getFolderIdFromList(mainTargetFolderName).then((targetId) => cy.wrap(targetId).as('targetFolderId'));
+    cy.contains('MainBaseFolder', { timeout: 15000 }).should('be.visible');
+    cy.contains('MainTargetFolder', { timeout: 5000 }).should('be.visible');
+    getFolderIdFromList('MainBaseFolder').then((id) => cy.wrap(id).as('baseFolderId'));
+    getFolderIdFromList('MainTargetFolder').then((id) => cy.wrap(id).as('targetFolderId'));
 
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
-        // Open base folder and upload secondary via "Upload in folder".
+        // Transfer MainBaseSecondaryFile-edited from base to target.
         cy.visit(`/folders/${baseFolderId}`);
         waitStep();
-        cy.get('[data-testid="upload-in-folder-btn"]').click();
-        waitStep();
-        cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
-        waitStep();
-        cy.get('.react-select__option').contains('Sub Document').click();
-        waitStep();
-        selectDepartmentAndType();
-        cy.get('input[name="title"]').clear().type(baseSecondaryTitle);
-        waitStep();
-        cy.get('input[type="file"]').selectFile(
-          { contents: Cypress.Buffer.from('base secondary'), fileName: 'base-secondary.pdf' },
-          { force: true }
-        );
-        waitStep();
-        cy.get('[data-testid="upload-document-submit"]').click();
-        cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-        waitStep();
-
-        // Transfer that secondary to target folder.
-        cy.visit(`/folders/${baseFolderId}`);
-        waitStep();
-        cy.contains(baseSecondaryTitle).closest('tr').within(() => cy.contains('button', 'Transfer').click());
+        cy.contains('MainBaseSecondaryFile-edited').closest('tr').within(() => cy.contains('button', 'Transfer').click());
         waitStep();
         cy.get('[data-testid="transfer-folder-select"]').select(String(targetFolderId));
         waitStep();
@@ -290,9 +234,35 @@ describe('Slow smoke (real API) — flow options', () => {
         cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
         waitStep();
 
+        // Edit the file in target: add -edited to name → MainBaseSecondaryFile-edited-edited.
         cy.visit(`/folders/${targetFolderId}`);
         waitStep();
-        cy.contains(baseSecondaryTitle).should('be.visible');
+        cy.contains('MainBaseSecondaryFile-edited').closest('tr').within(() => cy.contains('button', 'View').click());
+        waitStep();
+        cy.get('[data-testid="document-detail-edit-document-btn"]').click();
+        waitStep();
+        cy.get('input[name="title"]').clear().type('MainBaseSecondaryFile-edited-edited');
+        waitStep();
+        cy.get('[data-testid="edit-document-save"]').click();
+        waitStep();
+        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+        waitStep();
+
+        // Transfer back from target to base.
+        cy.visit(`/folders/${targetFolderId}`);
+        waitStep();
+        cy.contains('MainBaseSecondaryFile-edited-edited').closest('tr').within(() => cy.contains('button', 'Transfer').click());
+        waitStep();
+        cy.get('[data-testid="transfer-folder-select"]').select(String(baseFolderId));
+        waitStep();
+        cy.get('[data-testid="transfer-confirm-btn"]').click();
+        waitStep();
+        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+        waitStep();
+
+        cy.visit(`/folders/${baseFolderId}`);
+        waitStep();
+        cy.contains('MainBaseSecondaryFile-edited-edited').should('be.visible');
       });
     });
   });
