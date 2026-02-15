@@ -129,9 +129,11 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     // --- 6. Update: edit attachment (only the attachment we added) ---
-    cy.contains('Edit').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
     waitStep();
-    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+    cy.get('[data-testid="row-action-edit"]').first().click();
+    waitStep();
+    cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="attachment-edit-name"]').clear().type(attachmentName);
     waitStep();
     cy.get('[data-testid="attachment-edit-description"]').clear().type('E2E real API attachment description');

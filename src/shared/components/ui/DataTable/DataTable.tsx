@@ -178,6 +178,7 @@ export function DataTable<T>({
                                   type="button"
                                   disabled={disabled}
                                   className={`d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
+                                  data-testid={action.id ? `row-action-${action.id}` : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     action.onClick(row, e);

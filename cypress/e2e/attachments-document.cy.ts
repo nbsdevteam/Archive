@@ -98,8 +98,9 @@ describe('Document detail attachments', () => {
     cy.contains('button', 'Attachments').click();
     cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
 
-    cy.contains('Edit').first().click();
-    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="row-action-edit"]').first().click();
+    cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
 
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const attachmentName = `Updated Attachment Name ${suffix}`;
@@ -124,8 +125,9 @@ describe('Document detail attachments', () => {
     cy.loginByToken(`/documents/${DOC_ID}`);
     cy.contains('button', 'Attachments').click();
     cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
-    cy.contains('Edit').first().click();
-    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="row-action-edit"]').first().click();
+    cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
 
     cy.get('[data-testid="attachment-replace-file"]').selectFile(
       { contents: Cypress.Buffer.from('test file content'), fileName: 'replacement.txt' },

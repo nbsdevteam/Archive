@@ -325,9 +325,11 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').click();
     waitStep();
-    cy.contains('Edit').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
     waitStep();
-    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+    cy.get('[data-testid="row-action-edit"]').first().click();
+    waitStep();
+    cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="attachment-edit-name"]').clear().type(attachmentName);
     waitStep();
     cy.get('[data-testid="attachment-edit-save"]').click();
