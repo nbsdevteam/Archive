@@ -1,5 +1,6 @@
 /**
- * Trash: restore single document, restore multiple documents.
+ * Trash: restore single document, restore multiple documents (read-only / stubbed list).
+ * PRODUCTION RULE: Tests must only delete or modify data that the test itself created; never delete existing folders/files.
  */
 
 const TRASH_DOC_ID_1 = 901;

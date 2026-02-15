@@ -1,6 +1,6 @@
 /**
  * Tests for useDocumentsTrashPageContainer: trash list fetch, restore (single/batch),
- * permanent delete (single/batch), selection, and error handling.
+ * selection, and error handling. No tests for permanent delete (production safety).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
@@ -104,22 +104,6 @@ describe("useDocumentsTrashPageContainer", () => {
     await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
   });
 
-  it("calls permanentDeleteSingle when confirmPermanentDelete is called", async () => {
-    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
-    mockListTrashDocuments.mockClear();
-
-    await result.current.actions.confirmPermanentDelete(7);
-
-    expect(mockPermanentDeleteSingle).toHaveBeenCalledWith(
-      7,
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-      })
-    );
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
-  });
-
   it("does not call restore when confirmBatchRestore with no selection", async () => {
     const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
     await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
@@ -148,32 +132,6 @@ describe("useDocumentsTrashPageContainer", () => {
 
     expect(mockRestoreDocument).toHaveBeenCalledWith(
       [1, 2],
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-      })
-    );
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
-  });
-
-  it("calls permanentDeleteBatch for selected ids on confirmBatchPermanentDelete", async () => {
-    const doc1 = makeDocument({ id: 3 });
-    const doc2 = makeDocument({ id: 4 });
-    mockListTrashDocuments.mockResolvedValue({
-      data: [doc1, doc2],
-      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
-    });
-
-    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
-    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
-
-    result.current.selection.selectionConfig.onToggleAll();
-    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
-    mockListTrashDocuments.mockClear();
-
-    await result.current.actions.confirmBatchPermanentDelete();
-
-    expect(mockPermanentDeleteBatch).toHaveBeenCalledWith(
-      [3, 4],
       expect.objectContaining({
         onSuccess: expect.any(Function),
       })

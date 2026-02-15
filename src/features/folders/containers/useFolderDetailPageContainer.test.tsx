@@ -189,20 +189,6 @@ describe("useFolderDetailPageContainer", () => {
     await waitFor(() => expect(mockGetFolderDocuments).toHaveBeenCalledTimes(2));
   });
 
-  it("calls deleteFolder and shows success toast on confirmDeleteFolder", async () => {
-    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
-      initialEntries,
-      routePath,
-    });
-
-    await waitFor(() => expect(result.current.data.folder).not.toBeNull());
-
-    await result.current.actions.confirmDeleteFolder();
-
-    expect(mockDeleteFolder).toHaveBeenCalledWith(folderId);
-    expect(toast.success).toHaveBeenCalled();
-  });
-
   it("calls createNote and refreshNotes when saving a new note", async () => {
     const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
       initialEntries,

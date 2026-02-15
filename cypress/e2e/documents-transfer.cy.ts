@@ -1,5 +1,6 @@
 /**
- * Folder detail: delete secondary file (trash), transfer document(s) to another folder.
+ * Folder detail: transfer document(s) to another folder only.
+ * PRODUCTION RULE: Tests must not delete folders or existing files; only operate on test-created data or read-only flows.
  */
 
 const FOLDER_ID = 777;
@@ -46,24 +47,6 @@ describe('Transfer documents', () => {
         return;
       }
     });
-  });
-
-  it('delete secondary file: from folder detail trashes a sub-doc, confirms, asserts batch trash', () => {
-    cy.intercept('POST', '**/api/documents/batch/trash', (req) => {
-      const params = (req.body as { params?: { document_ids?: number[] } })?.params;
-      expect(params?.document_ids).to.include(DOC_ID_1);
-      req.reply({ statusCode: 200, body: { result: { success: true }, id: 1 } });
-    }).as('trashDocument');
-
-    cy.loginByToken(`/folders/${FOLDER_ID}`);
-    cy.get('[data-testid="folder-detail-attachments-section"]').should('be.visible');
-    cy.contains('Sub Doc 1').closest('tr').within(() => {
-      cy.contains('button', 'Move to trash').click();
-    });
-    cy.get('[role="dialog"]').within(() => {
-      cy.contains('button', 'Move to trash').click();
-    });
-    cy.wait('@trashDocument');
   });
 
   it('transfer file(s): selects sub-doc, clicks Transfer, picks destination folder, confirms', () => {

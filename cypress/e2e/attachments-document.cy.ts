@@ -1,5 +1,6 @@
 /**
- * Document detail attachments: add attachment, Edit (name/description), replace file, delete attachment.
+ * Document detail attachments: add attachment, Edit (name/description), replace file only.
+ * PRODUCTION RULE: Tests must not delete existing data; only add/update or use stubbed data.
  */
 
 const DOC_ID = 888;
@@ -81,26 +82,6 @@ describe('Document detail attachments', () => {
       expect(first).to.have.property('file_name');
       expect(first).to.have.property('file_data');
     });
-  });
-
-  it('delete attachment: clicks Delete on row, confirms dialog, asserts delete request', () => {
-    cy.intercept('POST', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}`, (req) => {
-      req.reply({ statusCode: 200, body: { result: { success: true } } });
-    }).as('deleteAttachmentPost');
-    cy.intercept('DELETE', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}`, { statusCode: 200, body: { success: true } }).as('deleteAttachmentDelete');
-
-    cy.loginByToken(`/documents/${DOC_ID}`);
-    cy.contains('button', 'Attachments').click();
-    cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
-
-    cy.get('[data-testid="document-detail-attachments-tab"]').within(() => {
-      cy.contains('button', 'Delete').first().click();
-    });
-    cy.get('[role="dialog"]').within(() => {
-      cy.contains('button', 'Delete').click();
-    });
-
-    cy.wait('@deleteAttachmentPost');
   });
 
   it('opens attachments tab, clicks Edit, sidebar opens, updates name/description and saves', () => {

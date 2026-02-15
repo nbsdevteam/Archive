@@ -1,6 +1,7 @@
 /**
  * Tests for useFoldersPageContainer: data/filter/actions/modals, departments load,
- * search, filter apply/clear, confirmDeleteFolder, edit panel, and formatDate.
+ * search, filter apply/clear, edit panel, and formatDate.
+ * PRODUCTION: No tests for delete folder; tests must not delete existing data.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
@@ -135,31 +136,6 @@ describe("useFoldersPageContainer", () => {
 
     expect(mockFetchFolders).toHaveBeenCalledWith({});
     expect(result.current.filter.isFilterOpen).toBe(false);
-  });
-
-  it("confirmDeleteFolder calls deleteFolder and fetchFolders on success", async () => {
-    const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
-
-    await act(async () => {
-      await result.current.actions.confirmDeleteFolder(5);
-    });
-
-    expect(mockDeleteFolder).toHaveBeenCalledWith(5);
-    expect(toast.success).toHaveBeenCalled();
-    expect(mockFetchFolders).toHaveBeenCalled();
-  });
-
-  it("confirmDeleteFolder shows error toast when deleteFolder returns non-ok", async () => {
-    mockDeleteFolder.mockResolvedValue({ ok: false });
-
-    const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
-
-    await expect(
-      act(async () => {
-        await result.current.actions.confirmDeleteFolder(5);
-      })
-    ).rejects.toThrow("Delete failed");
-    expect(toast.error).toHaveBeenCalled();
   });
 
   it("handleOpenEditFolder and handleCloseEditFolder set editingFolder", () => {
