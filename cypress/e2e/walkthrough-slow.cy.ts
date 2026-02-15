@@ -16,7 +16,6 @@ const adminTags = { result: { success: true, data: [] } };
 
 describe('Walkthrough: login and upload (slow)', () => {
   beforeEach(() => {
-    // Ignore ZodError from form validation while filling fields step-by-step
     cy.on('uncaught:exception', (err) => {
       if (err.name === 'ZodError' || (err.message && err.message.includes('ZodError'))) return false;
       return true;
@@ -24,13 +23,23 @@ describe('Walkthrough: login and upload (slow)', () => {
   });
 
   it('logs in as admin then opens Upload Document from dashboard and fills form', () => {
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const title = `E2E Walkthrough Document ${suffix}`;
+    const folderName = `E2E Walkthrough Folder ${suffix}`;
+    const folderCode = `E2E-WALK-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 8)}`;
+
     cy.intercept('POST', '**/api/departments', adminDepartments);
     cy.intercept('POST', '**/api/document-types', adminDocumentTypes);
     cy.intercept('POST', '**/api/tags', adminTags);
+    cy.intercept('POST', '**/api/folders/create', {
+      statusCode: 200,
+      body: { result: { success: true, data: { id: 1, name: folderName, code: folderCode } } },
+    });
     cy.intercept('POST', (req) => {
       if (!req.url.includes('/api/folders') || req.url.includes('/create') || req.url.includes('/update') || /\/api\/folders\/\d+/.test(req.url)) return;
       req.reply({ statusCode: 200, body: { result: { folders: [] } } });
     });
+    cy.intercept('POST', '**/api/documents/upload', { statusCode: 200, body: { success: true, data: { id: 1 } } }).as('upload');
 
     cy.visit('/login');
     waitStep();
@@ -50,7 +59,6 @@ describe('Walkthrough: login and upload (slow)', () => {
     waitStep();
 
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
-    // Form uses react-select: 1st = upload type, 2nd = department, 3rd = document type
     cy.get('.react-select__control').eq(1).click();
     waitStep();
     cy.get('.react-select__option').contains('Finance (FIN)').click();
@@ -59,11 +67,11 @@ describe('Walkthrough: login and upload (slow)', () => {
     waitStep();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
     waitStep();
-    cy.get('input[name="title"]').clear().type('E2E Walkthrough Document');
+    cy.get('input[name="title"]').clear().type(title);
     waitStep();
-    cy.get('input[name="folder_name"]').clear().type('E2E Walkthrough Folder');
+    cy.get('input[name="folder_name"]').clear().type(folderName);
     waitStep();
-    cy.get('input[name="folder_code"]').clear().type('E2E-WALK');
+    cy.get('input[name="folder_code"]').clear().type(folderCode);
     waitStep();
     cy.get('input[type="file"]').selectFile(
       { contents: Cypress.Buffer.from('walkthrough pdf'), fileName: 'walkthrough.pdf' },
@@ -71,9 +79,8 @@ describe('Walkthrough: login and upload (slow)', () => {
     );
     waitStep();
 
-    cy.intercept('POST', '**/api/documents/upload', { statusCode: 200, body: { success: true, data: { id: 1 } } }).as('upload');
     cy.get('[data-testid="upload-document-submit"]').click();
-    cy.wait('@upload');
+    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
   });
 
   it('logs in as admin then opens Upload Documents from documents page', () => {
