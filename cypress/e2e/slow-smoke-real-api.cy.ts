@@ -216,13 +216,37 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     cy.visit('/folders');
     cy.contains(baseFolderName, { timeout: 15000 }).should('be.visible');
     cy.contains(targetFolderName, { timeout: 5000 }).should('be.visible');
-    cy.contains(baseFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
-      const m = String(href ?? '').match(/\/folders\/(\d+)/);
-      if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+    // Get folder IDs from View link (grid) or by clicking View and reading URL (list view)
+    cy.contains(baseFolderName).closest('tr, .card-body').then(($row) => {
+      const $link = $row.find('a[href*="/folders/"]').first();
+      if ($link.length) {
+        const href = $link.attr('href') ?? '';
+        const m = href.match(/\/folders\/(\d+)/);
+        if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+      } else {
+        cy.wrap($row).contains('button', 'View').click();
+        cy.url().then((url) => {
+          const m = String(url).match(/\/folders\/(\d+)/);
+          if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+        });
+        cy.visit('/folders');
+        cy.contains(baseFolderName, { timeout: 5000 }).should('be.visible');
+      }
     });
-    cy.contains(targetFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
-      const m = String(href ?? '').match(/\/folders\/(\d+)/);
-      if (m) cy.wrap(Number(m[1])).as('targetFolderId');
+    cy.contains(targetFolderName).closest('tr, .card-body').then(($row) => {
+      const $link = $row.find('a[href*="/folders/"]').first();
+      if ($link.length) {
+        const href = $link.attr('href') ?? '';
+        const m = href.match(/\/folders\/(\d+)/);
+        if (m) cy.wrap(Number(m[1])).as('targetFolderId');
+      } else {
+        cy.wrap($row).contains('button', 'View').click();
+        cy.url().then((url) => {
+          const m = String(url).match(/\/folders\/(\d+)/);
+          if (m) cy.wrap(Number(m[1])).as('targetFolderId');
+        });
+        cy.visit('/folders');
+      }
     });
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
