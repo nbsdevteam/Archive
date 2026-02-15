@@ -30,13 +30,13 @@ function loginAndFlash(flowName: string) {
   cy.flash(flowName);
 }
 
-/** Fill department and document type (Finance, Invoice). */
+/** Fill department and document type (Finance, Invoice). Use force so disabled selects (e.g. while loading) do not fail. */
 function selectDepartmentAndType() {
-  cy.get('[data-testid="department-select"]').find('.react-select__control').click();
+  cy.get('[data-testid="department-select"]').find('.react-select__control').click({ force: true });
   waitStep();
   cy.get('.react-select__option').contains('Finance (FIN)').click();
   waitStep();
-  cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
+  cy.get('[data-testid="document-type-select"]').find('.react-select__control').click({ force: true });
   waitStep();
   cy.get('.react-select__option').contains('Invoice (INV)').click();
   waitStep();
@@ -125,12 +125,12 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
     waitStep();
-    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
+    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click({ force: true });
     waitStep();
     cy.get('.react-select__option').contains('Sub Document').click();
     waitStep();
     selectDepartmentAndType();
-    cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
+    cy.get('[data-testid="folder-select"]').find('.react-select__control').click({ force: true });
     waitStep();
     cy.get('.react-select__option').contains(mainBaseFolder).click();
     waitStep();
@@ -331,7 +331,7 @@ describe('Slow smoke (real API) — flow options', () => {
         waitStep();
         cy.get('[data-testid="upload-in-folder-btn"]').click();
         waitStep();
-        cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
+        cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click({ force: true });
         waitStep();
         cy.get('.react-select__option').contains('Sub Document').click();
         waitStep();
@@ -452,7 +452,7 @@ describe('Slow smoke (real API) — flow options', () => {
       waitStep();
       cy.get('[data-testid="upload-in-folder-btn"]').click();
       waitStep();
-      cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
+      cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click({ force: true });
       waitStep();
       cy.get('.react-select__option').contains('Sub Document').click();
       waitStep();
