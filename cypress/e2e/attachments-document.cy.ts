@@ -98,7 +98,7 @@ describe('Document detail attachments', () => {
     cy.contains('button', 'Attachments').click();
     cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
 
-    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label^="Actions for row"]').first().click();
     cy.get('[data-testid="row-action-edit"]').first().click();
     cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
 
@@ -125,7 +125,7 @@ describe('Document detail attachments', () => {
     cy.loginByToken(`/documents/${DOC_ID}`);
     cy.contains('button', 'Attachments').click();
     cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
-    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label^="Actions for row"]').first().click();
     cy.get('[data-testid="row-action-edit"]').first().click();
     cy.get('[data-testid="attachment-side-panel"]', { timeout: 15000 }).should('be.visible');
 

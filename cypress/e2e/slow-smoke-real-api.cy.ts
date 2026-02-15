@@ -136,7 +136,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     // --- 6. Update: edit attachment (only the attachment we added) ---
     cy.flash('Testing edit attachment flow');
     cy.get('[data-testid="document-detail-attachments-tab"]').contains('e2e-real-attach.pdf', { timeout: 15000 }).should('be.visible');
-    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label^="Actions for row"]').first().click();
     waitStep();
     cy.get('[data-testid="row-action-edit"]').first().click();
     waitStep();

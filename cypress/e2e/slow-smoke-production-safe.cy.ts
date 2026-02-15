@@ -331,7 +331,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').click();
     waitStep();
-    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label^="Actions for row"]').first().click();
     waitStep();
     cy.get('[data-testid="row-action-edit"]').first().click();
     waitStep();
