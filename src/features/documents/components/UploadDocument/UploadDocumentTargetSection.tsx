@@ -40,6 +40,9 @@ export interface UploadDocumentTargetSectionProps {
   /** When true (main only), title and folder fields are hidden; one folder per file is auto-created. */
   uploadMultipleMain?: boolean;
   onUploadMultipleMainChange?: (value: boolean) => void;
+  /** When true (sub only), title is hidden; each file becomes one sub document in the selected folder. */
+  uploadMultipleSub?: boolean;
+  onUploadMultipleSubChange?: (value: boolean) => void;
   onMainSingleFileSelected?: (baseName: string) => void;
 }
 
@@ -80,6 +83,8 @@ export function UploadDocumentTargetSection({
   uploadWhatDocumentLabel,
   uploadMultipleMain = false,
   onUploadMultipleMainChange,
+  uploadMultipleSub = false,
+  onUploadMultipleSubChange,
   onMainSingleFileSelected,
 }: UploadDocumentTargetSectionProps) {
   const titleRegistration = register("title");
@@ -162,13 +167,15 @@ export function UploadDocumentTargetSection({
         uploadKind={uploadKind}
         uploadMultipleMain={uploadMultipleMain}
         onUploadMultipleMainChange={onUploadMultipleMainChange}
+        uploadMultipleSub={uploadMultipleSub}
+        onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
         uploadWhatDocumentLabel={uploadWhatDocumentLabel}
         t={t}
         setValue={setValue}
       />
 
-      {uploadKind !== "attachment" && !(uploadKind === "main" && uploadMultipleMain) && (
+      {uploadKind !== "attachment" && !(uploadKind === "main" && uploadMultipleMain) && !(uploadKind === "sub" && uploadMultipleSub) && (
         <Input
           label={t("documents.documentTitle", { defaultValue: "Document title" })}
           {...titleRegistration}

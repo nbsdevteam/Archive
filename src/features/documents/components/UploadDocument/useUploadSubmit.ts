@@ -75,15 +75,22 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       departmentId: number
     ) => {
       const isMainMulti = data.upload_kind === "main" && data.upload_multiple_main === true;
+      const isSubMulti = data.upload_kind === "sub" && data.upload_multiple_sub === true;
       const file = data.file;
-      const filesToUse = isMainMulti ? selectedFiles : selectedFiles.length > 0 ? selectedFiles : file ? [file] : [];
-      if (!isMainMulti && !(file instanceof File)) {
+      const filesToUse = isMainMulti ? selectedFiles : isSubMulti ? selectedFiles : (selectedFiles.length > 0 ? selectedFiles : file ? [file] : []);
+      if (!isMainMulti && !isSubMulti && !(file instanceof File)) {
         const msg = t("documents.validation.fileRequired");
         setSubmitError(msg);
         announce(msg);
         return;
       }
       if (isMainMulti && filesToUse.length === 0) {
+        const msg = t("documents.validation.fileRequired");
+        setSubmitError(msg);
+        announce(msg);
+        return;
+      }
+      if (isSubMulti && filesToUse.length === 0) {
         const msg = t("documents.validation.fileRequired");
         setSubmitError(msg);
         announce(msg);
@@ -119,8 +126,8 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         return;
       }
 
-      const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [file];
-      if (data.upload_kind === "sub" && filesToUpload.length > 1) {
+      const filesToUpload = selectedFiles.length > 0 ? selectedFiles : file ? [file] : [];
+      if (data.upload_kind === "sub" && isSubMulti && filesToUse.length >= 1) {
         const folderIdForJob = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
         if (!folderIdForJob) {
           const msg = t("documents.validation.folderRequiredForSubDocument");
@@ -140,9 +147,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         const jobId = startResponse.data?.job_id;
         if (!jobId) throw new Error("Bulk upload job id is missing.");
         setBulkJobId(jobId);
-        setBulkProgress({ status: "starting", total: filesToUpload.length, processed: 0, failed: 0 });
+        setBulkProgress({ status: "starting", total: filesToUse.length, processed: 0, failed: 0 });
         const bulkFilesPayload = await Promise.all(
-          filesToUpload.map(async (subFile) => ({
+          filesToUse.map(async (subFile) => ({
             file_name: subFile.name,
             file_data: await fileToBase64(subFile),
             name: subFile.name,

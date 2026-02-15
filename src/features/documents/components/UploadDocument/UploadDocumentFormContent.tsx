@@ -38,6 +38,8 @@ export interface UploadDocumentFormContentProps {
   uploadWhatDocumentLabel: string;
   uploadMultipleMain?: boolean;
   onUploadMultipleMainChange?: (value: boolean) => void;
+  uploadMultipleSub?: boolean;
+  onUploadMultipleSubChange?: (value: boolean) => void;
   onMainSingleFileSelected?: (baseName: string) => void;
   tagOptions: SelectOption[];
   bulkJobId: string | null;
@@ -77,6 +79,8 @@ export function UploadDocumentFormContent({
   uploadWhatDocumentLabel,
   uploadMultipleMain,
   onUploadMultipleMainChange,
+  uploadMultipleSub,
+  onUploadMultipleSubChange,
   onMainSingleFileSelected,
   tagOptions,
   bulkJobId,
@@ -123,10 +127,12 @@ export function UploadDocumentFormContent({
         uploadWhatDocumentLabel={uploadWhatDocumentLabel}
         uploadMultipleMain={uploadMultipleMain}
         onUploadMultipleMainChange={onUploadMultipleMainChange}
+        uploadMultipleSub={uploadMultipleSub}
+        onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
       />
 
-      {((uploadKind === "sub" && isUploading && bulkJobId && bulkProgress) || (uploadKind === "main" && uploadMultipleMain && isUploading && bulkJobId && bulkProgress)) && (
+      {((uploadKind === "sub" && uploadMultipleSub && isUploading && bulkJobId && bulkProgress) || (uploadKind === "main" && uploadMultipleMain && isUploading && bulkJobId && bulkProgress)) && (
         <div className="alert alert-info py-2 mb-3" role="status">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -142,7 +148,7 @@ export function UploadDocumentFormContent({
         </div>
       )}
 
-      <UploadDocumentOptionalSection uploadKind={uploadKind} uploadMultipleMain={uploadMultipleMain} control={control} register={register} errors={errors} tagOptions={tagOptions} t={t} />
+      <UploadDocumentOptionalSection uploadKind={uploadKind} uploadMultipleMain={uploadMultipleMain} uploadMultipleSub={uploadMultipleSub} control={control} register={register} errors={errors} tagOptions={tagOptions} t={t} />
     </>
   );
 }

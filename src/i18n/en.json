@@ -201,6 +201,7 @@
     "cancelJob": "Cancel job",
     "uploadMultipleFiles": "Upload multiple files",
     "batchMainUploadInfo": "Automatic folders will be created using the name of each file. Each document title will be the file name.",
+    "batchSubUploadInfo": "Multiple sub documents will be added to the selected folder. Each file becomes one document with the file name as title.",
     "description": "Description",
     "editDocument": "Edit document",
     "updateSuccess": "Document updated successfully.",

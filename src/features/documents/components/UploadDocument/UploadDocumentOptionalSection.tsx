@@ -9,6 +9,8 @@ export interface UploadDocumentOptionalSectionProps {
   uploadKind: "main" | "sub" | "attachment";
   /** When true (main + multiple files), searchable numbers (PO, BL, etc.) are hidden. */
   uploadMultipleMain?: boolean;
+  /** When true (sub + multiple files), searchable numbers are hidden. */
+  uploadMultipleSub?: boolean;
   control: Control<UploadFormValues>;
   register: (name: keyof UploadFormValues, options?: object) => object;
   errors: FieldErrors<UploadFormValues>;
@@ -20,6 +22,7 @@ export interface UploadDocumentOptionalSectionProps {
 export function UploadDocumentOptionalSection({
   uploadKind,
   uploadMultipleMain = false,
+  uploadMultipleSub = false,
   control,
   register,
   errors,
@@ -28,7 +31,7 @@ export function UploadDocumentOptionalSection({
 }: UploadDocumentOptionalSectionProps) {
   if (uploadKind === "attachment") return null;
 
-  const hideSearchableNumbers = uploadKind === "main" && uploadMultipleMain;
+  const hideSearchableNumbers = (uploadKind === "main" && uploadMultipleMain) || (uploadKind === "sub" && uploadMultipleSub);
 
   return (
     <>

@@ -48,6 +48,7 @@ export function UploadDocumentSidePanel({
 
   const uploadKind = watch("upload_kind");
   const uploadMultipleMain = watch("upload_multiple_main") ?? false;
+  const uploadMultipleSub = watch("upload_multiple_sub") ?? false;
   const departmentId = watch("department_id");
   const documentTypeId = watch("document_type_id");
   const title = watch("title");
@@ -64,6 +65,9 @@ export function UploadDocumentSidePanel({
       setValue("folder_code", "");
       setValue("folder_type", "other");
       setValue("folder_description", "");
+    }
+    if (uploadKind !== "sub") {
+      setValue("upload_multiple_sub", false);
     }
   }, [uploadKind, setValue]);
 
@@ -160,17 +164,20 @@ export function UploadDocumentSidePanel({
   const hasRequiredTitle = typeof title === "string" && title.trim().length > 0;
   const hasFile = selectedFile instanceof File;
   const hasMainMultiFiles = uploadKind === "main" && uploadMultipleMain && selectedFiles.length >= 1;
+  const hasSubMultiFiles = uploadKind === "sub" && uploadMultipleSub && selectedFiles.length >= 1;
   const canSubmit =
     uploadKind === "attachment"
       ? hasFile && Number(targetDocumentId) >= 1
       : uploadKind === "main" && uploadMultipleMain
         ? hasMainMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1
-        : hasRequiredTitle &&
-          hasFile &&
-          Number(departmentId) >= 1 &&
-          Number(documentTypeId) >= 1 &&
-          (uploadKind !== "sub" || Number(folderId) >= 1) &&
-          (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
+        : uploadKind === "sub" && uploadMultipleSub
+          ? hasSubMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1 && Number(folderId) >= 1
+          : hasRequiredTitle &&
+            hasFile &&
+            Number(departmentId) >= 1 &&
+            Number(documentTypeId) >= 1 &&
+            (uploadKind !== "sub" || Number(folderId) >= 1) &&
+            (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
   const submitDisabled = !canSubmit || isUploading;
 
   /** Auto-fills folder name (only) from document title when uploading a main document; folder code is not prefilled. */
@@ -197,6 +204,14 @@ export function UploadDocumentSidePanel({
   const handleUploadMultipleMainChange = useCallback(
     (value: boolean) => {
       setValue("upload_multiple_main", value, { shouldValidate: true });
+    },
+    [setValue]
+  );
+
+  /** Toggle for sub-document batch upload; only relevant when upload_kind is "sub". */
+  const handleUploadMultipleSubChange = useCallback(
+    (value: boolean) => {
+      setValue("upload_multiple_sub", value, { shouldValidate: true });
     },
     [setValue]
   );
@@ -257,6 +272,8 @@ export function UploadDocumentSidePanel({
           uploadWhatDocumentLabel={uploadWhatDocumentLabel}
           uploadMultipleMain={uploadMultipleMain}
           onUploadMultipleMainChange={handleUploadMultipleMainChange}
+          uploadMultipleSub={uploadMultipleSub}
+          onUploadMultipleSubChange={handleUploadMultipleSubChange}
           onMainSingleFileSelected={handleMainSingleFileSelected}
           tagOptions={tagOptions}
           bulkJobId={submitLogic.bulkJobId}

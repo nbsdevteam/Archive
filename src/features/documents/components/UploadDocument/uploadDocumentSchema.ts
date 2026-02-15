@@ -35,6 +35,7 @@ export function getUploadDocumentSchema(t: TFunction) {
     .object({
       upload_kind: z.enum(["main", "sub"]),
       upload_multiple_main: z.boolean().optional(),
+      upload_multiple_sub: z.boolean().optional(),
       department_id: z.coerce.number().min(1, t("documents.validation.departmentRequired")),
       document_type_id: z.coerce.number().min(1, t("documents.validation.documentTypeRequired")),
       title: z.string().optional(),
@@ -50,6 +51,7 @@ export function getUploadDocumentSchema(t: TFunction) {
     })
     .superRefine((data, ctx) => {
       const isMainMulti = data.upload_kind === "main" && data.upload_multiple_main === true;
+      const isSubMulti = data.upload_kind === "sub" && data.upload_multiple_sub === true;
       if (data.upload_kind === "main") {
         if (!isMainMulti) {
           if (!(data.title ?? "").trim()) {
@@ -71,7 +73,7 @@ export function getUploadDocumentSchema(t: TFunction) {
         if (fid == null || Number(fid) < 1) {
           ctx.addIssue({ path: ["folder_id"], message: t("documents.validation.folderRequiredForSubDocument"), code: z.ZodIssueCode.custom });
         }
-        if (!(data.file instanceof File)) {
+        if (!isSubMulti && !(data.file instanceof File)) {
           ctx.addIssue({ path: ["file"], message: t("documents.validation.fileRequired"), code: z.ZodIssueCode.custom });
         }
       }

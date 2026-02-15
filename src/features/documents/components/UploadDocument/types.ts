@@ -3,6 +3,8 @@ export type UploadFormValues = {
   upload_kind: "main" | "sub" | "attachment";
   /** When true and upload_kind is "main", multiple files can be selected; one folder per file is auto-created from filename. */
   upload_multiple_main?: boolean;
+  /** When true and upload_kind is "sub", multiple files can be selected; each file becomes one sub document in the selected folder. */
+  upload_multiple_sub?: boolean;
   target_document_id?: number;
   department_id: number;
   document_type_id: number;
@@ -39,6 +41,7 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
   return {
     upload_kind: defaultKind,
     upload_multiple_main: initialValues?.upload_multiple_main ?? false,
+    upload_multiple_sub: initialValues?.upload_multiple_sub ?? false,
     target_document_id: initialValues?.target_document_id,
     department_id: initialValues?.department_id ?? 0,
     document_type_id: initialValues?.document_type_id ?? 0,

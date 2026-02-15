@@ -14,6 +14,9 @@ export interface UploadDocumentFileSectionProps {
   /** When true (main only), multiple files can be selected and one folder per file is auto-created from filename. */
   uploadMultipleMain?: boolean;
   onUploadMultipleMainChange?: (value: boolean) => void;
+  /** When true (sub only), multiple files can be selected; each file becomes one sub document in the selected folder. */
+  uploadMultipleSub?: boolean;
+  onUploadMultipleSubChange?: (value: boolean) => void;
   /** Called when a single main file is selected so parent can prefill title and folder name from filename. */
   onMainSingleFileSelected?: (baseName: string) => void;
   uploadWhatDocumentLabel: string;
@@ -32,12 +35,14 @@ export function UploadDocumentFileSection({
   uploadKind,
   uploadMultipleMain = false,
   onUploadMultipleMainChange,
+  uploadMultipleSub = false,
+  onUploadMultipleSubChange,
   onMainSingleFileSelected,
   uploadWhatDocumentLabel,
   t,
   setValue,
 }: UploadDocumentFileSectionProps) {
-  const allowMultiple = uploadKind === "attachment" || uploadKind === "sub" || (uploadKind === "main" && uploadMultipleMain);
+  const allowMultiple = uploadKind === "attachment" || (uploadKind === "main" && uploadMultipleMain) || (uploadKind === "sub" && uploadMultipleSub);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -56,8 +61,8 @@ export function UploadDocumentFileSection({
   return (
     <div className="mb-3">
       {uploadKind === "main" && onUploadMultipleMainChange != null && (
-        <div className="mb-2">
-          <label className="form-check d-flex align-items-center gap-2">
+        <div className="mb-2 py-2 px-3 rounded bg-light">
+          <label className="form-check d-flex align-items-center gap-2 mb-0">
             <input
               type="checkbox"
               className="form-check-input"
@@ -68,9 +73,30 @@ export function UploadDocumentFileSection({
             <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
           </label>
           {uploadMultipleMain && (
-            <p className="small text-muted mb-0 mt-1">
+            <p className="small text-muted mb-0 mt-2">
               {t("documents.batchMainUploadInfo", {
                 defaultValue: "Automatic folders will be created using the name of each file. Each document title will be the file name.",
+              })}
+            </p>
+          )}
+        </div>
+      )}
+      {uploadKind === "sub" && onUploadMultipleSubChange != null && (
+        <div className="mb-2 py-2 px-3 rounded bg-light">
+          <label className="form-check d-flex align-items-center gap-2 mb-0">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              checked={uploadMultipleSub}
+              onChange={(e) => onUploadMultipleSubChange(e.target.checked)}
+              data-testid="upload-multiple-sub-checkbox"
+            />
+            <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
+          </label>
+          {uploadMultipleSub && (
+            <p className="small text-muted mb-0 mt-2">
+              {t("documents.batchSubUploadInfo", {
+                defaultValue: "Multiple sub documents will be added to the selected folder. Each file becomes one document with the file name as title.",
               })}
             </p>
           )}
