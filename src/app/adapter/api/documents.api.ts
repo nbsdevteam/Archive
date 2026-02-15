@@ -321,6 +321,33 @@ async function getCachedOrFetchPreview(fullUrl: string, fetchOptions: RequestIni
   return response;
 }
 
+/**
+ * Clears all cached preview entries for a specific document from the Cache API.
+ * This ensures the latest version is fetched when returning to the document detail page.
+ * @param documentId - The document ID to clear cache for
+ */
+export async function clearDocumentPreviewCache(documentId: number): Promise<void> {
+  if (typeof caches === 'undefined') return;
+  
+  try {
+    const cache = await caches.open(PREVIEW_CACHE_NAME);
+    
+    // Get all cached requests and delete ones matching this document ID
+    const requests = await cache.keys();
+    const deletePromises = requests
+      .filter((request) => {
+        const url = request.url;
+        return url.includes(`/documents/${documentId}/download`);
+      })
+      .map((request) => cache.delete(request));
+    
+    await Promise.all(deletePromises);
+  } catch (error) {
+    // Silently fail if cache clearing fails
+    console.warn('Failed to clear document preview cache:', error);
+  }
+}
+
 /** Infers MIME type for preview blob from response header and file extension. */
 function inferPreviewContentType(headerType: string, ext: string): string {
   if (headerType && headerType !== 'application/octet-stream') return headerType;
@@ -429,11 +456,14 @@ export const documentsApi = {
   getDocumentForPreview: async (
     documentId: number,
     versionId?: number,
-    fileName?: string
+    fileName?: string,
+    useCache = true
   ): Promise<Blob> => {
+    // Add cache-busting parameter when cache is disabled to force fresh fetch
+    const cacheBuster = useCache ? '' : `&_=${Date.now()}`;
     const url = versionId
-      ? `/api/documents/${documentId}/download?version_id=${versionId}&preview=1`
-      : `/api/documents/${documentId}/download?preview=1`;
+      ? `/api/documents/${documentId}/download?version_id=${versionId}&preview=1${cacheBuster}`
+      : `/api/documents/${documentId}/download?preview=1${cacheBuster}`;
 
     const token = localStorage.getItem('access_token');
     const baseURL = import.meta.env.VITE_API_BASE_URL || '';
@@ -445,10 +475,18 @@ export const documentsApi = {
       headers: {
         Authorization: token ? `Bearer ${token}` : '',
         Accept: '*/*',
+        // Force no-cache headers when cache is disabled
+        ...(useCache ? {} : {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }),
       },
     };
 
-    const response = await getCachedOrFetchPreview(fullUrl, fetchOptions);
+    const response = useCache
+      ? await getCachedOrFetchPreview(fullUrl, fetchOptions)
+      : await fetch(fullUrl, { ...fetchOptions, cache: 'no-store' });
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');

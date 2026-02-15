@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react";
 import type { DocumentDetail, DocumentVersion } from "@/app/adapter/api/documents.api";
+import { clearDocumentPreviewCache } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 
 /**
  * Fetches document by id and derives display fields (title, fileName, versions, ocr, etc.).
+ * Clears preview cache to ensure the latest version is shown.
  */
 export function useDocumentDetailData(docId: number | null) {
   const {
@@ -15,6 +17,10 @@ export function useDocumentDetailData(docId: number | null) {
 
   useEffect(() => {
     if (docId) {
+      // Clear preview cache to ensure latest version is shown
+      clearDocumentPreviewCache(docId).catch(() => {
+        // Ignore cache clear errors - fetchDocument will still work
+      });
       fetchDocument(docId);
     }
   }, [docId, fetchDocument]);
@@ -30,7 +36,8 @@ export function useDocumentDetailData(docId: number | null) {
   const tags = Array.isArray(doc?.tags) ? doc.tags : [];
   const ocr = doc?.ocr ?? {};
   const ocrStatus = (doc?.ocr_status ?? (ocr as { ocr_status?: string })?.ocr_status) ?? "pending";
-  const latestVersion = versions.length > 0 ? versions[versions.length - 1] : null;
+  /** Backend returns newest version first in version history. */
+  const latestVersion = versions.length > 0 ? versions[0] : null;
   const fileName =
     (doc?.file_name && doc.file_name.trim() !== "")
       ? doc.file_name
