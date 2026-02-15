@@ -7,6 +7,8 @@ import { Icon } from "@/shared/components/ui";
 
 export interface UploadDocumentOptionalSectionProps {
   uploadKind: "main" | "sub" | "attachment";
+  /** When true (main + multiple files), searchable numbers (PO, BL, etc.) are hidden. */
+  uploadMultipleMain?: boolean;
   control: Control<UploadFormValues>;
   register: (name: keyof UploadFormValues, options?: object) => object;
   errors: FieldErrors<UploadFormValues>;
@@ -14,9 +16,10 @@ export interface UploadDocumentOptionalSectionProps {
   t: TFunction;
 }
 
-/** Optional searchable numbers and tags section; shown only for main/sub uploads. */
+/** Optional searchable numbers and tags section; shown only for main/sub uploads. Hides searchable numbers when upload multiple files is checked (main). */
 export function UploadDocumentOptionalSection({
   uploadKind,
+  uploadMultipleMain = false,
   control,
   register,
   errors,
@@ -25,29 +28,35 @@ export function UploadDocumentOptionalSection({
 }: UploadDocumentOptionalSectionProps) {
   if (uploadKind === "attachment") return null;
 
+  const hideSearchableNumbers = uploadKind === "main" && uploadMultipleMain;
+
   return (
     <>
-      <h6 className="fw-semibold mb-2 mt-2">
-        <Icon name="search" className="me-1" />
-        {t("documents.searchableNumbersOptional", { defaultValue: "Searchable numbers (optional)" })}
-      </h6>
-      <div className="row g-2 mb-3">
-        <div className="col-md-4">
-          <Input label={t("documents.poNumber")} {...register("po_number")} placeholder="PO-2024-001" autoComplete="off" />
-        </div>
-        <div className="col-md-4">
-          <Input label={t("documents.blNumber")} {...register("bl_number")} placeholder="BL-2024-001" autoComplete="off" />
-        </div>
-        <div className="col-md-4">
-          <Input label={t("documents.containerNumber")} {...register("container_number")} placeholder="CONT-2024-001" autoComplete="off" />
-        </div>
-        <div className="col-md-6">
-          <Input label={t("documents.invoiceNumber")} {...register("invoice_number")} placeholder="INV-2024-001" autoComplete="off" />
-        </div>
-        <div className="col-md-6">
-          <Input label={t("documents.envoyNumber")} {...register("envoy_number")} placeholder="ENV-2024-001" autoComplete="off" />
-        </div>
-      </div>
+      {!hideSearchableNumbers && (
+        <>
+          <h6 className="fw-semibold mb-2 mt-2">
+            <Icon name="search" className="me-1" />
+            {t("documents.searchableNumbersOptional", { defaultValue: "Searchable numbers (optional)" })}
+          </h6>
+          <div className="row g-2 mb-3">
+            <div className="col-md-4">
+              <Input label={t("documents.poNumber")} {...register("po_number")} placeholder="PO-2024-001" autoComplete="off" />
+            </div>
+            <div className="col-md-4">
+              <Input label={t("documents.blNumber")} {...register("bl_number")} placeholder="BL-2024-001" autoComplete="off" />
+            </div>
+            <div className="col-md-4">
+              <Input label={t("documents.containerNumber")} {...register("container_number")} placeholder="CONT-2024-001" autoComplete="off" />
+            </div>
+            <div className="col-md-6">
+              <Input label={t("documents.invoiceNumber")} {...register("invoice_number")} placeholder="INV-2024-001" autoComplete="off" />
+            </div>
+            <div className="col-md-6">
+              <Input label={t("documents.envoyNumber")} {...register("envoy_number")} placeholder="ENV-2024-001" autoComplete="off" />
+            </div>
+          </div>
+        </>
+      )}
       <MultiSelectField
         control={control}
         name="tags"

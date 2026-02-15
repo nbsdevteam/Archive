@@ -142,7 +142,7 @@ export function UploadDocumentFormContent({
         </div>
       )}
 
-      <UploadDocumentOptionalSection uploadKind={uploadKind} control={control} register={register} errors={errors} tagOptions={tagOptions} t={t} />
+      <UploadDocumentOptionalSection uploadKind={uploadKind} uploadMultipleMain={uploadMultipleMain} control={control} register={register} errors={errors} tagOptions={tagOptions} t={t} />
     </>
   );
 }
