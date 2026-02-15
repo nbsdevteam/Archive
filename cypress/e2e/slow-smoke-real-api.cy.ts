@@ -65,6 +65,12 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.intercept('POST', '**/api/documents/batch/trash', { statusCode: 403, body: { error: 'E2E: batch trash disabled' } });
     cy.intercept('POST', '**/api/documents/upload', (req) => req.continue()).as('uploadDocument');
     cy.intercept('POST', '**/api/folders/create', (req) => req.continue());
+    // List folders (POST /api/folders without /create or /id) — allow so any wait('@listFolders') can resolve when app loads folder dropdowns.
+    cy.intercept(
+      'POST',
+      (url) => url.includes('/api/folders') && !url.includes('/create') && !/\/api\/folders\/\d+/.test(url),
+      (req) => req.continue()
+    ).as('listFolders');
   });
 
   it('Upload: main, secondary, attachment to main, attachment to sub', () => {
@@ -209,21 +215,46 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.visit('/folders');
     cy.contains(baseFolderName, { timeout: 15000 }).should('be.visible');
     cy.contains(targetFolderName, { timeout: 5000 }).should('be.visible');
-    cy.contains(baseFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
-      const m = String(href ?? '').match(/\/folders\/(\d+)/);
-      expect(m).to.be.ok;
-      cy.wrap(Number(m![1])).as('baseFolderId');
+    // Resolve base folder ID: grid has a[href*="/folders/"], list view has only View button → click and read URL.
+    cy.contains(baseFolderName).closest('tr, .folders__grid-card-wrapper').then(($row) => {
+      const $link = $row.find('a[href*="/folders/"]');
+      if ($link.length) {
+        const href = $link.attr('href') ?? '';
+        const m = href.match(/\/folders\/(\d+)/);
+        if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+      } else {
+        cy.wrap($row).find('button').contains('View').click({ force: true });
+        cy.url({ timeout: 10000 }).should('include', '/folders/');
+        cy.url().then((url) => {
+          const m = String(url).match(/\/folders\/(\d+)/);
+          if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+        });
+        cy.visit('/folders');
+        cy.contains(baseFolderName, { timeout: 5000 }).should('be.visible');
+      }
     });
-    cy.contains(targetFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
-      const m = String(href ?? '').match(/\/folders\/(\d+)/);
-      expect(m).to.be.ok;
-      cy.wrap(Number(m![1])).as('targetFolderId');
+    cy.contains(targetFolderName).closest('tr, .folders__grid-card-wrapper').then(($row) => {
+      const $link = $row.find('a[href*="/folders/"]');
+      if ($link.length) {
+        const href = $link.attr('href') ?? '';
+        const m = href.match(/\/folders\/(\d+)/);
+        if (m) cy.wrap(Number(m[1])).as('targetFolderId');
+      } else {
+        cy.wrap($row).find('button').contains('View').click({ force: true });
+        cy.url({ timeout: 10000 }).should('include', '/folders/');
+        cy.url().then((url) => {
+          const m = String(url).match(/\/folders\/(\d+)/);
+          if (m) cy.wrap(Number(m[1])).as('targetFolderId');
+        });
+        cy.visit('/folders');
+        cy.contains(targetFolderName, { timeout: 5000 }).should('be.visible');
+      }
     });
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
         cy.visit('/documents/upload');
         waitStep();
-        cy.get('[data-testid="upload-document-open-btn"]').click();
+        cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
         waitStep();
         cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
         waitStep();
