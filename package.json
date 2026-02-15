@@ -90,6 +90,7 @@
     "bootstrap": "^5.3.8",
     "clipboard-copy": "^4.0.1",
     "cypress": "^15.10.0",
+    "cypress-fail-fast": "^7.1.1",
     "dragula": "^3.7.3",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.1",
