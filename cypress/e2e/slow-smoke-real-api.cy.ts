@@ -65,13 +65,9 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.intercept('POST', '**/api/documents/batch/trash', { statusCode: 403, body: { error: 'E2E: batch trash disabled' } });
     cy.intercept('POST', '**/api/documents/upload', (req) => req.continue()).as('uploadDocument');
     cy.intercept('POST', '**/api/folders/create', (req) => req.continue());
-    // List folders (POST /api/folders without /create or /id) — allow so any wait('@listFolders') can resolve when app loads folder dropdowns.
+    // List folders: POST /api/folders only (not /create, not /api/folders/123). Regex matches path ending with /api/folders or /api/folders?
     cy.intercept(
-      {
-        method: 'POST',
-        url: (url) =>
-          url.includes('/api/folders') && !url.includes('/create') && !/\/api\/folders\/\d+/.test(url),
-      },
+      { method: 'POST', url: /\/api\/folders(\?|$)/ },
       (req) => req.continue()
     ).as('listFolders');
   });
