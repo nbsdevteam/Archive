@@ -83,7 +83,7 @@ export function AttachmentSidePanel({
           </div>
         }
       >
-        <div data-testid="attachment-side-panel">
+        <div className="attachment-edit-form" data-testid="attachment-side-panel">
         <div className="mb-3">
           <label className="form-label">{t("documents.name", { defaultValue: "Name" })}</label>
           <input
