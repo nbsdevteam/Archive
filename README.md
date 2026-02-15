@@ -216,6 +216,8 @@ Use two terminals so the dev server and Cypress run separately. This avoids `sta
    ```
    In the Cypress UI, choose a spec and run it. You can watch every step; no automatic server kill, so the process exits cleanly.
 
+**Real API (CRUD on test-created data only):** Use `slow-smoke-real-api.cy.ts` to run against the real backend. It creates one main document (unique name), then reads, updates, and adds/edits an attachment on that document only. Delete and permanent delete are disabled (blocked with 403). Ensure the backend is running and reachable at the app’s API base URL.
+
 **Auth:** Use `loginAsAdmin()` in specs to log in via the UI (default username/password **admin** / **admin**). Override with `CYPRESS_LOGIN_USER` / `CYPRESS_LOGIN_PASSWORD`. For stubbed APIs, `loginByToken(path)` seeds `access_token` in `localStorage` without UI login.
 
 **Key data-testids for E2E:** `login-submit-btn`, `upload-document-btn` (dashboard), `upload-documents-btn` (documents toolbar), `upload-in-folder-btn` (folder detail), `upload-document-open-btn` (upload page), `upload-document-submit`, `confirm-modal-confirm`, `document-detail-add-attachment-btn`, `attachment-edit-save`, `trash-restore-selected`, `transfer-folder-select`, `transfer-confirm-btn`.
