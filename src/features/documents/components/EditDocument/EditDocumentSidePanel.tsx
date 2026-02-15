@@ -142,7 +142,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
       .catch(() => {
         if (!cancelled) {
           setDoc(null);
-          setSubmitError(t("errors.loadFailed", { defaultValue: "Failed to load document." }));
+          setSubmitError(t("errors.loadFailed"));
         }
       })
       .finally(() => {
@@ -294,7 +294,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         <div className="text-muted text-center py-4">{t("common.loading", { defaultValue: "Loading…" })}</div>
       )}
       {!loadingDoc && !doc && documentId != null && (
-        <div className="alert alert-warning mb-0">{t("errors.notFound", { defaultValue: "Document not found." })}</div>
+        <div className="alert alert-warning mb-0">{t("errors.documentNotFound")}</div>
       )}
       {doc && (
         <form onSubmit={(e) => { e.preventDefault(); handleSaveClick(); }} className="d-flex flex-column gap-0" data-testid="edit-document-side-panel">

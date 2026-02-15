@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import FocusLock from "react-focus-lock";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
@@ -10,6 +11,7 @@ const OVERLAY_TITLE_ID = "shortcuts-overlay-title";
  * Shown when user presses Alt; focus-trapped and closed on Escape or Alt keyup.
  */
 export function ShortcutsOverlay() {
+  const { t } = useTranslation();
   const { overlayOpen, setOverlayOpen, availableShortcuts } = useShortcuts();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -46,7 +48,7 @@ export function ShortcutsOverlay() {
                 ref={closeButtonRef}
                 type="button"
                 className="btn-close"
-                aria-label="Close shortcuts"
+                aria-label={t("app.closeShortcuts")}
                 onClick={() => setOverlayOpen(false)}
               />
             </div>
@@ -55,7 +57,7 @@ export function ShortcutsOverlay() {
                 Press Alt to show this list. Then press the key for an action.
               </p>
               {availableShortcuts.length === 0 ? (
-                <p className="text-muted mb-0">No shortcuts available on this page.</p>
+                <p className="text-muted mb-0">{t("app.noShortcutsAvailable")}</p>
               ) : (
                 <ul className="list-unstyled mb-0">
                   {availableShortcuts.map(({ id, label, keys }) => (

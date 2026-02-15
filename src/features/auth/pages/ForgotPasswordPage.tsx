@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import styles from "../styles/login.page.module.css";
 
 const ForgotPasswordPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigation = useNavigate();
 
@@ -51,13 +53,13 @@ const ForgotPasswordPage = () => {
                     </div>
                     <div>
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">Forgot Password?</h2>
+                        <h2 className="mb-2">{t("auth.forgotPassword")}</h2>
                         <p className="mb-0">
-                          Enter your email and we'll send instructions to reset your password and regain access to the archive.
+                          {t("auth.forgotPasswordSubtitle")}
                         </p>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="email">Email Address</label>
+                        <label className="form-label" htmlFor="email">{t("auth.emailAddress")}</label>
                         <div className="input-group">
                           <input
                             id="email"
@@ -74,20 +76,20 @@ const ForgotPasswordPage = () => {
                       </div>
                       <div className="mb-3">
                         <button type="submit" className="btn btn-primary w-100">
-                          Submit
+                          {t("auth.submit")}
                         </button>
                       </div>
                       <div className="text-center">
                         <h6 className="fw-normal text-dark mb-0">
-                          Return to
+                          {t("auth.returnTo")}{" "}
                           <Link to={all_routes.login} className="hover-a ms-1">
-                            Sign In
+                            {t("auth.signIn")}
                           </Link>
                         </h6>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

@@ -41,12 +41,12 @@ const Header = React.memo(() => {
       <div className="header">
         <div className="main-header">
           <div className="header-left">
-            <Link to={routes.dashboard} className="logo" aria-label="Home, NBS Archive System">
-              <span className="logo-text">NBS Archive System</span>
+            <Link to={routes.dashboard} className="logo" aria-label={t("app.homeNbsArchive")}>
+              <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
             </Link>
           </div>
 
-          <Link id="mobile_btn" onClick={toggleMobileSidebar} className="mobile_btn" to="#sidebar" aria-label="Open menu">
+          <Link id="mobile_btn" onClick={toggleMobileSidebar} className="mobile_btn" to="#sidebar" aria-label={t("app.openMenu")}>
             <span className="bar-icon" aria-hidden>
               <span></span>
               <span></span>
@@ -57,7 +57,7 @@ const Header = React.memo(() => {
           <div className="header-user">
             <div className="nav user-menu nav-list">
               <div className="me-auto d-flex align-items-center" id="header-search" style={{ flex: 1, minWidth: 0, gap: "1.25rem" }}>
-                <Link id="toggle_btn" to="#" onClick={handleToggleMiniSidebar} className="btn btn-menubar flex-shrink-0" aria-label="Toggle sidebar">
+                <Link id="toggle_btn" to="#" onClick={handleToggleMiniSidebar} className="btn btn-menubar flex-shrink-0" aria-label={t("app.toggleSidebar")}>
                   <i className="ti ti-arrow-bar-to-left" aria-hidden></i>
                 </Link>
                 <HeaderSearch routes={routes} t={t} />
@@ -66,7 +66,7 @@ const Header = React.memo(() => {
 
               <div className="d-flex align-items-center">
                 <div className="me-1">
-                  <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen" aria-label="Toggle fullscreen">
+                  <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen" aria-label={t("app.toggleFullscreen")}>
                     <i className="ti ti-maximize" aria-hidden></i>
                   </Link>
                 </div>

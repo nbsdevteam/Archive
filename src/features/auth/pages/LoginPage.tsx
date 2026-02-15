@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
@@ -11,6 +12,7 @@ import styles from "../styles/login.page.module.css";
 const USER_STORAGE_KEY = "user";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login, loading, error: apiError } = useLogin();
 
@@ -117,15 +119,15 @@ export default function LoginPage() {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">Sign In</h2>
-                        <p className="mb-0">Access your archive workspace securely</p>
+                        <h2 className="mb-2">{t("auth.signIn")}</h2>
+                        <p className="mb-0">{t("auth.accessWorkspace")}</p>
                       </div>
 
                       <LoginRoleToggle
                         value={loginAs}
                         onChange={setLoginAs}
                         disabled={loading}
-                        aria-label="Login as"
+                        aria-label={t("auth.loginAs")}
                       />
 
                       {displayError && (
@@ -136,7 +138,7 @@ export default function LoginPage() {
 
                       <div className="mb-3">
                         <label className="form-label" htmlFor="login-username">
-                          Username
+                          {t("auth.username")}
                         </label>
                         <div className="input-group">
                           <input
@@ -156,7 +158,7 @@ export default function LoginPage() {
                       </div>
                       <div className="mb-3">
                         <label className="form-label" htmlFor="login-password">
-                          Password
+                          {t("auth.password")}
                         </label>
                         <div className="pass-group">
                           <input
@@ -174,7 +176,7 @@ export default function LoginPage() {
                             onClick={() => setPasswordVisible((v) => !v)}
                             role="button"
                             tabIndex={0}
-                            aria-label="Toggle password visibility"
+                            aria-label={t("auth.togglePasswordVisibility")}
                           >
                             <Icon name={passwordVisible ? "eye" : "eye-off"} />
                           </span>
@@ -185,32 +187,32 @@ export default function LoginPage() {
                           <div className="form-check form-check-md mb-0">
                             <input className="form-check-input" id="remember_me" type="checkbox" />
                             <label htmlFor="remember_me" className="form-check-label mt-0">
-                              Remember Me
+                              {t("auth.rememberMe")}
                             </label>
                           </div>
                         </div>
                         <div className="text-end">
                           <Link to={all_routes.forgotPassword} className="link-danger">
-                            Forgot Password?
+                            {t("auth.forgotPasswordLink")}
                           </Link>
                         </div>
                       </div>
                       <div className="mb-3">
                         <Button type="submit" variant="secondary" className="w-100" disabled={loading} isLoading={loading} data-testid="login-submit-btn">
-                          {loading ? "Signing in…" : "Sign In"}
+                          {loading ? t("auth.signingIn") : t("auth.signIn")}
                         </Button>
                       </div>
                       <div className="text-center">
                         <h6 className="fw-normal text-dark mb-0">
                           Don’t have an account?
                           <Link to={all_routes.register} className="hover-a ms-1">
-                            Create Account
+                            {t("auth.createAccount")}
                           </Link>
                         </h6>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

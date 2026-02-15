@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
@@ -6,6 +7,7 @@ import { Link } from "react-router-dom";
 import { InputOtp } from "primereact/inputotp";
 
 const TwoStepVerificationPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigation = useNavigate();
 
@@ -104,7 +106,7 @@ const TwoStepVerificationPage = () => {
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

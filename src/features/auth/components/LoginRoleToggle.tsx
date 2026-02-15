@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "../styles/login.page.module.css";
 
 export type LoginRole = "admin" | "user";
@@ -17,8 +18,10 @@ export function LoginRoleToggle({
   value,
   onChange,
   disabled = false,
-  "aria-label": ariaLabel = "Login as",
+  "aria-label": ariaLabel,
 }: LoginRoleToggleProps) {
+  const { t } = useTranslation();
+  const resolvedAriaLabel = ariaLabel ?? t("auth.loginAs");
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value as LoginRole;
     if (v === ROLE_ADMIN || v === ROLE_USER) onChange(v);
@@ -28,7 +31,7 @@ export function LoginRoleToggle({
     <div
       className={styles.roleToggle}
       role="group"
-      aria-label={ariaLabel}
+      aria-label={resolvedAriaLabel}
     >
       <div
         className={styles.roleToggleTrack}
@@ -46,7 +49,7 @@ export function LoginRoleToggle({
             onChange={handleChange}
             disabled={disabled}
             aria-checked={value === ROLE_ADMIN}
-            aria-label="Login as Admin"
+            aria-label={t("auth.loginAsAdmin")}
           />
           <label htmlFor="login-role-admin" className={styles.roleOptionLabel}>
             Admin
@@ -63,7 +66,7 @@ export function LoginRoleToggle({
             onChange={handleChange}
             disabled={disabled}
             aria-checked={value === ROLE_USER}
-            aria-label="Login as User"
+            aria-label={t("auth.loginAsUser")}
           />
           <label htmlFor="login-role-user" className={styles.roleOptionLabel}>
             User

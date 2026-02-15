@@ -68,7 +68,7 @@ const DashboardPage = () => {
         <div className="card border-0 mb-3">
           <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
             <div>
-              <h3 className="mb-2">Welcome back Admin</h3>
+              <h3 className="mb-2">{t("dashboard.welcomeBackAdmin")}</h3>
               <p className="mb-0">
                 You have{" "}
                 <Link to={routes.notifications} className="text-primary text-decoration-underline">
@@ -79,11 +79,11 @@ const DashboardPage = () => {
             <div className="d-flex flex-wrap gap-2 align-items-center">
               <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel} data-testid="upload-document-btn">
                 <Icon name="file-up" className="me-1" />
-                Upload Document
+                {t("dashboard.uploadDocument")}
               </Button>
               <Link to={routes.notifications} className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center px-3">
                 <Icon name="bell" className="me-1" />
-                View notifications
+                {t("dashboard.viewNotifications")}
               </Link>
             </div>
           </div>
@@ -136,9 +136,9 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-dark mb-2">
                           <Icon name="archive" className="fs-16" />
                         </span>
-                        <h6 className="fs-13 fw-medium text-default mb-1">Archived Documents</h6>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h6>
                         <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{archivedDocumentsCount.toLocaleString()}</h3>
-                        <span className="link-default">View Details</span>
+                        <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
                     </Link>
                   </div>
@@ -176,7 +176,7 @@ const DashboardPage = () => {
                                   <div className="d-flex align-items-start justify-content-between">
                                     <div className="flex-grow-1 min-w-0">
                                       <h6 className="mb-0 fs-13 text-truncate">
-                                        {!n.is_read && <span className="badge bg-primary rounded-pill me-1">New</span>}
+                                        {!n.is_read && <span className="badge bg-primary rounded-pill me-1">{t("app.new")}</span>}
                                         {n.title}
                                       </h6>
                                       <p className="mb-0 small text-muted text-truncate">{n.message}</p>
@@ -190,7 +190,7 @@ const DashboardPage = () => {
                             </ul>
                           </div>
                         ) : null}
-                        <span className="link-default">View All</span>
+                        <span className="link-default">{t("app.viewAll")}</span>
                       </Card>
                     </Link>
                   </div>
@@ -207,7 +207,7 @@ const DashboardPage = () => {
                       <>
                         <DepartmentDonutChart items={documentsByDepartment} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h6 className="dashboard-donut-info__label mb-2">Overview</h6>
+                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
                           <p className="dashboard-donut-info__text mb-0">
                             This visualization displays the distribution of documents across all departments in your organization. 
                             Use this data to identify departments with the highest document volume, track content growth patterns, 
@@ -231,7 +231,7 @@ const DashboardPage = () => {
                       <>
                         <DepartmentDonutChart items={foldersByDepartmentItems} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h6 className="dashboard-donut-info__label mb-2">Overview</h6>
+                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
                           <p className="dashboard-donut-info__text mb-0">
                             This chart shows how folders are organized across your departments, providing insights into content 
                             structure and storage patterns. Monitor which departments maintain the most folders, identify areas 

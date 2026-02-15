@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ColorPicker } from "antd";
 import type { ColorPickerProps, GetProp } from "antd";
 import { Link } from "react-router-dom";
@@ -8,6 +9,7 @@ import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
 type Color = Extract<GetProp<ColorPickerProps, "value">, string | { cleared: any }>;
 
 const ThemeSettings = () => {
+  const { t } = useTranslation();
   const { layout, setLayout } = useLayoutStore();
   const { color, customColor, setColor, setCustomColor } = useThemeColorStore();
   const [pickerValue, setPickerValue] = useState<Color>(
@@ -39,7 +41,7 @@ const ThemeSettings = () => {
           data-bs-target="#theme-setting"
           role="button"
           tabIndex={0}
-          aria-label="Open theme settings"
+          aria-label={t("app.openThemeSettings")}
         >
           <i className="fa fa-cog fa-w-16 fa-spin" aria-hidden />
         </div>
@@ -51,14 +53,14 @@ const ThemeSettings = () => {
       >
         <div className="offcanvas-header d-flex align-items-center justify-content-between bg-dark">
           <div>
-            <h3 className="mb-1 text-white">Theme Customizer</h3>
-            <p className="text-light">Choose your layout</p>
+            <h3 className="mb-1 text-white">{t("app.themeCustomizer")}</h3>
+            <p className="text-light">{t("app.chooseLayout")}</p>
           </div>
           <Link
             to="#"
             className="custom-btn-close d-flex align-items-center justify-content-center text-white"
             data-bs-dismiss="offcanvas"
-            aria-label="Close theme settings"
+            aria-label={t("app.closeThemeSettings")}
           >
             <i className="ti ti-x" aria-hidden />
           </Link>
@@ -95,7 +97,7 @@ const ThemeSettings = () => {
                           onChange={() => setLayout("default")}
                         />
                         <label htmlFor="defaultLayout">
-                          <span className="layout-type">Default</span>
+                          <span className="layout-type">{t("app.layoutDefault")}</span>
                         </label>
                       </div>
                     </div>
@@ -109,7 +111,7 @@ const ThemeSettings = () => {
                           onChange={() => setLayout("modern")}
                         />
                         <label htmlFor="modernLayout">
-                          <span className="layout-type">Modern</span>
+                          <span className="layout-type">{t("app.layoutModern")}</span>
                         </label>
                       </div>
                     </div>

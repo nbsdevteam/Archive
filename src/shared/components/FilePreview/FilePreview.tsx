@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { documentsApi } from '../../../app/adapter/api/documents.api';
 import { Spinner } from '../ui/Spinner';
 import styles from './FilePreview.module.css';
@@ -131,6 +132,7 @@ export function FilePreview({
   errorMessage,
   disableCache = false,
 }: FilePreviewProps) {
+  const { t } = useTranslation();
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -250,7 +252,7 @@ export function FilePreview({
         className={`${styles.notPreviewable} ${className}`}
         style={{ maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight }}
       >
-        <span className="text-muted">No preview available</span>
+        <span className="text-muted">{t("app.noPreviewAvailable")}</span>
       </div>
     );
   }

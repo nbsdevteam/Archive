@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
@@ -16,6 +17,7 @@ type PasswordResponse = {
 };
 
 const ResetPasswordPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigation = useNavigate();
 
@@ -126,23 +128,22 @@ const ResetPasswordPage = () => {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">Reset Password</h2>
+                        <h2 className="mb-2">{t("auth.resetPassword")}</h2>
                         <p className="mb-0">
-                          Your new password must be different from previous used
-                          passwords.
+                          {t("auth.resetPasswordSubtitle")}
                         </p>
                       </div>
                       <div>
                         <div className="input-block mb-3">
                           <div className="mb-3">
-                            <label className="form-label">Password</label>
+                            <label className="form-label">{t("auth.password")}</label>
                             <div className="pass-group" id="passwordInput">
                               <input
                                 type={passwordVisibility.password ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => onChangePassword(e.target.value)}
                                 className="form-control pass-input"
-                                placeholder="Enter your password"
+                                placeholder={t("auth.enterPassword")}
                                 required
                                 autoComplete="new-password"
                               />
@@ -152,7 +153,7 @@ const ResetPasswordPage = () => {
                                 style={{ cursor: "pointer" }}
                                 role="button"
                                 tabIndex={0}
-                                aria-label="Toggle password visibility"
+                                aria-label={t("auth.togglePasswordVisibility")}
                               ></span>
                             </div>
                           </div>
@@ -178,7 +179,7 @@ const ResetPasswordPage = () => {
                         </div>
                         <p className="fs-12">{passwordResponce.passwordResponceText}</p>
                         <div className="mb-3">
-                          <label className="form-label">Confirm Password</label>
+                          <label className="form-label">{t("auth.confirmPassword")}</label>
                           <div className="pass-group">
                             <input
                               type={passwordVisibility.confirmPassword ? "text" : "password"}
@@ -191,19 +192,19 @@ const ResetPasswordPage = () => {
                               onClick={() => togglePasswordVisibility("confirmPassword")}
                               role="button"
                               tabIndex={0}
-                              aria-label="Toggle confirm password visibility"
+                              aria-label={t("auth.togglePasswordVisibility")}
                             ></span>
                           </div>
                         </div>
                         <div className="mb-3">
                           <button type="submit" className="btn btn-primary w-100">
-                            Submit
+                            {t("auth.submit")}
                           </button>
                         </div>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

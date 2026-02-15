@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
@@ -11,6 +12,7 @@ type PasswordVisibility = {
 };
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigation = useNavigate();
 
@@ -74,11 +76,11 @@ const RegisterPage = () => {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">Sign Up</h2>
-                        <p className="mb-0">Please enter your details to sign up</p>
+                        <h2 className="mb-2">{t("auth.signUp")}</h2>
+                        <p className="mb-0">{t("auth.signUpSubtitle")}</p>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Name</label>
+                        <label className="form-label">{t("auth.name")}</label>
                         <div className="input-group">
                           <input
                             type="text"
@@ -92,7 +94,7 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Email Address</label>
+                        <label className="form-label">{t("auth.emailAddress")}</label>
                         <div className="input-group">
                           <input
                             type="email"
@@ -107,7 +109,7 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Password</label>
+                        <label className="form-label">{t("auth.password")}</label>
                         <div className="pass-group">
                           <input
                             type={passwordVisibility.password ? "text" : "password"}
@@ -120,12 +122,12 @@ const RegisterPage = () => {
                             onClick={() => togglePasswordVisibility("password")}
                             role="button"
                             tabIndex={0}
-                            aria-label="Toggle password visibility"
+                            aria-label={t("auth.togglePasswordVisibility")}
                           ></span>
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Confirm Password</label>
+                        <label className="form-label">{t("auth.confirmPassword")}</label>
                         <div className="pass-group">
                           <input
                             type={passwordVisibility.confirmPassword ? "text" : "password"}
@@ -138,7 +140,7 @@ const RegisterPage = () => {
                             onClick={() => togglePasswordVisibility("confirmPassword")}
                             role="button"
                             tabIndex={0}
-                            aria-label="Toggle confirm password visibility"
+                            aria-label={t("auth.togglePasswordVisibility")}
                           ></span>
                         </div>
                       </div>
@@ -155,29 +157,26 @@ const RegisterPage = () => {
                               htmlFor="remember_me"
                               className="form-check-label text-dark mt-0"
                             >
-                              Agree to{" "}
-                              <span className="text-primary">
-                                Terms &amp; Privacy
-                              </span>
+                              {t("auth.agreeTermsPrivacy")}
                             </label>
                           </div>
                         </div>
                       </div>
                       <div className="mb-3">
                         <button type="submit" className="btn btn-primary w-100">
-                          Sign Up
+                          {t("auth.signUp")}
                         </button>
                       </div>
                       <div className="text-center">
                         <h6 className="fw-normal text-dark mb-0">
-                          Already have an account?
+                          {t("auth.alreadyHaveAccount")}{" "}
                           <Link to={all_routes.login} className="hover-a ms-1">
-                            Sign In
+                            {t("auth.signIn")}
                           </Link>
                         </h6>
                       </div>
                       <div className="login-or">
-                        <span className="span-or">Or</span>
+                        <span className="span-or">{t("auth.or")}</span>
                       </div>
                       <div className="mt-2">
                         <div className="d-flex align-items-center justify-content-center flex-wrap">
@@ -185,7 +184,7 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="br-10 p-2 btn btn-info d-flex align-items-center justify-content-center"
-                              aria-label="Sign in with Facebook"
+                              aria-label={t("auth.signInWithFacebook")}
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
@@ -199,7 +198,7 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="br-10 p-2 btn btn-outline-light border d-flex align-items-center justify-content-center"
-                              aria-label="Sign in with Google"
+                              aria-label={t("auth.signInWithGoogle")}
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
@@ -213,7 +212,7 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="bg-dark br-10 p-2 btn btn-dark d-flex align-items-center justify-content-center"
-                              aria-label="Sign in with Apple"
+                              aria-label={t("auth.signInWithApple")}
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
@@ -227,7 +226,7 @@ const RegisterPage = () => {
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

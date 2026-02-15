@@ -173,11 +173,11 @@ const Sidebar = memo(() => {
     >
       <div className="sidebar-logo">
         <Link to={all_routes.adminDashboard} className="logo logo-normal">
-          <span className="logo-text">NBS Archive System</span>
+          <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
         </Link>
         <Link to={all_routes.adminDashboard} className="logo-small" />
         <Link to={all_routes.adminDashboard} className="dark-logo">
-          <span className="logo-text">NBS Archive System</span>
+          <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
         </Link>
       </div>
 
@@ -190,8 +190,8 @@ const Sidebar = memo(() => {
               className="img-fluid rounded-circle"
             />
           </div>
-          <h6 className="fs-12 fw-normal mb-1">Admin User</h6>
-          <p className="fs-10">Administrator</p>
+          <h6 className="fs-12 fw-normal mb-1">{t("app.adminUser")}</h6>
+          <p className="fs-10">{t("app.administrator")}</p>
         </div>
         <hr />
       </div>
@@ -206,8 +206,8 @@ const Sidebar = memo(() => {
             />
           </div>
           <div className="text-start sidebar-profile-info ms-2">
-            <h6 className="fs-12 fw-normal mb-1">Admin User</h6>
-            <p className="fs-10">Administrator</p>
+            <h6 className="fs-12 fw-normal mb-1">{t("app.adminUser")}</h6>
+            <p className="fs-10">{t("app.administrator")}</p>
           </div>
         </div>
         <div className="input-group input-group-flat d-inline-flex mb-4">
@@ -223,24 +223,24 @@ const Sidebar = memo(() => {
             <kbd>CTRL + /</kbd>
           </span>
         </div>
-        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label="Archive quick links">
+        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.archiveQuickLinks")}>
           <div className="me-3">
-            <Link to={all_routes.archiveFolders} className="btn btn-menubar" aria-label="Archive folders">
+            <Link to={all_routes.archiveFolders} className="btn btn-menubar" aria-label={t("app.archiveFolders")}>
               <i className="ti ti-folder" aria-hidden />
             </Link>
           </div>
           <div className="me-3">
-            <Link to={all_routes.archiveUpload} className="btn btn-menubar" aria-label="Upload">
+            <Link to={all_routes.archiveUpload} className="btn btn-menubar" aria-label={t("app.upload")}>
               <i className="ti ti-upload" aria-hidden />
             </Link>
           </div>
           <div className="me-3 notification-item">
-            <Link to={all_routes.archiveActivity} className="btn btn-menubar position-relative me-1" aria-label="Archive activity">
+            <Link to={all_routes.archiveActivity} className="btn btn-menubar position-relative me-1" aria-label={t("app.archiveActivity")}>
               <i className="ti ti-activity" aria-hidden />
             </Link>
           </div>
           <div className="me-0">
-            <Link to={all_routes.archiveTrash} className="btn btn-menubar" aria-label="Trash">
+            <Link to={all_routes.archiveTrash} className="btn btn-menubar" aria-label={t("app.trash")}>
               <i className="ti ti-trash" aria-hidden />
             </Link>
           </div>

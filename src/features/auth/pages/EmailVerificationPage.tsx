@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { Link, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 
 const EmailVerificationPage = () => {
+  const { t } = useTranslation();
   const routes = all_routes;
   const navigation = useNavigate();
 
@@ -23,7 +25,7 @@ const EmailVerificationPage = () => {
                 />
               </div>
               <div className="authen-overlay-item w-100 p-4">
-                <h4 className="text-white mb-3">What's New in NBS Archive</h4>
+                <h4 className="text-white mb-3">{t("auth.whatsNewNbsArchive")}</h4>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
                   <div>
                     <h6>Summer Vacation Holiday Homework</h6>
@@ -102,19 +104,18 @@ const EmailVerificationPage = () => {
                       <div className="card-body p-4">
                         <div className=" mb-3">
                           <h2 className="mb-2 text-center">
-                            Verify your Email
+                            {t("auth.verifyEmail")}
                           </h2>
                           <p className="mb-0 text-center">
-                            We've sent a link to your email. Please follow the
-                            link inside to continue.
+                            {t("auth.weSentLink")}
                           </p>
                         </div>
                         <div className="text-center mb-3">
                           <h6 className="fw-normal text-dark mb-0">
                             Didn’t receive an email?
-                            <Link to="#" className="hover-a " aria-label="Resend verification link">
+                            <Link to="#" className="hover-a " aria-label={t("auth.resendVerificationLink")}>
                               {" "}
-                              Resend Link
+                              {t("auth.resendLink")}
                             </Link>
                           </h6>
                         </div>
@@ -123,12 +124,12 @@ const EmailVerificationPage = () => {
                           className="btn btn-primary w-100"
                           onClick={navigationPath}
                         >
-                          Skip Now
+                          {t("auth.skipNow")}
                         </button>
                       </div>
                     </div>
                     <div className="mt-5 text-center">
-                      <p className="mb-0 ">Copyright © 2026 - NBS Archive System</p>
+                      <p className="mb-0 ">{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>
