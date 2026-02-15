@@ -23,11 +23,13 @@ import {
   useFolderSignaturesAndEditRequests,
   useFolderTransfer,
 } from "@/features/folders/hooks/folderDetail";
+import type { FolderDetailPageState } from "@/features/folders/types/folderDetailState";
 
 /**
- * Composes folder-detail hooks and returns the stable shape consumed by FolderDetailPage and FolderDetailModals.
+ * Composes folder-detail hooks and returns typed state contract.
+ * Single source of truth for folder detail page state shape.
  */
-export const useFolderDetailPageContainer = () => {
+export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();

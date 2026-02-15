@@ -1,81 +1,57 @@
 import type { TFunction } from "i18next";
 import type { CreateNotePayload } from "@/features/notes/types/notes.types";
+import type { DocumentDetailPageState } from "@/features/documents/types/documentDetailState";
 import { DocumentDetailModalsGroup1 } from "./DocumentDetailModalsGroup1";
 import { DocumentDetailModalsGroup2 } from "./DocumentDetailModalsGroup2";
 
-/** Full props for document detail modals (parent passes sliced props to Group1/Group2). */
+/**
+ * Props for document detail modals.
+ * Derived from DocumentDetailPageState for single source of truth.
+ */
 export interface DocumentDetailModalsProps {
-  t: TFunction;
-  data: {
-    docId: number | null;
-    doc: { department_id?: number } | null;
-    approvedRequests: Array<{ id: number; signer_name?: string }>;
-    managers: Array<{ id: number; name: string; login?: string }>;
-  };
-  loading: {
-    uploadingVersion: boolean;
-    uploadingSigned: boolean;
-    addingRelation: boolean;
-    isUpdatingAttachment: boolean;
-    isCreatingNote: boolean;
-    isUpdatingNote: boolean;
-  };
-  modals: {
-    modalUploadVersion: boolean;
-    uploadVersionFile: File | null;
-    uploadVersionUnlockToken: string;
-    uploadVersionDescription: string;
-    uploadVersionInputRef: React.RefObject<HTMLInputElement | null>;
-    modalRequestSign: boolean;
-    selectedSignerId: string | number;
-    signMessage: string;
-    modalUploadSigned: boolean;
-    selectedApprovedReqId: number | null;
-    signToken: string;
-    signedFile: File | null;
-    signedFileInputRef: React.RefObject<HTMLInputElement | null>;
-    modalAddRelation: boolean;
-    relatedDocId: string;
-    relationNotes: string;
-    editAttachmentId: number | null;
-    editAttachmentName: string;
-    editAttachmentDescription: string;
-    isNotesEditorOpen: boolean;
-    editingNote: unknown;
-    noteImageViewerId: number | null;
-    noteImageViewerTitle: string;
-    noteImageViewerFilename: string;
-  };
-  actions: {
-    setModalUploadVersion: (v: boolean) => void;
-    setUploadVersionUnlockToken: (v: string) => void;
-    setUploadVersionDescription: (v: string) => void;
-    setUploadVersionFile: (f: File | null) => void;
-    handleClearUploadVersionFile: () => void;
-    handleUploadVersionSubmit: () => void;
-    setModalRequestSign: (v: boolean) => void;
-    setSelectedSignerId: React.Dispatch<React.SetStateAction<number | "">>;
-    setSignMessage: (v: string) => void;
-    handleCreateSignatureRequest: () => void;
-    setModalUploadSigned: (v: boolean) => void;
-    setSelectedApprovedReqId: (v: number | null) => void;
-    setSignToken: (v: string) => void;
-    setSignedFile: (f: File | null) => void;
-    handleClearSignedFile: () => void;
-    handleUploadSignedSubmit: () => void;
-    setModalAddRelation: (v: boolean) => void;
-    setRelatedDocId: (v: string) => void;
-    setRelationNotes: (v: string) => void;
-    handleAddRelationSubmit: () => void;
-    handleCloseEditAttachment: () => void;
-    setEditAttachmentName: (v: string) => void;
-    setEditAttachmentDescription: (v: string) => void;
-    handleConfirmEditAttachment: () => void;
-    handleCloseNoteEditor: () => void;
-    handleSaveNote: (payload: Omit<CreateNotePayload, "document_id">) => Promise<void>;
-    handleCloseNoteImageViewer: () => void;
-  };
-  selection: { attachmentSelectedIds: (string | number)[] };
+  t: DocumentDetailPageState["t"];
+  data: Pick<DocumentDetailPageState["data"], "docId" | "doc" | "approvedRequests" | "managers">;
+  loading: Pick<
+    DocumentDetailPageState["loading"],
+    | "uploadingVersion"
+    | "uploadingSigned"
+    | "addingRelation"
+    | "isUpdatingAttachment"
+    | "isCreatingNote"
+    | "isUpdatingNote"
+  >;
+  modals: DocumentDetailPageState["modals"];
+  actions: Pick<
+    DocumentDetailPageState["actions"],
+    | "setModalUploadVersion"
+    | "setUploadVersionUnlockToken"
+    | "setUploadVersionDescription"
+    | "setUploadVersionFile"
+    | "handleClearUploadVersionFile"
+    | "handleUploadVersionSubmit"
+    | "setModalRequestSign"
+    | "setSelectedSignerId"
+    | "setSignMessage"
+    | "handleCreateSignatureRequest"
+    | "setModalUploadSigned"
+    | "setSelectedApprovedReqId"
+    | "setSignToken"
+    | "setSignedFile"
+    | "handleClearSignedFile"
+    | "handleUploadSignedSubmit"
+    | "setModalAddRelation"
+    | "setRelatedDocId"
+    | "setRelationNotes"
+    | "handleAddRelationSubmit"
+    | "handleCloseEditAttachment"
+    | "setEditAttachmentName"
+    | "setEditAttachmentDescription"
+    | "handleConfirmEditAttachment"
+    | "handleCloseNoteEditor"
+    | "handleSaveNote"
+    | "handleCloseNoteImageViewer"
+  >;
+  selection: Pick<DocumentDetailPageState["selection"], "attachmentSelectedIds">;
   attachmentTrashModalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading?: boolean };
   batchAttachmentTrashModalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading?: boolean };
   noteDeleteModalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading?: boolean };

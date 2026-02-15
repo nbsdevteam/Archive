@@ -20,11 +20,13 @@ import {
   useDocumentRelations,
   useDocumentSignatures,
 } from "@/features/documents/hooks/documentDetail";
+import type { DocumentDetailPageState } from "@/features/documents/types/documentDetailState";
 
 /**
- * Composes document-detail hooks and returns the stable shape consumed by DocumentDetailPage and DocumentDetail* components.
+ * Composes document-detail hooks and returns typed state contract.
+ * Single source of truth for document detail page state shape.
  */
-export const useDocumentDetailPageContainer = () => {
+export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const routes = all_routes;
