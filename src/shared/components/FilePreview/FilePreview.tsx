@@ -6,29 +6,25 @@ import styles from './FilePreview.module.css';
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
 const PDF_EXTENSION = 'pdf';
 
-// ─── Module-level blob URL cache ────────────────────────────────────────────
+// ─── In-memory blob URL cache ──────────────────────────────────────────────
 // Keeps blob URLs in memory so the same file is only requested once per session.
+// - Cache key: `${documentId}-${versionId}-${attachmentId}`
+// - Stores blob URL + version metadata for automatic invalidation
+// - Evicts oldest entry when MAX_PREVIEW_CACHE_SIZE is exceeded
+//
 // Persistence across full page reloads is handled in the API layer (Cache API in
-// documents.api getDocumentForPreview / getAttachmentForPreview).
+// documents/preview.ts getDocumentForPreview / getAttachmentForPreview).
 //
 // ─── Version-based cache invalidation ───────────────────────────────────────
-// When a new file version is uploaded, the cache is automatically invalidated:
-// 1. Parent component passes `latestVersionId` from version history (first item)
-// 2. FilePreview compares cached version ID with the latest version ID
-// 3. If they differ, cache is invalidated and file is re-downloaded
-// 4. New preview is cached with the latest version ID for future comparisons
-//
-// This ensures users always see the most recent file after upload without manual refresh.
+// When a new file version is uploaded, the cache key changes automatically,
+// ensuring users always see the most recent file after upload without manual refresh.
 
 /** Maximum number of cached blob URLs before the oldest entry is evicted. */
 const MAX_PREVIEW_CACHE_SIZE = 20;
 
-/** Legacy cache for backward compatibility - will be migrated to enhancedPreviewCache */
-const previewCache = new Map<string, string>();
-
 /** 
- * Cache metadata structure to track version information 
- * This allows us to invalidate cache when a new version is uploaded
+ * Cache metadata structure to track version information and blob URL.
+ * This allows us to invalidate cache when a new version is uploaded.
  */
 interface CacheMetadata {
   blobUrl: string;
@@ -36,8 +32,8 @@ interface CacheMetadata {
   timestamp: number;
 }
 
-/** Enhanced cache that stores both blob URL and version metadata */
-const enhancedPreviewCache = new Map<string, CacheMetadata>();
+/** In-memory cache that stores blob URLs with version metadata for automatic invalidation */
+const previewCache = new Map<string, CacheMetadata>();
 
 /** Builds a unique cache key from the preview identifiers. */
 function buildPreviewCacheKey(
@@ -50,24 +46,13 @@ function buildPreviewCacheKey(
 
 /** Evicts the oldest cache entry (first inserted) and revokes its blob URL to prevent memory leaks. */
 function evictOldestIfNeeded(): void {
-  const totalSize = previewCache.size + enhancedPreviewCache.size;
-  if (totalSize <= MAX_PREVIEW_CACHE_SIZE) return;
+  if (previewCache.size <= MAX_PREVIEW_CACHE_SIZE) return;
   
-  // Try to evict from legacy cache first
-  if (previewCache.size > 0) {
-    const oldestKey = previewCache.keys().next().value;
-    if (oldestKey != null) {
-      const oldUrl = previewCache.get(oldestKey);
-      if (oldUrl) window.URL.revokeObjectURL(oldUrl);
-      previewCache.delete(oldestKey);
-    }
-  } else if (enhancedPreviewCache.size > 0) {
-    const oldestKey = enhancedPreviewCache.keys().next().value;
-    if (oldestKey != null) {
-      const metadata = enhancedPreviewCache.get(oldestKey);
-      if (metadata?.blobUrl) window.URL.revokeObjectURL(metadata.blobUrl);
-      enhancedPreviewCache.delete(oldestKey);
-    }
+  const oldestKey = previewCache.keys().next().value;
+  if (oldestKey != null) {
+    const metadata = previewCache.get(oldestKey);
+    if (metadata?.blobUrl) window.URL.revokeObjectURL(metadata.blobUrl);
+    previewCache.delete(oldestKey);
   }
 }
 
@@ -76,16 +61,9 @@ function evictOldestIfNeeded(): void {
  * Revokes the blob URL to free memory.
  */
 function invalidateCache(cacheKey: string): void {
-  const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+  const cachedMetadata = previewCache.get(cacheKey);
   if (cachedMetadata?.blobUrl) {
     window.URL.revokeObjectURL(cachedMetadata.blobUrl);
-    enhancedPreviewCache.delete(cacheKey);
-  }
-  
-  // Also check legacy cache
-  const legacyUrl = previewCache.get(cacheKey);
-  if (legacyUrl) {
-    window.URL.revokeObjectURL(legacyUrl);
     previewCache.delete(cacheKey);
   }
 }
@@ -178,17 +156,9 @@ export function FilePreview({
 
     if (!disableCache) {
       // Check if we have this exact version cached (simple key-value lookup)
-      const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+      const cachedMetadata = previewCache.get(cacheKey);
       if (cachedMetadata) {
         setBlobUrl(cachedMetadata.blobUrl);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fallback to legacy cache for backward compatibility
-      const legacyCached = previewCache.get(cacheKey);
-      if (legacyCached) {
-        setBlobUrl(legacyCached);
         setIsLoading(false);
         return;
       }
@@ -212,7 +182,7 @@ export function FilePreview({
 
         // Store in cache with the specific version ID as part of the key.
         if (!disableCache) {
-          enhancedPreviewCache.set(cacheKey, {
+          previewCache.set(cacheKey, {
             blobUrl: url,
             latestVersionId: versionId,
             timestamp: Date.now(),
