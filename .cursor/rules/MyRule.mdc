@@ -6,4 +6,4 @@ alwaysApply: true
 After every AI code completion make a git commit with proper git message.
 Add a proper brief comment on each functions and complex hook usages.
 
-**Production test rule (unit + Cypress):** Tests must only delete or modify folders/files that the test itself created. Do not add test cases that: delete folders, permanently delete files, or delete/trash existing attachments or documents. Allowed: deleting only test-created data; read-only flows and stubbed data.
+**Production test rule (unit + Cypress):** (1) Tests must only delete/modify folders or files that the test itself created. (2) Do not add: delete folder, permanent delete, batch delete from /documents page, or delete/trash of existing attachments/documents. (3) The only deletion allowed is deleting the file(s) that the same test created. (4) When a test includes deletion, the deletion flow must come last—after every other operation in that test. Allowed: read-only flows and stubbed data.

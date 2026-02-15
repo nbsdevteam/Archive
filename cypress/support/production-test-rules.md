@@ -6,7 +6,12 @@
   - Delete folders (no "delete folder" in tests).
   - Permanently delete files/documents (no permanent-delete tests).
   - Delete or trash existing attachments or documents that the test did not create.
+  - **Batch delete from the /documents page** (no batch delete/trash from the main documents list).
 
-- **Allowed:** Create temporary data in the test, then delete/trash only that data. Read-only flows (e.g. list, view, restore from trash with stubbed data) are fine.
+- **Allowed deletion:** The **only** deletion a test may perform is deleting (or trashing) **the file(s) that the same test created**. No other deletion flows.
+
+- **Order:** When a test includes a deletion step, the **deletion flow must come last**—after every other operation in that test (e.g. create → edit → then delete the created file).
+
+- **Allowed (no deletion):** Read-only flows (e.g. list, view, restore from trash with stubbed data) are fine.
 
 See also: `.cursor/rules` for AI/test authoring guidance.
