@@ -169,6 +169,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         error: handleApiError(error),
         isDownloading: false,
       });
+      throw error;
     }
   },
 

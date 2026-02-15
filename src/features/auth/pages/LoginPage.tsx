@@ -196,7 +196,7 @@ export default function LoginPage() {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <Button type="submit" variant="secondary" className="w-100" disabled={loading} isLoading={loading}>
+                        <Button type="submit" variant="secondary" className="w-100" disabled={loading} isLoading={loading} data-testid="login-submit-btn">
                           {loading ? "Signing in…" : "Sign In"}
                         </Button>
                       </div>

@@ -68,7 +68,7 @@ const DashboardPage = () => {
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2 align-items-center">
-              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel}>
+              <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel} data-testid="upload-document-btn">
                 <Icon name="file-up" className="me-1" />
                 Upload Document
               </Button>

@@ -19,7 +19,7 @@
     "trigger-apis": "node scripts/trigger-archive-apis.js",
     "cypress:run:headed": "cypress run --headed --browser chrome",
     "e2e:open": "cypress open",
-    "e2e:slow:open": "cypress open --e2e --spec \"cypress/e2e/slow-smoke-production-safe.cy.ts,cypress/e2e/walkthrough-slow.cy.ts\"",
+    "e2e:slow:open": "cypress open --e2e --config specPattern=cypress/e2e/*slow*.cy.ts",
     "e2e:headed": "start-server-and-test dev http://localhost:3003 cypress:run:headed",
     "e2e:ci": "start-server-and-test dev http://localhost:3003 \"cypress run\"",
     "e2e:slow": "start-server-and-test dev http://localhost:3003 \"cypress run --headed --browser chrome --env commandDelay=600 --spec cypress/e2e/walkthrough-slow.cy.ts\""

@@ -56,11 +56,11 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
-    cy.get('.react-select__control').eq(1).click();
+    cy.get('[data-testid="department-select"]').click();
     waitStep();
     cy.get('.react-select__option').contains('Finance (FIN)').click();
     waitStep();
-    cy.get('.react-select__control').eq(2).click();
+    cy.get('[data-testid="document-type-select"]').click();
     waitStep();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
     waitStep();

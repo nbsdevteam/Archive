@@ -84,7 +84,7 @@ const FolderDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder} data-testid="upload-in-folder-btn">
             <Icon name="upload" className="me-1" />
             {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
           </Button>

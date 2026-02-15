@@ -112,8 +112,10 @@ export const documentsApi = {
   unarchiveDocument: lifecycle.unarchiveDocument,
   trashDocument: lifecycle.trashDocument,
   permanentDeleteDocument: lifecycle.permanentDeleteDocument,
+  permanentDeleteDocuments: (ids: number[]) => lifecycle.permanentDeleteDocument(ids),
   restoreDocument: lifecycle.restoreDocument,
   getTrashDocuments: lifecycle.getTrashDocuments,
+  listTrashDocuments: lifecycle.getTrashDocuments,
 
   // Relations
   getRelations: relations.getRelations,

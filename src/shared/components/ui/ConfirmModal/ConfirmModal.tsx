@@ -49,6 +49,7 @@ export const ConfirmModal = memo(function ConfirmModal({
           onClick={onConfirm}
           disabled={isLoading}
           isLoading={isLoading}
+          data-testid="confirm-modal-confirm"
         >
           {confirmLabel}
         </Button>

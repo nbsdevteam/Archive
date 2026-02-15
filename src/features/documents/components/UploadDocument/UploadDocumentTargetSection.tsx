@@ -87,6 +87,7 @@ export function UploadDocumentTargetSection({
           isDisabled={lockFolderContext}
           isClearable={false}
           error={errors.upload_kind?.message as string | undefined}
+          data-testid="upload-kind-select"
         />
       </div>
 
@@ -112,6 +113,7 @@ export function UploadDocumentTargetSection({
             required
             isDisabled={lockFolderContext}
             error={errors.department_id?.message as string | undefined}
+            data-testid="department-select"
           />
           <SelectField
             control={control}
@@ -122,6 +124,7 @@ export function UploadDocumentTargetSection({
             isDisabled={!departmentId || departmentId < 1}
             required
             error={errors.document_type_id?.message as string | undefined}
+            data-testid="document-type-select"
           />
         </>
       )}
@@ -153,6 +156,7 @@ export function UploadDocumentTargetSection({
               isDisabled={lockFolderContext || !departmentId || departmentId < 1}
               allowZero
               error={errors.folder_id?.message as string | undefined}
+              data-testid="folder-select"
             />
           )}
 
@@ -183,6 +187,7 @@ export function UploadDocumentTargetSection({
                 isStringValue
                 isDisabled={lockFolderContext}
                 error={errors.folder_type?.message as string | undefined}
+                data-testid="folder-type-select"
               />
               <div className="mb-3">
                 <label className="form-label">{t("documents.folderDescription", { defaultValue: "Folder description" })}</label>
@@ -198,6 +203,7 @@ export function UploadDocumentTargetSection({
             label={t("documents.confidentialityLevel", { defaultValue: "Confidentiality level" })}
             isStringValue
             error={errors.confidentiality_level?.message as string | undefined}
+            data-testid="confidentiality-select"
           />
         </>
       )}

@@ -169,6 +169,7 @@ export function DocumentsToolbar({
         size="md"
         className="d-inline-flex align-items-center btn-outline-secondary"
         onClick={actions.handleOpenUpload}
+        data-testid="upload-documents-btn"
       >
         <Icon name="file-up" className="me-2" />
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}

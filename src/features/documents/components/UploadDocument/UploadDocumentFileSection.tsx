@@ -53,6 +53,7 @@ export function UploadDocumentFileSection({
         ref={fileInputRef}
         multiple={uploadKind === "attachment" || uploadKind === "sub"}
         onChange={handleInputChange}
+        data-testid="upload-file-input"
       />
       <div className="d-flex gap-2">
         <Button

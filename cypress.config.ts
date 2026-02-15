@@ -16,5 +16,7 @@ export default defineConfig({
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     responseTimeout: 10000,
+    /** Optional: set commandDelay (ms) to slow down click/type so you can watch the UI (e.g. e2e:slow script). */
+    env: { commandDelay: 0 },
   },
 });

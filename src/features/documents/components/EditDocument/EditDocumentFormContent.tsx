@@ -88,6 +88,7 @@ export function EditDocumentFormContent({
           required
           error={errors.department_id?.message as string | undefined}
           isDisabled={isSubDoc || isInFolder}
+          data-testid="edit-department-select"
         />
         <SelectField
           control={control}
@@ -98,6 +99,7 @@ export function EditDocumentFormContent({
           isDisabled={isSubDoc || !departmentId || departmentId < 1}
           required
           error={errors.document_type_id?.message as string | undefined}
+          data-testid="edit-document-type-select"
         />
         <Input
           label={t("documents.documentTitle", { defaultValue: "Document title" })}
@@ -125,6 +127,7 @@ export function EditDocumentFormContent({
               allowZero
               error={errors.folder_id?.message as string | undefined}
               isDisabled
+              data-testid="edit-folder-select"
             />
           )
         )}
@@ -135,6 +138,7 @@ export function EditDocumentFormContent({
           label={t("documents.confidentialityLevel", { defaultValue: "Confidentiality level" })}
           isStringValue
           error={errors.confidentiality_level?.message as string | undefined}
+          data-testid="edit-confidentiality-select"
         />
       </div>
 

@@ -22,6 +22,8 @@ interface SelectFieldProps<T extends FieldValues, Name extends FieldPath<T>> {
   allowZero?: boolean;
   /** When false, hides the clear (X) button; use for required single-choice dropdowns. Default true. */
   isClearable?: boolean;
+  /** Optional data-testid for E2E testing */
+  "data-testid"?: string;
 }
 
 /**
@@ -41,6 +43,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
   isStringValue = false,
   allowZero = false,
   isClearable = true,
+  "data-testid": dataTestId,
 }: SelectFieldProps<T, Name>) {
   return (
     <div className={`mb-3 ${className}`}>
@@ -85,6 +88,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
                   borderColor: error ? "var(--bs-form-invalid-border-color)" : base.borderColor,
                 }),
               }}
+              {...(dataTestId ? { "data-testid": dataTestId } : {})}
             />
           );
         }}
