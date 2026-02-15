@@ -3,6 +3,7 @@
  * button (dashboard or documents page), fill form, submit. Uses data-testid throughout.
  * Run with: npm run e2e:slow or npm run e2e:slow:open (dev server already running).
  * PRODUCTION RULE: No delete folder, no permanent delete, no batch delete from /documents.
+ * Do not visit: edit-requests, signatures, notifications, permissions (E2E for those later).
  */
 
 const STEP_DELAY = 800;

@@ -18,4 +18,11 @@
 
 - **Real-API specs:** When running against the real API (e.g. `slow-smoke-real-api.cy.ts`), CRUD must be **only on test-created data**. Create with unique names, capture created ids from responses, then only Read/Update the documents/folders/attachments created in that test. Exclude delete folder, permanent delete, and batch delete; block those endpoints (403) in the spec so no delete can succeed.
 
+- **Excluded routes (do not visit in E2E):** Do **not** add test steps that visit or assert on:
+  - `/edit-requests` (edit requests)
+  - `/signatures` (signatures)
+  - `/notifications` (notifications)
+  - `/admin/permissions` (permissions)
+  These areas will be covered by E2E tests later; current specs must not navigate to or depend on them.
+
 See also: `.cursor/rules` for AI/test authoring guidance.

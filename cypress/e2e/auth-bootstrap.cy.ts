@@ -1,6 +1,7 @@
 /**
  * Auth bootstrap: seed tokens via loginByToken, land on a known page, verify header/user menu.
  * PRODUCTION RULE: Read-only; no delete/permanent delete/batch delete.
+ * Do not visit: edit-requests, signatures, notifications, permissions (E2E for those later).
  */
 
 describe('Auth bootstrap', () => {

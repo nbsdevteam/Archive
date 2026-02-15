@@ -1,6 +1,7 @@
 /**
  * Slow, production-safe smoke: one sequential run of all key flows (no delete, no permanent delete).
  * PRODUCTION RULE: No delete folder, no batch delete from /documents, no permanent delete.
+ * Do not visit: edit-requests, signatures, notifications, permissions (E2E for those later).
  * Run with: npm run e2e:slow:open (with dev server already running). Uses stubbed APIs only.
  */
 

@@ -4,6 +4,7 @@
  * - Blocks delete folder, permanent delete, and batch trash at network level (403) so no delete can succeed.
  * - Flow: Create main document (unique names) → Read (navigate to doc) → Update document → Add attachment → Edit attachment.
  * - No delete, no permanent delete, no batch delete from /documents, no delete folder.
+ * - Do not visit: edit-requests, signatures, notifications, permissions (E2E for those later).
  * Run with: npm run e2e:slow:open (dev server + real backend running). Ensure backend is available at baseUrl.
  */
 
