@@ -121,7 +121,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
       )}
 
       {tabState.activeTab === "attachments" && (
-        <div className="attachments-tab-content" data-testid="document-detail-attachments-tab">
+        <div className="attachments-tab-content h-min-25vh" data-testid="document-detail-attachments-tab">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
             <div className="d-flex align-items-center gap-2">

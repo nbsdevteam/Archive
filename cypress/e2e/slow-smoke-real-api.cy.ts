@@ -54,6 +54,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     // --- 2. Create: upload main document (real API) ---
+    cy.flash('Testing upload flow');
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
@@ -92,6 +93,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     // --- 3. Read: navigate to the document we just created ---
+    cy.flash('Testing read flow — navigating to document');
     cy.get('@createdDocId').then((id: number) => {
       cy.visit(`/documents/${id}`);
     });
@@ -100,6 +102,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     cy.contains(titleMain).should('be.visible');
 
     // --- 4. Update: edit document title (only on test-created doc) ---
+    cy.flash('Testing update flow — editing document');
     cy.get('[data-testid="document-detail-edit-document-btn"]').click();
     waitStep();
     cy.get('[data-testid="edit-document-side-panel"]').should('be.visible');
@@ -112,6 +115,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     // --- 5. Create: add attachment (only on test-created doc) ---
+    cy.flash('Testing add attachment flow');
     cy.contains('button', 'Attachments').click();
     waitStep();
     cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
@@ -130,6 +134,7 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     // --- 6. Update: edit attachment (only the attachment we added) ---
+    cy.flash('Testing edit attachment flow');
     cy.get('[data-testid="document-detail-attachments-tab"]').find('[aria-label="Row actions"]').first().click();
     waitStep();
     cy.get('[data-testid="row-action-edit"]').first().click();
@@ -143,6 +148,139 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
     cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
     cy.contains(attachmentName).should('be.visible');
+
+    // --- 7. Transfer flow: Base main+folder, Target main+folder, Base secondary, transfer to target, verify ---
+    cy.flash('Testing transfer flow — creating Base and Target folders, then transferring');
+    const baseMainTitle = `BaseMainForTransfer ${suffix}`;
+    const baseFolderName = `BaseFolderForTransfer ${suffix}`;
+    const baseFolderCode = `BASE-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
+    const targetMainTitle = `TargetMainForTransfer ${suffix}`;
+    const targetFolderName = `TargetFolderForTransfer ${suffix}`;
+    const targetFolderCode = `TGT-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
+    const baseSecondaryTitle = `BaseSecondaryFileForTransfer ${suffix}`;
+
+    cy.intercept('POST', (req) => {
+      if (!req.url?.includes('/api/folders') || req.url.includes('/create') || req.url.includes('/update') || /\/api\/folders\/\d+/.test(req.url)) return;
+      req.continue();
+    }).as('listFolders');
+
+    cy.visit('/dashboard');
+    waitStep();
+    cy.get('[data-testid="upload-document-btn"]').click();
+    waitStep();
+    cy.get('[data-testid="upload-document-submit"]').should('be.visible');
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('Finance (FIN)').click();
+    waitStep();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('Invoice (INV)').click();
+    waitStep();
+    cy.get('input[name="title"]').clear().type(baseMainTitle);
+    waitStep();
+    cy.get('input[name="folder_name"]').clear().type(baseFolderName);
+    waitStep();
+    cy.get('input[name="folder_code"]').clear().type(baseFolderCode);
+    waitStep();
+    cy.get('input[type="file"]').selectFile(
+      { contents: Cypress.Buffer.from('base main for transfer'), fileName: 'base-main.pdf' },
+      { force: true }
+    );
+    waitStep();
+    cy.get('[data-testid="upload-document-submit"]').click();
+    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
+    waitStep();
+
+    cy.get('[data-testid="upload-document-btn"]').click();
+    waitStep();
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('Finance (FIN)').click();
+    waitStep();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('Invoice (INV)').click();
+    waitStep();
+    cy.get('input[name="title"]').clear().type(targetMainTitle);
+    waitStep();
+    cy.get('input[name="folder_name"]').clear().type(targetFolderName);
+    waitStep();
+    cy.get('input[name="folder_code"]').clear().type(targetFolderCode);
+    waitStep();
+    cy.get('input[type="file"]').selectFile(
+      { contents: Cypress.Buffer.from('target main for transfer'), fileName: 'target-main.pdf' },
+      { force: true }
+    );
+    waitStep();
+    cy.get('[data-testid="upload-document-submit"]').click();
+    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
+    waitStep();
+
+    cy.visit('/folders');
+    cy.wait('@listFolders', { timeout: 10000 });
+    cy.get('@listFolders').then((interception: { response?: { body?: unknown } }) => {
+      const body = interception.response?.body as Record<string, unknown> | undefined;
+      const result = body?.result as Record<string, unknown> | undefined;
+      const data = body?.data as { id: number; name: string }[] | undefined;
+      const folders = (result?.folders ?? result?.data ?? body?.folders ?? data ?? []) as { id: number; name: string }[];
+      const list = Array.isArray(folders) ? folders : [];
+      const baseFolder = list.find((f) => String(f.name ?? '').includes('BaseFolderForTransfer'));
+      const targetFolder = list.find((f) => String(f.name ?? '').includes('TargetFolderForTransfer'));
+      if (baseFolder && targetFolder) {
+        cy.wrap(baseFolder.id).as('baseFolderId');
+        cy.wrap(targetFolder.id).as('targetFolderId');
+      }
+    });
+    cy.get('@baseFolderId').then((baseFolderId: number) => {
+      cy.get('@targetFolderId').then((targetFolderId: number) => {
+        cy.visit('/documents/upload');
+        waitStep();
+        cy.get('[data-testid="upload-document-open-btn"]').click();
+        waitStep();
+        cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
+        waitStep();
+        cy.get('.react-select__option').contains('Sub Document').click();
+        waitStep();
+        cy.get('[data-testid="department-select"]').find('.react-select__control').click();
+        waitStep();
+        cy.get('.react-select__option').contains('Finance (FIN)').click();
+        waitStep();
+        cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
+        waitStep();
+        cy.get('.react-select__option').contains('Invoice (INV)').click();
+        waitStep();
+        cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
+        waitStep();
+        cy.get('.react-select__option').contains(baseFolderName).click();
+        waitStep();
+        cy.get('input[name="title"]').clear().type(baseSecondaryTitle);
+        waitStep();
+        cy.get('input[type="file"]').selectFile(
+          { contents: Cypress.Buffer.from('base secondary for transfer'), fileName: 'base-secondary.pdf' },
+          { force: true }
+        );
+        waitStep();
+        cy.get('[data-testid="upload-document-submit"]').click();
+        cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
+        waitStep();
+
+        cy.visit(`/folders/${baseFolderId}`);
+        waitStep();
+        cy.contains(baseSecondaryTitle).closest('tr').within(() => cy.contains('button', 'Transfer').click());
+        waitStep();
+        cy.get('[data-testid="transfer-folder-select"]').select(String(targetFolderId));
+        waitStep();
+        cy.get('[data-testid="transfer-confirm-btn"]').click();
+        waitStep();
+        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+        waitStep();
+
+        cy.visit(`/folders/${targetFolderId}`);
+        waitStep();
+        cy.contains(baseSecondaryTitle).should('be.visible');
+      });
+    });
 
     // No delete, no permanent delete, no batch trash, no delete folder — CRUD on test-created file only
   });

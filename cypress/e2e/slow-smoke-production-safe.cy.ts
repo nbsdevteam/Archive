@@ -204,6 +204,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     cy.get('body').should('be.visible');
 
     // --- 2. Upload main document from dashboard ---
+    cy.flash('Testing upload flow');
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
@@ -228,6 +229,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 3. Upload sub document from upload page ---
+    cy.flash('Testing sub-document upload flow');
     cy.visit('/documents/upload');
     waitStep();
     cy.get('[data-testid="upload-document-open-btn"]').click();
@@ -257,6 +259,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 4. Bulk upload sub ---
+    cy.flash('Testing bulk upload flow');
     cy.intercept('POST', (req) => {
       if (!req.url.includes('/api/folders')) return;
       if (req.url.includes('/create') || req.url.includes('/update') || /\/api\/folders\/\d+/.test(req.url)) return;
@@ -302,6 +305,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 5. Document detail: edit document ---
+    cy.flash('Testing edit document flow');
     cy.visit(`/documents/${DOC_ID_EDIT}`);
     waitStep();
     cy.get('[data-testid="document-detail-edit-document-btn"]').click();
@@ -315,6 +319,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 6. Document detail: attachments add + edit ---
+    cy.flash('Testing attachments add and edit flow');
     cy.visit(`/documents/${DOC_ID_ATTACH}`);
     waitStep();
     cy.contains('button', 'Attachments').click();
@@ -337,6 +342,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 7. Folder detail: transfer ---
+    cy.flash('Testing transfer flow');
     cy.visit(`/folders/${FOLDER_ID_TRANSFER}`);
     waitStep();
     cy.contains('Sub Doc 1').closest('tr').within(() => cy.contains('button', 'Transfer').click());
@@ -349,6 +355,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
 
     // --- 8. Trash: restore single ---
+    cy.flash('Testing trash restore flow');
     cy.visit('/documents/trash');
     waitStep();
     cy.get('[data-testid="documents-trash-page"]').should('be.visible');

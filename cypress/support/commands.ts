@@ -1,5 +1,44 @@
 /// <reference types="cypress" />
 
+const FLASH_DURATION_MS = 2200;
+const FLASH_Z_INDEX = 99999;
+
+/**
+ * Injects a centered full-screen overlay with the given message, waits, then removes it.
+ * Use before each major flow so the viewer sees what is being tested.
+ */
+Cypress.Commands.add('flash', (message: string, durationMs: number = FLASH_DURATION_MS) => {
+  cy.document().then((doc) => {
+    const existing = doc.querySelector('[data-cy-flash]');
+    if (existing) existing.remove();
+    const el = doc.createElement('div');
+    el.setAttribute('data-cy-flash', 'true');
+    el.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'z-index:' + FLASH_Z_INDEX,
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'background:rgba(0,0,0,0.75)',
+      'color:#fff',
+      'font-size:clamp(1.5rem,4vw,2.5rem)',
+      'font-weight:700',
+      'text-align:center',
+      'padding:2rem',
+      'pointer-events:none',
+      'font-family:system-ui,sans-serif',
+    ].join(';');
+    el.textContent = message;
+    doc.body.appendChild(el);
+  });
+  cy.wait(durationMs);
+  cy.document().then((doc) => {
+    const el = doc.querySelector('[data-cy-flash]');
+    if (el) el.remove();
+  });
+});
+
 /**
  * Returns a short unique suffix (timestamp + random 1–999) to avoid "name already exists" in E2E.
  * Use for document titles, folder names, attachment names, etc. Exposed as Cypress.uniqueE2ESuffix() in specs.
@@ -76,6 +115,10 @@ declare global {
         path?: string,
         options?: { accessToken?: string; refreshToken?: string }
       ): Chainable<void>;
+      /**
+       * Show a centered full-screen flash message for a short duration (default 2.2s), then remove it.
+       */
+      flash(message: string, durationMs?: number): Chainable<void>;
     }
   }
 }

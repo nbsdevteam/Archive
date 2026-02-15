@@ -57,6 +57,7 @@ describe('Walkthrough: login and upload (slow)', () => {
     cy.url({ timeout: 15000 }).should('include', '/dashboard');
     waitStep();
 
+    cy.flash('Testing upload flow');
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
 
@@ -89,6 +90,7 @@ describe('Walkthrough: login and upload (slow)', () => {
     cy.loginAsAdmin('/documents');
     waitStep();
 
+    cy.flash('Testing upload flow — documents page');
     cy.get('[data-testid="upload-documents-btn"]').should('be.visible').click();
     waitStep();
 
