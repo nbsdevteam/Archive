@@ -61,7 +61,7 @@ export function UploadDocumentFileSection({
   return (
     <div className="mb-3">
       {uploadKind === "main" && onUploadMultipleMainChange != null && (
-        <div className="mb-2 py-2 px-3 rounded bg-light">
+        <div className="mb-2 py-2 px-1 rounded bg-light">
           <label className="form-check d-flex align-items-center gap-2 mb-0">
             <input
               type="checkbox"
@@ -82,7 +82,7 @@ export function UploadDocumentFileSection({
         </div>
       )}
       {uploadKind === "sub" && onUploadMultipleSubChange != null && (
-        <div className="mb-2 py-2 px-3 rounded bg-light">
+        <div className="mb-2 py-2 px-1 rounded bg-light">
           <label className="form-check d-flex align-items-center gap-2 mb-0">
             <input
               type="checkbox"
