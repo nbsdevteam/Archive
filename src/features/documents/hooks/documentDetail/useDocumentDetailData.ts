@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import type { DocumentDetail, DocumentVersion } from "@/app/adapter/api/documents.api";
 import { clearDocumentPreviewCache } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { getDocumentTypeName, getDepartmentName, getUploaderName } from "@/features/documents/utils/documentShapeHelpers";
 
 /**
  * Fetches document by id and derives display fields (title, fileName, versions, ocr, etc.).
@@ -28,10 +29,10 @@ export function useDocumentDetailData(docId: number | null) {
   const doc = currentDocument as DocumentDetail | null;
 
   const title = doc?.name ?? doc?.title ?? "–";
-  const documentTypeName =
-    (doc?.document_type as { name?: string })?.name ?? doc?.document_type_name ?? "–";
-  const departmentName = (doc?.department as { name?: string })?.name ?? doc?.department_name ?? "–";
-  const uploaderName = (doc?.uploader_name as string) ?? "–";
+  // Use centralized shape helpers for consistent backend field reading
+  const documentTypeName = getDocumentTypeName(doc) || "–";
+  const departmentName = getDepartmentName(doc) || "–";
+  const uploaderName = getUploaderName(doc) || "–";
   const versions: DocumentVersion[] = Array.isArray(doc?.versions) ? doc.versions : [];
   const tags = Array.isArray(doc?.tags) ? doc.tags : [];
   const ocr = doc?.ocr ?? {};
