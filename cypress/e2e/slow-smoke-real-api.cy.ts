@@ -6,9 +6,20 @@
  * 3. Trash and permanent delete: Only on phase 1+2 folders and their files (move to trash, permanent delete, delete folders).
  * 4. Batch: Create MainDocForBatchStuffYeahYeahh folder, bulk upload 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete (only this folder's files).
  * Run with: npm run e2e:slow:open (dev server + real backend). Deletion/trash/permanent-delete are allowed but tests must only act on data they created.
+ *
+ * Re-run from where it stopped (avoid re-running Phase 1 after a fix):
+ * - In Cypress UI: Click the failed test in the left sidebar (e.g. "Phase 2 — Transfer...") and run only that test (Run 1 test). Do not click "Run all tests".
+ * - From CLI: npx cypress run --spec cypress/e2e/slow-smoke-real-api.cy.ts --env runPhase=2   (runPhase: 1–4 = Phase 1–4, 5 = Update)
  */
 
 const STEP_DELAY = 800;
+
+/** When set (e.g. 2), only that phase runs. Use --env runPhase=2 to resume from Phase 2 after a fix. */
+const runOnlyPhase = Cypress.env('runPhase') as number | undefined;
+
+function shouldRunPhase(phase: number): boolean {
+  return runOnlyPhase === undefined || runOnlyPhase === phase;
+}
 
 function waitStep() {
   cy.wait(STEP_DELAY);
@@ -89,7 +100,7 @@ describe('Slow smoke (real API) — flow options', () => {
     ).as('listFolders');
   });
 
-  it('Phase 1 — Upload: MainBaseFile, MainBaseFolder, MainBaseSecondaryFile, MainTargetFile, MainTargetFolder; edit all (add -edited)', () => {
+  (shouldRunPhase(1) ? it : it.skip)('Phase 1 — Upload: MainBaseFile, MainBaseFolder, MainBaseSecondaryFile, MainTargetFile, MainTargetFolder; edit all (add -edited)', () => {
     const mainBaseFile = 'MainBaseFile';
     const mainBaseFolder = 'MainBaseFolder';
     const mainBaseSecondaryFile = 'MainBaseSecondaryFile';
@@ -211,7 +222,7 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  it('Phase 2 — Transfer: use existing MainBaseSecondaryFile-edited, transfer to target, edit there, transfer back', () => {
+  (shouldRunPhase(2) ? it : it.skip)('Phase 2 — Transfer: use existing MainBaseSecondaryFile-edited, transfer to target, edit there, transfer back', () => {
     loginAndFlash('Phase 2: Transfer secondary to target, edit in target, transfer back to base');
 
     cy.visit('/folders');
@@ -267,7 +278,7 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  it('Phase 3 — Move to trash and permanent delete (only this test\'s folders and their files)', () => {
+  (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Move to trash and permanent delete (only this test\'s folders and their files)', () => {
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const mainBaseTitle = `MainBaseFile ${suffix}`;
     const mainBaseFolderName = `MainBaseFile Folder ${suffix}`;
@@ -414,7 +425,7 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  it('Phase 4 — Batch: MainDocForBatchStuffYeahYeahh, 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete', () => {
+  (shouldRunPhase(4) ? it : it.skip)('Phase 4 — Batch: MainDocForBatchStuffYeahYeahh, 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete', () => {
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const mainTitle = `MainDocForBatchStuffYeahYeahh ${suffix}`;
     const folderName = `MainDocForBatchStuffYeahYeahh Folder ${suffix}`;
@@ -552,7 +563,7 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  it('Update: update document and attachment', () => {
+  (shouldRunPhase(5) ? it : it.skip)('Update: update document and attachment', () => {
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const title = `UpdateFlow Doc ${suffix}`;
     const folderName = `UpdateFlow Folder ${suffix}`;
