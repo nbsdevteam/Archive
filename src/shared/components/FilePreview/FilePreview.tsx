@@ -138,6 +138,8 @@ export interface FilePreviewProps {
   notPreviewableMessage?: string;
   /** Optional i18n message for load error */
   errorMessage?: string;
+  /** When true, always fetch from network and skip local preview caching. */
+  disableCache?: boolean;
 }
 
 export function FilePreview({
@@ -149,6 +151,7 @@ export function FilePreview({
   maxHeight = '600px',
   notPreviewableMessage = 'Preview not available for this file type',
   errorMessage,
+  disableCache = false,
 }: FilePreviewProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -173,28 +176,23 @@ export function FilePreview({
     // If version changes, the key changes = automatic cache miss = re-download
     const cacheKey = buildPreviewCacheKey(documentId, versionId, attachmentId);
 
-    console.log(`[FilePreview] Cache key: ${cacheKey} (doc: ${documentId}, version: ${versionId ?? 'latest'})`);
+    if (!disableCache) {
+      // Check if we have this exact version cached (simple key-value lookup)
+      const cachedMetadata = enhancedPreviewCache.get(cacheKey);
+      if (cachedMetadata) {
+        setBlobUrl(cachedMetadata.blobUrl);
+        setIsLoading(false);
+        return;
+      }
 
-    // Check if we have this exact version cached (simple key-value lookup)
-    const cachedMetadata = enhancedPreviewCache.get(cacheKey);
-    if (cachedMetadata) {
-      console.log(`[FilePreview] ✓ Cache HIT - Serving from cache for ${cacheKey}`);
-      setBlobUrl(cachedMetadata.blobUrl);
-      setIsLoading(false);
-      return;
+      // Fallback to legacy cache for backward compatibility
+      const legacyCached = previewCache.get(cacheKey);
+      if (legacyCached) {
+        setBlobUrl(legacyCached);
+        setIsLoading(false);
+        return;
+      }
     }
-
-    // Fallback to legacy cache for backward compatibility
-    const legacyCached = previewCache.get(cacheKey);
-    if (legacyCached) {
-      console.log(`[FilePreview] ✓ Cache HIT (legacy) - Serving from cache for ${cacheKey}`);
-      setBlobUrl(legacyCached);
-      setIsLoading(false);
-      return;
-    }
-
-    // Cache miss - download the file
-    console.log(`[FilePreview] ✗ Cache MISS - Downloading preview for ${cacheKey}`);
 
     let isCancelled = false;
 
@@ -206,27 +204,26 @@ export function FilePreview({
         const blob =
           attachmentId != null
             ? await documentsApi.getAttachmentForPreview(documentId, attachmentId, fileName)
-            : await documentsApi.getDocumentForPreview(documentId, versionId, fileName);
+            : await documentsApi.getDocumentForPreview(documentId, versionId, fileName, !disableCache);
 
         if (isCancelled) return;
 
         const url = window.URL.createObjectURL(blob);
 
-        // Store in cache with the specific version ID as part of the key
-        enhancedPreviewCache.set(cacheKey, {
-          blobUrl: url,
-          latestVersionId: versionId,
-          timestamp: Date.now(),
-        });
-        evictOldestIfNeeded();
-
-        console.log(`[FilePreview] ✓ Downloaded and cached ${cacheKey}`);
+        // Store in cache with the specific version ID as part of the key.
+        if (!disableCache) {
+          enhancedPreviewCache.set(cacheKey, {
+            blobUrl: url,
+            latestVersionId: versionId,
+            timestamp: Date.now(),
+          });
+          evictOldestIfNeeded();
+        }
         setBlobUrl(url);
         setIsLoading(false);
       } catch (err: unknown) {
         if (!isCancelled) {
           const msg = err instanceof Error ? err.message : 'Failed to load file for preview';
-          console.error(`[FilePreview] ✗ Error loading ${cacheKey}:`, err);
           setError(errorMessage ?? msg);
           setIsLoading(false);
         }
@@ -240,7 +237,7 @@ export function FilePreview({
     return () => {
       isCancelled = true;
     };
-  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage]);
+  }, [documentId, versionId, attachmentId, fileName, isPreviewable, errorMessage, disableCache]);
 
   if (!isPreviewable) {
     return (
