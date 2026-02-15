@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
 import { z } from "zod";
 import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
@@ -64,7 +64,7 @@ export const CreateFolderSidePanel = ({
     reset,
   } = useForm<CreateFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolver(createFolderSchema),
+    resolver: zodResolverZod4(createFolderSchema),
     defaultValues: {
       name: "",
       code: "",

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
 import { z } from "zod";
 import { SidePanel, Input, Button } from "../../../shared/components/ui";
 import { updateFolder } from "../services/folders.api";
@@ -48,7 +48,7 @@ export const EditFolderSidePanel = ({
     reset,
   } = useForm<EditFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolver(editFolderSchema),
+    resolver: zodResolverZod4(editFolderSchema),
     defaultValues: {
       name: "",
       code: "",

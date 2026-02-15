@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { adminApi } from "@/app/adapter/api/admin.api";
@@ -42,7 +42,7 @@ export function UploadDocumentSidePanel({
   const defaultValues = useMemo(() => getDefaultUploadFormValues(initialValues, lockFolderContext), [initialValues, lockFolderContext]);
   const { control, register, handleSubmit, trigger, watch, formState: { errors }, reset, setValue } = useForm<UploadFormValues>({
     mode: "onChange",
-    resolver: zodResolver(uploadDocumentSchema) as Resolver<UploadFormValues>,
+    resolver: zodResolverZod4(uploadDocumentSchema) as Resolver<UploadFormValues>,
     defaultValues,
   });
 

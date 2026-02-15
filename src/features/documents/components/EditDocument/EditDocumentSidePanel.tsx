@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { documentsApi } from "@/app/adapter/api/documents.api";
@@ -119,7 +119,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
 
   const { control, register, formState: { errors }, reset, watch, setValue, handleSubmit, trigger } = useForm<EditDocumentFormValues>({
     mode: "onChange",
-    resolver: zodResolver(schema) as Resolver<EditDocumentFormValues>,
+    resolver: zodResolverZod4(schema) as Resolver<EditDocumentFormValues>,
     defaultValues,
   });
 
