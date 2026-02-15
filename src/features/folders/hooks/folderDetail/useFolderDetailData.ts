@@ -6,9 +6,21 @@ import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { sortFolderDocumentsByUploadDate } from "../../utils/sortFolderDocumentsByUploadDate";
 
+/** Folder role for main document (only this is shown in Main document section). */
+const FOLDER_ROLE_MAIN = "main";
+
+function isMainRole(role: string | undefined): boolean {
+  return (role ?? "").toLowerCase() === FOLDER_ROLE_MAIN;
+}
+
+function isSecondaryRole(role: string | undefined): boolean {
+  const r = (role ?? "").toLowerCase();
+  return r === "sub" || r === "other";
+}
+
 /**
- * Fetches folder and its documents. Derives mainDoc/subDocs.
- * Optionally sets initial attachmentsDocId when first document loads.
+ * Fetches folder and its documents. Derives mainDoc from folder_role === "main", subDocs from "sub" | "other".
+ * Optionally sets initial attachmentsDocId to main doc when present, else first secondary doc.
  */
 export function useFolderDetailData(
   folderId: number | null,
@@ -30,13 +42,12 @@ export function useFolderDetailData(
       setFolder(result.folder ?? null);
       const docs = result.data ?? [];
       setDocuments(docs);
-      if (docs.length > 0) {
-        const first = sortFolderDocumentsByUploadDate(docs)[0];
-        if (first?.id) {
-          // Always fetch full document details (including versions) to ensure preview cache validation works
-          await fetchDocument(first.id);
-          if (attachmentsDocId === "") setAttachmentsDocId(first.id);
-        }
+      const main = docs.find((d) => isMainRole(d.folder_role));
+      const secondary = docs.filter((d) => isSecondaryRole(d.folder_role));
+      const docToPreload = main ?? sortFolderDocumentsByUploadDate(secondary)[0] ?? null;
+      if (docToPreload?.id) {
+        await fetchDocument(docToPreload.id);
+        if (attachmentsDocId === "") setAttachmentsDocId(docToPreload.id);
       }
     } catch (e: unknown) {
       setError(handleApiError(e));
@@ -55,8 +66,10 @@ export function useFolderDetailData(
     () => sortFolderDocumentsByUploadDate(documents),
     [documents]
   );
-  const mainDoc = docsSorted[0] ?? null;
-  const subDocs = docsSorted.slice(1);
+  /** Main document section: only the document with folder_role "main". */
+  const mainDoc = useMemo(() => docsSorted.find((d) => isMainRole(d.folder_role)) ?? null, [docsSorted]);
+  /** Secondary documents section: documents with folder_role "sub" or "other". */
+  const subDocs = useMemo(() => docsSorted.filter((d) => isSecondaryRole(d.folder_role)), [docsSorted]);
 
   return {
     folder,

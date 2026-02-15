@@ -46,6 +46,8 @@ export interface Document {
   is_main_document?: boolean;
   /** Document role: e.g. "main" | "sub". */
   document_role?: string;
+  /** Folder documents API: role in folder – "main" | "sub" | "other". Main = main doc; sub/other = secondary. */
+  folder_role?: string;
   /** Relation type when linked to another document, e.g. "secondary_document". */
   relation_type?: string | null;
   /** Number of notes on this document. */

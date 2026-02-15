@@ -78,8 +78,8 @@ const routePath = "/folders/:id";
 
 describe("useFolderDetailPageContainer", () => {
   const folder = makeFolderDetail({ id: folderId, name: "Test Folder", department_id: 10 });
-  const mainDoc = makeDocument({ id: 1, department_id: 10, upload_date: "2024-01-01T00:00:00Z" });
-  const subDoc = makeDocument({ id: 2, department_id: 10, upload_date: "2024-01-02T00:00:00Z" });
+  const mainDoc = makeDocument({ id: 1, department_id: 10, upload_date: "2024-01-01T00:00:00Z", folder_role: "main" });
+  const subDoc = makeDocument({ id: 2, department_id: 10, upload_date: "2024-01-02T00:00:00Z", folder_role: "sub" });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -377,8 +377,8 @@ describe("useFolderDetailPageContainer", () => {
   });
 
   it("calls trashDocument for selected sub-docs and refreshes on confirmBatchSubDocTrash", async () => {
-    const subDoc2 = makeDocument({ id: 2, department_id: 10 });
-    const subDoc3 = makeDocument({ id: 3, department_id: 10 });
+    const subDoc2 = makeDocument({ id: 2, department_id: 10, folder_role: "sub" });
+    const subDoc3 = makeDocument({ id: 3, department_id: 10, folder_role: "other" });
     mockGetFolderDocuments.mockResolvedValue({ folder, data: [mainDoc, subDoc2, subDoc3] });
 
     const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
@@ -483,8 +483,8 @@ describe("useFolderDetailPageContainer", () => {
   });
 
   it("calls batchMoveDocumentsToFolder for multiple sub-docs and refreshes on batch transfer", async () => {
-    const subDoc2 = makeDocument({ id: 2, department_id: 10 });
-    const subDoc3 = makeDocument({ id: 3, department_id: 10 });
+    const subDoc2 = makeDocument({ id: 2, department_id: 10, folder_role: "sub" });
+    const subDoc3 = makeDocument({ id: 3, department_id: 10, folder_role: "other" });
     mockGetFolderDocuments.mockResolvedValue({ folder, data: [mainDoc, subDoc2, subDoc3] });
 
     const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
