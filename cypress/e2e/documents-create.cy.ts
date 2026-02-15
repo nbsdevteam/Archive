@@ -23,6 +23,8 @@ describe('Create document and add secondary', () => {
   });
 
   it('navigates to upload page, opens panel, fills form and submits create document request', () => {
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const title = `E2E New Document ${suffix}`;
     let uploadPayload: Record<string, unknown> = {};
     cy.intercept('POST', '**/api/documents/upload', (req) => {
       uploadPayload = req.body as Record<string, unknown>;
@@ -37,19 +39,21 @@ describe('Create document and add secondary', () => {
 
     cy.get('select[name="department_id"]').select('1');
     cy.get('select[name="document_type_id"]').select('1');
-    cy.get('input[name="title"]').clear().type('E2E New Document');
+    cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('pdf content'), fileName: 'e2e-doc.pdf' }, { force: true });
 
     cy.get('[data-testid="upload-document-submit"]').click();
 
     cy.wait('@uploadDocument').then(() => {
-      expect(uploadPayload).to.have.property('title', 'E2E New Document');
+      expect(uploadPayload).to.have.property('title', title);
       expect(uploadPayload).to.have.property('file_name', 'e2e-doc.pdf');
       expect(uploadPayload).to.have.property('file_data');
     });
   });
 
   it('add secondary document: upload sub-document to folder (intercept upload)', () => {
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const title = `E2E Sub Document ${suffix}`;
     let uploadPayload: Record<string, unknown> = {};
     cy.intercept('POST', '**/api/documents/upload', (req) => {
       uploadPayload = req.body as Record<string, unknown>;
@@ -63,14 +67,14 @@ describe('Create document and add secondary', () => {
     cy.get('select[name="department_id"]').select('1');
     cy.get('select[name="document_type_id"]').select('1');
     cy.get('select[name="folder_id"]').select(String(FOLDER_ID));
-    cy.get('input[name="title"]').clear().type('E2E Sub Document');
+    cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('sub'), fileName: 'sub.pdf' }, { force: true });
 
     cy.get('[data-testid="upload-document-submit"]').click();
 
     cy.wait('@uploadDocument').then(() => {
       expect(uploadPayload).to.have.property('upload_kind', 'sub');
-      expect(uploadPayload).to.have.property('title', 'E2E Sub Document');
+      expect(uploadPayload).to.have.property('title', title);
     });
   });
 });

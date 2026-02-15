@@ -101,12 +101,14 @@ describe('Document detail attachments', () => {
     cy.contains('Edit').first().click();
     cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
 
-    cy.get('[data-testid="attachment-edit-name"]').clear().type('Updated Attachment Name');
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const attachmentName = `Updated Attachment Name ${suffix}`;
+    cy.get('[data-testid="attachment-edit-name"]').clear().type(attachmentName);
     cy.get('[data-testid="attachment-edit-description"]').clear().type('Updated description text');
     cy.get('[data-testid="attachment-edit-save"]').click();
 
     cy.wait('@updateAttachment').then(() => {
-      expect(updatePayload).to.have.property('name', 'Updated Attachment Name');
+      expect(updatePayload).to.have.property('name', attachmentName);
       expect(updatePayload).to.have.property('description', 'Updated description text');
     });
   });

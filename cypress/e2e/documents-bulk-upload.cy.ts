@@ -23,6 +23,8 @@ describe('Multiple file uploads (bulk)', () => {
   });
 
   it('multiple file uploads: selects sub-doc, adds multiple files, submits and asserts bulk start + upload', () => {
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const title = `Bulk title ${suffix}`;
     let startPayload: Record<string, unknown> = {};
     let uploadPayload: { files?: unknown[] } = {};
     cy.intercept('POST', '**/api/documents/bulk-upload/start', (req) => {
@@ -46,7 +48,7 @@ describe('Multiple file uploads (bulk)', () => {
     cy.get('select[name="department_id"]').select('1');
     cy.get('select[name="document_type_id"]').select('1');
     cy.get('select[name="folder_id"]').select(String(FOLDER_ID));
-    cy.get('input[name="title"]').clear().type('Bulk title');
+    cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile(
       [
         { contents: Cypress.Buffer.from('file1'), fileName: 'bulk1.pdf' },

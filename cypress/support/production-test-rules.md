@@ -14,4 +14,6 @@
 
 - **Allowed (no deletion):** Read-only flows (e.g. list, view, restore from trash with stubbed data) are fine.
 
+- **Unique names:** When creating or updating documents, folders, or attachment names in E2E, use a unique suffix (e.g. `Cypress.uniqueE2ESuffix()`) so "name already exists" never fails the run. Add a 1–2 suffix or timestamp if needed.
+
 See also: `.cursor/rules` for AI/test authoring guidance.

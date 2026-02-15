@@ -1,9 +1,41 @@
 /// <reference types="cypress" />
 
 /**
+ * Returns a short unique suffix (timestamp + random 1–999) to avoid "name already exists" in E2E.
+ * Use for document titles, folder names, attachment names, etc. Exposed as Cypress.uniqueE2ESuffix() in specs.
+ */
+function uniqueE2ESuffix(): string {
+  return `${Date.now().toString(36)}-${Math.floor(Math.random() * 999) + 1}`;
+}
+(Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix = uniqueE2ESuffix;
+
+/**
+ * Logs in via the UI as admin (username/password), then optionally visits a path.
+ * Uses real login so the session persists and the app does not log out on refresh.
+ * Credentials default to admin/admin; override with CYPRESS_LOGIN_USER / CYPRESS_LOGIN_PASSWORD or options.
+ */
+Cypress.Commands.add(
+  'loginAsAdmin',
+  (pathAfterLogin?: string, options?: { username?: string; password?: string }) => {
+    const username = options?.username ?? Cypress.env('LOGIN_USER') ?? 'admin';
+    const password = options?.password ?? Cypress.env('LOGIN_PASSWORD') ?? 'admin';
+
+    cy.visit('/login');
+    cy.get('#login-role-admin').check({ force: true });
+    cy.get('#login-username').clear().type(username);
+    cy.get('#login-password').clear().type(password);
+    cy.get('form').submit();
+    cy.url({ timeout: 15000 }).should('include', '/dashboard');
+
+    if (pathAfterLogin && pathAfterLogin !== '/dashboard') {
+      cy.visit(pathAfterLogin);
+    }
+  }
+);
+
+/**
  * Seeds access_token (and optional refresh_token) in localStorage via onBeforeLoad,
- * then visits the given path. Use for token-based auth in E2E (no UI login).
- * Token can be set via CYPRESS_ACCESS_TOKEN / CYPRESS_REFRESH_TOKEN env or passed in options.
+ * then visits the given path. Use when backend is stubbed and real login is not needed.
  */
 Cypress.Commands.add(
   'loginByToken',
@@ -33,9 +65,12 @@ declare global {
   namespace Cypress {
     interface Chainable {
       /**
-       * Visit app with access_token (and optional refresh_token) set in localStorage before load.
-       * @param path - Path to visit (default '/')
-       * @param options - Optional { accessToken, refreshToken } (otherwise from Cypress.env)
+       * Log in via UI as admin (default admin/admin), then optionally visit path.
+       * Use so the session is real and the app does not log out on refresh.
+       */
+      loginAsAdmin(pathAfterLogin?: string, options?: { username?: string; password?: string }): Chainable<void>;
+      /**
+       * Visit app with access_token set in localStorage (no UI login). Use when APIs are stubbed.
        */
       loginByToken(
         path?: string,

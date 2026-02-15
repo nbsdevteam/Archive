@@ -102,11 +102,13 @@ describe('Folder detail attachment edit', () => {
     cy.get('[data-testid="folder-detail-attachment-edit-btn"]').first().click();
 
     cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
-    cy.get('[data-testid="attachment-edit-name"]').clear().type('Folder Attachment Updated');
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const attachmentName = `Folder Attachment Updated ${suffix}`;
+    cy.get('[data-testid="attachment-edit-name"]').clear().type(attachmentName);
     cy.get('[data-testid="attachment-edit-save"]').click();
 
     cy.wait('@updateAttachment').then(() => {
-      expect(updatePayload).to.have.property('name', 'Folder Attachment Updated');
+      expect(updatePayload).to.have.property('name', attachmentName);
     });
   });
 });

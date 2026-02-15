@@ -98,11 +98,13 @@ describe('Document update', () => {
     cy.get('[data-testid="document-detail-edit-document-btn"]').click();
     cy.get('[data-testid="edit-document-side-panel"]').should('be.visible');
 
-    cy.get('input[name="title"]').clear().type('E2E Updated Title');
+    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const updatedTitle = `E2E Updated Title ${suffix}`;
+    cy.get('input[name="title"]').clear().type(updatedTitle);
     cy.get('[data-testid="edit-document-save"]').click();
 
     cy.wait('@updateDocument').then(() => {
-      expect(updatePayload).to.have.property('title', 'E2E Updated Title');
+      expect(updatePayload).to.have.property('title', updatedTitle);
     });
   });
 });
