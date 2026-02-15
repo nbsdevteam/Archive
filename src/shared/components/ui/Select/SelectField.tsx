@@ -46,7 +46,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
   "data-testid": dataTestId,
 }: SelectFieldProps<T, Name>) {
   return (
-    <div className={`mb-3 ${className}`}>
+    <div className={`mb-3 ${className}`} {...(dataTestId ? { "data-testid": dataTestId } : {})}>
       {label && (
         <label className="form-label">
           {label}
@@ -62,36 +62,33 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
           const selectedOption: SelectOption | null = isEmpty
             ? null
             : (options.find((o) => o.value === raw) ?? null);
-          // Wrapper ensures data-testid is in DOM (react-select does not forward it to the control).
           return (
-            <div {...(dataTestId ? { "data-testid": dataTestId } : {})}>
-              <Select<SelectOption>
-                isClearable={isClearable}
-                placeholder={placeholder}
-                options={options}
-                value={selectedOption}
-                isDisabled={isDisabled}
-                onChange={(newValue: SingleValue<SelectOption>) => {
-                  const v = newValue?.value;
-                  if (isStringValue) {
-                    field.onChange(v ?? "");
-                  } else {
-                    field.onChange(v != null ? (typeof v === "string" ? 0 : v) : 0);
-                  }
-                }}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                classNamePrefix="react-select"
-                className={error ? "is-invalid" : ""}
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    minHeight: "38px",
-                    borderColor: error ? "var(--bs-form-invalid-border-color)" : base.borderColor,
-                  }),
-                }}
-              />
-            </div>
+            <Select<SelectOption>
+              isClearable={isClearable}
+              placeholder={placeholder}
+              options={options}
+              value={selectedOption}
+              isDisabled={isDisabled}
+              onChange={(newValue: SingleValue<SelectOption>) => {
+                const v = newValue?.value;
+                if (isStringValue) {
+                  field.onChange(v ?? "");
+                } else {
+                  field.onChange(v != null ? (typeof v === "string" ? 0 : v) : 0);
+                }
+              }}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              classNamePrefix="react-select"
+              className={error ? "is-invalid" : ""}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  minHeight: "38px",
+                  borderColor: error ? "var(--bs-form-invalid-border-color)" : base.borderColor,
+                }),
+              }}
+            />
           );
         }}
       />
