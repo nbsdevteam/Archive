@@ -171,6 +171,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         const startResponse = await documentsApi.startBulkUpload({
           department_id: Number(data.department_id),
           document_type_id: Number(data.document_type_id),
+          upload_kind: "main",
           confidentiality_level: data.confidentiality_level,
           auto_ocr: false,
           auto_barcode: false,
