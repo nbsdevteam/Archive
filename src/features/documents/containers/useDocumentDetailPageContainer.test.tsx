@@ -14,6 +14,7 @@ const mockListAttachments = vi.fn();
 const mockGetRelations = vi.fn();
 const mockGetManagers = vi.fn();
 const mockDownloadDocumentWithToast = vi.fn();
+const mockUpdateAttachment = vi.fn();
 const mockListNotes = vi.fn();
 const mockCreateNote = vi.fn();
 const mockUpdateNote = vi.fn();
@@ -27,6 +28,9 @@ vi.mock("../../../app/adapter/api/documents.api", () => ({
     addRelation: vi.fn().mockResolvedValue({ success: true }),
     setParent: vi.fn().mockResolvedValue({ success: true }),
     downloadDocument: vi.fn().mockResolvedValue(new Blob()),
+    updateAttachment: (...args: unknown[]) => mockUpdateAttachment(...args),
+    downloadAttachment: vi.fn().mockResolvedValue(new Blob()),
+    deleteAttachment: vi.fn().mockResolvedValue({ success: true }),
   },
 }));
 
@@ -86,13 +90,17 @@ describe("useDocumentDetailPageContainer", () => {
     vi.clearAllMocks();
     resetStores();
     mockGetDocument.mockResolvedValue({ success: true, data: makeDocumentDetail() });
-    mockListAttachments.mockResolvedValue({ success: true, data: [] });
+    mockListAttachments.mockResolvedValue({
+      success: true,
+      data: [{ id: 10, name: "Att1", file_name: "att1.pdf", description: "D1" }],
+    });
     mockGetRelations.mockResolvedValue({ success: true, data: {} });
     mockGetManagers.mockResolvedValue({ success: true, data: [] });
     mockListNotes.mockResolvedValue({ success: true, data: [] });
     mockCreateNote.mockResolvedValue({ success: true, data: { id: 1 } });
     mockUpdateNote.mockResolvedValue({ success: true });
     mockDeleteNote.mockResolvedValue({ success: true });
+    mockUpdateAttachment.mockResolvedValue({ success: true });
   });
 
   afterEach(() => {
@@ -159,5 +167,95 @@ describe("useDocumentDetailPageContainer", () => {
     result.current.actions.handleEditSuccess();
     await waitFor(() => expect(result.current.modals.editDocumentId).toBeNull());
     await waitFor(() => expect(mockGetDocument).toHaveBeenCalledWith(docId));
+  });
+
+  it("exposes attachment panel state: isAddAttachmentPanelOpen false initially, editAttachmentId null", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+
+    expect(result.current.modals.isAddAttachmentPanelOpen).toBe(false);
+    expect(result.current.modals.editAttachmentId).toBeNull();
+  });
+
+  it("handleOpenEditAttachment opens attachment panel and sets edit state for the attachment", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+    result.current.tabState.setActiveTab("attachments");
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+
+    result.current.actions.handleOpenEditAttachment(10);
+
+    await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(true));
+    expect(result.current.modals.editAttachmentId).toBe(10);
+    expect(result.current.modals.editAttachmentName).toBe("Att1");
+    expect(result.current.modals.editAttachmentDescription).toBe("D1");
+  });
+
+  it("openAddAttachmentPanel opens attachment panel and clears edit state", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+    result.current.tabState.setActiveTab("attachments");
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+    result.current.actions.handleOpenEditAttachment(10);
+    await waitFor(() => expect(result.current.modals.editAttachmentId).toBe(10));
+
+    result.current.actions.openAddAttachmentPanel();
+
+    await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(true));
+    await waitFor(() => expect(result.current.modals.editAttachmentId).toBeNull());
+  });
+
+  it("handleCloseAttachmentPanel closes attachment panel and clears edit state", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+    result.current.tabState.setActiveTab("attachments");
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+    result.current.actions.handleOpenEditAttachment(10);
+    await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(true));
+
+    result.current.actions.handleCloseAttachmentPanel();
+
+    await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(false));
+    expect(result.current.modals.editAttachmentId).toBeNull();
+  });
+
+  it("handleConfirmEditAttachment calls updateAttachment and closes panel on success", async () => {
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+    result.current.tabState.setActiveTab("attachments");
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+    result.current.actions.handleOpenEditAttachment(10);
+    result.current.actions.setEditAttachmentName("Updated");
+    result.current.actions.setEditAttachmentDescription("New desc");
+    await waitFor(() => expect(result.current.modals.editAttachmentId).toBe(10));
+
+    await result.current.actions.handleConfirmEditAttachment();
+
+    expect(mockUpdateAttachment).toHaveBeenCalledWith(docId, 10, {
+      name: "Updated",
+      description: "New desc",
+    });
+    await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(false));
+    expect(result.current.modals.editAttachmentId).toBeNull();
   });
 });
