@@ -104,8 +104,9 @@ export const useDashboardPageContainer = () => {
   const loading = foldersLoading;
   const hasError = statsError || foldersError || notificationsError;
 
-  const handleOpenUploadPanel = () => setUploadPanelOpen(true);
-  const handleCloseUploadPanel = () => setUploadPanelOpen(false);
+  // Memoize handlers to prevent infinite re-render loops when used in useEffect dependencies
+  const handleOpenUploadPanel = useCallback(() => setUploadPanelOpen(true), []);
+  const handleCloseUploadPanel = useCallback(() => setUploadPanelOpen(false), []);
 
   return {
     stats,

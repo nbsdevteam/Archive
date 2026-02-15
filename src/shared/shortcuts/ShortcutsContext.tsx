@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -34,7 +35,7 @@ const ShortcutsContext = createContext<ShortcutsContextValue | null>(null);
 export function ShortcutsProvider({ children }: { children: ReactNode }) {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const handlersRef = useRef<HandlersMap>({});
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
 
   const registerHandler = useCallback((key: ShortcutKeyId, handler: ShortcutHandler | undefined) => {
     handlersRef.current[key] = handler;
@@ -46,13 +47,18 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     if (fn) fn();
   }, []);
 
-  const availableShortcuts = Object.values(SHORTCUT_KEYS).filter(
-    (id) => typeof handlersRef.current[id] === "function"
-  ).map((id) => ({
-    id,
-    label: SHORTCUT_LABELS[id].label,
-    keys: SHORTCUT_LABELS[id].keys,
-  }));
+  // Memoize availableShortcuts to prevent creating new array on every render
+  const availableShortcuts = useMemo(
+    () =>
+      Object.values(SHORTCUT_KEYS)
+        .filter((id) => typeof handlersRef.current[id] === "function")
+        .map((id) => ({
+          id,
+          label: SHORTCUT_LABELS[id].label,
+          keys: SHORTCUT_LABELS[id].keys,
+        })),
+    [tick]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,13 +94,17 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     };
   }, [overlayOpen, runHandler]);
 
-  const value: ShortcutsContextValue = {
-    overlayOpen,
-    setOverlayOpen,
-    registerHandler,
-    availableShortcuts,
-    runHandler,
-  };
+  // Memoize context value to prevent consumers from re-rendering unnecessarily
+  const value: ShortcutsContextValue = useMemo(
+    () => ({
+      overlayOpen,
+      setOverlayOpen,
+      registerHandler,
+      availableShortcuts,
+      runHandler,
+    }),
+    [overlayOpen, registerHandler, availableShortcuts, runHandler]
+  );
 
   return (
     <ShortcutsContext.Provider value={value}>
