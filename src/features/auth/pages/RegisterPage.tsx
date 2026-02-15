@@ -185,11 +185,13 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="br-10 p-2 btn btn-info d-flex align-items-center justify-content-center"
+                              aria-label="Sign in with Facebook"
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/facebook-logo.svg"
-                                alt="Facebook"
+                                alt=""
+                                role="presentation"
                               />
                             </Link>
                           </div>
@@ -197,11 +199,13 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="br-10 p-2 btn btn-outline-light border d-flex align-items-center justify-content-center"
+                              aria-label="Sign in with Google"
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/google-logo.svg"
-                                alt="Google"
+                                alt=""
+                                role="presentation"
                               />
                             </Link>
                           </div>
@@ -209,11 +213,13 @@ const RegisterPage = () => {
                             <Link
                               to="#"
                               className="bg-dark br-10 p-2 btn btn-dark d-flex align-items-center justify-content-center"
+                              aria-label="Sign in with Apple"
                             >
                               <ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/apple-logo.svg"
-                                alt="Apple"
+                                alt=""
+                                role="presentation"
                               />
                             </Link>
                           </div>

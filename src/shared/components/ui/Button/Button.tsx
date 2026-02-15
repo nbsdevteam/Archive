@@ -10,7 +10,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /**
  * Button - Shared generic button with consistent height for toolbar alignment.
- * Extends native button props; passes through ...rest.
+ * Extends native button props; passes through ...rest (e.g. aria-label).
+ * When using only an icon with no visible text, pass aria-label so screen readers and read-aloud tools announce the action.
  */
 export const Button = ({
   variant = "secondary",

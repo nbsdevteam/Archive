@@ -37,8 +37,11 @@ const ThemeSettings = () => {
           className="toggle-theme"
           data-bs-toggle="offcanvas"
           data-bs-target="#theme-setting"
+          role="button"
+          tabIndex={0}
+          aria-label="Open theme settings"
         >
-          <i className="fa fa-cog fa-w-16 fa-spin" />
+          <i className="fa fa-cog fa-w-16 fa-spin" aria-hidden />
         </div>
       </div>
 
@@ -55,8 +58,9 @@ const ThemeSettings = () => {
             to="#"
             className="custom-btn-close d-flex align-items-center justify-content-center text-white"
             data-bs-dismiss="offcanvas"
+            aria-label="Close theme settings"
           >
-            <i className="ti ti-x" />
+            <i className="ti ti-x" aria-hidden />
           </Link>
         </div>
 

@@ -31,8 +31,8 @@ const EmailVerificationPage = () => {
                       The school will remain closed from April 20th to June...
                     </p>
                   </div>
-                  <Link to="#">
-                    <i className="ti ti-chevrons-right" />
+                  <Link to="#" aria-label="Read more about Summer Vacation Holiday Homework">
+                    <i className="ti ti-chevrons-right" aria-hidden />
                   </Link>
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
@@ -43,8 +43,8 @@ const EmailVerificationPage = () => {
                       time ....
                     </p>
                   </div>
-                  <Link to="#">
-                    <i className="ti ti-chevrons-right" />
+                  <Link to="#" aria-label="Read more about New Academic Session">
+                    <i className="ti ti-chevrons-right" aria-hidden />
                   </Link>
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
@@ -55,8 +55,8 @@ const EmailVerificationPage = () => {
                       2024-25 is ...
                     </p>
                   </div>
-                  <Link to="#">
-                    <i className="ti ti-chevrons-right" />
+                  <Link to="#" aria-label="Read more about Date sheet Final Exam">
+                    <i className="ti ti-chevrons-right" aria-hidden />
                   </Link>
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
@@ -67,8 +67,8 @@ const EmailVerificationPage = () => {
                       showcase their...
                     </p>
                   </div>
-                  <Link to="#">
-                    <i className="ti ti-chevrons-right" />
+                  <Link to="#" aria-label="Read more about Annual Day Function">
+                    <i className="ti ti-chevrons-right" aria-hidden />
                   </Link>
                 </div>
                 <div className="d-flex align-items-center flex-row mb-0 justify-content-between p-3 br-5 gap-3 card">
@@ -79,8 +79,8 @@ const EmailVerificationPage = () => {
                       for summer...
                     </p>
                   </div>
-                  <Link to="#">
-                    <i className="ti ti-chevrons-right" />
+                  <Link to="#" aria-label="Read more about Summer Vacation Holiday Homework">
+                    <i className="ti ti-chevrons-right" aria-hidden />
                   </Link>
                 </div>
               </div>
@@ -112,7 +112,7 @@ const EmailVerificationPage = () => {
                         <div className="text-center mb-3">
                           <h6 className="fw-normal text-dark mb-0">
                             Didn’t receive an email?
-                            <Link to="#" className="hover-a ">
+                            <Link to="#" className="hover-a " aria-label="Resend verification link">
                               {" "}
                               Resend Link
                             </Link>

@@ -81,6 +81,7 @@ export interface IconProps extends Omit<LucideProps, "ref"> {
  * Shared Icon component wrapping Lucide icons.
  * Renders at 1em x 1em so Bootstrap font-size classes (fs-16, fs-1, etc.) work as expected.
  * Inherits stroke color via currentColor so text color classes apply.
+ * By default icons are decorative (aria-hidden). Pass title to expose as img with aria-label for accessibility.
  */
 export const Icon = ({ name, className, title, ...rest }: IconProps) => {
   const LucideIcon = iconMap[name];

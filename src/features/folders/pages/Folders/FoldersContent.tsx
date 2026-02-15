@@ -55,7 +55,7 @@ export function FoldersContent(props: FoldersContentProps) {
           ) : (
             filteredFolders.map((folder) => (
               <div className="col-xl-3 col-md-6" key={folder.id}>
-                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)}>
+                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)} aria-label={t("folders.openFolder", { defaultValue: "Open folder" }) + ` ${folder.name}`}>
                   <Card className="folders__grid-card" bordered={false}>
                     <div className="card-body folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">

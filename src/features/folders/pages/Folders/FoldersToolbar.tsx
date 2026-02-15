@@ -89,6 +89,7 @@ export function FoldersToolbar({
           onClick={() => setViewMode("grid")}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setViewMode("grid"); } }}
           aria-pressed={viewMode === "grid"}
+          aria-label={t("folders.gridView", { defaultValue: "Grid view" })}
         >
           {t("folders.gridView", { defaultValue: "Grid view" })}
         </div>
@@ -99,6 +100,7 @@ export function FoldersToolbar({
           onClick={() => setViewMode("list")}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setViewMode("list"); } }}
           aria-pressed={viewMode === "list"}
+          aria-label={t("folders.listView", { defaultValue: "List view" })}
         >
           {t("folders.listView", { defaultValue: "List view" })}
         </div>
