@@ -180,17 +180,12 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         setBulkJobId(jobId);
         setBulkProgress({ status: "starting", total: filesToUse.length, processed: 0, failed: 0 });
         const bulkFilesPayload = await Promise.all(
-          filesToUse.map(async (mainFile) => {
-            const baseName = getBaseName(mainFile.name) || mainFile.name;
-            return {
-              file_name: mainFile.name,
-              file_data: await fileToBase64(mainFile),
-              name: baseName,
-              description: "",
-              folder_name: baseName,
-              folder_code: baseName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_-]/gi, "_"),
-            };
-          })
+          filesToUse.map(async (mainFile) => ({
+            file_name: mainFile.name,
+            file_data: await fileToBase64(mainFile),
+            name: getBaseName(mainFile.name) || mainFile.name,
+            description: "",
+          }))
         );
         await documentsApi.uploadFilesToBulkJob(jobId, bulkFilesPayload);
         const finalProgress = await pollBulkJobUntilFinished(jobId);
