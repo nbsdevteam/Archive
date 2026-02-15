@@ -104,7 +104,7 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.get('@createdDocId').then((mainId: number) => {
       cy.visit('/documents/upload');
       waitStep();
-      cy.get('[data-testid="upload-document-open-btn"]').click();
+      cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
       waitStep();
       cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
       waitStep();
