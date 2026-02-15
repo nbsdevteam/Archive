@@ -168,8 +168,7 @@ export function UploadDocumentSidePanel({
         (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
   const submitDisabled = !canSubmit || isUploading;
 
-  const getRandom1To1000 = useMemo(() => Math.floor(Math.random() * 1000) + 1, []);
-
+  /** Auto-fills folder name and code from document title when uploading a main document (no random suffix). */
   const fillFolderNameFromTitle = useCallback(
     (titleValue: string) => {
       if (uploadKind !== "main" || !departmentId || departmentId < 1 || !documentTypeId || documentTypeId < 1) return;
@@ -178,10 +177,10 @@ export function UploadDocumentSidePanel({
       const trimmed = (titleValue ?? "").trim();
       if (!dept?.code || !docType?.code || !trimmed) return;
       const sanitizedTitle = trimmed.replace(/\s+/g, "_");
-      setValue("folder_name", `${dept.code}-${docType.code}-${sanitizedTitle}_${getRandom1To1000}`, { shouldValidate: true });
-      setValue("folder_code", String(getRandom1To1000), { shouldValidate: true });
+      setValue("folder_name", `${dept.code}-${docType.code}-${sanitizedTitle}`, { shouldValidate: true });
+      setValue("folder_code", sanitizedTitle, { shouldValidate: true });
     },
-    [uploadKind, departmentId, documentTypeId, departments, documentTypes, getRandom1To1000, setValue]
+    [uploadKind, departmentId, documentTypeId, departments, documentTypes, setValue]
   );
 
   const handleClearFile = useCallback(() => {
