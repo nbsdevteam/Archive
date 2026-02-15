@@ -168,7 +168,7 @@ export function UploadDocumentSidePanel({
         (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
   const submitDisabled = !canSubmit || isUploading;
 
-  /** Auto-fills folder name and code from document title when uploading a main document (no random suffix). */
+  /** Auto-fills folder name (only) from document title when uploading a main document; folder code is not prefilled. */
   const fillFolderNameFromTitle = useCallback(
     (titleValue: string) => {
       if (uploadKind !== "main" || !departmentId || departmentId < 1 || !documentTypeId || documentTypeId < 1) return;
@@ -178,7 +178,6 @@ export function UploadDocumentSidePanel({
       if (!dept?.code || !docType?.code || !trimmed) return;
       const sanitizedTitle = trimmed.replace(/\s+/g, "_");
       setValue("folder_name", `${dept.code}-${docType.code}-${sanitizedTitle}`, { shouldValidate: true });
-      setValue("folder_code", sanitizedTitle, { shouldValidate: true });
     },
     [uploadKind, departmentId, documentTypeId, departments, documentTypes, setValue]
   );
