@@ -126,7 +126,7 @@ export function UploadDocumentFormContent({
         onMainSingleFileSelected={onMainSingleFileSelected}
       />
 
-      {((uploadKind === "sub" && isUploading && bulkJobId && bulkProgress) || (uploadKind === "main" && uploadMultipleMain && isUploading && bulkJobId && bulkProgress)) && (
+      {uploadKind === "sub" && isUploading && bulkJobId && bulkProgress && (
         <div className="alert alert-info py-2 mb-3" role="status">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -138,6 +138,15 @@ export function UploadDocumentFormContent({
             <Button type="button" variant="outline" className="btn-outline-danger" onClick={onCancelBulkJob} disabled={isCancellingBulkJob}>
               {isCancellingBulkJob ? t("common.cancelling", { defaultValue: "Cancelling..." }) : t("documents.cancelJob", { defaultValue: "Cancel job" })}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {uploadKind === "main" && uploadMultipleMain && isUploading && bulkProgress && !bulkJobId && (
+        <div className="alert alert-info py-2 mb-3" role="status">
+          <div className="fw-semibold">{t("documents.batchMainUploadInProgress", { defaultValue: "Uploading main documents..." })}</div>
+          <div className="small">
+            {t("documents.processed", { defaultValue: "Processed" })}: {bulkProgress.processed ?? 0}/{bulkProgress.total ?? 0} | {t("documents.failed", { defaultValue: "Failed" })}: {bulkProgress.failed ?? 0}
           </div>
         </div>
       )}
