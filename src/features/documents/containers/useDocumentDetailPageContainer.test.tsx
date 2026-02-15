@@ -32,6 +32,8 @@ vi.mock("../../../app/adapter/api/documents.api", () => ({
     downloadAttachment: vi.fn().mockResolvedValue(new Blob()),
     deleteAttachment: vi.fn().mockResolvedValue({ success: true }),
   },
+  /** Mock so useDocumentDetailData does not call undefined (hook clears preview cache on load). */
+  clearDocumentPreviewCache: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../../../app/adapter/api/admin.api", () => ({
@@ -257,5 +259,52 @@ describe("useDocumentDetailPageContainer", () => {
     });
     await waitFor(() => expect(result.current.modals.isAddAttachmentPanelOpen).toBe(false));
     expect(result.current.modals.editAttachmentId).toBeNull();
+  });
+
+  it("exposes latestVersionId and fileName from newest version when document has multiple versions", async () => {
+    const base = makeDocumentDetail();
+    const twoVersions = [
+      { id: 2, version_number: 2, file_name: "new-version.pdf", file_size: 200, uploaded_by: "u2", upload_date: "2024-06-01", change_description: "Updated" },
+      { id: 1, version_number: 1, file_name: "detail-test.pdf", file_size: 100, uploaded_by: "u", upload_date: "2024-01-01", change_description: "" },
+    ];
+    const docWithTwoVersions = { ...base, versions: twoVersions, file_name: "new-version.pdf" };
+    mockGetDocument.mockResolvedValue({ success: true, data: docWithTwoVersions });
+
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+
+    expect(result.current.data.latestVersionId).toBe(2);
+    expect(result.current.data.fileName).toBe("new-version.pdf");
+    expect(result.current.data.versions).toHaveLength(2);
+  });
+
+  it("after refetch with updated versions, data.latestVersionId and fileName reflect latest so preview shows new version", async () => {
+    const docWithOneVersion = makeDocumentDetail();
+    const base = makeDocumentDetail();
+    const twoVersions = [
+      { id: 2, version_number: 2, file_name: "uploaded-latest.pdf", file_size: 300, uploaded_by: "u2", upload_date: "2024-06-15", change_description: "New version" },
+      { id: 1, version_number: 1, file_name: "detail-test.pdf", file_size: 100, uploaded_by: "u", upload_date: "2024-01-01", change_description: "" },
+    ];
+    const docWithTwoVersions = { ...base, versions: twoVersions, file_name: "uploaded-latest.pdf" };
+    mockGetDocument.mockResolvedValueOnce({ success: true, data: docWithOneVersion }).mockResolvedValue({ success: true, data: docWithTwoVersions });
+
+    const { result } = renderHookWithProviders(() => useDocumentDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.doc).not.toBeNull());
+    expect(result.current.data.latestVersionId).toBe(1);
+    expect(result.current.data.fileName).toBe("detail-test.pdf");
+
+    result.current.actions.handleOpenEdit();
+    result.current.actions.handleEditSuccess();
+
+    await waitFor(() => expect(result.current.data.latestVersionId).toBe(2));
+    expect(result.current.data.fileName).toBe("uploaded-latest.pdf");
   });
 });
