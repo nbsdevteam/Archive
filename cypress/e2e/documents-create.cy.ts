@@ -45,9 +45,9 @@ describe('Create document and add secondary', () => {
     cy.get('[data-testid="upload-document-open-btn"]').click();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
 
-    cy.get('[data-testid="department-select"]').click();
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Finance (FIN)').click();
-    cy.get('[data-testid="document-type-select"]').click();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
     cy.get('input[name="title"]').clear().type(title);
     cy.get('input[name="folder_name"]').clear().type(folderName);
@@ -75,13 +75,13 @@ describe('Create document and add secondary', () => {
     cy.loginByToken('/documents/upload');
     cy.get('[data-testid="upload-document-open-btn"]').click();
 
-    cy.get('[data-testid="upload-kind-select"]').click();
+    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Sub Document').click();
-    cy.get('[data-testid="department-select"]').click();
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Finance (FIN)').click();
-    cy.get('[data-testid="document-type-select"]').click();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
-    cy.get('[data-testid="folder-select"]').click();
+    cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Test Folder').click();
     cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('sub'), fileName: 'sub.pdf' }, { force: true });

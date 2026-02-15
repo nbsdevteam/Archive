@@ -49,13 +49,13 @@ describe('Multiple file uploads (bulk)', () => {
     cy.loginByToken('/documents/upload');
     cy.get('[data-testid="upload-document-open-btn"]').click();
 
-    cy.get('[data-testid="upload-kind-select"]').click();
+    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Sub Document').click();
-    cy.get('[data-testid="department-select"]').click();
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Finance (FIN)').click();
-    cy.get('[data-testid="document-type-select"]').click();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
-    cy.get('[data-testid="folder-select"]').click();
+    cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Test Folder').click();
     cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile(
