@@ -166,23 +166,29 @@ Test files sit alongside source code (e.g. `*.test.ts`, `*.test.tsx`):
 
 ### E2E testing (Cypress)
 
-End-to-end tests run against the local Vite dev server (port 3003) with **token-seed** auth (no UI login). One command starts the app and runs Cypress.
+End-to-end tests run against the local Vite dev server (port 3003). Use **UI login** (admin/admin) so the session persists and the app does not log you out on refresh.
 
-**Run locally (headed – watch in the browser):**
+**Run slow walkthrough (see mouse move, step-by-step):**
+
+```bash
+npm run e2e:slow
+```
+
+Runs only the walkthrough spec with a 600ms delay after each click/type so you can watch the flow. Logs in as **admin** / **admin**, then clicks the main **Upload Document** button on the dashboard (no `/upload` route), fills the form, and submits.
+
+**Run full suite headed (visible browser):**
 
 ```bash
 npm run e2e:headed
 ```
 
-This starts the dev server, waits for `http://localhost:3003`, then runs Cypress in headed mode (Chrome). You see each step on screen.
+Starts the dev server, then runs all Cypress specs in headed mode (Chrome).
 
-**Run headless (CI-friendly):**
+**Run headless (CI):**
 
 ```bash
 npm run e2e:ci
 ```
-
-Starts the dev server, then runs `cypress run` with no browser UI. Use this in CI.
 
 **Run Cypress only (server already running):**
 
@@ -190,11 +196,29 @@ Starts the dev server, then runs `cypress run` with no browser UI. Use this in C
 npm run cypress:run:headed
 ```
 
-Requires the app to be running at `http://localhost:3003` (e.g. `npm run dev`).
+Requires the app at `http://localhost:3003` (e.g. `npm run dev`).
 
-**Artifacts:** Videos are recorded for runs; screenshots are taken on failure. Paths are controlled by `cypress.config.ts` (default Cypress output directories).
+**Interactive runner (recommended for slow/visible runs; avoids Windows exit code 1):**
 
-**Auth:** Tests use the `loginByToken` command to set `access_token` (and optional `refresh_token`) in `localStorage` before visiting pages. Set `CYPRESS_ACCESS_TOKEN` / `CYPRESS_REFRESH_TOKEN` in the environment to use real tokens; otherwise a placeholder token is used and API calls can be stubbed via `cy.intercept`.
+Use two terminals so the dev server and Cypress run separately. This avoids `start-server-and-test` killing the server (which on Windows can trigger a `wmic.exe` error and exit code 1).
+
+1. **Terminal A:** start the app and leave it running:
+   ```bash
+   npm run dev
+   ```
+2. **Terminal B:** open the Cypress interactive runner:
+   ```bash
+   npm run e2e:open
+   ```
+   Or open only the slow smoke and walkthrough specs:
+   ```bash
+   npm run e2e:slow:open
+   ```
+   In the Cypress UI, choose a spec and run it. You can watch every step; no automatic server kill, so the process exits cleanly.
+
+**Auth:** Use `loginAsAdmin()` in specs to log in via the UI (default username/password **admin** / **admin**). Override with `CYPRESS_LOGIN_USER` / `CYPRESS_LOGIN_PASSWORD`. For stubbed APIs, `loginByToken(path)` seeds `access_token` in `localStorage` without UI login.
+
+**Key data-testids for E2E:** `login-submit-btn`, `upload-document-btn` (dashboard), `upload-documents-btn` (documents toolbar), `upload-in-folder-btn` (folder detail), `upload-document-open-btn` (upload page), `upload-document-submit`, `confirm-modal-confirm`, `document-detail-add-attachment-btn`, `attachment-edit-save`, `trash-restore-selected`, `transfer-folder-select`, `transfer-confirm-btn`.
 
 ## 📊 Performance Monitoring
 

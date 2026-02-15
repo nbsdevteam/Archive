@@ -1,6 +1,7 @@
 /**
  * Documents: navigate list → document detail → open edit document side panel → submit update.
  * Intercepts document list, detail, and update; asserts update request payload.
+ * PRODUCTION RULE: No delete folder, no permanent delete, no batch delete from /documents.
  */
 
 const DOC_ID = 999;

@@ -1,7 +1,8 @@
 /**
  * Slow, visible walkthrough: login as admin (admin/admin), then click main Upload Document
  * button (dashboard or documents page), fill form, submit. Uses data-testid throughout.
- * Run with: npm run e2e:slow (adds delay between commands so you can watch the mouse).
+ * Run with: npm run e2e:slow or npm run e2e:slow:open (dev server already running).
+ * PRODUCTION RULE: No delete folder, no permanent delete, no batch delete from /documents.
  */
 
 const STEP_DELAY = 800;

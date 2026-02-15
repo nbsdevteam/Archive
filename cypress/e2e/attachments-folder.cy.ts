@@ -1,5 +1,6 @@
 /**
  * Folder detail attachments: navigate to folder → attachments section → select doc → Edit attachment → sidebar → update and save.
+ * PRODUCTION RULE: No delete existing data; only add/update or use stubbed data.
  */
 
 const FOLDER_ID = 777;
