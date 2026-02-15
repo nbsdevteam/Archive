@@ -202,6 +202,8 @@ export interface BulkUploadFilePayload {
   file_data: string;
   name: string;
   description?: string;
+  folder_name?: string;
+  folder_code?: string;
 }
 
 export interface BulkUploadProgressData {
