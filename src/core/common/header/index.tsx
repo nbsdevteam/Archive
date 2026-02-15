@@ -41,13 +41,13 @@ const Header = React.memo(() => {
       <div className="header">
         <div className="main-header">
           <div className="header-left">
-            <Link to={routes.dashboard} className="logo">
+            <Link to={routes.dashboard} className="logo" aria-label="Home, NBS Archive System">
               <span className="logo-text">NBS Archive System</span>
             </Link>
           </div>
 
-          <Link id="mobile_btn" onClick={toggleMobileSidebar} className="mobile_btn" to="#sidebar">
-            <span className="bar-icon">
+          <Link id="mobile_btn" onClick={toggleMobileSidebar} className="mobile_btn" to="#sidebar" aria-label="Open menu">
+            <span className="bar-icon" aria-hidden>
               <span></span>
               <span></span>
               <span></span>
@@ -57,8 +57,8 @@ const Header = React.memo(() => {
           <div className="header-user">
             <div className="nav user-menu nav-list">
               <div className="me-auto d-flex align-items-center" id="header-search" style={{ flex: 1, minWidth: 0, gap: "1.25rem" }}>
-                <Link id="toggle_btn" to="#" onClick={handleToggleMiniSidebar} className="btn btn-menubar flex-shrink-0">
-                  <i className="ti ti-arrow-bar-to-left"></i>
+                <Link id="toggle_btn" to="#" onClick={handleToggleMiniSidebar} className="btn btn-menubar flex-shrink-0" aria-label="Toggle sidebar">
+                  <i className="ti ti-arrow-bar-to-left" aria-hidden></i>
                 </Link>
                 <HeaderSearch routes={routes} t={t} />
                 <span className="d-inline-flex flex-shrink-0 px-4"></span>
@@ -66,8 +66,8 @@ const Header = React.memo(() => {
 
               <div className="d-flex align-items-center">
                 <div className="me-1">
-                  <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen">
-                    <i className="ti ti-maximize"></i>
+                  <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen" aria-label="Toggle fullscreen">
+                    <i className="ti ti-maximize" aria-hidden></i>
                   </Link>
                 </div>
                 <HeaderArchiveActions routes={routes} />

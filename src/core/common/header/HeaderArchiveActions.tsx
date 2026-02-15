@@ -9,8 +9,8 @@ export function HeaderArchiveActions({ routes }: HeaderArchiveActionsProps) {
   return (
     <>
       <div className="dropdown me-1">
-        <Link to="#" className="btn btn-menubar" data-bs-toggle="dropdown">
-          <i className="ti ti-layout-grid-remove"></i>
+        <Link to="#" className="btn btn-menubar" data-bs-toggle="dropdown" aria-label="Archive actions menu" aria-haspopup="true">
+          <i className="ti ti-layout-grid-remove" aria-hidden></i>
         </Link>
         <div className="dropdown-menu dropdown-menu-end">
           <div className="card mb-0 border-0 shadow-none">
@@ -53,18 +53,18 @@ export function HeaderArchiveActions({ routes }: HeaderArchiveActionsProps) {
         </div>
       </div>
       <div className="me-1">
-        <Link to={routes.archiveUpload} className="btn btn-menubar">
-          <i className="ti ti-upload"></i>
+        <Link to={routes.archiveUpload} className="btn btn-menubar" aria-label="Upload">
+          <i className="ti ti-upload" aria-hidden></i>
         </Link>
       </div>
       <div className="me-1">
-        <Link to={routes.archiveFolders} className="btn btn-menubar">
-          <i className="ti ti-folder"></i>
+        <Link to={routes.archiveFolders} className="btn btn-menubar" aria-label="Archive folders">
+          <i className="ti ti-folder" aria-hidden></i>
         </Link>
       </div>
       <div className="me-1">
-        <Link to={routes.archiveActivity} className="btn btn-menubar">
-          <i className="ti ti-activity"></i>
+        <Link to={routes.archiveActivity} className="btn btn-menubar" aria-label="Archive activity">
+          <i className="ti ti-activity" aria-hidden></i>
         </Link>
       </div>
     </>

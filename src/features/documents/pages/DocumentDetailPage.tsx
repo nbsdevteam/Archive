@@ -105,11 +105,15 @@ const DocumentDetailPage = () => {
           tags={data.tags}
         />
 
-        <ul className="nav nav-tabs mb-2">
-          {tabState.tabs.map((tab) => (
-            <li className="nav-item" key={tab.id}>
+        <ul className="nav nav-tabs mb-2" role="tablist" aria-label="Document sections">
+          {tabState.tabs.map((tab, index) => (
+            <li className="nav-item" key={tab.id} role="presentation">
               <button
                 type="button"
+                role="tab"
+                aria-selected={tabState.activeTab === tab.id}
+                aria-controls={`panel-${tab.id}`}
+                id={`tab-${tab.id}`}
                 className={`nav-link ${tabState.activeTab === tab.id ? "active" : ""}`}
                 onClick={() => tabState.setActiveTab(tab.id)}
               >
@@ -120,7 +124,12 @@ const DocumentDetailPage = () => {
         </ul>
 
         <div className="card">
-          <div className="card-body h-min-25vh">
+          <div
+            className="card-body h-min-25vh"
+            role="tabpanel"
+            id={`panel-${tabState.activeTab}`}
+            aria-labelledby={`tab-${tabState.activeTab}`}
+          >
             <DocumentDetailTabContent
               t={t}
               tabState={tabState}

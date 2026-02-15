@@ -11,9 +11,9 @@ export interface HeaderUserMenuProps {
 export function HeaderUserMenu({ routes, onLogout }: HeaderUserMenuProps) {
   return (
     <div className="dropdown profile-dropdown">
-      <Link to="#" className="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-        <span className="avatar avatar-sm online">
-          <ImageWithBasePath src="assets/img/profiles/avatar-12.jpg" alt="Img" className="img-fluid rounded-circle" />
+      <Link to="#" className="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" aria-label="User menu" aria-haspopup="true">
+        <span className="avatar avatar-sm online" aria-hidden>
+          <ImageWithBasePath src="assets/img/profiles/avatar-12.jpg" alt="" className="img-fluid rounded-circle" role="presentation" />
         </span>
       </Link>
       <div className="dropdown-menu shadow-none">

@@ -53,7 +53,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
       {tabState.activeTab === "download" && (
         <>
           <p className="text-muted mb-2">{t("documents.downloadCurrentVersion", { defaultValue: "Download current version" })}</p>
-          <Button variant="secondary" onClick={actions.handleDownloadCurrent}>
+          <Button variant="secondary" onClick={actions.handleDownloadCurrent} aria-label={t("documents.downloadCurrentVersion", { defaultValue: "Download current version" })}>
             <Icon name="download" className="me-1" />
             {data.fileName || t("documents.download", { defaultValue: "Download" })}
           </Button>
@@ -77,7 +77,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
         <>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.versionHistory", { defaultValue: "Version history" })}</span>
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.setModalUploadVersion(true)}>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.setModalUploadVersion(true)} aria-label={t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}>
               <Icon name="file-up" className="me-1" />
               {t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}
             </Button>
@@ -126,12 +126,12 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
             <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
             <div className="d-flex align-items-center gap-2">
               {selection.attachmentSelectedIds.length > 0 && (
-                <Button variant="outline" size="sm" className="btn-outline-danger" onClick={batchAttachmentTrashDialog.open} disabled={loading.isDeletingAttachment}>
+                <Button variant="outline" size="sm" className="btn-outline-danger" onClick={batchAttachmentTrashDialog.open} disabled={loading.isDeletingAttachment} aria-label={t("documents.deleteSelectedAttachments", { defaultValue: "Delete selected" })}>
                   <Icon name="trash" className="me-1" />
                   {t("documents.deleteSelectedAttachments", { defaultValue: "Delete selected" })}
                 </Button>
               )}
-              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={actions.openAddAttachmentPanel} data-testid="document-detail-add-attachment-btn">
+              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={actions.openAddAttachmentPanel} data-testid="document-detail-add-attachment-btn" aria-label={t("documents.addAttachment", { defaultValue: "Add attachment" })}>
                 {t("documents.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
             </div>
