@@ -160,11 +160,6 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     const targetFolderCode = `TGT-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
     const baseSecondaryTitle = `BaseSecondaryFileForTransfer ${suffix}`;
 
-    cy.intercept('POST', (req) => {
-      if (!req.url?.includes('/api/folders') || req.url.includes('/create') || req.url.includes('/update') || /\/api\/folders\/\d+/.test(req.url)) return;
-      req.continue();
-    }).as('listFolders');
-
     cy.visit('/dashboard');
     waitStep();
     cy.get('[data-testid="upload-document-btn"]').click();
@@ -219,19 +214,15 @@ describe('Slow smoke (real API, CRUD on test-created only)', () => {
     waitStep();
 
     cy.visit('/folders');
-    cy.wait('@listFolders', { timeout: 10000 });
-    cy.get('@listFolders').then((interception: { response?: { body?: unknown } }) => {
-      const body = interception.response?.body as Record<string, unknown> | undefined;
-      const result = body?.result as Record<string, unknown> | undefined;
-      const data = body?.data as { id: number; name: string }[] | undefined;
-      const folders = (result?.folders ?? result?.data ?? body?.folders ?? data ?? []) as { id: number; name: string }[];
-      const list = Array.isArray(folders) ? folders : [];
-      const baseFolder = list.find((f) => String(f.name ?? '').includes('BaseFolderForTransfer'));
-      const targetFolder = list.find((f) => String(f.name ?? '').includes('TargetFolderForTransfer'));
-      if (baseFolder && targetFolder) {
-        cy.wrap(baseFolder.id).as('baseFolderId');
-        cy.wrap(targetFolder.id).as('targetFolderId');
-      }
+    cy.contains(baseFolderName, { timeout: 15000 }).should('be.visible');
+    cy.contains(targetFolderName, { timeout: 5000 }).should('be.visible');
+    cy.contains(baseFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
+      const m = String(href ?? '').match(/\/folders\/(\d+)/);
+      if (m) cy.wrap(Number(m[1])).as('baseFolderId');
+    });
+    cy.contains(targetFolderName).closest('tr, .card-body').find('a[href*="/folders/"]').first().invoke('attr', 'href').then((href) => {
+      const m = String(href ?? '').match(/\/folders\/(\d+)/);
+      if (m) cy.wrap(Number(m[1])).as('targetFolderId');
     });
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
