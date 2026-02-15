@@ -1,0 +1,115 @@
+/**
+ * Document detail attachments: open attachments tab → Edit → sidebar → update name/description → Save.
+ * Replace file: select file in "Replace file (optional)" → Save → assert request contains file_name and file_data.
+ */
+
+const DOC_ID = 888;
+const ATTACHMENT_ID = 101;
+
+const documentDetailWithAttachments = {
+  result: {
+    success: true,
+    data: {
+      id: DOC_ID,
+      title: 'Doc With Attachments',
+      name: 'Doc With Attachments',
+      barcode: 'E2E-ATT',
+      department_id: 1,
+      department_name: 'Finance',
+      document_type_id: 1,
+      document_type_name: 'Invoice',
+      uploader_id: 1,
+      uploader_name: 'Test',
+      upload_date: '2025-01-01T00:00:00',
+      status: 'active',
+      confidentiality_level: 'internal',
+      file_name: 'doc.pdf',
+      file_size: 1024,
+      is_locked: false,
+      tags: [],
+      versions: [],
+      folder_id: null,
+      attachments: [
+        { id: ATTACHMENT_ID, name: 'Original Name', file_name: 'orig.pdf', description: 'Original desc' },
+      ],
+    },
+  },
+};
+
+describe('Document detail attachments', () => {
+  beforeEach(() => {
+    cy.intercept('POST', `**/api/documents/${DOC_ID}`, (req) => {
+      if (req.url.includes('/update') || req.url.includes('/attachments/')) return;
+      req.reply({ statusCode: 200, body: documentDetailWithAttachments });
+    });
+    cy.intercept('POST', (req) => {
+      if (!req.url.includes(`/api/documents/${DOC_ID}/attachments`)) return;
+      if (req.url.includes(`/attachments/${ATTACHMENT_ID}/update`)) return;
+      req.reply({
+        statusCode: 200,
+        body: {
+          result: {
+            success: true,
+            data: [
+              { id: ATTACHMENT_ID, name: 'Original Name', file_name: 'orig.pdf', description: 'Original desc' },
+            ],
+          },
+        },
+      });
+    });
+  });
+
+  it('opens attachments tab, clicks Edit, sidebar opens, updates name/description and saves', () => {
+    let updatePayload: Record<string, unknown> = {};
+    cy.intercept('POST', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}/update`, (req) => {
+      const body = req.body;
+      if (body?.params) updatePayload = body.params as Record<string, unknown>;
+      req.reply({ statusCode: 200, body: { result: { success: true } } });
+    }).as('updateAttachment');
+
+    cy.loginByToken(`/documents/${DOC_ID}`);
+    cy.url().should('include', `/documents/${DOC_ID}`);
+
+    cy.contains('button', 'Attachments').click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
+
+    cy.contains('Edit').first().click();
+    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+
+    cy.get('[data-testid="attachment-edit-name"]').clear().type('Updated Attachment Name');
+    cy.get('[data-testid="attachment-edit-description"]').clear().type('Updated description text');
+    cy.get('[data-testid="attachment-edit-save"]').click();
+
+    cy.wait('@updateAttachment').then(() => {
+      expect(updatePayload).to.have.property('name', 'Updated Attachment Name');
+      expect(updatePayload).to.have.property('description', 'Updated description text');
+    });
+  });
+
+  it('replace file: selects file and Save sends request with file_name and file_data', () => {
+    let updatePayload: Record<string, unknown> = {};
+    cy.intercept('POST', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}/update`, (req) => {
+      const body = req.body;
+      if (body?.params) updatePayload = body.params as Record<string, unknown>;
+      req.reply({ statusCode: 200, body: { result: { success: true } } });
+    }).as('updateAttachment');
+
+    cy.loginByToken(`/documents/${DOC_ID}`);
+    cy.contains('button', 'Attachments').click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
+    cy.contains('Edit').first().click();
+    cy.get('[data-testid="attachment-side-panel"]').should('be.visible');
+
+    cy.get('[data-testid="attachment-replace-file"]').selectFile(
+      { contents: Cypress.Buffer.from('test file content'), fileName: 'replacement.txt' },
+      { force: true }
+    );
+    cy.get('[data-testid="attachment-edit-save"]').click();
+
+    cy.wait('@updateAttachment').then(() => {
+      expect(updatePayload).to.have.property('file_name', 'replacement.txt');
+      expect(updatePayload).to.have.property('file_data');
+      expect(String(updatePayload.file_data)).to.have.length.greaterThan(0);
+    });
+  });
+});

@@ -277,7 +277,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
           <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Button>
-          <Button variant="secondary" isLoading={isSubmitting} onClick={handleSaveClick} disabled={loadingDoc || !doc}>
+          <Button variant="secondary" isLoading={isSubmitting} onClick={handleSaveClick} disabled={loadingDoc || !doc} data-testid="edit-document-save">
             {t("common.save", { defaultValue: "Save" })}
           </Button>
         </div>
@@ -297,7 +297,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         <div className="alert alert-warning mb-0">{t("errors.notFound", { defaultValue: "Document not found." })}</div>
       )}
       {doc && (
-        <form onSubmit={(e) => { e.preventDefault(); handleSaveClick(); }} className="d-flex flex-column gap-0">
+        <form onSubmit={(e) => { e.preventDefault(); handleSaveClick(); }} className="d-flex flex-column gap-0" data-testid="edit-document-side-panel">
           <EditDocumentFormContent
             control={control}
             register={register}

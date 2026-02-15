@@ -76,12 +76,14 @@ export function AttachmentSidePanel({
               variant="secondary"
               onClick={handleSaveEdit}
               disabled={!editAttachmentName.trim() || isSavingEdit}
+              data-testid="attachment-edit-save"
             >
               {isSavingEdit ? <Spinner /> : t("common.save", { defaultValue: "Save" })}
             </Button>
           </div>
         }
       >
+        <div data-testid="attachment-side-panel">
         <div className="mb-3">
           <label className="form-label">{t("documents.name", { defaultValue: "Name" })}</label>
           <input
@@ -90,6 +92,7 @@ export function AttachmentSidePanel({
             value={editAttachmentName}
             onChange={(e) => setEditAttachmentName(e.target.value)}
             maxLength={255}
+            data-testid="attachment-edit-name"
           />
         </div>
         <div className="mb-3">
@@ -99,6 +102,7 @@ export function AttachmentSidePanel({
             rows={3}
             value={editAttachmentDescription}
             onChange={(e) => setEditAttachmentDescription(e.target.value)}
+            data-testid="attachment-edit-description"
           />
         </div>
         <div className="mb-3">
@@ -109,6 +113,7 @@ export function AttachmentSidePanel({
             className="form-control"
             onChange={(e) => setReplaceFile(e.target.files?.[0] ?? null)}
             aria-label={t("documents.replaceFileOptional", { defaultValue: "Replace file (optional)" })}
+            data-testid="attachment-replace-file"
           />
           {replaceFile && (
             <div className="mt-2 d-flex align-items-center gap-2">
@@ -118,6 +123,7 @@ export function AttachmentSidePanel({
               </Button>
             </div>
           )}
+        </div>
         </div>
       </SidePanel>
     );

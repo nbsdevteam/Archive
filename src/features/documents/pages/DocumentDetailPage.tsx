@@ -53,7 +53,7 @@ const DocumentDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={actions.handleOpenEdit}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={actions.handleOpenEdit} data-testid="document-detail-edit-document-btn">
             <Icon name="pencil" className="me-1" />
             {t("common.edit", { defaultValue: "Edit" })}
           </Button>

@@ -52,7 +52,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
   const hasSelection = (selectionConfig?.selectedIds.length ?? 0) > 0;
 
   return (
-    <div className="card mb-3">
+    <div className="card mb-3" data-testid="folder-detail-attachments-section">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
         <div className="d-flex align-items-center gap-2">
@@ -62,6 +62,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
               style={{ width: "auto", minWidth: 200 }}
               value={attachmentsDocId}
               onChange={onAttachmentsDocIdChange}
+              data-testid="folder-detail-attachments-doc-select"
             >
               {documents.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -81,7 +82,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
               </Button>
             </>
           )}
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onAddAttachment}>
+          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onAddAttachment} data-testid="folder-detail-add-attachment-btn">
             {t("folders.addAttachment", { defaultValue: "Add attachment" })}
           </Button>
         </div>
@@ -139,7 +140,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                             {t("documents.download", { defaultValue: "Download" })}
                           </Button>
                           {onEditAttachment && (
-                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); onEditAttachment(attachment.id); }}>
+                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); onEditAttachment(attachment.id); }} data-testid="folder-detail-attachment-edit-btn">
                               <Icon name="pencil" className="me-1" />
                               {t("common.edit", { defaultValue: "Edit" })}
                             </Button>

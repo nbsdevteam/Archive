@@ -121,7 +121,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
       )}
 
       {tabState.activeTab === "attachments" && (
-        <>
+        <div data-testid="document-detail-attachments-tab">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.attachments", { defaultValue: "Attachments" })}</span>
             <div className="d-flex align-items-center gap-2">
@@ -131,7 +131,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
                   {t("documents.deleteSelectedAttachments", { defaultValue: "Delete selected" })}
                 </Button>
               )}
-              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={actions.openAddAttachmentPanel}>
+              <Button variant="secondary" size="sm" className="btn-secondary btn-sm" onClick={actions.openAddAttachmentPanel} data-testid="document-detail-add-attachment-btn">
                 {t("documents.addAttachment", { defaultValue: "Add attachment" })}
               </Button>
             </div>
@@ -147,7 +147,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             tableClassName="table table-sm mb-0"
           />
-        </>
+        </div>
       )}
     </>
   );

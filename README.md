@@ -164,6 +164,38 @@ Test files sit alongside source code (e.g. `*.test.ts`, `*.test.tsx`):
 - `src/features/*/hooks/*.test.tsx` – hook unit tests
 - `src/shared/utils/**/*.test.ts` – utility tests
 
+### E2E testing (Cypress)
+
+End-to-end tests run against the local Vite dev server (port 3003) with **token-seed** auth (no UI login). One command starts the app and runs Cypress.
+
+**Run locally (headed – watch in the browser):**
+
+```bash
+npm run e2e:headed
+```
+
+This starts the dev server, waits for `http://localhost:3003`, then runs Cypress in headed mode (Chrome). You see each step on screen.
+
+**Run headless (CI-friendly):**
+
+```bash
+npm run e2e:ci
+```
+
+Starts the dev server, then runs `cypress run` with no browser UI. Use this in CI.
+
+**Run Cypress only (server already running):**
+
+```bash
+npm run cypress:run:headed
+```
+
+Requires the app to be running at `http://localhost:3003` (e.g. `npm run dev`).
+
+**Artifacts:** Videos are recorded for runs; screenshots are taken on failure. Paths are controlled by `cypress.config.ts` (default Cypress output directories).
+
+**Auth:** Tests use the `loginByToken` command to set `access_token` (and optional `refresh_token`) in `localStorage` before visiting pages. Set `CYPRESS_ACCESS_TOKEN` / `CYPRESS_REFRESH_TOKEN` in the environment to use real tokens; otherwise a placeholder token is used and API calls can be stubbed via `cy.intercept`.
+
 ## 📊 Performance Monitoring
 
 ### Performance Dashboard
