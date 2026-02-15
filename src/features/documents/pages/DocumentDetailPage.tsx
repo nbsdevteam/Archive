@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
@@ -7,15 +8,23 @@ import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocument
 import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "@/features/documents/components/detail";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 import { useDocumentDetailPageContainer } from "@/features/documents/containers/useDocumentDetailPageContainer";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "@/features/documents/styles/documents.css";
 
 const DocumentDetailPage = () => {
   const { t, routes, data, loading, error, tabState, selection, actions, modals } = useDocumentDetailPageContainer();
+  const { registerHandler } = useShortcuts();
   const { attachmentTrashDialog, batchAttachmentTrashDialog, noteDeleteDialog } = useDocumentDetailDialogs({
     confirmAttachmentTrash: actions.confirmAttachmentTrash,
     confirmBatchAttachmentTrash: actions.confirmBatchAttachmentTrash,
     confirmDeleteNote: actions.confirmDeleteNote,
   });
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.DOWNLOAD_DOCUMENT, () => void actions.handleDownloadCurrent());
+    return () => registerHandler(SHORTCUT_KEYS.DOWNLOAD_DOCUMENT, undefined);
+  }, [registerHandler, actions.handleDownloadCurrent]);
 
   if (loading.isLoading && !data.doc) {
     return (

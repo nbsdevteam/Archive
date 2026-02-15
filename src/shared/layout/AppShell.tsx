@@ -4,6 +4,8 @@ import Header from "../../core/common/header";
 import Sidebar from "../../core/common/sidebar";
 import ThemeSettings from "../../core/common/theme-settings";
 import { useSidebarUiStore } from "../stores/sidebarUiStore";
+import { ShortcutsProvider } from "../shortcuts/ShortcutsContext";
+import { ShortcutsOverlay } from "../components/ShortcutsOverlay";
 
 export const AppShell = () => {
   const location = useLocation();
@@ -28,21 +30,27 @@ export const AppShell = () => {
   }, [location.pathname, resetMobileSidebar]);
 
   return (
-    <div className={`main-wrapper ${mobileSidebar ? "slide-nav" : ""}`}>
-      {/* Backdrop when sidebar is open; click does not close sidebar (outside click disabled) */}
-      {mobileSidebar && (
-        <div
-          className="sidebar-overlay opened"
-          aria-hidden="true"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{ pointerEvents: "auto", cursor: "default" }}
-        />
-      )}
-      <Header />
-      <Sidebar />
-      <Outlet />
-      <ThemeSettings />
-    </div>
+    <ShortcutsProvider>
+      <div className={`main-wrapper ${mobileSidebar ? "slide-nav" : ""}`}>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        {/* Backdrop when sidebar is open; click does not close sidebar (outside click disabled) */}
+        {mobileSidebar && (
+          <div
+            className="sidebar-overlay opened"
+            aria-hidden="true"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{ pointerEvents: "auto", cursor: "default" }}
+          />
+        )}
+        <Header />
+        <Sidebar />
+        <Outlet />
+        <ThemeSettings />
+      </div>
+      <ShortcutsOverlay />
+    </ShortcutsProvider>
   );
 };

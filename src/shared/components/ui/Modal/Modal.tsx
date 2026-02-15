@@ -1,5 +1,6 @@
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,8 +12,9 @@ interface ModalProps {
 }
 
 /**
- * Modal - Reusable modal component
- * Uses Bootstrap modal styling
+ * Modal - Reusable modal component with focus trap and focus restore.
+ * Uses Bootstrap modal styling. Traps Tab within the dialog and restores
+ * focus to the previously focused element on close.
  */
 export const Modal = ({
   isOpen,
@@ -22,6 +24,8 @@ export const Modal = ({
   title,
   className = "",
 }: ModalProps) => {
+  const titleId = useId();
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -55,6 +59,8 @@ export const Modal = ({
       style={{ display: "block" }}
       tabIndex={-1}
       role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? titleId : undefined}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -63,26 +69,30 @@ export const Modal = ({
     >
       {/* Backdrop first so it sits behind the dialog; dialog has higher z-index so it receives clicks */}
       <div className="modal-backdrop fade show" onClick={onClose} aria-hidden />
-      <div
-        className={`modal-dialog ${sizeClass}`}
-        role="document"
-        style={{ position: "relative", zIndex: 1051 }}
-      >
-        <div className="modal-content">
-          {title && (
-            <div className="modal-header">
-              <h5 className="modal-title">{title}</h5>
-              <button
-                type="button"
-                className="btn-close"
-                aria-label="Close"
-                onClick={onClose}
-              />
-            </div>
-          )}
-          <div className="modal-body">{children}</div>
+      <FocusLock returnFocus>
+        <div
+          className={`modal-dialog ${sizeClass}`}
+          role="document"
+          style={{ position: "relative", zIndex: 1051 }}
+        >
+          <div className="modal-content">
+            {title && (
+              <div className="modal-header">
+                <h5 className="modal-title" id={titleId}>
+                  {title}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={onClose}
+                />
+              </div>
+            )}
+            <div className="modal-body">{children}</div>
+          </div>
         </div>
-      </div>
+      </FocusLock>
     </div>
   );
 

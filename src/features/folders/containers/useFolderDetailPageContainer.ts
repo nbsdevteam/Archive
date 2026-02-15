@@ -10,6 +10,7 @@ import type { ActivityViewMode } from "@/features/activity/types";
 import { all_routes } from "@/router/all_routes";
 import { formatRelativeTime } from "@/shared/utils/format/date";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "@/shared/hooks";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
@@ -31,6 +32,7 @@ import type { FolderDetailPageState } from "@/features/folders/types/folderDetai
  */
 export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const { t } = useTranslation();
+  const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
 
@@ -230,17 +232,17 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const handleDownloadMainDocument = useCallback(async () => {
     if (!mainDoc) return;
     const fileName = mainDoc.file_name ?? mainDoc.title ?? mainDoc.name ?? "document";
-    await downloadDocumentWithToast(mainDoc.id, fileName, t);
-  }, [mainDoc, t]);
+    await downloadDocumentWithToast(mainDoc.id, fileName, t, announce);
+  }, [mainDoc, t, announce]);
 
   const handleDownloadDocument = useCallback(
     async (documentId: number) => {
       const target = documents.find((d) => d.id === documentId);
       if (!target) return;
       const fileName = target.file_name ?? target.title ?? target.name ?? "document";
-      await downloadDocumentWithToast(target.id, fileName, t);
+      await downloadDocumentWithToast(target.id, fileName, t, announce);
     },
-    [documents, t]
+    [documents, t, announce]
   );
 
   const handleDownloadAttachment = useCallback(

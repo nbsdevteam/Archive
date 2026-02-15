@@ -135,6 +135,7 @@ describe("useDocumentDetailPageContainer", () => {
     expect(mockDownloadDocumentWithToast).toHaveBeenCalledWith(
       docId,
       "detail-test.pdf",
+      expect.any(Function),
       expect.any(Function)
     );
   });

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { documentsApi } from "@/app/adapter/api/documents.api";
+import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
 import { createFolder } from "@/features/folders/services/folders.api";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
@@ -16,6 +17,7 @@ export interface UseUploadSubmitParams {
 
 /** Hook that holds bulk-upload state and returns submit handler plus cancel. Submit logic runs in the returned onSubmit. */
 export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUploadSubmitParams) {
+  const announce = useAnnounce();
   const [bulkJobId, setBulkJobId] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<BulkUploadProgressData | null>(null);
   const [isCancellingBulkJob, setIsCancellingBulkJob] = useState(false);
@@ -52,15 +54,18 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
     try {
       await documentsApi.cancelBulkUploadJob(bulkJobId);
       setBulkProgress((prev) => ({ ...(prev ?? {}), status: "cancelled" }));
-      toast.info(t("documents.uploadCancelled", { defaultValue: "Upload cancelled." }));
+      const cancelMsg = t("documents.uploadCancelled", { defaultValue: "Upload cancelled." });
+      toast.info(cancelMsg);
+      announce(cancelMsg);
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("common.unexpectedError", { defaultValue: "Unexpected error" });
       setSubmitError(msg);
       toast.error(msg);
+      announce(msg);
     } finally {
       setIsCancellingBulkJob(false);
     }
-  }, [bulkJobId, t, setSubmitError]);
+  }, [bulkJobId, t, setSubmitError, announce]);
 
   const onSubmit = useCallback(
     async (
@@ -70,7 +75,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
     ) => {
       const file = data.file;
       if (!(file instanceof File)) {
-        setSubmitError(t("documents.validation.fileRequired"));
+        const msg = t("documents.validation.fileRequired");
+        setSubmitError(msg);
+        announce(msg);
         return;
       }
 
@@ -80,6 +87,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           const msg = t("documents.validation.targetDocumentIdRequired");
           setSubmitError(msg);
           toast.error(msg);
+          announce(msg);
           return;
         }
         const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [file];
@@ -94,7 +102,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         );
         const result = await documentsApi.uploadMultipleAttachments(docId, attachmentsPayload);
         if (!result.success) throw new Error(result.error ?? "Upload attachments failed");
-        toast.success(t("documents.uploadSuccess") ?? "Document uploaded successfully.");
+        const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
+        toast.success(successMsg);
+        announce(successMsg);
         onSuccess?.();
         onClose();
         return;
@@ -107,6 +117,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           const msg = t("documents.validation.folderRequiredForSubDocument");
           setSubmitError(msg);
           toast.error(msg);
+          announce(msg);
           return;
         }
         const startResponse = await documentsApi.startBulkUpload({
@@ -134,9 +145,13 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         const finalStatus = (finalProgress.status ?? "").toLowerCase();
         if (finalStatus === "cancelled" || finalStatus === "canceled" || bulkCancelRequestedRef.current) return;
         if (Number(finalProgress.failed ?? 0) > 0) {
-          toast.warning(t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." }));
+          const warnMsg = t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." });
+          toast.warning(warnMsg);
+          announce(warnMsg);
         } else {
-          toast.success(t("documents.uploadSuccess") ?? "Document uploaded successfully.");
+          const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
+          toast.success(successMsg);
+          announce(successMsg);
         }
         onSuccess?.();
         onClose();
@@ -172,11 +187,13 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         ...(data.tags?.length ? { tags: data.tags } : {}),
       });
       if (!resp?.success) throw new Error(resp?.error || "Upload failed");
-      toast.success(t("documents.uploadSuccess") ?? "Document uploaded successfully.");
+      const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
+      toast.success(successMsg);
+      announce(successMsg);
       onSuccess?.();
       onClose();
     },
-    [onSuccess, onClose, t, setSubmitError, pollBulkJobUntilFinished]
+    [onSuccess, onClose, t, setSubmitError, pollBulkJobUntilFinished, announce]
   );
 
   return {

@@ -170,11 +170,16 @@ export function DocumentsToolbar({
         className="d-inline-flex align-items-center btn-outline-secondary"
         onClick={actions.handleOpenUpload}
         data-testid="upload-documents-btn"
+        aria-label={t("documents.uploadDocumentsAria", { defaultValue: "Upload documents" })}
       >
         <Icon name="file-up" className="me-2" />
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
       </Button>
-      <Link to={routes.documentsTrash} className="btn btn-outline-secondary btn-md d-inline-flex align-items-center">
+      <Link
+        to={routes.documentsTrash}
+        className="btn btn-outline-secondary btn-md d-inline-flex align-items-center"
+        aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
+      >
         <Icon name="trash" className="me-2" />
         {t("documents.trashView", { defaultValue: "Trash" })}
       </Link>

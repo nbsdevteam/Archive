@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { Alert, Button, Icon, Spinner } from "@/shared/components/ui";
@@ -6,6 +6,9 @@ import { PageLayout } from "@/shared/layout/PageLayout";
 import type { ActivityViewMode } from "@/features/activity/types";
 import { useFolderDetailPageContainer } from "@/features/folders/containers/useFolderDetailPageContainer";
 import { useFolderDetailDialogs } from "@/features/folders/hooks/useFolderDetailDialogs";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
+import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { FolderDetailInfoSection } from "./FolderDetailInfoSection";
 import { FolderDetailMainDocSection } from "./FolderDetailMainDocSection";
 import { FolderDetailSubDocsSection } from "./FolderDetailSubDocsSection";
@@ -19,6 +22,8 @@ import { EditDocumentSidePanel } from "@/features/documents/components/EditDocum
 
 /** Folder detail page: guards, layout, and composition of info, main doc, sub-docs, attachments, notes, preview, activity, and modals. */
 const FolderDetailPage = () => {
+  const { registerHandler } = useShortcuts();
+  const announce = useAnnounce();
   const { t, routes, data, loadingState, errors, activity, selection, actions, modals } =
     useFolderDetailPageContainer();
   const {
@@ -39,6 +44,21 @@ const FolderDetailPage = () => {
 
   const handleActivityRefresh = useCallback(() => void activity.refreshActivityLogs(), [activity.refreshActivityLogs]);
   const handleActivityViewModeChange = useCallback((nextMode: ActivityViewMode) => activity.setActivityViewMode(nextMode), [activity.setActivityViewMode]);
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.CREATE_SUB_DOCUMENT, () => actions.handleUploadInFolder());
+    return () => registerHandler(SHORTCUT_KEYS.CREATE_SUB_DOCUMENT, undefined);
+  }, [registerHandler, actions.handleUploadInFolder]);
+
+  useEffect(() => {
+    registerHandler(
+      SHORTCUT_KEYS.DOWNLOAD_DOCUMENT,
+      data.mainDoc
+        ? () => void actions.handleDownloadMainDocument()
+        : () => announce(t("documents.noMainDocumentToDownload", { defaultValue: "No main document to download." }))
+    );
+    return () => registerHandler(SHORTCUT_KEYS.DOWNLOAD_DOCUMENT, undefined);
+  }, [data.mainDoc, actions.handleDownloadMainDocument, t, announce, registerHandler]);
 
   if (!data.folderId) {
     return (

@@ -155,7 +155,7 @@ export function DataTable<T>({
                           variant="link"
                           size="sm"
                           className="datatable-row-actions-toggle p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
-                          aria-label="Row actions"
+                          aria-label={`Actions for row ${rowId}`}
                         >
                           <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
                         </Dropdown.Toggle>

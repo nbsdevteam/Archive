@@ -35,7 +35,7 @@ export function PageLayout({
 }: PageLayoutProps) {
   return (
     <div className="page-wrapper">
-      <div className="content">
+      <main id="main-content" className="content" tabIndex={-1} aria-label="Main content">
         <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
           <div className="my-auto mb-2">
             <h2 className="mb-1 page-heading">{title}</h2>
@@ -68,7 +68,7 @@ export function PageLayout({
           )}
         </div>
         {children}
-      </div>
+      </main>
     </div>
   );
 }

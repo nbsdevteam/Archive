@@ -10,6 +10,7 @@ import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useDocumentListWithFilters } from "@/features/documents/hooks/useDocumentListWithFilters";
 
 export interface DocumentsFilterState {
@@ -23,6 +24,7 @@ export interface DocumentsFilterState {
  */
 export const useDocumentsPageContainer = () => {
   const { t } = useTranslation();
+  const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
   const { fetchDocuments } = useDocumentStore();
@@ -83,9 +85,9 @@ export const useDocumentsPageContainer = () => {
   const handleDownloadDocument = useCallback(
     async (document: Document) => {
       const fileName = document.file_name ?? document.title ?? document.name ?? "document";
-      await downloadDocumentWithToast(document.id, fileName, t);
+      await downloadDocumentWithToast(document.id, fileName, t, announce);
     },
-    [t]
+    [t, announce]
   );
 
   const handleOpenUpload = useCallback(() => setIsUploadOpen(true), []);

@@ -1,5 +1,6 @@
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import "./side-panel.css";
 
 export interface SidePanelProps {
@@ -17,8 +18,9 @@ export interface SidePanelProps {
 }
 
 /**
- * SidePanel - Reusable right-side panel (Bootstrap offcanvas style)
+ * SidePanel - Reusable right-side panel (Bootstrap offcanvas style).
  * Supports title, close button, scrollable body, footer actions, loading state.
+ * Uses focus trap and restores focus on close; title id is unique per instance.
  */
 export const SidePanel = ({
   isOpen,
@@ -30,12 +32,14 @@ export const SidePanel = ({
   className = "",
   width: widthProp,
 }: SidePanelProps) => {
+  const titleId = useId();
   const width =
     widthProp != null
       ? typeof widthProp === "number"
         ? `${widthProp}px`
         : widthProp
       : "50vw";
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -67,65 +71,67 @@ export const SidePanel = ({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div
-        className={`side-panel-fixed offcanvas offcanvas-end show ${className}`}
-        tabIndex={-1}
-        style={{
-          ["--side-panel-width" as string]: width,
-          visibility: "visible",
-          position: "fixed",
-          top: 0,
-          right: 0,
-          zIndex: 1045,
-          width,
-          maxWidth: "100%",
-          height: "100vh",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          backgroundColor: "var(--bs-body-bg, #fff)",
-          boxShadow: "-0.125rem 0 0.5rem rgba(0, 0, 0, 0.075)",
-        }}
-        aria-labelledby="sidePanelTitle"
-        aria-modal="true"
-        role="dialog"
-      >
+      <FocusLock returnFocus>
         <div
-          className="offcanvas-header border-bottom"
-          style={{ flexShrink: 0 }}
-        >
-          <h5 className="offcanvas-title" id="sidePanelTitle">
-            {title}
-          </h5>
-          <button
-            type="button"
-            className="btn-close"
-            aria-label="Close"
-            onClick={onClose}
-            disabled={loading}
-          />
-        </div>
-        <div
-          className="offcanvas-body"
+          className={`side-panel-fixed offcanvas offcanvas-end show ${className}`}
+          tabIndex={-1}
           style={{
-            flex: "1 1 0%",
-            minHeight: 0,
-            overflowY: "auto",
-            overflowX: "hidden",
-            padding: "1rem 1.25rem",
+            ["--side-panel-width" as string]: width,
+            visibility: "visible",
+            position: "fixed",
+            top: 0,
+            right: 0,
+            zIndex: 1045,
+            width,
+            maxWidth: "100%",
+            height: "100vh",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--bs-body-bg, #fff)",
+            boxShadow: "-0.125rem 0 0.5rem rgba(0, 0, 0, 0.075)",
           }}
+          aria-labelledby={titleId}
+          aria-modal="true"
+          role="dialog"
         >
-          {children}
-        </div>
-        {footer != null && (
           <div
-            className="offcanvas-footer border-top p-3 bg-body"
+            className="offcanvas-header border-bottom"
             style={{ flexShrink: 0 }}
           >
-            {footer}
+            <h5 className="offcanvas-title" id={titleId}>
+              {title}
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={onClose}
+              disabled={loading}
+            />
           </div>
-        )}
-      </div>
+          <div
+            className="offcanvas-body"
+            style={{
+              flex: "1 1 0%",
+              minHeight: 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+              padding: "1rem 1.25rem",
+            }}
+          >
+            {children}
+          </div>
+          {footer != null && (
+            <div
+              className="offcanvas-footer border-top p-3 bg-body"
+              style={{ flexShrink: 0 }}
+            >
+              {footer}
+            </div>
+          )}
+        </div>
+      </FocusLock>
     </>
   );
 

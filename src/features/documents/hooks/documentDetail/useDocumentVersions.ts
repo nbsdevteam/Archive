@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import type { DocumentDetail } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 
 /**
@@ -15,6 +16,7 @@ export function useDocumentVersions(
   fetchDocument: (id: number) => Promise<void>
 ) {
   const { t } = useTranslation();
+  const announce = useAnnounce();
   const { downloadVersion, uploadVersion } = useDocumentStore();
 
   const [modalUploadVersion, setModalUploadVersion] = useState(false);
@@ -48,8 +50,8 @@ export function useDocumentVersions(
 
   const handleDownloadCurrent = useCallback(async () => {
     if (!doc?.id || !fileName) return;
-    await downloadDocumentWithToast(doc.id, fileName, t);
-  }, [doc?.id, fileName, t]);
+    await downloadDocumentWithToast(doc.id, fileName, t, announce);
+  }, [doc?.id, fileName, t, announce]);
 
   const handleUploadVersionSubmit = useCallback(async () => {
     if (!doc?.id || !uploadVersionFile) return;

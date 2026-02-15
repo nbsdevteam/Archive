@@ -7,6 +7,7 @@ import { AppProviders } from "./providers/AppProviders";
 import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
 import { usePrefersColorScheme } from "../shared/hooks";
+import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
 
 const RTL_BODY_CLASS = "layout-mode-rtl";
 
@@ -58,9 +59,11 @@ export const App = () => {
   return (
     <BrowserRouter basename={base_path}>
       <AppProviders>
-        <RtlSync />
-        <AppRouter />
-        <ThemedToastContainer />
+        <LiveAnnouncerProvider>
+          <RtlSync />
+          <AppRouter />
+          <ThemedToastContainer />
+        </LiveAnnouncerProvider>
       </AppProviders>
     </BrowserRouter>
   );

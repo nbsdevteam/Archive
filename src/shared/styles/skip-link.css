@@ -1,0 +1,21 @@
+/**
+ * Skip link: visually hidden until focused so keyboard/screen-reader users
+ * can jump to main content without tabbing through header/sidebar.
+ */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  background: var(--bs-primary, #0d6efd);
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 0 0 0.25rem 0;
+}
+.skip-link:focus {
+  left: 0;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
