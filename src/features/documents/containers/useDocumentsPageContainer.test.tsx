@@ -188,4 +188,44 @@ describe("useDocumentsPageContainer", () => {
     await waitFor(() => expect(result.current.modals.editDocumentId).toBeNull());
     await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
   });
+
+  it("calls batchMoveDocumentsToFolder for multiple selected docs and refetches on batch transfer", async () => {
+    const doc1 = makeDocument({ id: 1, department_id: 10 });
+    const doc2 = makeDocument({ id: 2, department_id: 10 });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [doc1, doc2],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    result.current.actions.handleOpenBatchMoveConfirm();
+    await waitFor(() => expect(result.current.modals.isMoveModalOpen).toBe(true));
+
+    mockGetDocuments.mockClear();
+    await result.current.actions.handleConfirmBatchMove(99);
+
+    expect(mockBatchMoveDocumentsToFolder).toHaveBeenCalledWith([1, 2], 99);
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.modals.isMoveModalOpen).toBe(false));
+  });
+
+  it("opens upload panel on handleOpenUpload and refetches on handleUploadSuccess", async () => {
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+
+    expect(result.current.modals.isUploadOpen).toBe(false);
+    result.current.actions.handleOpenUpload();
+    await waitFor(() => expect(result.current.modals.isUploadOpen).toBe(true));
+
+    mockGetDocuments.mockClear();
+    result.current.actions.handleUploadSuccess();
+    await waitFor(() => expect(result.current.modals.isUploadOpen).toBe(false));
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+  });
 });

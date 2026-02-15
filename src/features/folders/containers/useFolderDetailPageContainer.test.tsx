@@ -14,6 +14,9 @@ const mockDeleteFolder = vi.fn();
 const mockBatchMoveDocumentsToFolder = vi.fn();
 const mockListAttachments = vi.fn();
 const mockUpdateAttachment = vi.fn();
+const mockDeleteAttachment = vi.fn();
+const mockTrashDocument = vi.fn();
+const mockGetDocument = vi.fn();
 const mockListNotes = vi.fn();
 const mockCreateNote = vi.fn();
 const mockUpdateNote = vi.fn();
@@ -28,11 +31,13 @@ vi.mock("../services/folders.api", () => ({
 
 vi.mock("../../../app/adapter/api/documents.api", () => ({
   documentsApi: {
+    getDocument: (...args: unknown[]) => mockGetDocument(...args),
     batchMoveDocumentsToFolder: (...args: unknown[]) => mockBatchMoveDocumentsToFolder(...args),
     listAttachments: (...args: unknown[]) => mockListAttachments(...args),
     downloadDocument: vi.fn().mockResolvedValue(new Blob()),
-    deleteAttachment: vi.fn().mockResolvedValue({ success: true }),
+    deleteAttachment: (...args: unknown[]) => mockDeleteAttachment(...args),
     updateAttachment: (...args: unknown[]) => mockUpdateAttachment(...args),
+    trashDocument: (...args: unknown[]) => mockTrashDocument(...args),
   },
 }));
 
@@ -89,6 +94,9 @@ describe("useFolderDetailPageContainer", () => {
     mockUpdateNote.mockResolvedValue({ success: true });
     mockDeleteNote.mockResolvedValue({ success: true });
     mockUpdateAttachment.mockResolvedValue({ success: true });
+    mockDeleteAttachment.mockResolvedValue({ success: true });
+    mockTrashDocument.mockResolvedValue(undefined);
+    mockGetDocument.mockResolvedValue({ success: true, data: {} });
   });
 
   afterEach(() => {
@@ -351,5 +359,146 @@ describe("useFolderDetailPageContainer", () => {
     });
     await waitFor(() => expect(result.current.modals.isAttachmentPanelOpen).toBe(false));
     expect(result.current.modals.editAttachmentId).toBeNull();
+  });
+
+  it("calls trashDocument and refreshes when confirmSubDocTrash is called (single sub-doc trash)", async () => {
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.subDocs).toHaveLength(1));
+    mockGetFolderDocuments.mockClear();
+
+    await result.current.actions.confirmSubDocTrash(2);
+
+    expect(mockTrashDocument).toHaveBeenCalledWith([2], undefined);
+    await waitFor(() => expect(mockGetFolderDocuments).toHaveBeenCalled());
+  });
+
+  it("calls trashDocument for selected sub-docs and refreshes on confirmBatchSubDocTrash", async () => {
+    const subDoc2 = makeDocument({ id: 2, department_id: 10 });
+    const subDoc3 = makeDocument({ id: 3, department_id: 10 });
+    mockGetFolderDocuments.mockResolvedValue({ folder, data: [mainDoc, subDoc2, subDoc3] });
+
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.subDocs).toHaveLength(2));
+    result.current.selection.subDocsSelectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.subDocSelectedIds.length).toBe(2));
+    mockGetFolderDocuments.mockClear();
+
+    await result.current.actions.confirmBatchSubDocTrash();
+
+    expect(mockTrashDocument).toHaveBeenCalledWith([2, 3], undefined);
+    await waitFor(() => expect(mockGetFolderDocuments).toHaveBeenCalled());
+  });
+
+  it("calls deleteAttachment and refreshes when confirmAttachmentTrash is called (single attachment trash)", async () => {
+    mockListAttachments.mockResolvedValue({
+      success: true,
+      data: [{ id: 10, name: "A1", file_name: "a1.pdf" }],
+    });
+
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.attachmentsDocId).toBe(1));
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+    mockGetFolderDocuments.mockClear();
+    mockListAttachments.mockClear();
+
+    await result.current.actions.confirmAttachmentTrash(10);
+
+    expect(mockDeleteAttachment).toHaveBeenCalledWith(1, 10);
+    await waitFor(() => expect(mockListAttachments).toHaveBeenCalled());
+  });
+
+  it("calls deleteAttachment for selected attachments on confirmBatchAttachmentTrash", async () => {
+    mockListAttachments.mockResolvedValue({
+      success: true,
+      data: [
+        { id: 10, name: "A1", file_name: "a1.pdf" },
+        { id: 11, name: "A2", file_name: "a2.pdf" },
+      ],
+    });
+
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.attachmentsDocId).toBe(1));
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(2));
+    result.current.selection.attachmentsSelectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.attachmentSelectedIds.length).toBe(2));
+    mockListAttachments.mockClear();
+
+    await result.current.actions.confirmBatchAttachmentTrash();
+
+    expect(mockDeleteAttachment).toHaveBeenCalledWith(1, 10);
+    expect(mockDeleteAttachment).toHaveBeenCalledWith(1, 11);
+    await waitFor(() => expect(mockListAttachments).toHaveBeenCalled());
+  });
+
+  it("opens upload panel for sub-document when handleUploadInFolder is called (folder has docs)", async () => {
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.folder).not.toBeNull());
+
+    result.current.actions.handleUploadInFolder();
+
+    await waitFor(() => expect(result.current.modals.isUploadOpen).toBe(true));
+    expect(result.current.modals.uploadPanelInitialValues.upload_kind).toBe("sub");
+    expect(result.current.modals.uploadPanelInitialValues.folder_id).toBe(folderId);
+  });
+
+  it("opens upload panel for attachment when handleAddAttachment is called with attachmentsDocId set", async () => {
+    mockListAttachments.mockResolvedValue({
+      success: true,
+      data: [{ id: 10, name: "A1", file_name: "a1.pdf" }],
+    });
+
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.attachmentsDocId).toBe(1));
+    await waitFor(() => expect(result.current.data.attachments).toHaveLength(1));
+
+    result.current.actions.handleAddAttachment();
+
+    await waitFor(() => expect(result.current.modals.isUploadOpen).toBe(true));
+    expect(result.current.modals.uploadPanelInitialValues.upload_kind).toBe("attachment");
+    expect(result.current.modals.uploadPanelInitialValues.target_document_id).toBe(1);
+  });
+
+  it("calls batchMoveDocumentsToFolder for multiple sub-docs and refreshes on batch transfer", async () => {
+    const subDoc2 = makeDocument({ id: 2, department_id: 10 });
+    const subDoc3 = makeDocument({ id: 3, department_id: 10 });
+    mockGetFolderDocuments.mockResolvedValue({ folder, data: [mainDoc, subDoc2, subDoc3] });
+
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.subDocs).toHaveLength(2));
+    result.current.actions.openTransferDocs([2, 3]);
+    await waitFor(() => expect(result.current.modals.transferModalOpen).toBe(true));
+
+    await result.current.actions.handleTransferConfirm(99);
+
+    expect(mockBatchMoveDocumentsToFolder).toHaveBeenCalledWith([2, 3], 99);
+    await waitFor(() => expect(mockGetFolderDocuments).toHaveBeenCalledTimes(2));
   });
 });
