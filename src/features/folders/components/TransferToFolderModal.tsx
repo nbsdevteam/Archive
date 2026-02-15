@@ -86,6 +86,7 @@ export function TransferToFolderModal({
             value={selectedFolderId}
             onChange={(e) => setSelectedFolderId(e.target.value)}
             aria-label={t("folders.selectDestinationFolder", { defaultValue: "Destination folder" })}
+            data-testid="transfer-folder-select"
           >
             <option value="">— {t("folders.selectDestinationFolder", { defaultValue: "Select folder" })} —</option>
             {folders.map((f) => (
@@ -111,6 +112,7 @@ export function TransferToFolderModal({
           variant="secondary"
           disabled={!canConfirm}
           onClick={handleConfirm}
+          data-testid="transfer-confirm-btn"
         >
           {isSubmitting ? (
             <Spinner size="sm" />

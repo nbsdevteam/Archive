@@ -22,7 +22,7 @@ const UploadDocumentPage = () => {
             <p className="text-muted mb-4">
               Upload a new document by selecting department, document type, title, and file.
             </p>
-            <Button variant="outline" size="lg" className="btn-outline-secondary" onClick={handleOpenPanel}>
+            <Button variant="outline" size="lg" className="btn-outline-secondary" onClick={handleOpenPanel} data-testid="upload-document-open-btn">
               <Icon name="file-up" className="me-2" />
               Upload Document
             </Button>

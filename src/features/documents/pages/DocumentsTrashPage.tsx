@@ -73,7 +73,7 @@ const DocumentsTrashPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={<CollapseHeader />}
     >
-        <div className="card documents__table-card">
+        <div className="card documents__table-card" data-testid="documents-trash-page">
           <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="d-flex align-items-center gap-2">
               <h5 className="card-title mb-0">{t("documents.trashView", { defaultValue: "Trash" })}</h5>
@@ -98,6 +98,7 @@ const DocumentsTrashPage = () => {
                     onClick={batchRestoreDialog.open}
                     disabled={isRestoring}
                     aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+                    data-testid="trash-restore-selected"
                   >
                     <Icon name="refresh-cw" className="me-1" />
                     {t("documents.restoreSelected", { defaultValue: "Restore selected" })}

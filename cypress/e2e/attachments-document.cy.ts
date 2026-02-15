@@ -1,6 +1,5 @@
 /**
- * Document detail attachments: open attachments tab → Edit → sidebar → update name/description → Save.
- * Replace file: select file in "Replace file (optional)" → Save → assert request contains file_name and file_data.
+ * Document detail attachments: add attachment, Edit (name/description), replace file, delete attachment.
  */
 
 const DOC_ID = 888;
@@ -45,6 +44,7 @@ describe('Document detail attachments', () => {
     cy.intercept('POST', (req) => {
       if (!req.url.includes(`/api/documents/${DOC_ID}/attachments`)) return;
       if (req.url.includes(`/attachments/${ATTACHMENT_ID}/update`)) return;
+      if (req.url.includes('/attachments/multiple')) return;
       req.reply({
         statusCode: 200,
         body: {
@@ -57,6 +57,50 @@ describe('Document detail attachments', () => {
         },
       });
     });
+  });
+
+  it('add attachment: opens Add attachment, selects file and submits, asserts attachments/multiple request', () => {
+    let addPayload: { files?: unknown[] } = {};
+    cy.intercept('POST', `**/api/documents/${DOC_ID}/attachments/multiple`, (req) => {
+      const body = req.body as { params?: { files?: unknown[] } };
+      if (body?.params?.files) addPayload = { files: body.params.files };
+      req.reply({ statusCode: 200, body: { result: { success: true } } });
+    }).as('addAttachment');
+
+    cy.loginByToken(`/documents/${DOC_ID}`);
+    cy.contains('button', 'Attachments').click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
+    cy.get('[data-testid="document-detail-add-attachment-btn"]').click();
+
+    cy.get('input[type="file"]').first().selectFile({ contents: Cypress.Buffer.from('e2e attachment content'), fileName: 'e2e-attach.pdf' }, { force: true });
+    cy.get('[data-testid="upload-document-submit"]').click();
+
+    cy.wait('@addAttachment').then(() => {
+      expect(addPayload.files).to.be.an('array').with.length.greaterThan(0);
+      const first = (addPayload.files as Record<string, unknown>[])[0];
+      expect(first).to.have.property('file_name');
+      expect(first).to.have.property('file_data');
+    });
+  });
+
+  it('delete attachment: clicks Delete on row, confirms dialog, asserts delete request', () => {
+    cy.intercept('POST', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}`, (req) => {
+      req.reply({ statusCode: 200, body: { result: { success: true } } });
+    }).as('deleteAttachmentPost');
+    cy.intercept('DELETE', `**/api/documents/${DOC_ID}/attachments/${ATTACHMENT_ID}`, { statusCode: 200, body: { success: true } }).as('deleteAttachmentDelete');
+
+    cy.loginByToken(`/documents/${DOC_ID}`);
+    cy.contains('button', 'Attachments').click();
+    cy.get('[data-testid="document-detail-attachments-tab"]').should('be.visible');
+
+    cy.get('[data-testid="document-detail-attachments-tab"]').within(() => {
+      cy.contains('button', 'Delete').first().click();
+    });
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains('button', 'Delete').click();
+    });
+
+    cy.wait('@deleteAttachmentPost');
   });
 
   it('opens attachments tab, clicks Edit, sidebar opens, updates name/description and saves', () => {

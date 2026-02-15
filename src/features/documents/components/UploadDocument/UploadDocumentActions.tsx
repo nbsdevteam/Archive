@@ -22,7 +22,7 @@ export function UploadDocumentActions({
       <Button variant="secondary" onClick={onClose} disabled={isUploading}>
         {t("common.cancel", { defaultValue: "Cancel" })}
       </Button>
-      <Button variant="secondary" isLoading={isUploading} onClick={onUpload} disabled={submitDisabled}>
+      <Button variant="secondary" isLoading={isUploading} onClick={onUpload} disabled={submitDisabled} data-testid="upload-document-submit">
         {t("documents.uploadDocument", { defaultValue: "Upload document" })}
       </Button>
     </div>
