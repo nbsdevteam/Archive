@@ -9,6 +9,7 @@ export const SHORTCUT_KEYS = {
   VIEW_TRASH: "view-trash",
   REFRESH_PAGE: "refresh-page",
   CREATE_NOTE: "create-note",
+  OPEN_FILTER: "open-filter",
 } as const;
 
 export type ShortcutKeyId = (typeof SHORTCUT_KEYS)[keyof typeof SHORTCUT_KEYS];
@@ -21,6 +22,7 @@ export const SHORTCUT_LABELS: Record<ShortcutKeyId, { label: string; keys: strin
   [SHORTCUT_KEYS.VIEW_TRASH]: { label: "View trash", keys: "Alt + T" },
   [SHORTCUT_KEYS.REFRESH_PAGE]: { label: "Refresh page", keys: "Alt + R" },
   [SHORTCUT_KEYS.CREATE_NOTE]: { label: "Create note", keys: "Alt + C" },
+  [SHORTCUT_KEYS.OPEN_FILTER]: { label: "Filter", keys: "Alt + F" },
 };
 
 /** Single key (without Alt) that triggers the shortcut when overlay is shown or when Alt was pressed. */
@@ -31,4 +33,5 @@ export const SHORTCUT_TRIGGER_KEYS: Record<ShortcutKeyId, string> = {
   [SHORTCUT_KEYS.VIEW_TRASH]: "t",
   [SHORTCUT_KEYS.REFRESH_PAGE]: "r",
   [SHORTCUT_KEYS.CREATE_NOTE]: "c",
+  [SHORTCUT_KEYS.OPEN_FILTER]: "f",
 };

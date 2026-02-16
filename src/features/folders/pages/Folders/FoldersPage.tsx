@@ -11,7 +11,7 @@ import { FoldersToolbar } from "./FoldersToolbar";
 import { FoldersContent } from "./FoldersContent";
 import { FoldersModals } from "./FoldersModals";
 
-/** Folders list page: layout, toolbar, content, delete/edit modals. Registers refresh shortcut (Alt+R). */
+/** Folders list page: layout, toolbar, content, delete/edit modals. Registers refresh (Alt+R) and filter (Alt+F) shortcuts. */
 const FoldersPage = () => {
   const { t } = useTranslation();
   const { registerHandler } = useShortcuts();
@@ -21,6 +21,11 @@ const FoldersPage = () => {
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
   }, [registerHandler, actions.handleRefresh]);
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.OPEN_FILTER, () => filter.handleOpenFilter());
+    return () => registerHandler(SHORTCUT_KEYS.OPEN_FILTER, undefined);
+  }, [registerHandler, filter.handleOpenFilter]);
   const { routes, viewMode, setViewMode, filteredFolders, foldersCountLabel, formatDate } = data;
   const deleteFolderDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteFolder });
 
