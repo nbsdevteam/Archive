@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 /**
  * Slow smoke against REAL API. All operations only on test-created data.
  * Phases (run separately from Cypress test list):
@@ -69,16 +70,18 @@ function selectDepartmentAndType() {
   waitStep();
 }
 
-/** Capture last upload response and alias as createdDocId. */
+/** Capture last upload response: alias createdDocId and createdFolderId (if backend returns folder_id). */
 function captureUploadDocId() {
   cy.wait('@uploadDocument', { timeout: 20000 })
     .its('response.body')
-    .then((body: { success?: boolean; data?: { id: number }; result?: { success?: boolean; data?: { id: number } } }) => {
+    .then((body: { success?: boolean; data?: { id: number; folder_id?: number }; result?: { success?: boolean; data?: { id: number; folder_id?: number } } }) => {
       const data = body?.data ?? body?.result?.data;
       const ok = body?.success === true || body?.result?.success === true;
       expect(ok).to.eq(true);
       expect(data?.id).to.be.a('number');
       cy.wrap(data!.id).as('createdDocId');
+      const folderId = data?.folder_id ?? (body?.result as { data?: { folder_id?: number } } | undefined)?.data?.folder_id;
+      cy.wrap(folderId != null && folderId > 0 ? folderId : null).as('createdFolderId');
     });
 }
 
@@ -100,6 +103,26 @@ function getFolderIdFromList(folderName: string, timeout = 15000): Cypress.Chain
       const m = String(url).match(/\/folders\/(\d+)/);
       expect(m).to.be.ok;
       return cy.wrap(Number(m![1]));
+    });
+  });
+}
+
+/** Get folder_id for a document by requesting document detail (use when upload response has no folder_id). */
+function getFolderIdFromDocument(documentId: number): Cypress.Chainable<number | null> {
+  return cy.window().then((win) => win.localStorage.getItem('access_token')).then((token) => {
+    if (!token) return cy.wrap(null);
+    const baseUrl = Cypress.config('baseUrl') || 'http://localhost:3003';
+    return cy.request({
+      method: 'POST',
+      url: `${baseUrl}/api/documents/${documentId}`,
+      body: { jsonrpc: '2.0', method: 'call', params: { document_id: documentId }, id: 1 },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      failOnStatusCode: false,
+    }).then((res) => {
+      const raw = res.body?.result ?? res.body;
+      const data = raw?.data ?? raw;
+      const folderId = data?.folder_id;
+      return cy.wrap(typeof folderId === 'number' && folderId > 0 ? folderId : null);
     });
   });
 }
@@ -140,7 +163,7 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.get('input[name="folder_code"]').clear().type('MBF');
     waitStep();
     cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('main base'), fileName: 'main-base.pdf' },
+      { contents: Cypress.Buffer.from('main base'), fileName: `${mainBaseFile}.pdf` },
       { force: true }
     );
     waitStep();
@@ -150,11 +173,24 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainBaseDocId'));
 
-    // Create MainBaseSecondaryFile (sub) in MainBaseFolder via folder detail "Upload in folder" (avoids folder dropdown).
-    cy.visit('/folders');
-    cy.contains(mainBaseFolder, { timeout: 15000 }).should('be.visible');
-    waitStep();
-    getFolderIdFromList(mainBaseFolder, 15000).as('mainBaseFolderId');
+    // Resolve MainBaseFolder ID: from upload response, else document detail API, else /folders list.
+    cy.get('@createdFolderId').then((fid: number | null) => {
+      if (fid != null && fid > 0) {
+        cy.wrap(fid).as('mainBaseFolderId');
+      } else {
+        return cy.get('@mainBaseDocId').then((docId: number) =>
+          getFolderIdFromDocument(docId).then((fid2: number | null) => {
+            if (fid2 != null) {
+              return cy.wrap(fid2).as('mainBaseFolderId');
+            }
+            cy.visit('/folders');
+            cy.contains(mainBaseFolder, { timeout: 20000 }).should('be.visible');
+            waitStep();
+            return getFolderIdFromList(mainBaseFolder, 20000).as('mainBaseFolderId');
+          })
+        );
+      }
+    });
     cy.get('@mainBaseFolderId').then((id: number) => cy.visit(`/folders/${id}`));
     waitStep();
     cy.get('[data-testid="upload-in-folder-btn"]').click();
