@@ -5,7 +5,6 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { UploadDocumentSidePanel } from "../../documents/components";
 import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
@@ -183,7 +182,7 @@ const DashboardPage = () => {
                                       </h6>
                                       <p className="mb-0 small text-muted text-truncate">{n.message}</p>
                                       <small className="text-muted">
-                                        {n.created_at ? convertToArabianStandardTime(n.created_at) : ""}
+                                        {n.created_at ?? ""}
                                       </small>
                                     </div>
                                   </div>

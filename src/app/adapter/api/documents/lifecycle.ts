@@ -3,6 +3,7 @@
 import apiClient from '../client';
 import type { DeleteLikeResponse } from './types';
 import { toDocumentIds, postPermanentDelete, postRestore } from './utils';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 /**
  * Archive one or many documents. POST /api/documents/batch/archive (JSON-RPC).
@@ -116,9 +117,10 @@ export async function getTrashDocuments(
     );
   }
   const typed = result as { success: boolean; data?: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } };
+  const data = Array.isArray(typed.data) ? typed.data : [];
   return {
     success: typed.success,
-    data: Array.isArray(typed.data) ? typed.data : [],
+    data: mapApiDatesToArabianStandardTime(data),
     pagination: typed.pagination,
   };
 }

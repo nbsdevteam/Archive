@@ -1,5 +1,4 @@
 import type { AuditLogEntry } from "./types";
-import { convertToArabianStandardTime } from "../../utils/format/date";
 
 /** Converts a snake_case action code into a readable fallback label. */
 export const humanizeAction = (action: string): string => {
@@ -9,16 +8,15 @@ export const humanizeAction = (action: string): string => {
     .replace(/\b\w/g, (ch: string) => ch.toUpperCase());
 };
 
-/** Formats an audit timestamp (API UTC) to Arabia Standard Time for table, timeline and tree views. */
+/** Audit timestamps are already in Arabia Standard Time from the API. Returns value or fallback. */
 export const formatAuditTimestamp = (value?: string | null): string => {
-  return convertToArabianStandardTime(value);
+  return value?.trim() ? value : "–";
 };
 
-/** Groups logs by the local date key (YYYY-MM-DD). */
+/** Groups logs by date. Timestamp is already AST display string (e.g. "12 Feb 2026, 5:30 PM"); use date part as key. */
 export const groupLogsByDay = (logs: AuditLogEntry[]): Record<string, AuditLogEntry[]> => {
   return logs.reduce<Record<string, AuditLogEntry[]>>((acc, log) => {
-    const date = new Date(log.timestamp);
-    const key = Number.isNaN(date.getTime()) ? "unknown" : date.toISOString().slice(0, 10);
+    const key = log.timestamp?.split(",")[0]?.trim() ?? "unknown";
     if (!acc[key]) acc[key] = [];
     acc[key].push(log);
     return acc;

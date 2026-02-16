@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Spinner, Alert } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useNotificationsPageContainer } from "../containers/useNotificationsPageContainer";
 import "../styles/notifications.css";
 
@@ -104,7 +103,7 @@ const NotificationsPage = () => {
                       {notif.message}
                     </div>
                     <span className="text-muted notifications__itemTime">
-                      {notif.created_at ? formatRelativeTime(new Date(notif.created_at)) : ""}
+                      {notif.created_at ?? ""}
                     </span>
                   </div>
                 ))}

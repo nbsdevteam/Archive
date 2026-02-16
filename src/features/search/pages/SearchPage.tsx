@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Spinner, Alert, Input } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";
 import type { SearchResult } from "../types/search.types";
 import "../styles/search.css";
@@ -146,11 +145,7 @@ const SearchPage = () => {
                         <td>{doc.document_type_name || doc.document_type?.name || "-"}</td>
                         <td>{doc.department_name || doc.department?.name || "-"}</td>
                         <td>
-                          {doc.upload_date
-                            ? formatRelativeTime(new Date(doc.upload_date))
-                            : doc.created_at
-                            ? formatRelativeTime(new Date(doc.created_at))
-                            : "-"}
+                          {doc.upload_date ?? doc.created_at ?? "-"}
                         </td>
                         <td className="text-end">
                           <button

@@ -17,6 +17,7 @@ import type {
   UpdateNotePayload,
   NoteMutationResponse,
 } from '../types/notes.types';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 /**
  * List notes with optional filters
@@ -37,16 +38,16 @@ export const listNotes = async (
     per_page: params.per_page ?? 50,
   });
 
-  // Handle different response shapes
+  // Handle different response shapes; map date fields to Arabia Standard Time for display
   if (typeof result === 'object' && result !== null) {
     if ('success' in result && 'data' in result) {
-      return result as NotesListResponse;
+      const res = result as NotesListResponse;
+      return { ...res, data: mapApiDatesToArabianStandardTime(res.data) };
     }
-    // If backend returns array directly, wrap it
     if (Array.isArray(result)) {
       return {
         success: true,
-        data: result,
+        data: mapApiDatesToArabianStandardTime(result),
       };
     }
   }
@@ -71,14 +72,14 @@ export const getNote = async (noteId: number): Promise<NoteDetailResponse> => {
   );
 
   if (typeof result === 'object' && result !== null && 'data' in result && result.data) {
-    return result as NoteDetailResponse;
+    const res = result as NoteDetailResponse;
+    return { ...res, data: mapApiDatesToArabianStandardTime(res.data) };
   }
 
-  // If backend returns note directly
   if (typeof result === 'object' && result !== null && 'id' in result) {
     return {
       success: true,
-      data: result as NoteDetailResponse['data'],
+      data: mapApiDatesToArabianStandardTime(result as NoteDetailResponse['data']),
     };
   }
 

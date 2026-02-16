@@ -2,6 +2,7 @@
 
 import apiClient from '../client';
 import type { DocumentVersion } from './types';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 /**
  * Upload new version of a document.
@@ -26,6 +27,7 @@ export async function uploadVersion(
 
 /**
  * Get all versions for a document.
+ * Date fields in versions are mapped to Arabia Standard Time for display.
  */
 export async function getVersions(documentId: number): Promise<{ success: boolean; data: DocumentVersion[] }> {
   const response = await apiClient.post(`/api/documents/${documentId}/versions`, {
@@ -33,5 +35,6 @@ export async function getVersions(documentId: number): Promise<{ success: boolea
     method: 'call',
     params: { document_id: documentId },
   });
-  return response.data.result || response.data;
+  const raw = response.data.result || response.data;
+  return mapApiDatesToArabianStandardTime(raw);
 }

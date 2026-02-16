@@ -8,7 +8,6 @@ import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { useFolderAuditLogs } from "@/features/activity/hooks/useFolderAuditLogs";
 import type { ActivityViewMode } from "@/features/activity/types";
 import { all_routes } from "@/router/all_routes";
-import { formatRelativeTime } from "@/shared/utils/format/date";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "@/shared/hooks";
@@ -213,14 +212,8 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const previewDoc = currentDocument;
   const previewFileName = previewDoc?.file_name ?? "";
 
-  const formatDate = useCallback<(date?: string | null) => string>((dateStr) => {
-    if (dateStr == null || dateStr === "") return "–";
-    try {
-      return formatRelativeTime(new Date(dateStr));
-    } catch {
-      return "–";
-    }
-  }, []);
+  /** Dates are already in Arabia Standard Time from the API. */
+  const formatDate = useCallback<(date?: string | null) => string>((dateStr) => (dateStr?.trim() ? dateStr : "–"), []);
 
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {

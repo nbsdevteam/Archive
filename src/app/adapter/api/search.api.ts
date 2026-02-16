@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 export interface SearchResult {
   id: number;
@@ -52,7 +53,8 @@ export const searchApi = {
       method: 'call',
       params,
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 
   /**
@@ -68,7 +70,8 @@ export const searchApi = {
       method: 'call',
       params,
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 
   /**
@@ -80,6 +83,7 @@ export const searchApi = {
       method: 'call',
       params: { barcode },
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 };

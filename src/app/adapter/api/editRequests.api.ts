@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 export interface EditRequest {
   id: number;
@@ -44,7 +45,8 @@ export const editRequestsApi = {
       method: 'call',
       params: params || {},
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 
   /**
@@ -98,6 +100,7 @@ export const editRequestsApi = {
       method: 'call',
       params: {},
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 };

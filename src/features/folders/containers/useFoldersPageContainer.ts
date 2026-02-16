@@ -9,7 +9,6 @@ import { useDraftAppliedFilters } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
 import type { SelectOption } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
-import { formatRelativeTime } from "@/shared/utils/format/date";
 import { deleteFolder } from "@/features/folders/services/folders.api";
 import { useFolders } from "@/features/folders/hooks/useFolders";
 import type { Folder } from "@/features/folders/types/folders.types";
@@ -125,14 +124,8 @@ export function useFoldersPageContainer() {
     fetchFolders();
   }, [fetchFolders]);
 
-  const formatDate = useCallback((dateStr?: string | null) => {
-    if (!dateStr) return "–";
-    try {
-      return formatRelativeTime(new Date(dateStr));
-    } catch {
-      return "–";
-    }
-  }, []);
+  /** Dates are already in Arabia Standard Time from the API. */
+  const formatDate = useCallback((dateStr?: string | null) => (dateStr?.trim() ? dateStr : "–"), []);
 
   const handleGridKeyDown = useCallback(
     (folderId: number, e: KeyboardEvent<HTMLDivElement>) => {

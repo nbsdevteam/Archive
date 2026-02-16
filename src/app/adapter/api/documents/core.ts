@@ -11,9 +11,11 @@ import type {
   UpdateDocumentResponse,
 } from './types';
 import { getRpcResult, assertSuccess } from './utils';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 /**
  * Get list of documents with optional filters and pagination.
+ * Date fields in the response are mapped to Arabia Standard Time for display.
  */
 export async function getDocuments(params?: GetDocumentsParams): Promise<DocumentsResponse> {
   const response = await apiClient.post('/api/documents', {
@@ -21,11 +23,13 @@ export async function getDocuments(params?: GetDocumentsParams): Promise<Documen
     method: 'call',
     params: params || {},
   });
-  return response.data.result || response.data;
+  const raw = response.data.result || response.data;
+  return mapApiDatesToArabianStandardTime(raw);
 }
 
 /**
  * Get single document details by ID.
+ * Date fields (including versions, ocr) are mapped to Arabia Standard Time for display.
  */
 export async function getDocument(id: number): Promise<DocumentDetailResponse> {
   const response = await apiClient.post(`/api/documents/${id}`, {
@@ -33,7 +37,8 @@ export async function getDocument(id: number): Promise<DocumentDetailResponse> {
     method: 'call',
     params: { document_id: id },
   });
-  return response.data.result || response.data;
+  const raw = response.data.result || response.data;
+  return mapApiDatesToArabianStandardTime(raw);
 }
 
 /**

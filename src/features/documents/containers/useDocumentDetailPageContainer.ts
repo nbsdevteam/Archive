@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { all_routes } from "@/router/all_routes";
 import { useDocumentOperations } from "@/shared/hooks";
-import { convertToArabianStandardTime } from "@/shared/utils/format/date";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
 import {
@@ -229,7 +228,8 @@ export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
     }
   }, [activeTab, docId, refreshNotes]);
 
-  const formatDate = useCallback((value?: string) => convertToArabianStandardTime(value), []);
+  /** Dates are already in Arabia Standard Time from the API. */
+  const formatDate = useCallback((value?: string) => value ?? "–", []);
 
   const handleDownloadAttachment = useCallback(
     async (attachmentId: number, fName: string) => {

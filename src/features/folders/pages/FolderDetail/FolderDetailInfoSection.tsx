@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
 import { FolderDetailInfoCard } from "../../components/detail";
-import { convertToArabianStandardTime } from "@/shared/utils/format/date";
 import type { FolderDetail } from "../../types/folders.types";
 
 export interface FolderDetailInfoSectionProps {
@@ -23,7 +22,7 @@ export function FolderDetailInfoSection({
       folder={folder}
       folderId={folderId}
       documentCount={documentCount}
-      formatUpdated={(date) => convertToArabianStandardTime(date) ?? ""}
+      formatUpdated={(date) => date ?? ""}
     />
   );
 }

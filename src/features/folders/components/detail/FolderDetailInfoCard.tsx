@@ -6,7 +6,7 @@ export interface FolderDetailInfoCardProps {
   folder: FolderDetail;
   folderId: number;
   documentCount: number;
-  /** Formats the "Updated" date (e.g. convertToArabianStandardTime). */
+  /** Display string for "Updated" date (already in Arabia Standard Time from API). */
   formatUpdated: (date: string | null | undefined) => string;
 }
 

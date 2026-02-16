@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { mapApiDatesToArabianStandardTime } from '@/shared/utils/format/mapApiDatesToArabianStandardTime';
 
 export interface Notification {
   id: number;
@@ -38,7 +39,8 @@ export const notificationsApi = {
       method: 'call',
       params: params || {},
     });
-    return response.data.result || response.data;
+    const raw = response.data.result || response.data;
+    return mapApiDatesToArabianStandardTime(raw);
   },
 
   /**

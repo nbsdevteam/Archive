@@ -1,5 +1,6 @@
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import type { AuditLogEntry, AuditLogsQueryParams, AuditLogsResult } from "../types/auditLogs.types";
+import { mapApiDatesToArabianStandardTime } from "@/shared/utils/format/mapApiDatesToArabianStandardTime";
 
 /**
  * Normalizes nullable audit log fields so UI code can rely on stable types.
@@ -22,10 +23,12 @@ const normalizeAuditLog = (log: Partial<AuditLogEntry>): AuditLogEntry => {
 
 /**
  * Fetches audit logs from backend and returns normalized entries.
+ * Date fields (timestamp) are mapped to Arabia Standard Time for display.
  */
 export const getAuditLogs = async (params: AuditLogsQueryParams = {}): Promise<AuditLogsResult> => {
   const response = await adminApi.getAuditLogs(params);
-  const data = Array.isArray(response.data) ? response.data.map((log) => normalizeAuditLog(log)) : [];
+  const normalized = Array.isArray(response.data) ? response.data.map((log) => normalizeAuditLog(log)) : [];
+  const data = mapApiDatesToArabianStandardTime(normalized);
   return {
     success: response.success,
     data,

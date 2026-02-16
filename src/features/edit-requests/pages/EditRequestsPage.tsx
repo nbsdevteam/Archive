@@ -2,7 +2,6 @@ import CollapseHeader from "../../../core/common/collapse-header/collapse-header
 import "../styles/edit-requests.css";
 import { Spinner, Alert } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 import { useEditRequestsPageContainer } from "../containers/useEditRequestsPageContainer";
 
 /**
@@ -78,7 +77,7 @@ const EditRequestsPage = () => {
                             <td>{req.document_title || `Document #${req.document_id}`}</td>
                             <td>{req.reason || "-"}</td>
                             <td>
-                              {req.request_date ? convertToArabianStandardTime(req.request_date) : req.created_at ? convertToArabianStandardTime(req.created_at) : "-"}
+                              {req.request_date ?? req.created_at ?? "-"}
                             </td>
                             <td>
                               <span className={`badge bg-${isPending ? "warning" : status === "approved" ? "success" : "danger"}`}>

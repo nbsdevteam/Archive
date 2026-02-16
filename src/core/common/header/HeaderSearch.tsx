@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { searchApi } from "../../../app/adapter/api/search.api";
 import type { SearchResult } from "../../../app/adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
-import { convertToArabianStandardTime } from "../../../shared/utils/format/date";
 export interface HeaderSearchProps {
   routes: Record<string, string>;
   t: (key: string) => string;
@@ -88,9 +87,9 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     [getEffectiveType]
   );
 
-  const formatDateCompact = useCallback((iso: string | undefined): string => {
-    if (!iso) return "-";
-    return convertToArabianStandardTime(iso);
+  /** Dates are already in Arabia Standard Time from the API. */
+  const formatDateCompact = useCallback((value: string | undefined): string => {
+    return value?.trim() ? value : "-";
   }, []);
 
   const getMeta = useCallback(

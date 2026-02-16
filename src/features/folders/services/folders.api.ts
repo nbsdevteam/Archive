@@ -13,6 +13,7 @@ import type {
   FolderListParams,
   FolderListResponse,
 } from "../types/folders.types";
+import { mapApiDatesToArabianStandardTime } from "@/shared/utils/format/mapApiDatesToArabianStandardTime";
 
 /**
  * List folders
@@ -31,21 +32,22 @@ export const listFolders = async (
     ...(params.company_id != null && { company_id: params.company_id }),
   });
 
-  // Handle different response shapes
+  // Handle different response shapes; map date fields to Arabia Standard Time for display
+  let out: FolderListResponse;
   if (Array.isArray(result)) {
-    return { folders: result as Folder[] };
-  }
-  if (typeof result === "object" && "folders" in result) {
-    return result as FolderListResponse;
-  }
-  if (typeof result === "object" && "data" in result) {
+    out = { folders: mapApiDatesToArabianStandardTime(result as Folder[]) };
+  } else if (typeof result === "object" && "folders" in result) {
+    out = mapApiDatesToArabianStandardTime(result as FolderListResponse);
+  } else if (typeof result === "object" && "data" in result) {
     const dataResult = result as { data: Folder[]; count?: number; pagination?: unknown };
-    return {
-      folders: dataResult.data,
+    out = {
+      folders: mapApiDatesToArabianStandardTime(dataResult.data),
       pagination: dataResult.pagination as FolderListResponse["pagination"],
     };
+  } else {
+    out = { folders: [] };
   }
-  return { folders: [] };
+  return out;
 };
 
 /**
@@ -57,10 +59,10 @@ export const getFolder = async (folderId: number): Promise<FolderDetail> => {
     `/api/folders/${folderId}`,
     {}
   );
-  if (typeof result === "object" && result !== null && "data" in result && result.data) {
-    return result.data as FolderDetail;
-  }
-  return result as FolderDetail;
+  const folder = (typeof result === "object" && result !== null && "data" in result && result.data)
+    ? (result.data as FolderDetail)
+    : (result as FolderDetail);
+  return mapApiDatesToArabianStandardTime(folder);
 };
 
 /**
@@ -96,18 +98,24 @@ export const getFolderDocuments = async (
     }
   }
 
+  const mappedDocs = mapApiDatesToArabianStandardTime(docs);
+
   // Extract folder from the response (may live under "folder" key)
   const folderFromResponse = (raw && typeof raw === "object" && !Array.isArray(raw))
     ? (raw.folder as FolderDetail | undefined)
     : undefined;
 
   if (folderFromResponse) {
-    return { success: true, data: docs, folder: folderFromResponse };
+    return {
+      success: true,
+      data: mappedDocs,
+      folder: mapApiDatesToArabianStandardTime(folderFromResponse),
+    };
   }
 
-  // Folder not in response — fetch it separately
+  // Folder not in response — fetch it separately (getFolder already maps dates)
   const folder = await getFolder(folderId);
-  return { success: true, data: docs, folder };
+  return { success: true, data: mappedDocs, folder };
 };
 
 export interface CreateFolderParams {
