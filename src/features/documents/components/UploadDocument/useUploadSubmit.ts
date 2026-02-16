@@ -235,6 +235,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         });
         finalFolderId = newFolder.id;
       }
+      // Single-file upload: send folder_id (scalar). Multi-file flows use bulk APIs and folder_ids elsewhere.
       const resp = await documentsApi.uploadDocument({
         department_id: Number(data.department_id),
         document_type_id: Number(data.document_type_id),
@@ -243,7 +244,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         file_name: singleFile.name,
         confidentiality_level: data.confidentiality_level,
         upload_kind: data.upload_kind,
-        ...(finalFolderId ? { folder_ids: [finalFolderId] } : {}),
+        ...(finalFolderId ? { folder_id: finalFolderId } : {}),
         ...(data.po_number?.trim() ? { po_number: data.po_number.trim() } : {}),
         ...(data.bl_number?.trim() ? { bl_number: data.bl_number.trim() } : {}),
         ...(data.container_number?.trim() ? { container_number: data.container_number.trim() } : {}),
