@@ -417,30 +417,19 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Main doc: View (navigate to detail), capture mainDocId from URL, then Move to trash.
+      // Main doc: View (navigate to detail). Main document cannot be moved to trash from this page; only sub-docs can.
       cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
       waitStep();
-      cy.url().then((url) => {
-        const m = String(url).match(/\/documents\/(\d+)/);
-        if (m) cy.wrap(m[1]).as('mainDocId');
-      });
-      cy.get('[data-testid="document-detail-move-to-trash-btn"]').click();
-      waitStep();
-      cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
-      waitStep();
-      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+      cy.url().should('match', /\/documents\/\d+/);
+      cy.get('[data-testid="document-detail-move-to-trash-btn"]').should('not.exist');
       waitStep();
 
-      // Permanent delete from trash: select rows by data-row-id (document id), then permanent delete selected.
+      // Permanent delete from trash: only sub-doc was trashed; select it and permanent delete selected.
       cy.visit('/documents/trash');
       waitStep();
       cy.get('[data-testid="documents-trash-page"]').should('be.visible');
-      cy.get('@mainDocId').then((mainDocId: string) => {
-        cy.get('@subDocId').then((subDocId: string) => {
-          cy.get(`tr[data-row-id="${mainDocId}"] input.form-check-input`).click();
-          waitStep();
-          cy.get(`tr[data-row-id="${subDocId}"] input.form-check-input`).click();
-        });
+      cy.get('@subDocId').then((subDocId: string) => {
+        cy.get(`tr[data-row-id="${subDocId}"] input.form-check-input`).click();
       });
       waitStep();
       cy.contains('button', 'Permanent delete selected').click();
