@@ -82,9 +82,12 @@ function captureUploadDocId() {
     });
 }
 
-/** Resolve folder ID from /folders list by folder name (grid or list view). */
-function getFolderIdFromList(folderName: string): Cypress.Chainable<number> {
+/** Resolve folder ID from /folders list by folder name (grid or list view). Waits for list to load. */
+function getFolderIdFromList(folderName: string, timeout = 15000): Cypress.Chainable<number> {
+  cy.contains(folderName, { timeout }).should('be.visible');
   return cy.contains(folderName).closest('tr, .folders__grid-card-wrapper').then(($row) => {
+    const idAttr = $row.attr('data-folder-id');
+    if (idAttr) return cy.wrap(Number(idAttr));
     const $link = $row.find('a[href*="/folders/"]');
     if ($link.length) {
       const href = $link.attr('href') ?? '';
@@ -149,8 +152,9 @@ describe('Slow smoke (real API) — flow options', () => {
 
     // Create MainBaseSecondaryFile (sub) in MainBaseFolder via folder detail "Upload in folder" (avoids folder dropdown).
     cy.visit('/folders');
+    cy.contains(mainBaseFolder, { timeout: 15000 }).should('be.visible');
     waitStep();
-    getFolderIdFromList(mainBaseFolder).as('mainBaseFolderId');
+    getFolderIdFromList(mainBaseFolder, 15000).as('mainBaseFolderId');
     cy.get('@mainBaseFolderId').then((id: number) => cy.visit(`/folders/${id}`));
     waitStep();
     cy.get('[data-testid="upload-in-folder-btn"]').click();

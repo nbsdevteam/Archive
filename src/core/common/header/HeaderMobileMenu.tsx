@@ -28,6 +28,9 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
             </div>
           </div>
         </div>
+        <Link className="dropdown-item" to={routes.documentsUpload}>
+          <i className="ti ti-upload me-1"></i>Upload
+        </Link>
         <Link className="dropdown-item" to={routes.activity}>
           <i className="ti ti-activity me-1"></i>Activity
         </Link>

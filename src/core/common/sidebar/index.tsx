@@ -223,7 +223,12 @@ const Sidebar = memo(() => {
             <kbd>CTRL + /</kbd>
           </span>
         </div>
-        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.archiveActivity", { defaultValue: "Activity" })}>
+        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.upload", { defaultValue: "Upload" })}>
+          <div className="me-3">
+            <Link to={all_routes.documentsUpload} className="btn btn-menubar" aria-label={t("app.upload", { defaultValue: "Upload" })}>
+              <i className="ti ti-upload" aria-hidden />
+            </Link>
+          </div>
           <div className="me-0">
             <Link to={all_routes.activity} className="btn btn-menubar" aria-label={t("app.archiveActivity", { defaultValue: "Activity" })}>
               <i className="ti ti-activity" aria-hidden />
