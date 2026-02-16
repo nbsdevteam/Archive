@@ -269,11 +269,12 @@ export const NoteEditor = ({
       />
 
       <div>
-        <label className="form-label">
+        <label className="form-label" htmlFor="note-content">
           {t('notes.content', { defaultValue: 'Content' })}
           <span className="text-danger ms-1">*</span>
         </label>
         <textarea
+          id="note-content"
           className="form-control"
           rows={6}
           value={content}
@@ -283,19 +284,22 @@ export const NoteEditor = ({
           })}
           required
           disabled={isSaving}
+          aria-label={t('notes.content', { defaultValue: 'Content' })}
         />
       </div>
 
       <div className="row g-3">
         <div className="col-md-6">
-          <label className="form-label">
+          <label className="form-label" htmlFor="note-visibility">
             {t('notes.visibility', { defaultValue: 'Visibility' })}
           </label>
           <select
+            id="note-visibility"
             className="form-select"
             value={isPrivate ? 'private' : 'public'}
             onChange={handleVisibilityChange}
             disabled={isSaving}
+            aria-label={t('notes.visibility', { defaultValue: 'Visibility' })}
           >
             <option value="private">
               {t('notes.private', { defaultValue: 'Private' })}
@@ -306,14 +310,16 @@ export const NoteEditor = ({
           </select>
         </div>
         <div className="col-md-6">
-          <label className="form-label">
+          <label className="form-label" htmlFor="note-color">
             {t('notes.color', { defaultValue: 'Color' })}
           </label>
           <select
+            id="note-color"
             className="form-select"
             value={color}
             onChange={handleColorChange}
             disabled={isSaving}
+            aria-label={t('notes.color', { defaultValue: 'Color' })}
           >
             {colorOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -340,16 +346,18 @@ export const NoteEditor = ({
       </div>
 
       <div>
-        <label className="form-label">
+        <label className="form-label" htmlFor="note-attach-image">
           {t('notes.attachImage', { defaultValue: 'Attach image (optional)' })}
         </label>
         <input
+          id="note-attach-image"
           type="file"
           className="d-none"
           ref={fileInputRef}
           accept="image/*"
           onChange={handleFileChange}
           disabled={isSaving}
+          aria-label={t('notes.attachImage', { defaultValue: 'Attach image (optional)' })}
         />
         <div className="d-flex gap-2">
           <Button

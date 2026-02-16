@@ -117,7 +117,7 @@ export function UploadDocumentFileSection({
           )}
         </div>
       )}
-      <label className="form-label">
+      <label className="form-label" htmlFor="upload-doc-file">
         {uploadWhatDocumentLabel}
         <span className="text-danger ms-1">*</span>
       </label>
@@ -130,6 +130,7 @@ export function UploadDocumentFileSection({
         multiple={allowMultiple}
         onChange={handleInputChange}
         data-testid="upload-file-input"
+        aria-label={uploadWhatDocumentLabel}
       />
       <div className="d-flex gap-2">
         <Button

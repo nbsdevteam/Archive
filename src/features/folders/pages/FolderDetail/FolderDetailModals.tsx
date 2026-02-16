@@ -107,15 +107,15 @@ export function FolderDetailModals({
       <Modal isOpen={modals.signatureOpen} onClose={handleCloseSignatureModal} title={t("folders.signatureRequestOnMain", { defaultValue: "Request signature (main document)" })} size="md">
         {data.mainDoc && <p className="small mb-2">{data.mainDoc.title ?? data.mainDoc.name} — {data.mainDoc.barcode}</p>}
         <div className="mb-3">
-          <label className="form-label">{t("folders.signerRequired", { defaultValue: "Signer" })} *</label>
-          <select className="form-select" value={modals.signatureSignerId} onChange={handleSignatureSignerChange}>
+          <label className="form-label" htmlFor="folder-modal-signer">{t("folders.signerRequired", { defaultValue: "Signer" })} *</label>
+          <select id="folder-modal-signer" className="form-select" value={modals.signatureSignerId} onChange={handleSignatureSignerChange} aria-label={t("folders.signerRequired", { defaultValue: "Signer" })}>
             <option value="">{t("folders.selectSigner", { defaultValue: "Select signer…" })}</option>
             {data.managers.map((m) => <option key={m.id} value={m.id}>{m.name} {m.login ? `(${m.login})` : ""}</option>)}
           </select>
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("folders.messageOptional", { defaultValue: "Message (optional)" })}</label>
-          <textarea className="form-control" rows={3} value={modals.signatureMessage} onChange={handleSignatureMessageChange} />
+          <label className="form-label" htmlFor="folder-modal-signature-message">{t("folders.messageOptional", { defaultValue: "Message (optional)" })}</label>
+          <textarea id="folder-modal-signature-message" className="form-control" rows={3} value={modals.signatureMessage} onChange={handleSignatureMessageChange} aria-label={t("folders.messageOptional", { defaultValue: "Message (optional)" })} />
         </div>
         <ModalFooter>
           <Button variant="outline" className="btn-outline-secondary" onClick={handleCloseSignatureModal}>{t("common.cancel", { defaultValue: "Cancel" })}</Button>
@@ -126,8 +126,8 @@ export function FolderDetailModals({
       <Modal isOpen={modals.editOpen} onClose={handleCloseEditModal} title={t("folders.editRequestOnMain", { defaultValue: "Edit request (main document)" })} size="md">
         {data.mainDoc && <p className="small mb-2">{data.mainDoc.title ?? data.mainDoc.name} — {data.mainDoc.barcode}</p>}
         <div className="mb-3">
-          <label className="form-label">{t("folders.editReasonRequired", { defaultValue: "Reason" })} *</label>
-          <textarea className="form-control" rows={4} value={modals.editReason} onChange={handleEditReasonChange} />
+          <label className="form-label" htmlFor="folder-modal-edit-reason">{t("folders.editReasonRequired", { defaultValue: "Reason" })} *</label>
+          <textarea id="folder-modal-edit-reason" className="form-control" rows={4} value={modals.editReason} onChange={handleEditReasonChange} aria-label={t("folders.editReasonRequired", { defaultValue: "Reason" })} />
         </div>
         <ModalFooter>
           <Button variant="outline" className="btn-outline-secondary" onClick={handleCloseEditModal}>{t("common.cancel", { defaultValue: "Cancel" })}</Button>

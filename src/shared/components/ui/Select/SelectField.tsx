@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { type Control, type FieldPath, type FieldValues, Controller } from "react-hook-form";
 import Select, { type SingleValue } from "react-select";
 
@@ -60,10 +61,13 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
   isClearable = true,
   "data-testid": dataTestId,
 }: SelectFieldProps<T, Name>) {
+  const labelId = useId();
+  const accessibleName = label ?? placeholder;
+  // Expose accessible name for screen readers/TTS via aria-label and aria-labelledby (react-select supports both).
   return (
     <div className={`mb-3 ${className}`} {...(dataTestId ? { "data-testid": dataTestId } : {})}>
       {label && (
-        <label className="form-label">
+        <label id={labelId} className="form-label">
           {label}
           {required && <span className="text-danger ms-1">*</span>}
         </label>
@@ -89,6 +93,8 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
               ref={field.ref}
               classNamePrefix="react-select"
               className={error ? "is-invalid" : ""}
+              aria-label={accessibleName}
+              aria-labelledby={label ? labelId : undefined}
               styles={{
                 control: (base) => ({
                   ...base,

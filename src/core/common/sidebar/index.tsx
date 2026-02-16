@@ -218,6 +218,7 @@ const Sidebar = memo(() => {
             type="text"
             className="form-control"
             placeholder={t("sidebar.search")}
+            aria-label={t("sidebar.search")}
           />
           <span className="input-group-text">
             <kbd>CTRL + /</kbd>

@@ -83,9 +83,10 @@ const RegisterPage = () => {
                         <p className="mb-0">{t("auth.signUpSubtitle")}</p>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">{t("auth.name")}</label>
+                        <label className="form-label" htmlFor="register-name">{t("auth.name")}</label>
                         <div className="input-group">
                           <input
+                            id="register-name"
                             type="text"
                             defaultValue=""
                             className="form-control border-end-0"
@@ -97,9 +98,10 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">{t("auth.emailAddress")}</label>
+                        <label className="form-label" htmlFor="register-email">{t("auth.emailAddress")}</label>
                         <div className="input-group">
                           <input
+                            id="register-email"
                             type="email"
                             defaultValue=""
                             className="form-control border-end-0"
@@ -112,9 +114,10 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">{t("auth.password")}</label>
+                        <label className="form-label" htmlFor="register-password">{t("auth.password")}</label>
                         <div className="pass-group">
                           <input
+                            id="register-password"
                             type={passwordVisibility.password ? "text" : "password"}
                             className="pass-input form-control"
                             required
@@ -130,9 +133,10 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">{t("auth.confirmPassword")}</label>
+                        <label className="form-label" htmlFor="register-confirm-password">{t("auth.confirmPassword")}</label>
                         <div className="pass-group">
                           <input
+                            id="register-confirm-password"
                             type={passwordVisibility.confirmPassword ? "text" : "password"}
                             className="pass-input form-control"
                             required

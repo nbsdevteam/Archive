@@ -183,6 +183,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           value={searchTerm}
           onChange={handleSearchInputChange}
           onFocus={handleSearchInputFocus}
+          aria-label={t("app.searchPlaceholder")}
         />
         <span className="input-group-text">
           <kbd>CTRL + / </kbd>

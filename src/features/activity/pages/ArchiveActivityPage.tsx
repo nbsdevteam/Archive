@@ -134,29 +134,35 @@ const ArchiveActivityPage = () => {
               onSubmit={handleFiltersSubmit}
             >
               <div className="col-md-3">
-                <label className="form-label">{t("activity.filters.dateFrom", { defaultValue: "Date from" })}</label>
+                <label className="form-label" htmlFor="activity-date-from">{t("activity.filters.dateFrom", { defaultValue: "Date from" })}</label>
                 <input
+                  id="activity-date-from"
                   type="date"
                   className="form-control"
                   value={dateFromInput}
                   onChange={handleDateFromChange}
+                  aria-label={t("activity.filters.dateFrom", { defaultValue: "Date from" })}
                 />
               </div>
               <div className="col-md-3">
-                <label className="form-label">{t("activity.filters.dateTo", { defaultValue: "Date to" })}</label>
+                <label className="form-label" htmlFor="activity-date-to">{t("activity.filters.dateTo", { defaultValue: "Date to" })}</label>
                 <input
+                  id="activity-date-to"
                   type="date"
                   className="form-control"
                   value={dateToInput}
                   onChange={handleDateToChange}
+                  aria-label={t("activity.filters.dateTo", { defaultValue: "Date to" })}
                 />
               </div>
               <div className="col-md-3">
-                <label className="form-label">{t("activity.filters.action", { defaultValue: "Action" })}</label>
+                <label className="form-label" htmlFor="activity-filter-action">{t("activity.filters.action", { defaultValue: "Action" })}</label>
                 <select
+                  id="activity-filter-action"
                   className="form-select"
                   value={actionInput}
                   onChange={handleActionInputChange}
+                  aria-label={t("activity.filters.action", { defaultValue: "Action" })}
                 >
                   <option value="">{t("activity.filters.allActions", { defaultValue: "All actions" })}</option>
                   {actionOptions.map((action) => (
@@ -184,6 +190,7 @@ const ArchiveActivityPage = () => {
                   className="form-select form-select-sm"
                   value={treeGroupBy}
                   onChange={handleTreeGroupByChange}
+                  aria-label={t("activity.groupBy.label", { defaultValue: "Group by" })}
                 >
                   <option value="document">{t("activity.groupBy.document", { defaultValue: "Group by document" })}</option>
                   <option value="action">{t("activity.groupBy.action", { defaultValue: "Group by action" })}</option>

@@ -89,24 +89,28 @@ export function AttachmentSidePanel({
       >
         <div className="attachment-edit-form" data-testid="attachment-side-panel">
         <div className="mb-3">
-          <label className="form-label">{t("documents.name", { defaultValue: "Name" })}</label>
+          <label className="form-label" htmlFor="attachment-edit-name">{t("documents.name", { defaultValue: "Name" })}</label>
           <input
+            id="attachment-edit-name"
             type="text"
             className="form-control"
             value={editAttachmentName}
             onChange={handleEditAttachmentNameChange}
             maxLength={255}
             data-testid="attachment-edit-name"
+            aria-label={t("documents.name", { defaultValue: "Name" })}
           />
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.description", { defaultValue: "Description" })}</label>
+          <label className="form-label" htmlFor="attachment-edit-description">{t("documents.description", { defaultValue: "Description" })}</label>
           <textarea
+            id="attachment-edit-description"
             className="form-control"
             rows={3}
             value={editAttachmentDescription}
             onChange={handleEditAttachmentDescriptionChange}
             data-testid="attachment-edit-description"
+            aria-label={t("documents.description", { defaultValue: "Description" })}
           />
         </div>
         <div className="mb-3">

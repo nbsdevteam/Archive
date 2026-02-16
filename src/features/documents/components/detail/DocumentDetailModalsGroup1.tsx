@@ -26,13 +26,13 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
     <>
       <Modal isOpen={modals.modalUploadVersion} onClose={handleCloseUploadVersionModal} title={t("documents.uploadNewVersion", { defaultValue: "Upload new version" })} size="md">
         <div className="mb-3">
-          <label className="form-label">{t("documents.changeDescription", { defaultValue: "Change description" })}</label>
-          <input type="text" className="form-control" value={modals.uploadVersionDescription} onChange={handleUploadVersionDescriptionChange} placeholder={t("documents.changeDescriptionPlaceholder", { defaultValue: "Optional" })} />
+          <label className="form-label" htmlFor="doc-upload-version-description">{t("documents.changeDescription", { defaultValue: "Change description" })}</label>
+          <input id="doc-upload-version-description" type="text" className="form-control" value={modals.uploadVersionDescription} onChange={handleUploadVersionDescriptionChange} placeholder={t("documents.changeDescriptionPlaceholder", { defaultValue: "Optional" })} aria-label={t("documents.changeDescription", { defaultValue: "Change description" })} />
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.file", { defaultValue: "File" })} *</label>
+          <label className="form-label" htmlFor="doc-upload-version-file">{t("documents.file", { defaultValue: "File" })} *</label>
           <div className="d-flex gap-2 align-items-center">
-            <input ref={modals.uploadVersionInputRef} type="file" className="form-control" onChange={handleUploadVersionFileChange} />
+            <input id="doc-upload-version-file" ref={modals.uploadVersionInputRef} type="file" className="form-control" onChange={handleUploadVersionFileChange} aria-label={t("documents.file", { defaultValue: "File" })} />
             {modals.uploadVersionFile && (
               <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleClearUploadVersionFile}>
                 <Icon name="x" className="me-1" />
@@ -52,8 +52,8 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
 
       <Modal isOpen={modals.modalRequestSign} onClose={handleCloseRequestSignModal} title={t("documents.requestSignature", { defaultValue: "Request signature" })} size="md">
         <div className="mb-3">
-          <label className="form-label">{t("documents.selectManager", { defaultValue: "Select manager" })}</label>
-          <select className="form-select" value={String(modals.selectedSignerId)} onChange={handleSelectedSignerChange}>
+          <label className="form-label" htmlFor="doc-request-sign-manager">{t("documents.selectManager", { defaultValue: "Select manager" })}</label>
+          <select id="doc-request-sign-manager" className="form-select" value={String(modals.selectedSignerId)} onChange={handleSelectedSignerChange} aria-label={t("documents.selectManager", { defaultValue: "Select manager" })}>
             <option value="">{t("common.select", { defaultValue: "Select…" })}</option>
             {data.managers.map((m) => (
               <option key={m.id} value={m.id}>{m.name} {m.login ? `(${m.login})` : ""}</option>
@@ -61,8 +61,8 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
           </select>
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.notesOptional", { defaultValue: "Notes (optional)" })}</label>
-          <textarea className="form-control" rows={3} value={modals.signMessage} onChange={handleSignMessageChange} />
+          <label className="form-label" htmlFor="doc-request-sign-notes">{t("documents.notesOptional", { defaultValue: "Notes (optional)" })}</label>
+          <textarea id="doc-request-sign-notes" className="form-control" rows={3} value={modals.signMessage} onChange={handleSignMessageChange} aria-label={t("documents.notesOptional", { defaultValue: "Notes (optional)" })} />
         </div>
         <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={handleCloseRequestSignModal}>{t("common.cancel", { defaultValue: "Cancel" })}</Button>
@@ -72,8 +72,8 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
 
       <Modal isOpen={modals.modalUploadSigned} onClose={handleCloseUploadSignedModal} title={t("documents.uploadSignedVersion", { defaultValue: "Upload signed version" })} size="md">
         <div className="mb-3">
-          <label className="form-label">{t("documents.selectApprovedRequest", { defaultValue: "Select approved request" })}</label>
-          <select className="form-select" value={modals.selectedApprovedReqId ?? ""} onChange={handleSelectedApprovedReqChange}>
+          <label className="form-label" htmlFor="doc-upload-signed-request">{t("documents.selectApprovedRequest", { defaultValue: "Select approved request" })}</label>
+          <select id="doc-upload-signed-request" className="form-select" value={modals.selectedApprovedReqId ?? ""} onChange={handleSelectedApprovedReqChange} aria-label={t("documents.selectApprovedRequest", { defaultValue: "Select approved request" })}>
             <option value="">{t("common.select", { defaultValue: "Select…" })}</option>
             {data.approvedRequests.map((r: { id: number; signer_name?: string }) => (
               <option key={r.id} value={r.id}>#{r.id} • {r.signer_name ?? "–"}</option>
@@ -81,13 +81,13 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
           </select>
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.signToken", { defaultValue: "Sign token" })}</label>
-          <input type="text" className="form-control" value={modals.signToken} onChange={handleSignTokenChange} placeholder={t("documents.signTokenPlaceholder", { defaultValue: "Enter token from approval email" })} />
+          <label className="form-label" htmlFor="doc-upload-signed-token">{t("documents.signToken", { defaultValue: "Sign token" })}</label>
+          <input id="doc-upload-signed-token" type="text" className="form-control" value={modals.signToken} onChange={handleSignTokenChange} placeholder={t("documents.signTokenPlaceholder", { defaultValue: "Enter token from approval email" })} aria-label={t("documents.signToken", { defaultValue: "Sign token" })} />
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.selectSignedFile", { defaultValue: "Signed file" })}</label>
+          <label className="form-label" htmlFor="doc-upload-signed-file">{t("documents.selectSignedFile", { defaultValue: "Signed file" })}</label>
           <div className="d-flex gap-2 align-items-center">
-            <input ref={modals.signedFileInputRef} type="file" className="form-control" onChange={handleSignedFileChange} />
+            <input id="doc-upload-signed-file" ref={modals.signedFileInputRef} type="file" className="form-control" onChange={handleSignedFileChange} aria-label={t("documents.selectSignedFile", { defaultValue: "Signed file" })} />
             {modals.signedFile && (
               <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleClearSignedFile}>
                 <Icon name="x" className="me-1" />
@@ -107,12 +107,12 @@ export function DocumentDetailModalsGroup1(props: DocumentDetailModalsGroup1Prop
 
       <Modal isOpen={modals.modalAddRelation} onClose={handleCloseAddRelationModal} title={t("documents.addRelation", { defaultValue: "Add relation" })} size="md">
         <div className="mb-3">
-          <label className="form-label">{t("documents.relatedDocumentId", { defaultValue: "Related document ID" })} *</label>
-          <input type="number" className="form-control" value={modals.relatedDocId} onChange={handleRelatedDocIdChange} placeholder={t("documents.relatedDocumentIdPlaceholder", { defaultValue: "Document ID" })} />
+          <label className="form-label" htmlFor="doc-add-relation-id">{t("documents.relatedDocumentId", { defaultValue: "Related document ID" })} *</label>
+          <input id="doc-add-relation-id" type="number" className="form-control" value={modals.relatedDocId} onChange={handleRelatedDocIdChange} placeholder={t("documents.relatedDocumentIdPlaceholder", { defaultValue: "Document ID" })} aria-label={t("documents.relatedDocumentId", { defaultValue: "Related document ID" })} />
         </div>
         <div className="mb-3">
-          <label className="form-label">{t("documents.notesOptional", { defaultValue: "Notes (optional)" })}</label>
-          <textarea className="form-control" rows={2} value={modals.relationNotes} onChange={handleRelationNotesChange} />
+          <label className="form-label" htmlFor="doc-add-relation-notes">{t("documents.notesOptional", { defaultValue: "Notes (optional)" })}</label>
+          <textarea id="doc-add-relation-notes" className="form-control" rows={2} value={modals.relationNotes} onChange={handleRelationNotesChange} aria-label={t("documents.notesOptional", { defaultValue: "Notes (optional)" })} />
         </div>
         <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
           <Button variant="outline" className="btn-outline-secondary" onClick={handleCloseAddRelationModal}>{t("common.cancel", { defaultValue: "Cancel" })}</Button>

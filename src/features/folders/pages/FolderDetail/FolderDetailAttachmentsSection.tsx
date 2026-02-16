@@ -89,6 +89,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
               value={attachmentsDocId}
               onChange={onAttachmentsDocIdChange}
               data-testid="folder-detail-attachments-doc-select"
+              aria-label={t("folders.selectDocument", { defaultValue: "Select document for attachments" })}
             >
               {documents.map((d) => (
                 <option key={d.id} value={d.id}>

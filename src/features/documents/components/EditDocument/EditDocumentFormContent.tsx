@@ -180,13 +180,15 @@ export function EditDocumentFormContent({
       <h6 className="fw-semibold mb-2 mt-3">{t("documents.replaceFileOptional", { defaultValue: "Replace file (optional)" })}</h6>
       <p className="text-muted small mb-2">{t("documents.replaceFileCreatesNewVersion", { defaultValue: "Selecting a new file will upload it as a new version." })}</p>
       <div className="mb-3">
-        <label className="form-label">{t("documents.file", { defaultValue: "File" })}</label>
+        <label className="form-label" htmlFor="edit-doc-replace-file">{t("documents.file", { defaultValue: "File" })}</label>
         <div className="d-flex gap-2 align-items-center">
           <input
+            id="edit-doc-replace-file"
             ref={replaceFileInputRef}
             type="file"
             className="form-control"
             onChange={handleReplaceFileInputChange}
+            aria-label={t("documents.file", { defaultValue: "File" })}
           />
           {replaceFile && (
             <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={onClearReplaceFile}>
@@ -207,14 +209,16 @@ export function EditDocumentFormContent({
       </div>
       {isLocked && (
         <div className="mb-3">
-          <label className="form-label">
+          <label className="form-label" htmlFor="edit-doc-unlock-token">
             {t("documents.unlockToken", { defaultValue: "Unlock token" })} {replaceFile ? "*" : ""}
           </label>
           <input
+            id="edit-doc-unlock-token"
             type="text"
             className="form-control"
             {...register("unlockToken")}
             placeholder={t("documents.unlockTokenPlaceholder", { defaultValue: "Enter unlock token when replacing file" })}
+            aria-label={t("documents.unlockToken", { defaultValue: "Unlock token" })}
           />
           <small className="text-muted">{t("documents.unlockTokenRequiredWhenLocked", { defaultValue: "Required when uploading a new version for a locked document." })}</small>
         </div>

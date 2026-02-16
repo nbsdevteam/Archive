@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { type Control, type FieldPath, type FieldValues, Controller } from "react-hook-form";
 import Select, { type MultiValue } from "react-select";
 import type { SelectOption } from "./SelectField";
@@ -37,9 +38,12 @@ export function MultiSelectField<T extends FieldValues, Name extends FieldPath<T
   error,
   className = "",
 }: MultiSelectFieldProps<T, Name>) {
+  const labelId = useId();
+  const accessibleName = label ?? placeholder;
+  // Expose accessible name for screen readers/TTS via aria-label and aria-labelledby (react-select supports both).
   return (
     <div className={`mb-3 ${className}`}>
-      {label && <label className="form-label">{label}</label>}
+      {label && <label id={labelId} className="form-label">{label}</label>}
       <Controller
         control={control}
         name={name}
@@ -60,6 +64,8 @@ export function MultiSelectField<T extends FieldValues, Name extends FieldPath<T
               ref={field.ref}
               classNamePrefix="react-select"
               className={error ? "is-invalid" : ""}
+              aria-label={accessibleName}
+              aria-labelledby={label ? labelId : undefined}
               styles={{
                 control: (base) => ({
                   ...base,
