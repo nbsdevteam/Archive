@@ -147,28 +147,16 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainBaseDocId'));
 
-    // Create MainBaseSecondaryFile (sub) in MainBaseFolder.
-    cy.visit('/documents/upload');
+    // Create MainBaseSecondaryFile (sub) in MainBaseFolder via folder detail "Upload in folder" (avoids folder dropdown).
+    cy.visit('/folders');
     waitStep();
-    cy.get('[data-testid="upload-document-open-btn"]').click({ force: true });
+    getFolderIdFromList(mainBaseFolder).as('mainBaseFolderId');
+    cy.get('@mainBaseFolderId').then((id: number) => cy.visit(`/folders/${id}`));
     waitStep();
-    cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click({ force: true });
+    cy.get('[data-testid="upload-in-folder-btn"]').click();
     waitStep();
-    cy.get('.react-select__option').contains('Sub Document').click();
-    waitStep();
-    // Select department first so listFolders(finance_id) runs; wait for it so folder list includes MainBaseFolder.
-    cy.get('[data-testid="department-select"]').find('.react-select__control').click({ force: true });
-    waitStep();
-    cy.get('.react-select__option').contains('Finance (FIN)').click();
-    cy.wait('@listFolders', { timeout: 15000 });
-    waitStep();
-    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click({ force: true });
-    waitStep();
-    cy.get('.react-select__option').contains('Invoice (INV)').click();
-    waitStep();
-    waitStep();
-    selectFolderByName(mainBaseFolder, 'MBF');
-    waitStep();
+    cy.get('[data-testid="upload-document-submit"]').should('be.visible');
+    selectDepartmentAndType();
     cy.get('input[name="title"]').clear().type(mainBaseSecondaryFile);
     waitStep();
     cy.get('input[type="file"]').selectFile(
