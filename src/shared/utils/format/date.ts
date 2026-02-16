@@ -64,9 +64,10 @@ const IRAQ_UTC_OFFSET_HOURS = 3;
  */
 function utcToIraqiDate(utcDateString: string | null | undefined): Date | null {
   if (!utcDateString || typeof utcDateString !== "string") return null;
-  const normalized = utcDateString.trim().endsWith("Z")
-    ? utcDateString.trim()
-    : `${utcDateString.trim()}Z`;
+  const trimmed = utcDateString.trim();
+  // If API already includes timezone (e.g. "...Z" or "...+00:00"), do not append "Z".
+  const hasExplicitTimezone = trimmed.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(trimmed);
+  const normalized = hasExplicitTimezone ? trimmed : `${trimmed}Z`;
   const d = new Date(normalized);
   if (isNaN(d.getTime())) return null;
   const iraqMs = d.getTime() + IRAQ_UTC_OFFSET_HOURS * 60 * 60 * 1000;

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { formatRelativeTime } from "../../../shared/utils/format/date";
+import { convertToArabianStandardTime, formatRelativeTime } from "../../../shared/utils/format/date";
 import type { ColumnDef } from "../../../shared/components/ui/DataTable/DataTable.types";
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { getDocumentStatusBadgeVariant } from "./getDocumentStatusBadgeVariant";
@@ -112,17 +112,13 @@ export function getDocumentTableColumnsForTrash(
       id: "deletedAt",
       header: t("documents.deletedAt", { defaultValue: "Deleted at" }),
       render: (row: TrashDocument) =>
-        row.deleted_at
-          ? formatRelativeTime(new Date(row.deleted_at))
-          : "–",
+        row.deleted_at ? convertToArabianStandardTime(row.deleted_at) : "–",
     },
     {
       id: "restoreDeadline",
       header: t("documents.restoreDeadline", { defaultValue: "Restore deadline" }),
       render: (row: TrashDocument) =>
-        row.restore_deadline
-          ? formatRelativeTime(new Date(row.restore_deadline))
-          : "–",
+        row.restore_deadline ? convertToArabianStandardTime(row.restore_deadline) : "–",
     },
   ];
 }
