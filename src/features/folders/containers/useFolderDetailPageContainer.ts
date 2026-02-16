@@ -157,7 +157,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     setIsUploadOpen,
   } = useFolderUploadPanel(
     folderId,
-    folder?.department_id,
+    folder?.department_id ?? mainDoc?.department_id,
     documents.length,
     attachmentsDocId
   );

@@ -58,16 +58,25 @@ function selectFolderByName(folderName: string, folderCode: string, timeout = 20
   });
 }
 
-/** Fill department and document type (Finance, Invoice). Use force so disabled selects (e.g. while loading) do not fail. */
+/** Fill department and document type (Finance, Invoice). Skips when selects are disabled (e.g. folder-context upload). */
 function selectDepartmentAndType() {
-  cy.get('[data-testid="department-select"]').find('.react-select__control').click({ force: true });
-  waitStep();
-  cy.get('.react-select__option').contains('Finance (FIN)').click();
-  waitStep();
-  cy.get('[data-testid="document-type-select"]').find('.react-select__control').click({ force: true });
-  waitStep();
-  cy.get('.react-select__option').contains('Invoice (INV)').click();
-  waitStep();
+  cy.get('[data-testid="department-select"]').then(($dept) => {
+    const control = $dept.find('.react-select__control');
+    const isDisabled = control.hasClass('react-select__control--is-disabled') || control.attr('aria-disabled') === 'true';
+    if (isDisabled) return;
+    cy.wrap($dept).find('.react-select__control').click({ force: true });
+    waitStep();
+    cy.get('.react-select__menu').should('be.visible').last().contains('Finance (FIN)').click();
+    waitStep();
+    cy.get('[data-testid="document-type-select"]').then(($type) => {
+      const typeControl = $type.find('.react-select__control');
+      if (typeControl.hasClass('react-select__control--is-disabled') || typeControl.attr('aria-disabled') === 'true') return;
+      cy.wrap($type).find('.react-select__control').click({ force: true });
+      waitStep();
+      cy.get('.react-select__menu').should('be.visible').last().contains('Invoice (INV)').click();
+      waitStep();
+    });
+  });
 }
 
 /** Capture last upload response: alias createdDocId and createdFolderId (if backend returns folder_id). */

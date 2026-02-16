@@ -102,9 +102,15 @@ export function UploadDocumentSidePanel({
           listFolders({ department_id: departmentId }),
         ]);
         if (!cancelled) {
-          setDocumentTypes(typesRes?.data ?? []);
+          const types = typesRes?.data ?? [];
+          setDocumentTypes(types);
           setFolders(foldersRes?.folders ?? []);
-          setValue("document_type_id", 0);
+          const firstTypeId = types[0]?.id;
+          if (lockFolderContext && firstTypeId != null && firstTypeId >= 1) {
+            setValue("document_type_id", firstTypeId);
+          } else {
+            setValue("document_type_id", 0);
+          }
           const preserveFolder = lockFolderContext && initialValues?.folder_id != null && (initialValues?.department_id ?? 0) === departmentId;
           if (!preserveFolder) setValue("folder_id", undefined);
         }
