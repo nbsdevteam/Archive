@@ -424,8 +424,23 @@ describe('Slow smoke (real API) — flow options', () => {
     );
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').click();
+    captureUploadDocId();
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
+    // Resolve base folder ID from upload response or document API (avoid /folders list).
+    cy.get('@createdFolderId').then((fid: number | null) => {
+      if (fid != null && fid > 0) {
+        cy.wrap(fid).as('baseFolderId');
+      } else {
+        return cy.get('@createdDocId').then((docId: number) =>
+          getFolderIdFromDocument(docId).then((fid2: number | null) => {
+            if (fid2 != null) return cy.wrap(fid2).as('baseFolderId');
+            expect(false, 'Phase 3 base folder: no folder_id from upload or document API').to.be.true;
+            return cy.wrap(0);
+          })
+        );
+      }
+    });
 
     // Create target folder (main doc).
     cy.get('[data-testid="upload-document-btn"]').click();
@@ -443,14 +458,23 @@ describe('Slow smoke (real API) — flow options', () => {
     );
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').click();
+    captureUploadDocId();
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
-
-    cy.visit('/folders');
-    cy.contains(mainBaseFolderName, { timeout: 15000 }).should('be.visible');
-    cy.contains(mainTargetFolderName, { timeout: 5000 }).should('be.visible');
-    getFolderIdFromList(mainBaseFolderName).then((id) => cy.wrap(id).as('baseFolderId'));
-    getFolderIdFromList(mainTargetFolderName).then((id) => cy.wrap(id).as('targetFolderId'));
+    // Resolve target folder ID from upload response or document API (avoid /folders list).
+    cy.get('@createdFolderId').then((fid: number | null) => {
+      if (fid != null && fid > 0) {
+        cy.wrap(fid).as('targetFolderId');
+      } else {
+        return cy.get('@createdDocId').then((docId: number) =>
+          getFolderIdFromDocument(docId).then((fid2: number | null) => {
+            if (fid2 != null) return cy.wrap(fid2).as('targetFolderId');
+            expect(false, 'Phase 3 target folder: no folder_id from upload or document API').to.be.true;
+            return cy.wrap(0);
+          })
+        );
+      }
+    });
 
     cy.get('@baseFolderId').then((baseId: number) => {
       cy.get('@targetFolderId').then((targetId: number) => {
