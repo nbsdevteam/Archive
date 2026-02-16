@@ -10,6 +10,8 @@ export const all_routes: Record<string, string> = {
   documents: "/documents",
   documentsUpload: "/documents/upload",
   documentsTrash: "/documents/trash",
+  /** Archived documents list (status=archived). */
+  archivedDocuments: "/archive/documents",
   documentDetail: "/documents/:id",
   /** View a single attachment (preview) for a document. */
   documentAttachmentView: "/documents/:id/attachments/:attachmentId",

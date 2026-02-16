@@ -107,6 +107,10 @@ export const DocumentsTrashPage = createLazyComponent(
   () => import("../features/documents/pages/DocumentsTrashPage"),
   <LoadingSpinner text="Loading trash..." />
 );
+export const ArchivedDocumentsPage = createLazyComponent(
+  () => import("../features/documents/pages/ArchivedDocumentsPage"),
+  <LoadingSpinner text="Loading archived documents..." />
+);
 export const UploadDocumentPage = createLazyComponent(
   () => import("../features/documents/pages/UploadDocumentPage"),
   <LoadingSpinner text="Loading upload..." />

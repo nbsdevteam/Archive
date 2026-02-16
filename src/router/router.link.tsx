@@ -8,6 +8,7 @@ import {
   DocumentDetailPage,
   DocumentsPage,
   DocumentsTrashPage,
+  ArchivedDocumentsPage,
   EditRequestsPage,
   EmailVerification,
   ForgotPassword,
@@ -54,6 +55,10 @@ export const publicRoutes = [
   {
     path: routes.documentsTrash,
     element: <DocumentsTrashPage />,
+  },
+  {
+    path: routes.archivedDocuments,
+    element: <ArchivedDocumentsPage />,
   },
   {
     path: routes.documentsUpload,
