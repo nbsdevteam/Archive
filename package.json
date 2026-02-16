@@ -3,9 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": ["*.css", "*.scss", "**/*.css", "**/*.scss"],
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "build": "rimraf dist && tsc -b && vite build",
+    "build:prod": "npm run lint && rimraf dist && tsc -b && vite build",
     "build:analyze": "npm run build && node scripts/analyze-bundle.js",
     "analyze": "node scripts/analyze-bundle.js",
     "lint": "eslint .",
