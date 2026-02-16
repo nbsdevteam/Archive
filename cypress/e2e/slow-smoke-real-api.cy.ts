@@ -244,6 +244,21 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
     cy.get('@createdDocId').then((id: number) => cy.wrap(id).as('mainTargetDocId'));
+    // Resolve MainTargetFolder ID for Phase 2 persistence (upload response, document API, or /folders list).
+    cy.get('@createdFolderId').then((fid: number | null) => {
+      if (fid != null && fid > 0) {
+        cy.wrap(fid).as('mainTargetFolderId');
+      } else {
+        return cy.get('@mainTargetDocId').then((docId: number) =>
+          getFolderIdFromDocument(docId).then((fid2: number | null) => {
+            if (fid2 != null) return cy.wrap(fid2).as('mainTargetFolderId');
+            cy.visit('/folders');
+            cy.contains('MainTargetFolder', { timeout: 20000 }).should('be.visible');
+            return getFolderIdFromList('MainTargetFolder', 20000).as('mainTargetFolderId');
+          })
+        );
+      }
+    });
 
     // Edit MainBaseFile: name → MainBaseFile-edited.
     cy.get('@mainBaseDocId').then((id: number) => {
@@ -284,16 +299,31 @@ describe('Slow smoke (real API) — flow options', () => {
       waitStep();
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
     });
+
+    // Persist folder IDs for Phase 2 so it doesn't depend on /folders list.
+    cy.get('@mainTargetFolderId').then((targetId: number) => {
+      cy.get('@mainBaseFolderId').then((baseId: number) => {
+        cy.writeFile('cypress/.phase1-ids.json', JSON.stringify({ baseFolderId: baseId, targetFolderId: targetId }));
+      });
+    });
   });
 
   (shouldRunPhase(2) ? it : it.skip)('Phase 2 — Transfer: use existing MainBaseSecondaryFile-edited, transfer to target, edit there, transfer back', () => {
     loginAndFlash('Phase 2: Transfer secondary to target, edit in target, transfer back to base');
 
-    cy.visit('/folders');
-    cy.contains('MainBaseFolder', { timeout: 15000 }).should('be.visible');
-    cy.contains('MainTargetFolder', { timeout: 5000 }).should('be.visible');
-    getFolderIdFromList('MainBaseFolder').then((id) => cy.wrap(id).as('baseFolderId'));
-    getFolderIdFromList('MainTargetFolder').then((id) => cy.wrap(id).as('targetFolderId'));
+    // Use persisted folder IDs from Phase 1 when available; else resolve from /folders list.
+    cy.task<{ baseFolderId: number; targetFolderId: number } | null>('readPhase1Ids').then((ids) => {
+      if (ids?.baseFolderId != null && ids?.targetFolderId != null) {
+        cy.wrap(ids.baseFolderId).as('baseFolderId');
+        cy.wrap(ids.targetFolderId).as('targetFolderId');
+      } else {
+        cy.visit('/folders');
+        cy.contains('MainBaseFolder', { timeout: 20000 }).should('be.visible');
+        cy.contains('MainTargetFolder', { timeout: 10000 }).should('be.visible');
+        getFolderIdFromList('MainBaseFolder', 20000).then((id) => cy.wrap(id).as('baseFolderId'));
+        getFolderIdFromList('MainTargetFolder', 20000).then((id) => cy.wrap(id).as('targetFolderId'));
+      }
+    });
 
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
