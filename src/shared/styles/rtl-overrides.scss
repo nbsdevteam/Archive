@@ -1,0 +1,29 @@
+/**
+ * RTL overrides for custom SCSS that hardcodes left/right.
+ * Scope under .layout-mode-rtl so LTR is unchanged.
+ * Bootstrap RTL handles utilities; hotspots use logical properties where possible.
+ */
+
+.layout-mode-rtl {
+  // Theme settings check position (physical position used for icon)
+  div.sidebar-themesettings .input-themeselect input[type="radio"]:checked ~ label .checkboxs-theme::before {
+    right: auto;
+    left: 4px;
+  }
+
+  // Form sort info icon (absolute position)
+  .form-sort .info-img {
+    left: auto;
+    right: 7px;
+  }
+
+  // Theme layout type check (absolute pseudo-element)
+  .theme-layout.active .layout-type {
+    padding-left: 0;
+    padding-right: 15px;
+  }
+  .theme-layout.active .layout-type:after {
+    left: auto;
+    right: 0;
+  }
+}

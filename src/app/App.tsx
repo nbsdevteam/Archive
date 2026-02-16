@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppProviders } from "./providers/AppProviders";
+import { BootstrapDirectionStyles } from "./providers/BootstrapDirectionStyles";
 import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
 import { usePrefersColorScheme } from "../shared/hooks";
@@ -12,27 +13,37 @@ import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
 const RTL_BODY_CLASS = "layout-mode-rtl";
 
 /**
- * Syncs body class for RTL when Arabic is active.
+ * Syncs html dir/lang and body class for RTL when Arabic is active.
  */
 function RtlSync() {
   const { i18n } = useTranslation();
   useEffect(() => {
-    if (i18n.language === "ar") {
+    const isRtl = i18n.language === "ar";
+    const root = document.documentElement;
+    root.dir = isRtl ? "rtl" : "ltr";
+    root.lang = isRtl ? "ar" : "en";
+    if (isRtl) {
       document.body.classList.add(RTL_BODY_CLASS);
     } else {
       document.body.classList.remove(RTL_BODY_CLASS);
     }
-    return () => document.body.classList.remove(RTL_BODY_CLASS);
+    return () => {
+      root.dir = "";
+      root.lang = "";
+      document.body.classList.remove(RTL_BODY_CLASS);
+    };
   }, [i18n.language]);
   return null;
 }
 
 /**
- * ToastContainer with resolved theme from Redux + system preference.
+ * ToastContainer with resolved theme and RTL from current language.
  */
 const ThemedToastContainer = () => {
+  const { i18n } = useTranslation();
   const { prefersDark } = usePrefersColorScheme();
   const resolvedTheme = prefersDark ? "dark" : "light";
+  const isRtl = i18n.language === "ar";
 
   return (
     <ToastContainer
@@ -41,7 +52,7 @@ const ThemedToastContainer = () => {
       hideProgressBar={false}
       newestOnTop
       closeOnClick
-      rtl={false}
+      rtl={isRtl}
       pauseOnFocusLoss
       draggable
       pauseOnHover
@@ -60,6 +71,7 @@ export const App = () => {
     <BrowserRouter basename={base_path}>
       <AppProviders>
         <LiveAnnouncerProvider>
+          <BootstrapDirectionStyles />
           <RtlSync />
           <AppRouter />
           <ThemedToastContainer />

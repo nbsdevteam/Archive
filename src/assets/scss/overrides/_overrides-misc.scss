@@ -37,7 +37,7 @@ span.form-icon {
 }
 
 .visible .input-blocks .css-b62m3t-container .css-1dimb5e-singleValue {
-  margin-left: 25px !important;
+  margin-inline-start: 25px !important;
 }
 
 .form-sorts.dropdown .radio-btn-items {
@@ -75,17 +75,17 @@ span.rti--tag button {
 }
 
 .nav.flex-column.nav-pills.todo-inbox i {
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 .select-priority .css-1jqq78o-placeholder,
 .select-priority .css-1dimb5e-singleValue {
-  padding-left: 15px;
+  padding-inline-start: 15px;
 }
 
 .form-sort .css-1jqq78o-placeholder,
 .form-sort .css-1dimb5e-singleValue {
-  padding-left: 20px;
+  padding-inline-start: 20px;
 }
 
 .form-sort.select-bluk.space-not-select .css-1jqq78o-placeholder,
@@ -95,7 +95,7 @@ span.rti--tag button {
 
 .owl-carousel.folders-carousel.owl-theme .slick-slide > div,
 .owl-carousel.files-carousel.owl-theme .slick-slide > div {
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 [data-theme="dark"] .ant-table-content table,
@@ -130,7 +130,7 @@ td .badge-pill {
 }
 
 .join-contents .slick-slider div.slick-slide > div {
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 .custom-react-clr {
@@ -386,7 +386,7 @@ i.ti-bell:before {
 }
 
 .sidebar .sidebar-menu > ul li .submenu.submenu-two > ul li a {
-  margin-left: 30px;
+  margin-inline-start: 30px;
 }
 
 .ti.ti-eye:before {
@@ -424,7 +424,7 @@ div.sidebar-themesettings
 
 .ant-pagination-options {
   position: absolute;
-  left: 106px;
+  inset-inline-start: 106px;
   top: -48px;
 }
 
@@ -435,7 +435,7 @@ div.sidebar-themesettings
 .ant-pagination-options-size-changer::before {
   content: "Row Per Page";
   position: absolute;
-  left: -100px;
+  inset-inline-start: -100px;
   width: 116px;
   top: 3px;
 }
@@ -443,7 +443,7 @@ div.sidebar-themesettings
 .ant-pagination-options-size-changer::after {
   content: "Entries";
   position: absolute;
-  left: 71px;
+  inset-inline-start: 71px;
   width: 59px;
   top: 3px;
 }
@@ -533,13 +533,13 @@ div.sidebar-themesettings
 }
 
 .slick-slide > div {
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 .task-slider .slick-list,
 .lesson .slick-list,
 .teachers-profile-slider .slick-list {
-  margin-right: -10px;
+  margin-inline-end: -10px;
   /* Adjust to avoid extra margin at the end */
 }
 
@@ -1319,7 +1319,7 @@ body.app-chat {
 
 .form-sort .css-1jqq78o-placeholder,
 .form-sort .css-1dimb5e-singleValue {
-  padding-left: 35px;
+  padding-inline-start: 35px;
 }
 
 .input-icon .ant-picker {

@@ -1,22 +1,22 @@
 /* Slick slider and Swiper overrides. */
 
 .section-notes-slider .notes-slider .slick-list .slick-slide div {
-  margin-left: 12px !important;
+  margin-inline-start: 12px !important;
 }
 
 .notes-slider .slick-list .slick-slide {
-  padding-right: 16px !important;
+  padding-inline-end: 16px !important;
 }
 
 .teacher-slider .slick-list .slick-slide > div,
 .student-slider .slick-list .slick-slide > div {
-  margin-right: 0;
+  margin-inline-end: 0;
   display: contents;
 }
 
 .teacher-slider .slick-list .slick-slide,
 .student-slider .slick-list .slick-slide {
-  padding-right: 0;
+  padding-inline-end: 0;
 }
 
 .teacher-slider.slick-slider,
@@ -30,5 +30,5 @@
 }
 
 .swiper-container .slick-list {
-  margin-left: -236px;
+  margin-inline-start: -236px;
 }

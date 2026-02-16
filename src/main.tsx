@@ -7,10 +7,10 @@ import "./i18n/config";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Global CSS: Bootstrap, app SCSS, icon fonts (Tabler + Font Awesome used in UI; others auditable for removal)
-import "../src/assets/css/bootstrap.min.css";
+// Global CSS: Bootstrap LTR/RTL loaded at runtime via BootstrapDirectionStyles; app SCSS, icon fonts
 import "../src/assets/css/feather.css";
 import "../src/assets/scss/custom.scss";
+import "../src/shared/styles/rtl-overrides.scss";
 import "../src/assets/icon/boxicons/boxicons/css/boxicons.min.css";
 import "../src/assets/icon/weather/weathericons.css";
 import "../src/assets/icon/typicons/typicons.css";

@@ -11,8 +11,12 @@ import { HeaderUserMenu } from "./HeaderUserMenu";
 import { HeaderMobileMenu } from "./HeaderMobileMenu";
 
 const Header = React.memo(() => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const routes = all_routes;
+  const isArabic = i18n.language === "ar";
+  const handleLanguageToggle = useCallback(() => {
+    i18n.changeLanguage(isArabic ? "en" : "ar");
+  }, [i18n, isArabic]);
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { setMobileSidebar, mobileSidebar, toggleMiniSidebar } = useSidebarUiStore();
@@ -64,6 +68,15 @@ const Header = React.memo(() => {
               </div>
 
               <div className="d-flex align-items-center">
+                <button
+                  type="button"
+                  onClick={handleLanguageToggle}
+                  className="btn btn-menubar me-1"
+                  aria-label={isArabic ? t("app.switchToEnglish") : t("app.switchToArabic")}
+                  title={isArabic ? t("app.switchToEnglish") : t("app.switchToArabic")}
+                >
+                  <span aria-hidden>{isArabic ? "EN" : "AR"}</span>
+                </button>
                 <div className="me-1">
                   <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen" aria-label={t("app.toggleFullscreen")}>
                     <i className="ti ti-maximize" aria-hidden></i>

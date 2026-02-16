@@ -561,6 +561,8 @@
     "openMenu": "Open menu",
     "toggleSidebar": "Toggle sidebar",
     "toggleFullscreen": "Toggle fullscreen",
+    "switchToArabic": "Switch to Arabic",
+    "switchToEnglish": "Switch to English",
     "archiveQuickLinks": "Archive quick links",
     "searchPlaceholder": "Search documents, folders, or notes...",
     "searching": "Searching...",

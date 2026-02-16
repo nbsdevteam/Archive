@@ -562,6 +562,8 @@
     "openMenu": "فتح القائمة",
     "toggleSidebar": "إظهار/إخفاء الشريط الجانبي",
     "toggleFullscreen": "ملء الشاشة",
+    "switchToArabic": "التبديل إلى العربية",
+    "switchToEnglish": "التبديل إلى الإنجليزية",
     "archiveQuickLinks": "روابط سريعة للأرشيف",
     "searchPlaceholder": "البحث في المستندات أو المجلدات أو الملاحظات...",
     "searching": "جاري البحث...",
