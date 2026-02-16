@@ -27,6 +27,7 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
   const stateParam = initialParams.state;
   const departmentIdParam = initialParams.department_id;
   const folderTypeParam = initialParams.folder_type;
+  const companyIdParam = initialParams.company_id;
 
   const fetchFolders = useCallback(
     async (params: FolderListParams = {}) => {
@@ -37,6 +38,7 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
           ...(stateParam !== undefined && { state: stateParam }),
           ...(departmentIdParam !== undefined && { department_id: departmentIdParam }),
           ...(folderTypeParam !== undefined && { folder_type: folderTypeParam }),
+          ...(companyIdParam !== undefined && { company_id: companyIdParam }),
           ...params,
         };
         let response: FolderListResponse;
@@ -61,14 +63,14 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
         setLoading(false);
       }
     },
-    [useApi, stateParam, departmentIdParam, folderTypeParam]
+    [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam]
   );
 
-  /** Re-fetches folders on every mount so navigation back triggers a fresh API call. */
+  /** Re-fetches folders when list params change (e.g. filter by company). */
   useEffect(() => {
     fetchFolders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useApi, stateParam, departmentIdParam, folderTypeParam]);
+  }, [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam]);
 
   return {
     folders,

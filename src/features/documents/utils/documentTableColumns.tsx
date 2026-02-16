@@ -46,6 +46,11 @@ export function getDocumentTableColumns(
         row.department_name || row.department?.name || "-",
     },
     {
+      id: "company",
+      header: t("documents.companyBrand", { defaultValue: "Company/Brand" }),
+      render: (row: Document) => row.company_name ?? "-",
+    },
+    {
       id: "uploadDate",
       header: t("documents.uploadDate", { defaultValue: "Upload Date" }),
       render: (row: Document) =>

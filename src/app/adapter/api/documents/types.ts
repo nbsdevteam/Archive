@@ -54,6 +54,9 @@ export interface Document {
   note_count?: number;
   /** Last modified timestamp (including versions/notes). */
   last_modified?: string | null;
+  /** Company/brand from folder (optional). */
+  company_id?: number | null;
+  company_name?: string | null;
 }
 
 export interface DocumentVersion {
@@ -124,6 +127,7 @@ export interface TrashDocumentsResponse {
 export interface GetDocumentsParams {
   department_id?: number;
   document_type_id?: number;
+  company_id?: number;
   status?: string;
   search?: string;
   page?: number;

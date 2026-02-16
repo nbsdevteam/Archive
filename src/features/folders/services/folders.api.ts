@@ -28,6 +28,7 @@ export const listFolders = async (
     parent_id: params.parent_id,
     folder_type: params.folder_type,
     state: params.state || "active",
+    ...(params.company_id != null && { company_id: params.company_id }),
   });
 
   // Handle different response shapes
@@ -116,6 +117,7 @@ export interface CreateFolderParams {
   parent_id?: number | null;
   folder_type?: string;
   description?: string | null;
+  company_id?: number;
   restricted?: boolean;
   color?: string;
   icon?: string;
@@ -143,6 +145,7 @@ export const createFolder = async (
     ...(params.parent_id != null && { parent_id: params.parent_id }),
     ...(params.folder_type != null && { folder_type: params.folder_type }),
     ...(params.description != null && params.description !== "" && { description: params.description }),
+    ...(params.company_id != null && params.company_id >= 1 && { company_id: params.company_id }),
     ...(params.restricted != null && { restricted: params.restricted }),
     ...(params.color != null && { color: params.color }),
     ...(params.icon != null && { icon: params.icon }),
@@ -160,6 +163,7 @@ export interface UpdateFolderParams {
   code?: string;
   description?: string | null;
   parent_id?: number | null;
+  company_id?: number | null;
   restricted?: boolean;
   color?: string;
   icon?: string;
@@ -189,6 +193,7 @@ export const updateFolder = async (
   if (params.code !== undefined) body.code = params.code;
   if (params.description !== undefined) body.description = params.description;
   if (params.parent_id !== undefined) body.parent_id = params.parent_id;
+  if (params.company_id !== undefined) body.company_id = params.company_id;
   if (params.restricted !== undefined) body.restricted = params.restricted;
   if (params.color !== undefined) body.color = params.color;
   if (params.icon !== undefined) body.icon = params.icon;

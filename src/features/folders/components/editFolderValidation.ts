@@ -21,8 +21,12 @@ export function makeEditFolderValidator(t: TFunction): Validator<EditFolderFormV
     const name = optionalTrimmedString(values.name);
     const code = optionalTrimmedString(values.code);
     const description = optionalTrimmedString(values.description);
+    const company_id =
+      typeof values.company_id === "number" && !Number.isNaN(values.company_id) && values.company_id >= 1
+        ? values.company_id
+        : 0;
     return {
-      values: { name, code, description },
+      values: { name, code, description, company_id },
       issues,
     };
   };

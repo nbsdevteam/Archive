@@ -14,11 +14,13 @@ export interface DocumentsToolbarProps {
     handleSearchDebounced: (value: string) => void;
     handleOpenFilter: () => void;
     handleCloseFilter: () => void;
-    draftFilters: { department_id?: number; document_type_id?: number };
+    draftFilters: { department_id?: number; document_type_id?: number; company_id?: number };
     departmentOptions: Array<{ value: number; label: string }>;
     documentTypeOptions: Array<{ value: number; label: string }>;
+    companyOptions: Array<{ value: number; label: string }>;
     handlePrimaryFilterChange: (id: number | null) => void;
     handleSecondaryFilterChange: (id: number | null) => void;
+    handleTertiaryFilterChange: (id: number | null) => void;
     handleApplyFilter: () => void;
     handleClearFilter: () => void;
     filterApplyDisabled: boolean;
@@ -155,6 +157,12 @@ export function DocumentsToolbar({
             value: filter.draftFilters.document_type_id ?? null,
             options: filter.documentTypeOptions,
             onChange: (value) => filter.handleSecondaryFilterChange(value != null ? Number(value) : null),
+          }}
+          tertiaryFilter={{
+            label: t("documents.companyBrand", { defaultValue: "Company/Brand" }),
+            value: filter.draftFilters.company_id ?? null,
+            options: filter.companyOptions,
+            onChange: (value) => filter.handleTertiaryFilterChange(value != null ? Number(value) : null),
           }}
           onApply={filter.handleApplyFilter}
           onClear={filter.handleClearFilter}

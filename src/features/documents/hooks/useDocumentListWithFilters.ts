@@ -5,11 +5,13 @@ import type { Document } from "@/app/adapter/api/documents.api";
 import type { SelectOption } from "@/shared/components/ui";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
+import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import { useRunOnceOnMount, useSelection } from "@/shared/hooks";
 
 export interface DocumentListFilterState {
   department_id?: number;
   document_type_id?: number;
+  company_id?: number;
 }
 
 export interface UseDocumentListWithFiltersOptions {
@@ -42,6 +44,7 @@ export function useDocumentListWithFilters(
   } = useDocumentStore();
 
   const { departments, fetchDepartments } = useDepartmentsStore();
+  const { companies, fetchCompanies } = useCompaniesStore();
 
   const [appliedFilters, setAppliedFilters] = useState<DocumentListFilterState>({});
   const [draftFilters, setDraftFilters] = useState<DocumentListFilterState>({});
@@ -94,6 +97,9 @@ export function useDocumentListWithFilters(
   useRunOnceOnMount(() => {
     fetchDepartments();
   });
+  useRunOnceOnMount(() => {
+    fetchCompanies({ limit: 100 });
+  });
   useRunOnceOnMount(initialFetch);
 
   const departmentIdForTypes = draftFilters.department_id;
@@ -126,15 +132,23 @@ export function useDocumentListWithFilters(
     [documentTypes]
   );
 
+  const companyOptions: SelectOption<number>[] = useMemo(
+    () => companies.map((c) => ({ value: c.id, label: c.name })),
+    [companies]
+  );
+
   const filterApplyDisabled = useMemo(
     () =>
       draftFilters.department_id === appliedFilters.department_id &&
-      draftFilters.document_type_id === appliedFilters.document_type_id,
+      draftFilters.document_type_id === appliedFilters.document_type_id &&
+      draftFilters.company_id === appliedFilters.company_id,
     [
       draftFilters.department_id,
       draftFilters.document_type_id,
+      draftFilters.company_id,
       appliedFilters.department_id,
       appliedFilters.document_type_id,
+      appliedFilters.company_id,
     ]
   );
 
@@ -185,6 +199,17 @@ export function useDocumentListWithFilters(
       setDraftFilters((prev) => ({
         ...prev,
         document_type_id:
+          value != null && typeof value === "number" ? value : undefined,
+      }));
+    },
+    []
+  );
+
+  const handleTertiaryFilterChange = useCallback(
+    (value: number | string | null) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        company_id:
           value != null && typeof value === "number" ? value : undefined,
       }));
     },
@@ -265,6 +290,7 @@ export function useDocumentListWithFilters(
     isFilterOpen,
     departmentOptions,
     documentTypeOptions,
+    companyOptions,
     filterApplyDisabled,
     lastSearchRef,
     getFetchParams,
@@ -273,6 +299,7 @@ export function useDocumentListWithFilters(
     handleCloseFilter,
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
+    handleTertiaryFilterChange,
     handleApplyFilter,
     handleClearFilter,
     handleRetry,

@@ -7,6 +7,7 @@ import { SidePanel, Input, SelectField, Button } from "../../../shared/component
 import type { SelectOption } from "../../../shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
 import { adminApi } from "../../../app/adapter/api/admin.api";
+import { useCompaniesStore } from "../../../shared/stores/companiesStore";
 import { createFolder } from "../services/folders.api";
 import type { Department } from "../../../app/adapter/api/admin.api";
 
@@ -22,6 +23,7 @@ export type CreateFolderFormValues = {
   department_id: number;
   folder_type?: string;
   description?: string;
+  company_id?: number;
 };
 
 export const CreateFolderSidePanel = ({
@@ -31,6 +33,7 @@ export const CreateFolderSidePanel = ({
 }: CreateFolderSidePanelProps) => {
   const { t } = useTranslation();
   const [departments, setDepartments] = useState<Department[]>([]);
+  const { companies, fetchCompanies } = useCompaniesStore();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const resolver = useMemo(() => createCreateFolderResolver(t), [t]);
@@ -60,6 +63,7 @@ export const CreateFolderSidePanel = ({
       department_id: 0,
       folder_type: "other",
       description: "",
+      company_id: 0,
     },
   });
 
@@ -80,6 +84,10 @@ export const CreateFolderSidePanel = ({
   }, [isOpen]);
 
   useEffect(() => {
+    if (isOpen) fetchCompanies({ limit: 100 });
+  }, [isOpen, fetchCompanies]);
+
+  useEffect(() => {
     if (isOpen) {
       reset({
         name: "",
@@ -87,6 +95,7 @@ export const CreateFolderSidePanel = ({
         department_id: 0,
         folder_type: "other",
         description: "",
+        company_id: 0,
       });
       setSubmitError(null);
     }
@@ -113,6 +122,7 @@ export const CreateFolderSidePanel = ({
         department_id: data.department_id,
         folder_type: data.folder_type || "other",
         description: data.description || null,
+        ...(data.company_id != null && data.company_id >= 1 && { company_id: data.company_id }),
       });
       toast.success(t("folders.createSuccess"));
       onSuccess?.();
@@ -187,6 +197,16 @@ export const CreateFolderSidePanel = ({
           isStringValue
           error={errors.folder_type?.message}
         />
+        <SelectField
+          control={control}
+          name="company_id"
+          options={companies.map((c) => ({ value: c.id, label: c.name }))}
+          label={t("folders.companyBrand", { defaultValue: "Company/Brand" })}
+          placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
+          allowZero
+          isClearable
+          error={errors.company_id?.message}
+        />
         <div className="mb-3">
           <label className="form-label">{t("folders.description")}</label>
           <textarea
@@ -196,7 +216,7 @@ export const CreateFolderSidePanel = ({
             autoComplete="off"
           />
           {errors.description && (
-            <p className="invalid-feedback d-block mb-0" role="alert">{errors.description.message}</p>
+            <div className="invalid-feedback">{errors.description.message}</div>
           )}
         </div>
       </form>

@@ -11,11 +11,13 @@ export interface FoldersToolbarProps {
     isFilterOpen: boolean;
     handleOpenFilter: () => void;
     handleCloseFilter: () => void;
-    draftFilters: { department_id?: number | null; folder_type?: string | null };
+    draftFilters: { department_id?: number | null; folder_type?: string | null; company_id?: number | null };
     departmentOptions: Array<{ value: number | null; label: string }>;
     folderTypeOptions: Array<{ value: string | null; label: string }>;
+    companyOptions: Array<{ value: number; label: string }>;
     handlePrimaryFilterChange: (v: number | null) => void;
     handleSecondaryFilterChange: (v: string | null) => void;
+    handleTertiaryFilterChange: (v: number | null) => void;
     handleApplyFilter: () => void;
     handleClearFilter: () => void;
     filterApplyDisabled: boolean;
@@ -85,6 +87,12 @@ export function FoldersToolbar({
             value: filter.draftFilters.folder_type ?? null,
             options: filter.folderTypeOptions as Array<{ value: string | number; label: string }>,
             onChange: (v) => filter.handleSecondaryFilterChange(v != null ? String(v) : null),
+          }}
+          tertiaryFilter={{
+            label: t("folders.companyBrand", { defaultValue: "Company/Brand" }),
+            value: filter.draftFilters.company_id ?? null,
+            options: filter.companyOptions,
+            onChange: (v) => filter.handleTertiaryFilterChange(v != null ? Number(v) : null),
           }}
           onApply={filter.handleApplyFilter}
           onClear={filter.handleClearFilter}

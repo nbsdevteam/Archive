@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { createEditFolderResolver } from "./editFolderValidation";
-import { SidePanel, Input, Button } from "../../../shared/components/ui";
+import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
+import { useCompaniesStore } from "../../../shared/stores/companiesStore";
 import { updateFolder } from "../services/folders.api";
 import type { Folder, FolderDetail } from "../types/folders.types";
 
@@ -19,6 +20,7 @@ export type EditFolderFormValues = {
   name: string;
   code: string;
   description?: string;
+  company_id?: number;
 };
 
 export const EditFolderSidePanel = ({
@@ -28,11 +30,13 @@ export const EditFolderSidePanel = ({
   onSuccess,
 }: EditFolderSidePanelProps) => {
   const { t } = useTranslation();
+  const { companies, fetchCompanies } = useCompaniesStore();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const resolver = useMemo(() => createEditFolderResolver(t), [t]);
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -44,6 +48,7 @@ export const EditFolderSidePanel = ({
       name: "",
       code: "",
       description: "",
+      company_id: 0,
     },
   });
 
@@ -53,10 +58,15 @@ export const EditFolderSidePanel = ({
         name: folder.name ?? "",
         code: folder.code ?? "",
         description: folder.description ?? "",
+        company_id: folder.company_id ?? 0,
       });
       setSubmitError(null);
     }
   }, [isOpen, folder, reset]);
+
+  useEffect(() => {
+    if (isOpen) fetchCompanies({ limit: 100 });
+  }, [isOpen, fetchCompanies]);
 
   const onSubmit = async (data: EditFolderFormValues) => {
     if (!folder?.id) return;
@@ -66,6 +76,7 @@ export const EditFolderSidePanel = ({
         name: data.name.trim(),
         code: data.code.trim(),
         description: data.description?.trim() || null,
+        company_id: data.company_id != null && data.company_id >= 1 ? data.company_id : null,
       });
       toast.success(t("folders.folderUpdated"));
       onSuccess?.();
@@ -124,6 +135,16 @@ export const EditFolderSidePanel = ({
           required
           autoComplete="off"
         />
+        <SelectField
+          control={control}
+          name="company_id"
+          options={companies.map((c) => ({ value: c.id, label: c.name }))}
+          label={t("folders.companyBrand", { defaultValue: "Company/Brand" })}
+          placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
+          allowZero
+          isClearable
+          error={errors.company_id?.message}
+        />
         <div className="mb-3">
           <label className="form-label">{t("folders.description")}</label>
           <textarea
@@ -133,7 +154,7 @@ export const EditFolderSidePanel = ({
             autoComplete="off"
           />
           {errors.description && (
-            <p className="invalid-feedback d-block mb-0" role="alert">{errors.description.message}</p>
+            <div className="invalid-feedback">{errors.description.message}</div>
           )}
         </div>
       </form>

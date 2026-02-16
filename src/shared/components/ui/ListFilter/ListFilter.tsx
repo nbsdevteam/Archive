@@ -18,6 +18,8 @@ export interface ListFilterProps {
   onClose: () => void;
   primaryFilter: ListFilterFilterConfig;
   secondaryFilter: ListFilterFilterConfig;
+  /** Optional third filter row (e.g. Company/Brand). */
+  tertiaryFilter?: ListFilterFilterConfig;
   onApply: () => void;
   onClear?: () => void;
   /** When true, Apply button is disabled (e.g. when draft has no changes from applied). Enable Apply only when user has changed a value. */
@@ -41,6 +43,7 @@ export function ListFilter({
   onClose,
   primaryFilter,
   secondaryFilter,
+  tertiaryFilter,
   onApply,
   onClear,
   applyDisabled = true,
@@ -80,6 +83,7 @@ export function ListFilter({
 
   const primaryIsString = isStringOption(primaryFilter.options);
   const secondaryIsString = isStringOption(secondaryFilter.options);
+  const tertiaryIsString = tertiaryFilter ? isStringOption(tertiaryFilter.options) : false;
 
   const handlePrimarySelectChange = useCallback(
     (newValue: SingleValue<SelectOption>) => {
@@ -105,6 +109,19 @@ export function ListFilter({
     [secondaryFilter, secondaryIsString]
   );
 
+  const handleTertiarySelectChange = useCallback(
+    (newValue: SingleValue<SelectOption>) => {
+      if (!tertiaryFilter) return;
+      const v = newValue?.value;
+      tertiaryFilter.onChange(
+        v !== undefined && v !== null
+          ? (tertiaryIsString ? (v as string) : (v as number))
+          : null
+      );
+    },
+    [tertiaryFilter, tertiaryIsString]
+  );
+
   const selectStyles = useCallback(
     (base: object) => ({ ...base, minHeight: "38px" }),
     []
@@ -119,6 +136,13 @@ export function ListFilter({
   const secondaryOption =
     secondaryFilter.value !== null && secondaryFilter.value !== undefined && secondaryFilter.value !== ""
       ? secondaryFilter.options.find((o) => o.value === secondaryFilter.value) ?? null
+      : null;
+  const tertiaryOption =
+    tertiaryFilter &&
+    tertiaryFilter.value !== null &&
+    tertiaryFilter.value !== undefined &&
+    tertiaryFilter.value !== ""
+      ? tertiaryFilter.options.find((o) => o.value === tertiaryFilter.value) ?? null
       : null;
 
   return (
@@ -179,6 +203,23 @@ export function ListFilter({
             />
           </div>
         </div>
+        {tertiaryFilter != null && (
+          <div className={styles.row}>
+            <span className={styles.label}>{tertiaryFilter.label}</span>
+            <div className={styles.selectWrap}>
+              <Select<SelectOption>
+                isClearable
+                placeholder={selectPlaceholder}
+                options={tertiaryFilter.options}
+                value={tertiaryOption}
+                isDisabled={disabled}
+                onChange={handleTertiarySelectChange}
+                classNamePrefix="react-select"
+                styles={{ control: selectStyles }}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div className={styles.actions}>
         {onClear != null && (

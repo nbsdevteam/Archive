@@ -40,6 +40,9 @@ export interface Folder {
   user_note?: string | null;
   /** Notes system: last modified including docs/notes (API 1.1) */
   last_modified?: string | null;
+  /** Company/brand (optional). */
+  company_id?: number | null;
+  company_name?: string | null;
 }
 
 /** NBS 6.2 get folder: list fields + detail fields */
@@ -57,6 +60,7 @@ export interface FolderListParams {
   parent_id?: number | false;
   folder_type?: string;
   state?: string;
+  company_id?: number;
 }
 
 export interface FolderListResponse {

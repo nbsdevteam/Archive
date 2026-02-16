@@ -22,6 +22,13 @@ vi.mock("../../../app/adapter/api/admin.api", () => ({
   },
 }));
 
+vi.mock("../../../shared/stores/companiesStore", () => ({
+  useCompaniesStore: () => ({
+    companies: [],
+    fetchCompanies: vi.fn(),
+  }),
+}));
+
 const defaultDocumentsResponse = {
   success: true,
   data: [],

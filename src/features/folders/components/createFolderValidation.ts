@@ -34,8 +34,12 @@ export function makeCreateFolderValidator(t: TFunction): Validator<CreateFolderF
         : 0;
     const folder_type = typeof values.folder_type === "string" ? values.folder_type : "other";
     const description = optionalTrimmedString(values.description);
+    const company_id =
+      typeof values.company_id === "number" && !Number.isNaN(values.company_id) && values.company_id >= 1
+        ? values.company_id
+        : 0;
     return {
-      values: { name, code, department_id, folder_type, description },
+      values: { name, code, department_id, folder_type, description, company_id },
       issues,
     };
   };

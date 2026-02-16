@@ -127,6 +127,7 @@ export function FoldersContent(props: FoldersContentProps) {
                       <p className="text-muted mb-3">
                         {folder.document_count ?? folder.docs ?? 0} documents
                         {folder.department_name && ` • ${folder.department_name}`}
+                        {folder.company_name && ` • ${folder.company_name}`}
                       </p>
                       <div className="d-flex flex-wrap gap-2 align-items-center mt-auto" onClick={stopPropagation}>
                         <Link to={routes.folderDetail.replace(":id", String(folder.id))} className="link-primary fs-13">
@@ -163,6 +164,7 @@ export function FoldersContent(props: FoldersContentProps) {
                 <th>{t("folders.code", { defaultValue: "Code" })}</th>
                 <th>{t("documents.type", { defaultValue: "Type" })}</th>
                 <th>{t("documents.department", { defaultValue: "Department" })}</th>
+                <th>{t("folders.companyBrand", { defaultValue: "Company/Brand" })}</th>
                 <th>{t("documents.documents", { defaultValue: "Documents" })}</th>
                 <th>{t("documents.status", { defaultValue: "Status" })}</th>
                 <th>{t("folders.updated", { defaultValue: "Updated" })}</th>
@@ -176,6 +178,7 @@ export function FoldersContent(props: FoldersContentProps) {
                   <td>{folder.code || "-"}</td>
                   <td>{folder.folder_type || "-"}</td>
                   <td>{folder.department_name || "-"}</td>
+                  <td>{folder.company_name ?? "-"}</td>
                   <td>{folder.document_count ?? folder.docs ?? 0}</td>
                   <td>
                     <span className={`badge bg-${actions.getFolderStatusBadgeVariant(folder.state)}`}>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
+import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import { useDraftAppliedFilters } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
 import type { SelectOption } from "@/shared/components/ui";
@@ -21,6 +22,7 @@ type ViewMode = (typeof VIEW_MODE)[keyof typeof VIEW_MODE];
 export interface FoldersFilterState {
   department_id?: number;
   folder_type?: string;
+  company_id?: number;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -45,8 +47,9 @@ export function useFoldersPageContainer() {
       state: "active" as const,
       department_id: appliedFilters.department_id,
       folder_type: appliedFilters.folder_type,
+      company_id: appliedFilters.company_id,
     }),
-    [appliedFilters.department_id, appliedFilters.folder_type]
+    [appliedFilters.department_id, appliedFilters.folder_type, appliedFilters.company_id]
   );
 
   const { folders, loading, error, pagination, fetchFolders } = useFolders({
@@ -60,6 +63,7 @@ export function useFoldersPageContainer() {
   );
 
   const { departments, fetchDepartments } = useDepartmentsStore();
+  const { companies, fetchCompanies } = useCompaniesStore();
 
   const departmentOptions: SelectOption<number>[] = useMemo(
     () => departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
@@ -75,10 +79,19 @@ export function useFoldersPageContainer() {
     [t]
   );
 
+  const companyOptions: SelectOption<number>[] = useMemo(
+    () => companies.map((c) => ({ value: c.id, label: c.name })),
+    [companies]
+  );
+
   const handleApplyFilter = useCallback(() => {
     baseHandleApplyFilter();
-    fetchFolders({ department_id: draftFilters.department_id, folder_type: draftFilters.folder_type });
-  }, [baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, fetchFolders]);
+    fetchFolders({
+      department_id: draftFilters.department_id,
+      folder_type: draftFilters.folder_type,
+      company_id: draftFilters.company_id,
+    });
+  }, [baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, draftFilters.company_id, fetchFolders]);
 
   const handleClearFilter = useCallback(() => {
     baseHandleClearFilter();
@@ -88,10 +101,13 @@ export function useFoldersPageContainer() {
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
-  // ─── Data loading: departments (from centralized store) ────────────────────
+  // ─── Data loading: departments and companies (from centralized stores) ──────
   useEffect(() => {
     fetchDepartments();
   }, [fetchDepartments]);
+  useEffect(() => {
+    fetchCompanies({ limit: 100 });
+  }, [fetchCompanies]);
 
   // ─── Navigation & search ──────────────────────────────────────────────────
   const handleNavigateToFolder = useCallback(
@@ -139,6 +155,13 @@ export function useFoldersPageContainer() {
     setDraftFilters((prev) => ({
       ...prev,
       folder_type: value != null && typeof value === "string" ? value : undefined,
+    }));
+  }, [setDraftFilters]);
+
+  const handleTertiaryFilterChange = useCallback((value: number | string | null) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      company_id: value != null && typeof value === "number" ? value : undefined,
     }));
   }, [setDraftFilters]);
 
@@ -203,11 +226,13 @@ export function useFoldersPageContainer() {
       draftFilters,
       departmentOptions,
       folderTypeOptions,
+      companyOptions,
       filterApplyDisabled,
       handleOpenFilter,
       handleCloseFilter,
       handlePrimaryFilterChange,
       handleSecondaryFilterChange,
+      handleTertiaryFilterChange,
       handleApplyFilter,
       handleClearFilter,
     },
