@@ -47,12 +47,13 @@ function loginAndFlash(_flowName: string) {
 }
 
 /** Folder options in UI are "Name — Code". Open folder select, wait for option in the open menu, then click. */
-function selectFolderByName(folderName: string, _folderCode: string, timeout = 20000) {
+function selectFolderByName(folderName: string, folderCode: string, timeout = 20000) {
   cy.get('[data-testid="folder-select"]').find('.react-select__control').click({ force: true });
   waitStep();
-  // Scope to the visible menu so we don't match options from another select (e.g. document type).
-  cy.get('.react-select__menu').should('be.visible').within(() => {
-    cy.contains('.react-select__option', folderName, { timeout }).click();
+  // Use the last-open menu (folder dropdown); match any element containing folder name (option may be option or child).
+  const fullLabel = `${folderName} — ${folderCode}`;
+  cy.get('.react-select__menu').should('be.visible').last().within(() => {
+    cy.contains(fullLabel, { timeout }).click();
   });
 }
 
@@ -155,9 +156,16 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('.react-select__option').contains('Sub Document').click();
     waitStep();
-    selectDepartmentAndType();
-    // Wait for folder list to load (includes MainBaseFolder we just created) before opening dropdown.
+    // Select department first so listFolders(finance_id) runs; wait for it so folder list includes MainBaseFolder.
+    cy.get('[data-testid="department-select"]').find('.react-select__control').click({ force: true });
+    waitStep();
+    cy.get('.react-select__option').contains('Finance (FIN)').click();
     cy.wait('@listFolders', { timeout: 15000 });
+    waitStep();
+    cy.get('[data-testid="document-type-select"]').find('.react-select__control').click({ force: true });
+    waitStep();
+    cy.get('.react-select__option').contains('Invoice (INV)').click();
+    waitStep();
     waitStep();
     selectFolderByName(mainBaseFolder, 'MBF');
     waitStep();
