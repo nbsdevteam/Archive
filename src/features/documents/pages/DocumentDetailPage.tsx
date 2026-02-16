@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
-import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
+import { Alert, Button, Spinner, Icon, ConfirmModal } from "@/shared/components/ui";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { AttachmentSidePanel } from "@/features/documents/components";
 import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";
@@ -96,6 +96,19 @@ const DocumentDetailPage = () => {
             <Button variant="secondary" size="sm" onClick={actions.handleRestoreDocument} disabled={loading.isRestoring}>
               <Icon name="refresh-cw" className="me-1" />
               {t("documents.restore", { defaultValue: "Restore" })}
+            </Button>
+          )}
+          {!data.isTrashed && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="btn-outline-danger me-1"
+              onClick={() => actions.setModalTrashConfirm(true)}
+              disabled={loading.isTrashing}
+              data-testid="document-detail-move-to-trash-btn"
+            >
+              <Icon name="trash-2" className="me-1" />
+              {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
             </Button>
           )}
           <CollapseHeader />
@@ -195,6 +208,17 @@ const DocumentDetailPage = () => {
         attachmentTrashModalProps={attachmentTrashDialog.modalProps}
         batchAttachmentTrashModalProps={batchAttachmentTrashDialog.modalProps}
         noteDeleteModalProps={noteDeleteDialog.modalProps}
+      />
+      <ConfirmModal
+        isOpen={modals.modalTrashConfirm}
+        onClose={() => actions.setModalTrashConfirm(false)}
+        onConfirm={actions.handleTrashDocument}
+        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        message={t("documents.confirmMoveToTrash", { defaultValue: "Are you sure you want to move this document to trash?" })}
+        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+        isLoading={loading.isTrashing}
       />
       <EditDocumentSidePanel
         isOpen={modals.editDocumentId != null}
