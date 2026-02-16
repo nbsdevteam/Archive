@@ -395,173 +395,52 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Move to trash and permanent delete (only this test\'s folders and their files)', () => {
-    const suffix = uniqueSuffix();
-    const mainBaseTitle = `MainBaseFile ${suffix}`;
-    const mainBaseFolderName = `MainBaseFile Folder ${suffix}`;
-    const mainBaseFolderCode = `MBF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const mainTargetTitle = `MainTargetFile ${suffix}`;
-    const mainTargetFolderName = `MainTargetFile Folder ${suffix}`;
-    const mainTargetFolderCode = `MTF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const baseSecondaryTitle = `BaseSecondaryTrashPhase ${suffix}`;
+  (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Trash, permanent delete, and delete MainBase folder (from Phase 1/2; main + sub doc)', () => {
+    loginAndFlash('Phase 3: Trash and permanent delete MainBase folder docs (MainBaseFile-edited, MainBaseSecondaryFile-edited-edited), then delete folder');
 
-    loginAndFlash('Phase 3: Create two folders + docs, then trash, permanent delete, delete folders (only this data)');
-
-    // Create base folder (main doc).
-    cy.get('[data-testid="upload-document-btn"]').click();
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').should('be.visible');
-    selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(mainBaseTitle);
-    waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainBaseFolderName);
-    waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainBaseFolderCode);
-    waitStep();
-    cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('base main'), fileName: 'base-main.pdf' },
-      { force: true }
-    );
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
-    captureUploadDocId();
-    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-    waitStep();
-    // Resolve base folder ID from upload response or document API (avoid /folders list).
-    cy.get('@createdFolderId').then((fid: number | null) => {
-      if (fid != null && fid > 0) {
-        cy.wrap(fid).as('baseFolderId');
-      } else {
-        return cy.get('@createdDocId').then((docId: number) =>
-          getFolderIdFromDocument(docId).then((fid2: number | null) => {
-            if (fid2 != null) return cy.wrap(fid2).as('baseFolderId');
-            expect(false, 'Phase 3 base folder: no folder_id from upload or document API').to.be.true;
-            return cy.wrap(0);
-          })
-        );
-      }
-    });
-
-    // Create target folder (main doc).
-    cy.get('[data-testid="upload-document-btn"]').click();
-    waitStep();
-    selectDepartmentAndType();
-    cy.get('input[name="title"]').clear().type(mainTargetTitle);
-    waitStep();
-    cy.get('input[name="folder_name"]').clear().type(mainTargetFolderName);
-    waitStep();
-    cy.get('input[name="folder_code"]').clear().type(mainTargetFolderCode);
-    waitStep();
-    cy.get('input[type="file"]').selectFile(
-      { contents: Cypress.Buffer.from('target main'), fileName: 'target-main.pdf' },
-      { force: true }
-    );
-    waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
-    captureUploadDocId();
-    cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-    waitStep();
-    // Resolve target folder ID from upload response or document API (avoid /folders list).
-    cy.get('@createdFolderId').then((fid: number | null) => {
-      if (fid != null && fid > 0) {
-        cy.wrap(fid).as('targetFolderId');
-      } else {
-        return cy.get('@createdDocId').then((docId: number) =>
-          getFolderIdFromDocument(docId).then((fid2: number | null) => {
-            if (fid2 != null) return cy.wrap(fid2).as('targetFolderId');
-            expect(false, 'Phase 3 target folder: no folder_id from upload or document API').to.be.true;
-            return cy.wrap(0);
-          })
-        );
-      }
-    });
+    // Use existing MainBase folder from Phase 1/2 (no new uploads).
+    getFolderIdFromDocTitle('MainBaseFile-edited').as('baseFolderId');
 
     cy.get('@baseFolderId').then((baseId: number) => {
-      cy.get('@targetFolderId').then((targetId: number) => {
-        // Add one sub in base and transfer to target so both folders have docs.
-        cy.visit(`/folders/${baseId}`);
-        waitStep();
-        cy.get('[data-testid="upload-in-folder-btn"]').click();
-        waitStep();
-        cy.get('[data-testid="upload-kind-select"]').find('.react-select__control').click({ force: true });
-        waitStep();
-        cy.get('.react-select__option').contains('Sub Document').click();
-        waitStep();
-        selectDepartmentAndType();
-        cy.get('input[name="title"]').clear().type(baseSecondaryTitle);
-        waitStep();
-        cy.get('input[type="file"]').selectFile(
-          { contents: Cypress.Buffer.from('base secondary'), fileName: 'base-secondary.pdf' },
-          { force: true }
-        );
-        waitStep();
-        cy.get('[data-testid="upload-document-submit"]').click();
-        cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
-        waitStep();
+      cy.visit(`/folders/${baseId}`);
+      waitStep();
 
-        cy.visit(`/folders/${baseId}`);
-        waitStep();
-        cy.contains(baseSecondaryTitle).closest('tr').within(() => cy.contains('button', 'Transfer').click());
-        waitStep();
-        cy.get('[data-testid="transfer-folder-select"]').select(String(targetId));
-        waitStep();
-        cy.get('[data-testid="transfer-confirm-btn"]').click();
-        waitStep();
-        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
-        waitStep();
+      // Trash sub-doc first (Secondary documents: MainBaseSecondaryFile-edited or MainBaseSecondaryFile-edited-edited after Phase 2).
+      cy.contains('tr', 'MainBaseSecondaryFile-edited').within(() => cy.contains('button', 'Move to trash').click());
+      waitStep();
+      cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
+      waitStep();
+      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+      waitStep();
 
-        // Trash main doc in base: open document detail and trash (main doc card has no trash button).
-        cy.visit(`/folders/${baseId}`);
-        waitStep();
-        cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
-        waitStep();
-        cy.get('[data-testid="document-detail-edit-document-btn"]').should('be.visible');
-        cy.contains('button', 'Move to trash').click();
-        cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
-        waitStep();
-        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
-        waitStep();
+      // Trash main doc (Main document card: View then Move to trash).
+      cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
+      waitStep();
+      cy.get('[data-testid="document-detail-edit-document-btn"]').should('be.visible');
+      cy.contains('button', 'Move to trash').click();
+      cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
+      waitStep();
+      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+      waitStep();
 
-        // Trash sub-doc in target and main doc in target. Target has: main + 1 secondary.
-        cy.visit(`/folders/${targetId}`);
-        waitStep();
-        cy.get('.card').contains('Secondary documents').parents('.card').find('tbody tr').first().within(() => {
-          cy.contains('button', 'Move to trash').click();
-        });
-        cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
-        waitStep();
-        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
-        waitStep();
-        cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
-        waitStep();
-        cy.contains('button', 'Move to trash').click();
-        cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
-        waitStep();
-        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
-        waitStep();
+      // Permanent delete from trash (only these two docs created in Phase 1/2).
+      cy.visit('/documents/trash');
+      waitStep();
+      cy.get('[data-testid="documents-trash-page"]').should('be.visible');
+      cy.contains('tbody tr', 'MainBaseFile-edited').find('input[type="checkbox"]').click();
+      waitStep();
+      cy.contains('tbody tr', 'MainBaseSecondaryFile').find('input[type="checkbox"]').click();
+      waitStep();
+      cy.contains('button', 'Permanent delete selected').click();
+      waitStep();
+      cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
+      waitStep();
+      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
+      waitStep();
 
-        // Permanent delete from trash (only our 3 docs — base main, target main, target sub; do not touch any other file).
-        cy.visit('/documents/trash');
-        waitStep();
-        cy.get('[data-testid="documents-trash-page"]').should('be.visible');
-        [mainBaseTitle, mainTargetTitle, baseSecondaryTitle].forEach((title) => {
-          cy.contains('tbody tr', title).find('input[type="checkbox"]').click();
-          waitStep();
-        });
-        cy.contains('button', 'Permanent delete selected').click();
-        waitStep();
-        cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
-        waitStep();
-        cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
-        waitStep();
-
-        // Delete the two empty folders (only our folder IDs).
-        cy.request('DELETE', `/api/folders/${baseId}`).then((res) => {
-          expect([200, 204]).to.include(res.status);
-        });
-        cy.request('DELETE', `/api/folders/${targetId}`).then((res) => {
-          expect([200, 204]).to.include(res.status);
-        });
+      // Delete the empty MainBase folder (only this folder).
+      cy.request('DELETE', `/api/folders/${baseId}`).then((res) => {
+        expect([200, 204]).to.include(res.status);
       });
     });
   });
