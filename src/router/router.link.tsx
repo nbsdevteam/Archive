@@ -2,11 +2,7 @@ import { Navigate } from "react-router-dom";
 import { all_routes } from "./all_routes";
 import { PublicRoute } from "../app/routes/PublicRoute";
 import {
-  ArchiveActivity,
-  ArchiveDocuments,
-  ArchiveFolders,
-  ArchiveTrash,
-  ArchiveUpload,
+  ActivityPage,
   DashboardPage,
   DocumentAttachmentViewPage,
   DocumentDetailPage,
@@ -45,26 +41,10 @@ export const publicRoutes = [
     path: routes.dashboard,
     element: <DashboardPage />,
   },
-  // Archive routes (keep for backward compatibility)
+  // Activity (audit/activity log)
   {
-    path: routes.archiveFolders,
-    element: <ArchiveFolders />,
-  },
-  {
-    path: routes.archiveDocuments,
-    element: <ArchiveDocuments />,
-  },
-  {
-    path: routes.archiveUpload,
-    element: <ArchiveUpload />,
-  },
-  {
-    path: routes.archiveTrash,
-    element: <ArchiveTrash />,
-  },
-  {
-    path: routes.archiveActivity,
-    element: <ArchiveActivity />,
+    path: routes.activity,
+    element: <ActivityPage />,
   },
   // Documents
   {

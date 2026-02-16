@@ -92,24 +92,8 @@ export const DashboardPage = createLazyComponent(
   <LoadingSpinner text="Loading dashboard..." />
 );
 
-// Archive
-export const ArchiveFolders = createLazyComponent(
-  () => import("../features/archive/pages/ArchiveFolders"),
-  <LoadingSpinner text="Loading folders..." />
-);
-export const ArchiveDocuments = createLazyComponent(
-  () => import("../features/archive/pages/ArchiveDocuments"),
-  <LoadingSpinner text="Loading documents..." />
-);
-export const ArchiveUpload = createLazyComponent(
-  () => import("../features/archive/pages/ArchiveUpload"),
-  <LoadingSpinner text="Loading upload..." />
-);
-export const ArchiveTrash = createLazyComponent(
-  () => import("../features/archive/pages/ArchiveTrash"),
-  <LoadingSpinner text="Loading trash..." />
-);
-export const ArchiveActivity = createLazyComponent(
+// Activity (audit/activity log at /activity)
+export const ActivityPage = createLazyComponent(
   () => import("../features/activity/pages/ArchiveActivityPage"),
   <LoadingSpinner text="Loading activity..." />
 );

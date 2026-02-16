@@ -12,44 +12,20 @@ export const preloadCriticalComponents = (): void => {
 
 // Preload components based on user role (archiving system: admin / employee only)
 export const preloadRoleBasedComponents = (userRole: string): void => {
-  switch (userRole) {
-    case "admin":
-      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
-      preloadComponent(() => import("../features/archive/pages/ArchiveFolders"))();
-      break;
-    case "employee":
-      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
-      preloadComponent(() => import("../features/archive/pages/ArchiveDocuments"))();
-      break;
-    default:
-      preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
-  }
+  preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))();
 };
 
-// Preload components based on current route (archive + reports only)
+// Preload components based on current route
 export const preloadRouteComponents = (currentPath: string): void => {
-  if (currentPath.includes("/archive")) {
-    preloadComponent(() => import("../features/archive/pages/ArchiveFolders"))();
-    preloadComponent(() => import("../features/archive/pages/ArchiveDocuments"))();
-    preloadComponent(() => import("../features/archive/pages/ArchiveUpload"))();
-    preloadComponent(() => import("../features/archive/pages/ArchiveTrash"))();
+  if (currentPath === "/activity") {
     preloadComponent(() => import("../features/activity/pages/ArchiveActivityPage"))();
   }
-
 };
 
-// Preload components on user interaction (hover, focus) – archive & reports only
+// Preload components on user interaction (hover, focus)
 export const preloadOnInteraction = (componentPath: string): void => {
   const preloadMap: Record<string, () => void> = {
-    "/archive/folders": () =>
-      preloadComponent(() => import("../features/archive/pages/ArchiveFolders"))(),
-    "/archive/documents": () =>
-      preloadComponent(() => import("../features/archive/pages/ArchiveDocuments"))(),
-    "/archive/upload": () =>
-      preloadComponent(() => import("../features/archive/pages/ArchiveUpload"))(),
-    "/archive/trash": () =>
-      preloadComponent(() => import("../features/archive/pages/ArchiveTrash"))(),
-    "/archive/activity": () =>
+    "/activity": () =>
       preloadComponent(() => import("../features/activity/pages/ArchiveActivityPage"))(),
     "/dashboard": () =>
       preloadComponent(() => import("../features/dashboard/pages/DashboardPage"))(),

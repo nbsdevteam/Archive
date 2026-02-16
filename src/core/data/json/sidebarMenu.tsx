@@ -1,4 +1,4 @@
-﻿import { all_routes } from "../../../router/all_routes";
+import { all_routes } from "../../../router/all_routes";
 
 const routes = all_routes;
 
@@ -81,11 +81,11 @@ export const SidebarDataTest = [
       {
         label: "Activity",
         translationKey: "activity",
-        link: routes.archiveActivity,
+        link: routes.activity,
         submenu: false,
         showSubRoute: false,
         icon: "Activity",
-        base: routes.archiveActivity,
+        base: routes.activity,
       },
       {
         label: "Permissions",

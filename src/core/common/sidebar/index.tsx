@@ -223,25 +223,10 @@ const Sidebar = memo(() => {
             <kbd>CTRL + /</kbd>
           </span>
         </div>
-        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.archiveQuickLinks")}>
-          <div className="me-3">
-            <Link to={all_routes.archiveFolders} className="btn btn-menubar" aria-label={t("app.archiveFolders")}>
-              <i className="ti ti-folder" aria-hidden />
-            </Link>
-          </div>
-          <div className="me-3">
-            <Link to={all_routes.archiveUpload} className="btn btn-menubar" aria-label={t("app.upload")}>
-              <i className="ti ti-upload" aria-hidden />
-            </Link>
-          </div>
-          <div className="me-3 notification-item">
-            <Link to={all_routes.archiveActivity} className="btn btn-menubar position-relative me-1" aria-label={t("app.archiveActivity")}>
-              <i className="ti ti-activity" aria-hidden />
-            </Link>
-          </div>
+        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.archiveActivity", { defaultValue: "Activity" })}>
           <div className="me-0">
-            <Link to={all_routes.archiveTrash} className="btn btn-menubar" aria-label={t("app.trash")}>
-              <i className="ti ti-trash" aria-hidden />
+            <Link to={all_routes.activity} className="btn btn-menubar" aria-label={t("app.archiveActivity", { defaultValue: "Activity" })}>
+              <i className="ti ti-activity" aria-hidden />
             </Link>
           </div>
         </div>

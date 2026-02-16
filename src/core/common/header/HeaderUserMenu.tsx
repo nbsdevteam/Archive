@@ -30,16 +30,7 @@ export function HeaderUserMenu({ routes, onLogout }: HeaderUserMenuProps) {
             </div>
           </div>
           <div className="card-body">
-            <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.archiveFolders}>
-              <i className="ti ti-folder me-1"></i>My Folders
-            </Link>
-            <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.archiveDocuments}>
-              <i className="ti ti-file me-1"></i>My Documents
-            </Link>
-            <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.archiveUpload}>
-              <i className="ti ti-upload me-1"></i>Upload
-            </Link>
-            <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.archiveActivity}>
+            <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.activity}>
               <i className="ti ti-activity me-1"></i>Activity
             </Link>
           </div>

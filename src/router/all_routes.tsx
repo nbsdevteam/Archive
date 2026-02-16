@@ -3,12 +3,8 @@ export const all_routes: Record<string, string> = {
   adminDashboard: "/index",
   dashboard: "/dashboard",
 
-  // archive module
-  archiveFolders: "/archive/folders",
-  archiveDocuments: "/archive/documents",
-  archiveUpload: "/archive/upload",
-  archiveTrash: "/archive/trash",
-  archiveActivity: "/archive/activity",
+  /** Activity (audit/activity log) – single route, no longer under /archive. */
+  activity: "/activity",
 
   // documents + folders
   documents: "/documents",

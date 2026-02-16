@@ -121,7 +121,7 @@ const DocumentAttachmentViewPage = () => {
     <PageLayout
       title={attachmentTitle}
       breadcrumbItems={[
-        { label: t("documents.title", { defaultValue: "Documents" }), to: routes.archiveDocuments },
+        { label: t("documents.title", { defaultValue: "Documents" }), to: routes.documents },
         { label: docTitle ?? t("documents.details", { defaultValue: "Document" }), to: documentDetailUrl },
       ]}
       homeTo={routes.adminDashboard}
