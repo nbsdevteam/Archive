@@ -22,13 +22,13 @@ export const Card = ({
   className = "",
   headerActions,
   glassEffect = false,
-  bordered = true,
-  footer,
-  imageSrc,
-  imageAlt,
-  shadow = true,
-  glassVariant = "shine",
-  glassRandomHue = false,
+  bordered: _bordered = true,
+  footer: _footer,
+  imageSrc: _imageSrc,
+  imageAlt: _imageAlt,
+  shadow: _shadow = true,
+  glassVariant: _glassVariant = "shine",
+  glassRandomHue: _glassRandomHue = false,
  }: CardProps) => {
   
   const header =

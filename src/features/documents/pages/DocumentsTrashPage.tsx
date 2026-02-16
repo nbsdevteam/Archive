@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "@/shared/components/ui";
@@ -18,7 +17,7 @@ const DocumentsTrashPage = () => {
   const { data, loading, error, selection, actions, modals } = useDocumentsTrashPageContainer();
   const { routes, documents, isAdmin } = data;
   const { selectedDocumentIds, isSomeSelected, selectionConfig } = selection;
-  const { restoreLoadingId, isRestoring, isPermanentDeleting } = modals;
+  const { isRestoring, isPermanentDeleting } = modals;
 
   const permanentDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmPermanentDelete });
   const batchRestoreDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchRestore });

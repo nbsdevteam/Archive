@@ -21,7 +21,7 @@ const FoldersPage = () => {
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
   }, [registerHandler, actions.handleRefresh]);
-  const { routes, viewMode, setViewMode, folders, filteredFolders, foldersCountLabel, formatDate } = data;
+  const { routes, viewMode, setViewMode, filteredFolders, foldersCountLabel, formatDate } = data;
   const deleteFolderDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteFolder });
 
   return (

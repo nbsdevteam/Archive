@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
-import ImageWithBasePath from "../imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import React from "react";

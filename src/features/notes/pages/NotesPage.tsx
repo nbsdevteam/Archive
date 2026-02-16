@@ -70,14 +70,6 @@ const NotesPage = () => {
     [noteDeleteDialog]
   );
 
-  /** Navigate to document detail */
-  const handleNavigateToDocument = useCallback(
-    (documentId: number) => {
-      navigate(routes.documentDetail.replace(":id", String(documentId)));
-    },
-    [navigate, routes.documentDetail]
-  );
-
   /** Navigate to folder detail */
   const handleNavigateToFolder = useCallback(
     (folderId: number) => {

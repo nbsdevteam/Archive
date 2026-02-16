@@ -21,7 +21,7 @@ export const useAuth = () => {
     return getStoredUser<User>();
   }, [authenticated]);
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, _setError] = useState<string | null>(null);
   const { clearDepartments } = useDepartmentsStore();
 
   const logout = async () => {

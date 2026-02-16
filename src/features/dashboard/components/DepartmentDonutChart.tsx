@@ -23,7 +23,7 @@ const DEFAULT_COLORS = [
 ];
 
 export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
-  const { series, labels, options } = useMemo(() => {
+  const { series, options } = useMemo(() => {
     const labels = items.map((i) => i.department);
     const series = items.map((i) => i.count);
     const total = series.reduce((a, b) => a + b, 0);
@@ -92,7 +92,7 @@ export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
         },
       },
     };
-    return { series, labels, options: opts };
+    return { series, options: opts };
   }, [items]);
 
   if (!items.length) {

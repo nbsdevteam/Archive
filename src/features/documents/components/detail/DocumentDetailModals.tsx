@@ -1,5 +1,3 @@
-import type { TFunction } from "i18next";
-import type { CreateNotePayload } from "@/features/notes/types/notes.types";
 import type { DocumentDetailPageState } from "@/features/documents/types/documentDetailState";
 import { DocumentDetailModalsGroup1 } from "./DocumentDetailModalsGroup1";
 import { DocumentDetailModalsGroup2 } from "./DocumentDetailModalsGroup2";

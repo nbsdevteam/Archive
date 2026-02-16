@@ -1,5 +1,3 @@
-import type { TFunction } from "i18next";
-import type { NoteListItem } from "@/features/notes/types/notes.types";
 import type { DocumentDetailPageState } from "@/features/documents/types/documentDetailState";
 import { DocumentDetailTabsGroup1 } from "./DocumentDetailTabsGroup1";
 import { DocumentDetailTabsGroup2 } from "./DocumentDetailTabsGroup2";

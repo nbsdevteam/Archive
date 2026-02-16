@@ -126,7 +126,6 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         return;
       }
 
-      const filesToUpload = selectedFiles.length > 0 ? selectedFiles : file ? [file] : [];
       if (data.upload_kind === "sub" && isSubMulti && filesToUse.length >= 1) {
         const folderIdForJob = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
         if (!folderIdForJob) {

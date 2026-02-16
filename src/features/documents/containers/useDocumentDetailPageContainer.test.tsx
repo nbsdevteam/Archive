@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import { renderHookWithProviders } from "../../../test/testUtils/renderWithProviders";
 import { resetStores } from "../../../test/testUtils/resetStores";
 import { makeDocument } from "../../../test/fixtures/documents";

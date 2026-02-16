@@ -67,7 +67,7 @@ export function UploadDocumentTargetSection({
   setValue,
   uploadKind,
   departmentId,
-  folderId,
+  folderId: _folderId,
   lockFolderContext,
   initialValues,
   departments,

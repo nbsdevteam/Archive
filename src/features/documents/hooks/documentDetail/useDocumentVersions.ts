@@ -13,7 +13,7 @@ import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 export function useDocumentVersions(
   doc: DocumentDetail | null,
   fileName: string,
-  fetchDocument: (id: number) => Promise<void>
+  _fetchDocument: (id: number) => Promise<void>
 ) {
   const { t } = useTranslation();
   const announce = useAnnounce();

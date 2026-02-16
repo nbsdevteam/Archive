@@ -5,7 +5,6 @@
 
 import * as notificationsApi from "./notifications.api";
 import type {
-  Notification,
   NotificationListParams,
   NotificationListResponse,
 } from "../types/notifications.types";

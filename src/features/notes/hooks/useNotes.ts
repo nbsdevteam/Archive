@@ -40,7 +40,6 @@ export interface UseNotesOptions {
  * Hook for managing notes list with pagination and CRUD operations
  */
 export const useNotes = (options: UseNotesOptions = {}) => {
-  const { t } = useTranslation();
   const {
     documentId,
     folderId,

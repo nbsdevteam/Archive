@@ -42,7 +42,7 @@ export function EditDocumentFormContent({
   control,
   register,
   errors,
-  setValue,
+  setValue: _setValue,
   isSubDoc,
   isInFolder,
   folderName,

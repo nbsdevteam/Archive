@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import * as signaturesApi from "../services/signatures.api";
 import * as signaturesService from "../services/signatures.service";
 import type { SignatureRequest, SignatureListParams } from "../types/signatures.types";
 

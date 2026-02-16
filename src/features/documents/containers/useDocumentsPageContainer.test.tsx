@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { resetStores } from "../../../test/testUtils/resetStores";
 import { makeDocument } from "../../../test/fixtures/documents";
-import { useDocumentStore } from "../stores/documentStore";
 import { useDocumentsPageContainer } from "./useDocumentsPageContainer";
 
 const mockGetDocuments = vi.fn();

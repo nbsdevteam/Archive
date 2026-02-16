@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { searchApi } from "../../../app/adapter/api/search.api";
 import type { SearchResult } from "../../../app/adapter/api/search.api";

@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Modal, ModalFooter, Button, ConfirmModal, Spinner } from "@/shared/components/ui";
+import { Modal, ModalFooter, Button, ConfirmModal } from "@/shared/components/ui";
 import { EditFolderSidePanel, TransferToFolderModal } from "@/features/folders/components";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
 import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";

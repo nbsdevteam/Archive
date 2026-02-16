@@ -54,7 +54,7 @@ export const NoteEditor = ({
   note,
   documentId,
   folderId,
-  departmentId,
+  departmentId: _departmentId,
   onSave,
   onCancel,
   isSaving = false,

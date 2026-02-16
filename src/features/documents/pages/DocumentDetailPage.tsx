@@ -106,7 +106,7 @@ const DocumentDetailPage = () => {
         />
 
         <ul className="nav nav-tabs mb-2" role="tablist" aria-label="Document sections">
-          {tabState.tabs.map((tab, index) => (
+          {tabState.tabs.map((tab) => (
             <li className="nav-item" key={tab.id} role="presentation">
               <button
                 type="button"

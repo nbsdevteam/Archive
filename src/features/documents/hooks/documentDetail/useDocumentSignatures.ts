@@ -12,7 +12,7 @@ import type { Manager } from "./useDocumentManagers";
 export function useDocumentSignatures(
   docId: number | null,
   doc: DocumentDetail | null,
-  managers: Manager[],
+  _managers: Manager[],
   fetchDocument: (id: number) => Promise<void>
 ) {
   const { t } = useTranslation();

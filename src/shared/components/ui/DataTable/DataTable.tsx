@@ -4,7 +4,6 @@ import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
 import type { IconName } from "../Icon";
 import { Spinner } from "../Spinner";
-import { Button } from "../Button";
 
 /**
  * Resolves icon for a row action: use configured icon or infer from action id so menu items always show an icon.

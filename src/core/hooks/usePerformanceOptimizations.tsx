@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useMemo,
   useRef,
   useEffect,
   useState,
@@ -197,7 +196,7 @@ export const useListOptimization = <T,>(
 // Image lazy loading hook
 export const useLazyImage = (src: string, alt: string) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, _setIsInView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const { elementRef } = useIntersectionObserver({
@@ -268,7 +267,7 @@ export const useFormOptimization = <T extends Record<string, any>>(
   }, [initialValues]);
 
   const validateForm = useCallback(
-    (validationSchema?: any) => {
+    (_validationSchema?: unknown) => {
       // Add validation logic here
       return Object.keys(errors).length === 0;
     },

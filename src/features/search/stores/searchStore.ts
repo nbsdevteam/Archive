@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { searchApi, SearchResponse } from '../../../app/adapter/api/search.api';
+import { searchApi } from '../../../app/adapter/api/search.api';
 import { handleApiError } from '../../../app/adapter/api/client';
 import type { SearchResult } from '../types/search.types';
 

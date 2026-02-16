@@ -6,7 +6,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { toast } from "react-toastify";
 import { AppProviders } from "../../../app/providers/AppProviders";
 import { resetStores } from "../../../test/testUtils/resetStores";
 import { makeFolderDetail } from "../../../test/fixtures/folders";
