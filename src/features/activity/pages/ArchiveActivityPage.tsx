@@ -71,6 +71,33 @@ const ArchiveActivityPage = () => {
     ];
   }, []);
 
+  const handleLast7DaysClick = () => {
+    const defaultParams = { date_from: getDateDaysAgoFormatted(7), page: 1, per_page: 50 };
+    setDateFromInput("");
+    setDateToInput("");
+    setActionInput("");
+    setParams(defaultParams);
+    fetchLogs(defaultParams).catch(() => undefined);
+  };
+  const handleLast24HoursClick = () => {
+    const defaultParams = { date_from: getDateDaysAgoFormatted(1), page: 1, per_page: 50 };
+    setDateFromInput("");
+    setDateToInput("");
+    setActionInput("");
+    setParams(defaultParams);
+    fetchLogs(defaultParams).catch(() => undefined);
+  };
+  const handleFiltersSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    applyFilters(1).catch(() => undefined);
+  };
+  const handleDateFromChange = (event: React.ChangeEvent<HTMLInputElement>) => setDateFromInput(event.target.value);
+  const handleDateToChange = (event: React.ChangeEvent<HTMLInputElement>) => setDateToInput(event.target.value);
+  const handleActionInputChange = (event: React.ChangeEvent<HTMLSelectElement>) => setActionInput(event.target.value);
+  const handleTreeGroupByChange = (event: React.ChangeEvent<HTMLSelectElement>) => setTreeGroupBy(event.target.value as "document" | "action");
+  const handlePrevPageClick = () => applyFilters((pagination?.page ?? 1) - 1);
+  const handleNextPageClick = () => applyFilters((pagination?.page ?? 1) + 1);
+
   const pageTitle = t("activity.title", { defaultValue: "Activity" });
 
   return (
@@ -84,14 +111,7 @@ const ArchiveActivityPage = () => {
             variant="outline"
             size="sm"
             className="btn-outline-secondary"
-            onClick={() => {
-              const defaultParams = { date_from: getDateDaysAgoFormatted(7), page: 1, per_page: 50 };
-              setDateFromInput("");
-              setDateToInput("");
-              setActionInput("");
-              setParams(defaultParams);
-              fetchLogs(defaultParams).catch(() => undefined);
-            }}
+            onClick={handleLast7DaysClick}
           >
             {t("activity.last7Days", { defaultValue: "Last 7 days" })}
           </Button>
@@ -99,14 +119,7 @@ const ArchiveActivityPage = () => {
             variant="outline"
             size="sm"
             className="btn-outline-secondary"
-            onClick={() => {
-              const defaultParams = { date_from: getDateDaysAgoFormatted(1), page: 1, per_page: 50 };
-              setDateFromInput("");
-              setDateToInput("");
-              setActionInput("");
-              setParams(defaultParams);
-              fetchLogs(defaultParams).catch(() => undefined);
-            }}
+            onClick={handleLast24HoursClick}
           >
             {t("activity.last24Hours", { defaultValue: "Last 24h" })}
           </Button>
@@ -118,10 +131,7 @@ const ArchiveActivityPage = () => {
           <div className="card-body">
             <form
               className="row g-2 align-items-end"
-              onSubmit={(event) => {
-                event.preventDefault();
-                applyFilters(1).catch(() => undefined);
-              }}
+              onSubmit={handleFiltersSubmit}
             >
               <div className="col-md-3">
                 <label className="form-label">{t("activity.filters.dateFrom", { defaultValue: "Date from" })}</label>
@@ -129,7 +139,7 @@ const ArchiveActivityPage = () => {
                   type="date"
                   className="form-control"
                   value={dateFromInput}
-                  onChange={(event) => setDateFromInput(event.target.value)}
+                  onChange={handleDateFromChange}
                 />
               </div>
               <div className="col-md-3">
@@ -138,7 +148,7 @@ const ArchiveActivityPage = () => {
                   type="date"
                   className="form-control"
                   value={dateToInput}
-                  onChange={(event) => setDateToInput(event.target.value)}
+                  onChange={handleDateToChange}
                 />
               </div>
               <div className="col-md-3">
@@ -146,7 +156,7 @@ const ArchiveActivityPage = () => {
                 <select
                   className="form-select"
                   value={actionInput}
-                  onChange={(event) => setActionInput(event.target.value)}
+                  onChange={handleActionInputChange}
                 >
                   <option value="">{t("activity.filters.allActions", { defaultValue: "All actions" })}</option>
                   {actionOptions.map((action) => (
@@ -173,7 +183,7 @@ const ArchiveActivityPage = () => {
                 <select
                   className="form-select form-select-sm"
                   value={treeGroupBy}
-                  onChange={(event) => setTreeGroupBy(event.target.value as "document" | "action")}
+                  onChange={handleTreeGroupByChange}
                 >
                   <option value="document">{t("activity.groupBy.document", { defaultValue: "Group by document" })}</option>
                   <option value="action">{t("activity.groupBy.action", { defaultValue: "Group by action" })}</option>
@@ -215,7 +225,7 @@ const ArchiveActivityPage = () => {
                     size="sm"
                     className="btn-outline-secondary"
                     disabled={(pagination?.page ?? 1) <= 1 || loading}
-                    onClick={() => applyFilters((pagination?.page ?? 1) - 1)}
+                    onClick={handlePrevPageClick}
                   >
                     {t("common.previous", { defaultValue: "Previous" })}
                   </Button>
@@ -224,7 +234,7 @@ const ArchiveActivityPage = () => {
                     size="sm"
                     className="btn-outline-secondary"
                     disabled={loading || (logs.length < (pagination?.per_page ?? 50))}
-                    onClick={() => applyFilters((pagination?.page ?? 1) + 1)}
+                    onClick={handleNextPageClick}
                   >
                     {t("common.next", { defaultValue: "Next" })}
                   </Button>

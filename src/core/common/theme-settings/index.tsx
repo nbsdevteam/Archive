@@ -32,6 +32,18 @@ const ThemeSettings = () => {
     }
   };
 
+  const handleSetLayoutDefault = () => setLayout("default");
+  const handleSetLayoutModern = () => setLayout("modern");
+  const handleSetColorCreamy = () => setColor("creamy");
+  const handleSetColorPrimary = () => setColor("primary");
+  const handleSetColorBrightblue = () => setColor("brightblue");
+  const handleSetColorLunargreen = () => setColor("lunargreen");
+  const handleSetColorLavendar = () => setColor("lavendar");
+  const handleSetColorMagenta = () => setColor("magenta");
+  const handleSetColorChromeyellow = () => setColor("chromeyellow");
+  const handleSetColorLavared = () => setColor("lavared");
+  const handleSetColorAll = () => setColor("all");
+
   return (
     <>
       <div className="sidebar-contact">
@@ -94,7 +106,7 @@ const ThemeSettings = () => {
                           name="LayoutTheme"
                           id="defaultLayout"
                           checked={layout === "default"}
-                          onChange={() => setLayout("default")}
+                          onChange={handleSetLayoutDefault}
                         />
                         <label htmlFor="defaultLayout">
                           <span className="layout-type">{t("app.layoutDefault")}</span>
@@ -108,7 +120,7 @@ const ThemeSettings = () => {
                           name="LayoutTheme"
                           id="modernLayout"
                           checked={layout === "modern"}
-                          onChange={() => setLayout("modern")}
+                          onChange={handleSetLayoutModern}
                         />
                         <label htmlFor="modernLayout">
                           <span className="layout-type">{t("app.layoutModern")}</span>
@@ -142,7 +154,7 @@ const ThemeSettings = () => {
                         id="creamyColor"
                         value="creamy"
                         checked={color === "creamy"}
-                        onChange={() => setColor("creamy")}
+                        onChange={handleSetColorCreamy}
                       />
                       <label htmlFor="creamyColor" className="creamy-clr" />
                     </div>
@@ -153,7 +165,7 @@ const ThemeSettings = () => {
                         id="primaryColor"
                         value="primary"
                         checked={color === "primary"}
-                        onChange={() => setColor("primary")}
+                        onChange={handleSetColorPrimary}
                       />
                       <label htmlFor="primaryColor" className="primary-clr" />
                     </div>
@@ -164,7 +176,7 @@ const ThemeSettings = () => {
                         id="brightblueColor"
                         value="brightblue"
                         checked={color === "brightblue"}
-                        onChange={() => setColor("brightblue")}
+                        onChange={handleSetColorBrightblue}
                       />
                       <label htmlFor="brightblueColor" className="brightblue-clr" />
                     </div>
@@ -175,7 +187,7 @@ const ThemeSettings = () => {
                         id="lunargreenColor"
                         value="lunargreen"
                         checked={color === "lunargreen"}
-                        onChange={() => setColor("lunargreen")}
+                        onChange={handleSetColorLunargreen}
                       />
                       <label htmlFor="lunargreenColor" className="lunargreen-clr" />
                     </div>
@@ -186,7 +198,7 @@ const ThemeSettings = () => {
                         id="lavendarColor"
                         value="lavendar"
                         checked={color === "lavendar"}
-                        onChange={() => setColor("lavendar")}
+                        onChange={handleSetColorLavendar}
                       />
                       <label htmlFor="lavendarColor" className="lavendar-clr" />
                     </div>
@@ -197,7 +209,7 @@ const ThemeSettings = () => {
                         id="magentaColor"
                         value="magenta"
                         checked={color === "magenta"}
-                        onChange={() => setColor("magenta")}
+                        onChange={handleSetColorMagenta}
                       />
                       <label htmlFor="magentaColor" className="magenta-clr" />
                     </div>
@@ -208,7 +220,7 @@ const ThemeSettings = () => {
                         id="chromeyellowColor"
                         value="chromeyellow"
                         checked={color === "chromeyellow"}
-                        onChange={() => setColor("chromeyellow")}
+                        onChange={handleSetColorChromeyellow}
                       />
                       <label htmlFor="chromeyellowColor" className="chromeyellow-clr" />
                     </div>
@@ -219,7 +231,7 @@ const ThemeSettings = () => {
                         id="lavaredColor"
                         value="lavared"
                         checked={color === "lavared"}
-                        onChange={() => setColor("lavared")}
+                        onChange={handleSetColorLavared}
                       />
                       <label htmlFor="lavaredColor" className="lavared-clr" />
                     </div>
@@ -227,7 +239,7 @@ const ThemeSettings = () => {
                       className={`theme-colorselect select-theme-color position-relative mb-2 ${
                         color === "all" ? "active" : ""
                       }`}
-                      onClick={() => setColor("all")}
+                      onClick={handleSetColorAll}
                     >
                       <div className="select-color position-absolute">
                         <i className="ti ti-palette" />

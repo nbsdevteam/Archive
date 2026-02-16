@@ -51,6 +51,8 @@ const DashboardPage = () => {
 
   const pageTitle = t("dashboard.title");
 
+  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+
   return (
     <PageLayout
       title={pageTitle}
@@ -113,7 +115,7 @@ const DashboardPage = () => {
                           <Icon name="folder" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h6>
-                        <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{totalFolders.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num" onClick={stopPropagation}>{totalFolders.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
                     </Link>
@@ -125,7 +127,7 @@ const DashboardPage = () => {
                           <Icon name="file-check" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
-                        <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{activeDocumentsCount.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num" onClick={stopPropagation}>{activeDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
                     </Link>
@@ -137,7 +139,7 @@ const DashboardPage = () => {
                           <Icon name="archive" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h6>
-                        <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{archivedDocumentsCount.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num" onClick={stopPropagation}>{archivedDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
                     </Link>
@@ -149,7 +151,7 @@ const DashboardPage = () => {
                           <Icon name="trash-2" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>
-                        <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{trashedDocumentsCount.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num" onClick={stopPropagation}>{trashedDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
                     </Link>
@@ -161,7 +163,7 @@ const DashboardPage = () => {
                           <Icon name="bell" className="fs-16" />
                         </span>
                         <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h6>
-                        <h3 className="mb-2 Num" onClick={(e) => e.stopPropagation()} >{unreadCount.toLocaleString()}</h3>
+                        <h3 className="mb-2 Num" onClick={stopPropagation}>{unreadCount.toLocaleString()}</h3>
                         {notificationsLoading ? (
                           <div className="text-center py-2">
                             <Spinner size="sm" />

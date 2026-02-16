@@ -264,6 +264,15 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
     await handleSubmit(onSubmit)();
   }, [trigger, handleSubmit, onSubmit, t]);
 
+  /** Prevents default form submit and triggers save validation + submit. */
+  const handleEditFormSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      void handleSaveClick();
+    },
+    [handleSaveClick]
+  );
+
   if (!isOpen) return null;
 
   return (
@@ -296,7 +305,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         <div className="alert alert-warning mb-0">{t("errors.documentNotFound")}</div>
       )}
       {doc && (
-        <form onSubmit={(e) => { e.preventDefault(); handleSaveClick(); }} className="d-flex flex-column gap-0" data-testid="edit-document-side-panel">
+        <form onSubmit={handleEditFormSubmit} className="d-flex flex-column gap-0" data-testid="edit-document-side-panel">
           <EditDocumentFormContent
             control={control}
             register={register}

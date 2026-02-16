@@ -51,6 +51,32 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
   } = props;
   const hasSelection = (selectionConfig?.selectedIds.length ?? 0) > 0;
 
+  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+  const handleAttachmentSelectionToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = e.currentTarget.dataset.attachmentId;
+    if (id != null && selectionConfig) selectionConfig.onToggle(id);
+  };
+  const handleViewAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.attachmentId;
+    if (id != null) onViewAttachment(Number(id));
+  };
+  const handleDownloadAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.attachmentId;
+    const fileName = e.currentTarget.dataset.fileName ?? "";
+    if (id != null) onDownloadAttachment(Number(id), fileName);
+  };
+  const handleEditAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.attachmentId;
+    if (id != null && onEditAttachment) onEditAttachment(Number(id));
+  };
+  const handleTrashAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.attachmentId;
+    if (id != null) onTrashAttachment(Number(id));
+  };
+
   return (
     <div className="card mb-3" data-testid="folder-detail-attachments-section">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -123,9 +149,9 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                     return (
                       <tr key={attachment.id}>
                         {selectionConfig && (
-                          <td onClick={(e) => e.stopPropagation()}>
+                          <td onClick={stopPropagation}>
                             <div className="form-check mb-0">
-                              <input type="checkbox" className="form-check-input" checked={Boolean(isSelected)} onChange={() => selectionConfig.onToggle(attachment.id)} onClick={(e) => e.stopPropagation()} aria-label={`Select attachment ${attachment.name}`} />
+                              <input type="checkbox" className="form-check-input" checked={Boolean(isSelected)} data-attachment-id={attachment.id} onChange={handleAttachmentSelectionToggle} onClick={stopPropagation} aria-label={`Select attachment ${attachment.name}`} />
                             </div>
                           </td>
                         )}
@@ -133,19 +159,19 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                         <td className="folders-detail-attachments-cell-ellipsis" title={attachment.file_name}>{attachment.file_name}</td>
                         <td className="folders-detail-attachments-cell-ellipsis" title={attachment.description != null ? String(attachment.description) : undefined}>{String(attachment.description ?? "").trim() || "–"}</td>
                         <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e?.stopPropagation(); onViewAttachment(attachment.id); }}>
+                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} onClick={handleViewAttachmentClick}>
                             <Icon name="eye" className="me-1" />{t("documents.view", { defaultValue: "View" })}
                           </Button>
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={() => onDownloadAttachment(attachment.id, attachment.file_name)}>
+                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} data-file-name={attachment.file_name} onClick={handleDownloadAttachmentClick}>
                             {t("documents.download", { defaultValue: "Download" })}
                           </Button>
                           {onEditAttachment && (
-                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); onEditAttachment(attachment.id); }} data-testid="folder-detail-attachment-edit-btn">
+                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} onClick={handleEditAttachmentClick} data-testid="folder-detail-attachment-edit-btn">
                               <Icon name="pencil" className="me-1" />
                               {t("common.edit", { defaultValue: "Edit" })}
                             </Button>
                           )}
-                          <Button variant="outline" size="sm" className="btn-outline-danger" onClick={(e) => { e.stopPropagation(); onTrashAttachment(attachment.id); }}>
+                          <Button variant="outline" size="sm" className="btn-outline-danger" data-attachment-id={attachment.id} onClick={handleTrashAttachmentClick}>
                             <Icon name="trash" className="me-1" />{t("documents.deleteAttachment", { defaultValue: "Delete" })}
                           </Button>
                         </td>

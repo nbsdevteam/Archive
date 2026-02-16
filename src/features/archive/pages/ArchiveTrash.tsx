@@ -9,6 +9,10 @@ const ArchiveTrash = () => {
   const routes = all_routes;
   const { trashedItems, loading, error, restoreItem, deletePermanently, emptyTrash } = useArchiveTrash({ useApi: false });
 
+  const handleEmptyTrash = () => emptyTrash();
+  const getRestoreItemClickHandler = (id: string | number | undefined) => () => id && restoreItem(id);
+  const getDeletePermanentlyClickHandler = (id: string | number | undefined) => () => id && deletePermanently(id);
+
   return (
     <PageLayout
       title={t("archive.trashTitle", { defaultValue: "Trash" })}
@@ -21,7 +25,7 @@ const ArchiveTrash = () => {
             <h5 className="card-title mb-0">{t("archive.recentlyDeleted", { defaultValue: "Recently Deleted" })}</h5>
             <button
               className="btn btn-light btn-sm"
-              onClick={() => emptyTrash()}
+              onClick={handleEmptyTrash}
             >
               {t("archive.emptyTrash", { defaultValue: "Empty Trash" })}
             </button>
@@ -65,13 +69,13 @@ const ArchiveTrash = () => {
                         <td className="text-end">
                           <button
                             className="btn btn-sm btn-light me-1"
-                            onClick={() => item.id && restoreItem(item.id)}
+                            onClick={getRestoreItemClickHandler(item.id)}
                           >
                             {t("archive.restore", { defaultValue: "Restore" })}
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => item.id && deletePermanently(item.id)}
+                            onClick={getDeletePermanentlyClickHandler(item.id)}
                           >
                             {t("common.delete", { defaultValue: "Delete" })}
                           </button>

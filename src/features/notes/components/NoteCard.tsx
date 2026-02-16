@@ -74,6 +74,14 @@ export const NoteCard = ({
     return text.substring(0, 200) + '...';
   }, [note.content]);
 
+  const getViewImageClickHandler = (n: NoteListItem) => () => onViewImage?.(n);
+  const getEditClickHandler = (n: NoteListItem) => () => onEdit?.(n);
+  const getDeleteClickHandler = (n: NoteListItem) => () => onDelete?.(n);
+  const getFolderClickHandler = (folderId: number) => () => onFolderClick?.(folderId);
+  const getFolderKeyDownHandler = (folderId: number) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') onFolderClick?.(folderId);
+  };
+
   return (
     <div
       className="card mb-2"
@@ -154,7 +162,7 @@ export const NoteCard = ({
                     border: `1px solid ${noteSoftBorder}`,
                     cursor: onViewImage ? 'pointer' : 'default',
                   }}
-                  onClick={() => onViewImage?.(note)}
+                  onClick={getViewImageClickHandler(note)}
                   disabled={!onViewImage}
                 >
                   <Icon name="file-check" className="me-1" size={12} />
@@ -173,7 +181,7 @@ export const NoteCard = ({
                     variant="outline"
                     size="sm"
                     className="btn-outline-info"
-                    onClick={() => onViewImage(note)}
+                    onClick={getViewImageClickHandler(note)}
                   >
                     <Icon name="eye" size={14} />
                   </Button>
@@ -189,7 +197,7 @@ export const NoteCard = ({
                     variant="outline"
                     size="sm"
                     className="btn-outline-secondary"
-                    onClick={() => onEdit(note)}
+                    onClick={getEditClickHandler(note)}
                   >
                     <Icon name="edit" size={14} />
                   </Button>
@@ -205,7 +213,7 @@ export const NoteCard = ({
                     variant="outline"
                     size="sm"
                     className="btn-outline-danger"
-                    onClick={() => onDelete(note)}
+                    onClick={getDeleteClickHandler(note)}
                   >
                     <Icon name="trash" size={14} />
                   </Button>
@@ -236,8 +244,8 @@ export const NoteCard = ({
               role={onFolderClick ? 'button' : undefined}
               tabIndex={onFolderClick ? 0 : undefined}
               style={onFolderClick ? { cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' } : undefined}
-              onClick={onFolderClick ? () => onFolderClick(note.folder_id!) : undefined}
-              onKeyDown={onFolderClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onFolderClick(note.folder_id!); } : undefined}
+              onClick={onFolderClick && note.folder_id != null ? getFolderClickHandler(note.folder_id) : undefined}
+              onKeyDown={onFolderClick && note.folder_id != null ? getFolderKeyDownHandler(note.folder_id) : undefined}
             >
               <Icon name="folder" size={12} className="me-1" />
               {note.folder_name}

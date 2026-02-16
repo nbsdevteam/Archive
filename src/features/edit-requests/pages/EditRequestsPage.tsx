@@ -12,6 +12,15 @@ const EditRequestsPage = () => {
   const { routes, requests, loading, error, processingId, loadRequests, handleApprove, handleReject } =
     useEditRequestsPageContainer();
 
+  const handleApproveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.requestId;
+    if (id != null) handleApprove(Number(id));
+  };
+  const handleRejectClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.requestId;
+    if (id != null) handleReject(Number(id));
+  };
+
   return (
     <PageLayout
       title="Edit Requests"
@@ -81,14 +90,16 @@ const EditRequestsPage = () => {
                                 <>
                                   <button
                                     className="btn btn-sm btn-success me-1"
-                                    onClick={() => handleApprove(req.id)}
+                                    data-request-id={req.id}
+                                    onClick={handleApproveClick}
                                     disabled={processingId === req.id}
                                   >
                                     {processingId === req.id ? "Processing..." : "Approve"}
                                   </button>
                                   <button
                                     className="btn btn-sm btn-danger"
-                                    onClick={() => handleReject(req.id)}
+                                    data-request-id={req.id}
+                                    onClick={handleRejectClick}
                                     disabled={processingId === req.id}
                                   >
                                     {processingId === req.id ? "Processing..." : "Reject"}

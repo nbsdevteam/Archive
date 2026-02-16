@@ -21,6 +21,8 @@ const PermissionsPage = () => {
     displayDepartments,
   } = usePermissionsPageContainer();
 
+  const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value);
+
   if (!isAdmin) {
     return (
       <div className="page-wrapper">
@@ -55,7 +57,7 @@ const PermissionsPage = () => {
                 className="form-control control-height-md"
                 placeholder="Search users..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchTermChange}
                 aria-label="Search users"
               />
               <Button variant="secondary" size="md" type="button" aria-label="Search">

@@ -1,9 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
 import type { IconName } from "../Icon";
 import { Spinner } from "../Spinner";
+
+/** Prevents click from bubbling to parent (e.g. row click). */
+function stopPropagation(e: React.SyntheticEvent) {
+  e.stopPropagation();
+}
 
 /**
  * Resolves icon for a row action: use configured icon or infer from action id so menu items always show an icon.
@@ -53,6 +58,42 @@ export function DataTable<T>({
   const hasActions = Boolean(rowActions && rowActions.length > 0);
   const colSpan =
     columns.length + (hasSelection ? 1 : 0) + (hasActions ? 1 : 0);
+
+  /** Handles row click by reading data-row-id and invoking onRowClick with the row. */
+  const handleTableRowClick = useCallback(
+    (e: React.MouseEvent<HTMLTableRowElement>) => {
+      const id = e.currentTarget.getAttribute("data-row-id");
+      if (id == null || !onRowClick) return;
+      const row = data.find((r) => String(getRowId(r)) === id);
+      if (row) onRowClick(row);
+    },
+    [data, getRowId, onRowClick]
+  );
+
+  /** Toggles selection for the row whose data-row-id is on the event target. */
+  const handleSelectionToggle = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const id = e.currentTarget.dataset.rowId;
+      if (id != null && selection) selection.onToggle(id);
+    },
+    [selection]
+  );
+
+  /** Handles row action menu item click: runs action and closes menu. */
+  const handleRowActionClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      const actionId = e.currentTarget.dataset.actionId;
+      const rowId = e.currentTarget.dataset.rowId;
+      const row = data.find((r) => String(getRowId(r)) === rowId);
+      const action = rowActions?.find((a) => a.id === actionId);
+      if (row && action) {
+        action.onClick(row, e);
+        setOpenActionsRowId(null);
+      }
+    },
+    [data, getRowId, rowActions]
+  );
 
   return (
     <div className="table-responsive datatable-responsive-wrap">
@@ -105,26 +146,27 @@ export function DataTable<T>({
           ) : (
             data.map((row) => {
               const rowId = getRowId(row);
+              const rowIdStr = String(rowId);
               const isSelected = hasSelection && selection!.selectedIds.includes(rowId);
-              const rowClickHandler = onRowClick
-                ? () => onRowClick(row)
-                : undefined;
+              const rowClickHandler = onRowClick ? handleTableRowClick : undefined;
 
               return (
                 <tr
-                  key={String(rowId)}
+                  key={rowIdStr}
                   style={rowClickHandler ? { cursor: "pointer" } : undefined}
                   onClick={rowClickHandler}
+                  data-row-id={rowIdStr}
                 >
                   {hasSelection && (
-                    <td onClick={(e) => e.stopPropagation()}>
+                    <td onClick={stopPropagation}>
                       <div className="form-check mb-0">
                         <input
                           type="checkbox"
                           className="form-check-input"
                           checked={isSelected}
-                          onChange={() => selection!.onToggle(rowId)}
-                          onClick={(e) => e.stopPropagation()}
+                          data-row-id={rowIdStr}
+                          onChange={handleSelectionToggle}
+                          onClick={stopPropagation}
                           aria-label={
                             selection!.getRowAriaLabel
                               ? selection!.getRowAriaLabel(row)
@@ -142,13 +184,13 @@ export function DataTable<T>({
                   {hasActions && (
                     <td
                       className="text-end align-middle"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={stopPropagation}
                     >
                       <Dropdown
                         align="end"
                         className="datatable-row-actions-dropdown"
-                        show={openActionsRowId === String(rowId)}
-                        onToggle={(isOpen) => setOpenActionsRowId(isOpen ? String(rowId) : null)}
+                        show={openActionsRowId === rowIdStr}
+                        onToggle={(isOpen) => setOpenActionsRowId(isOpen ? rowIdStr : null)}
                       >
                         <Dropdown.Toggle
                           variant="link"
@@ -178,11 +220,9 @@ export function DataTable<T>({
                                   disabled={disabled}
                                   className={`d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
                                   data-testid={action.id ? `row-action-${action.id}` : undefined}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    action.onClick(row, e);
-                                    setOpenActionsRowId(null);
-                                  }}
+                                  data-action-id={action.id}
+                                  data-row-id={rowIdStr}
+                                  onClick={handleRowActionClick}
                                 >
                                   <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
                                   <span>{label}</span>

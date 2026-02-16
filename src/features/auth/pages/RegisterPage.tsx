@@ -29,6 +29,9 @@ const RegisterPage = () => {
     }));
   };
 
+  const handleTogglePasswordVisibility = () => togglePasswordVisibility("password");
+  const handleToggleConfirmPasswordVisibility = () => togglePasswordVisibility("confirmPassword");
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     navigation(routes.login);
@@ -119,7 +122,7 @@ const RegisterPage = () => {
                           />
                           <span
                             className={`ti toggle-passwords ${passwordVisibility.password ? "ti-eye" : "ti-eye-off"}`}
-                            onClick={() => togglePasswordVisibility("password")}
+                            onClick={handleTogglePasswordVisibility}
                             role="button"
                             tabIndex={0}
                             aria-label={t("auth.togglePasswordVisibility")}
@@ -137,7 +140,7 @@ const RegisterPage = () => {
                           />
                           <span
                             className={`ti toggle-passwords ${passwordVisibility.confirmPassword ? "ti-eye" : "ti-eye-off"}`}
-                            onClick={() => togglePasswordVisibility("confirmPassword")}
+                            onClick={handleToggleConfirmPasswordVisibility}
                             role="button"
                             tabIndex={0}
                             aria-label={t("auth.togglePasswordVisibility")}

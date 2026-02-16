@@ -6,6 +6,21 @@ export interface SelectOption<T = number | string> {
   label: string;
 }
 
+/** Returns a change handler for single Select that syncs with react-hook-form field. */
+function getSingleSelectChangeHandler(
+  field: { onChange: (v: number | string) => void },
+  isStringValue: boolean
+) {
+  return function handleSingleSelectChange(newValue: SingleValue<SelectOption>) {
+    const v = newValue?.value;
+    if (isStringValue) {
+      field.onChange(v ?? "");
+    } else {
+      field.onChange(v != null ? (typeof v === "string" ? 0 : v) : 0);
+    }
+  };
+}
+
 interface SelectFieldProps<T extends FieldValues, Name extends FieldPath<T>> {
   control: Control<T>;
   name: Name;
@@ -69,14 +84,7 @@ export function SelectField<T extends FieldValues, Name extends FieldPath<T>>({
               options={options}
               value={selectedOption}
               isDisabled={isDisabled}
-              onChange={(newValue: SingleValue<SelectOption>) => {
-                const v = newValue?.value;
-                if (isStringValue) {
-                  field.onChange(v ?? "");
-                } else {
-                  field.onChange(v != null ? (typeof v === "string" ? 0 : v) : 0);
-                }
-              }}
+              onChange={getSingleSelectChangeHandler(field, isStringValue)}
               onBlur={field.onBlur}
               ref={field.ref}
               classNamePrefix="react-select"

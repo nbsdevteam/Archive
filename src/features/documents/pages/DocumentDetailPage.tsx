@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
@@ -14,6 +14,21 @@ import "@/features/documents/styles/documents.css";
 
 const DocumentDetailPage = () => {
   const { t, routes, data, loading, error, tabState, selection, actions, modals } = useDocumentDetailPageContainer();
+
+  /** Switches active tab when a tab button is clicked; reads tab id from data-tab-id. */
+  const handleTabClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const id = e.currentTarget.dataset.tabId;
+      if (id != null) tabState.setActiveTab(id);
+    },
+    [tabState.setActiveTab]
+  );
+
+  /** Closes attachment panel and refreshes attachments list after a successful add. */
+  const handleAttachmentAddSuccess = useCallback(() => {
+    actions.handleCloseAttachmentPanel();
+    actions.refreshAttachments();
+  }, [actions.handleCloseAttachmentPanel, actions.refreshAttachments]);
   const { registerHandler } = useShortcuts();
   const { attachmentTrashDialog, batchAttachmentTrashDialog, noteDeleteDialog } = useDocumentDetailDialogs({
     confirmAttachmentTrash: actions.confirmAttachmentTrash,
@@ -115,7 +130,8 @@ const DocumentDetailPage = () => {
                 aria-controls={`panel-${tab.id}`}
                 id={`tab-${tab.id}`}
                 className={`nav-link ${tabState.activeTab === tab.id ? "active" : ""}`}
-                onClick={() => tabState.setActiveTab(tab.id)}
+                data-tab-id={tab.id}
+                onClick={handleTabClick}
               >
                 {tab.label}
               </button>
@@ -157,10 +173,7 @@ const DocumentDetailPage = () => {
           onSaveEdit={actions.handleConfirmEditAttachment}
           isSavingEdit={loading.isUpdatingAttachment}
           documentId={data.doc.id}
-          onAddSuccess={() => {
-            actions.handleCloseAttachmentPanel();
-            actions.refreshAttachments();
-          }}
+          onAddSuccess={handleAttachmentAddSuccess}
           t={t}
         />
       )}

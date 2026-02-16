@@ -23,6 +23,12 @@ export function ShortcutsOverlay() {
 
   if (!overlayOpen) return null;
 
+  /** Closes the shortcuts overlay when backdrop or close button is activated. */
+  const handleCloseOverlay = () => setOverlayOpen(false);
+
+  /** Prevents clicks inside the dialog from closing the overlay. */
+  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+
   const overlayContent = (
     <div
       className="modal fade show"
@@ -32,12 +38,12 @@ export function ShortcutsOverlay() {
       aria-labelledby={OVERLAY_TITLE_ID}
       aria-describedby="shortcuts-overlay-description"
     >
-      <div className="modal-backdrop fade show" onClick={() => setOverlayOpen(false)} aria-hidden />
+      <div className="modal-backdrop fade show" onClick={handleCloseOverlay} aria-hidden />
       <FocusLock returnFocus>
         <div
           className="modal-dialog modal-dialog-centered"
           style={{ position: "relative", zIndex: 1051 }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={stopPropagation}
         >
           <div className="modal-content">
             <div className="modal-header">
@@ -49,7 +55,7 @@ export function ShortcutsOverlay() {
                 type="button"
                 className="btn-close"
                 aria-label={t("app.closeShortcuts")}
-                onClick={() => setOverlayOpen(false)}
+                onClick={handleCloseOverlay}
               />
             </div>
             <div className="modal-body">

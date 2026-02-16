@@ -7,6 +7,11 @@ import { useSidebarUiStore } from "../stores/sidebarUiStore";
 import { ShortcutsProvider } from "../shortcuts/ShortcutsContext";
 import { ShortcutsOverlay } from "../components/ShortcutsOverlay";
 
+/** Prevents event from bubbling so sidebar overlay does not close sidebar on click. */
+function stopSidebarOverlayPropagation(e: React.SyntheticEvent) {
+  e.stopPropagation();
+}
+
 export const AppShell = () => {
   const location = useLocation();
   const {
@@ -40,8 +45,8 @@ export const AppShell = () => {
           <div
             className="sidebar-overlay opened"
             aria-hidden="true"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
+            onClick={stopSidebarOverlayPropagation}
+            onPointerDown={stopSidebarOverlayPropagation}
             style={{ pointerEvents: "auto", cursor: "default" }}
           />
         )}

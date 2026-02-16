@@ -9,6 +9,11 @@ import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";
 export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
   const { t, tabState, data, loading, error, actions, noteDeleteDialog } = props;
 
+  const handleOpenRequestSignModal = () => actions.setModalRequestSign(true);
+  const handleOpenUploadSignedModal = () => actions.setModalUploadSigned(true);
+  const handleOpenAddRelationModal = () => actions.setModalAddRelation(true);
+  const handleClearParentClick = () => actions.handleSetParent(null);
+
   if (!["notes", "ocr", "signatures", "relations", "audit"].includes(tabState.activeTab)) return null;
 
   return (
@@ -69,12 +74,12 @@ export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
         <div>
           <div className="d-flex flex-wrap gap-2 mb-3">
             {data.canRequestSignature && (
-              <Button variant="secondary" size="sm" onClick={() => actions.setModalRequestSign(true)}>
+              <Button variant="secondary" size="sm" onClick={handleOpenRequestSignModal}>
                 {t("documents.requestSignature", { defaultValue: "Request signature" })}
               </Button>
             )}
             {data.canRequestSignature && data.approvedRequests.length > 0 && (
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.setModalUploadSigned(true)}>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenUploadSignedModal}>
                 <Icon name="file-up" className="me-1" />
                 {t("documents.uploadSignedVersion", { defaultValue: "Upload signed version" })}
               </Button>
@@ -114,7 +119,7 @@ export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.relations", { defaultValue: "Relations" })}</span>
-            <Button variant="secondary" size="sm" onClick={() => actions.setModalAddRelation(true)}>
+            <Button variant="secondary" size="sm" onClick={handleOpenAddRelationModal}>
               {t("documents.addRelation", { defaultValue: "Add relation" })}
             </Button>
           </div>
@@ -129,7 +134,7 @@ export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
                     <Link to={`/documents/${data.relations.parent.id}`}>
                       {data.relations.parent.title} ({data.relations.parent.barcode ?? data.relations.parent.id})
                     </Link>
-                    <Button variant="outline" size="sm" className="ms-2 btn-outline-danger" onClick={() => actions.handleSetParent(null)}>
+                    <Button variant="outline" size="sm" className="ms-2 btn-outline-danger" onClick={handleClearParentClick}>
                       {t("documents.clearParent", { defaultValue: "Clear" })}
                     </Button>
                   </p>

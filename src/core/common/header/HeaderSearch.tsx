@@ -128,6 +128,48 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     [navigate, getEffectiveType, routes.documentDetail, routes.folderDetail, t]
   );
 
+  /** Updates search input and opens dropdown when query length >= 2. */
+  const handleSearchInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+      if (value.trim().length >= 2) setSearchDropdownOpen(true);
+    },
+    []
+  );
+
+  /** Opens dropdown on focus if current term is long enough to show results. */
+  const handleSearchInputFocus = useCallback(() => {
+    if (searchTerm.trim().length >= 2) setSearchDropdownOpen(true);
+  }, [searchTerm]);
+
+  /** Navigates to the result row clicked; reads result index from data-result-index. */
+  const handleSearchResultRowClick = useCallback(
+    (e: React.MouseEvent<HTMLTableRowElement>) => {
+      const index = e.currentTarget.dataset.resultIndex;
+      if (index != null) {
+        const item = searchResults[Number(index)];
+        if (item) handleSearchResultClick(item);
+      }
+    },
+    [searchResults, handleSearchResultClick]
+  );
+
+  /** Handles Enter/Space on result row for accessibility. */
+  const handleSearchResultRowKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const index = e.currentTarget.dataset.resultIndex;
+        if (index != null) {
+          const item = searchResults[Number(index)];
+          if (item) handleSearchResultClick(item);
+        }
+      }
+    },
+    [searchResults, handleSearchResultClick]
+  );
+
   return (
     <div ref={headerSearchRef} className="position-relative" style={{ minWidth: "280px", width: "50%", flex: "0 1 50%", maxWidth: "50%" }}>
       <div className="input-group input-group-flat d-inline-flex w-100">
@@ -139,13 +181,8 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           className="form-control"
           placeholder="Search documents, folders, or notes..."
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            if (e.target.value.trim().length >= 2) setSearchDropdownOpen(true);
-          }}
-          onFocus={() => {
-            if (searchTerm.trim().length >= 2) setSearchDropdownOpen(true);
-          }}
+          onChange={handleSearchInputChange}
+          onFocus={handleSearchInputFocus}
         />
         <span className="input-group-text">
           <kbd>CTRL + / </kbd>
@@ -176,11 +213,19 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map((item) => {
+                  {searchResults.map((item, index) => {
                     const type = getEffectiveType(item);
                     const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
                     return (
-                      <tr key={`${type}-${item.id}`} style={{ cursor: "pointer" }} onClick={() => handleSearchResultClick(item)}>
+                      <tr
+                        key={`${type}-${item.id}`}
+                        style={{ cursor: "pointer" }}
+                        role="button"
+                        tabIndex={0}
+                        data-result-index={index}
+                        onClick={handleSearchResultRowClick}
+                        onKeyDown={handleSearchResultRowKeyDown}
+                      >
                         <td className="py-1 px-2 fs-12">
                           <div className="d-flex align-items-center gap-1">
                             {type === "document" ? (

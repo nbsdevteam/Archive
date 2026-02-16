@@ -58,6 +58,21 @@ export function UploadDocumentFileSection({
     }
   };
 
+  /** Toggles main-document "upload multiple" checkbox and notifies parent. */
+  const handleUploadMultipleMainCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUploadMultipleMainChange?.(e.target.checked);
+  };
+
+  /** Toggles sub-document "upload multiple" checkbox and notifies parent. */
+  const handleUploadMultipleSubCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUploadMultipleSubChange?.(e.target.checked);
+  };
+
+  /** Programmatically triggers the hidden file input click. */
+  const handleSelectFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="mb-3">
       {uploadKind === "main" && onUploadMultipleMainChange != null && (
@@ -67,7 +82,7 @@ export function UploadDocumentFileSection({
               type="checkbox"
               className="form-check-input"
               checked={uploadMultipleMain}
-              onChange={(e) => onUploadMultipleMainChange(e.target.checked)}
+              onChange={handleUploadMultipleMainCheckboxChange}
               data-testid="upload-multiple-main-checkbox"
             />
             <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
@@ -88,7 +103,7 @@ export function UploadDocumentFileSection({
               type="checkbox"
               className="form-check-input"
               checked={uploadMultipleSub}
-              onChange={(e) => onUploadMultipleSubChange(e.target.checked)}
+              onChange={handleUploadMultipleSubCheckboxChange}
               data-testid="upload-multiple-sub-checkbox"
             />
             <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
@@ -121,7 +136,7 @@ export function UploadDocumentFileSection({
           type="button"
           variant="secondary"
           className={`flex-grow-1 ${errorMessage ? "is-invalid" : ""}`}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={handleSelectFileClick}
         >
           <Icon name="paperclip" className="me-1" />
           {selectedFile instanceof File
@@ -137,7 +152,7 @@ export function UploadDocumentFileSection({
           </Button>
         )}
       </div>
-      {errorMessage && <p className="invalid-feedback d-block mb-0" role="alert">{errorMessage}</p>}
+      {errorMessage && <div className="invalid-feedback d-block">{errorMessage}</div>}
     </div>
   );
 }

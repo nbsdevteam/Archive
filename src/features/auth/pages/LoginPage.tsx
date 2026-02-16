@@ -24,6 +24,10 @@ export default function LoginPage() {
 
   const displayError = formError ?? apiError;
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value);
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
+  const handleTogglePasswordVisible = () => setPasswordVisible((v) => !v);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -148,7 +152,7 @@ export default function LoginPage() {
                             required
                             autoComplete="username"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={handleUsernameChange}
                             disabled={loading}
                           />
                           <span className="input-group-text border-start-0">
@@ -168,12 +172,12 @@ export default function LoginPage() {
                             required
                             autoComplete="current-password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={handlePasswordChange}
                             disabled={loading}
                           />
                           <span
                             className="toggle-passwords"
-                            onClick={() => setPasswordVisible((v) => !v)}
+                            onClick={handleTogglePasswordVisible}
                             role="button"
                             tabIndex={0}
                             aria-label={t("auth.togglePasswordVisibility")}

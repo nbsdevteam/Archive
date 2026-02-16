@@ -27,6 +27,12 @@ export const AuditLogsTable = ({
   showMetadata = false,
   onDocumentClick,
 }: AuditLogsTableProps) => {
+  /** Navigates to document when document link is clicked; reads document id from data-document-id. */
+  const handleDocumentLinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.documentId;
+    if (id != null && onDocumentClick) onDocumentClick(Number(id));
+  };
+
   if (loading) {
     return <div className="text-muted small">{t("common.loading", { defaultValue: "Loading..." })}</div>;
   }
@@ -63,7 +69,8 @@ export const AuditLogsTable = ({
                       <button
                         type="button"
                         className="btn btn-link p-0 text-decoration-none"
-                        onClick={() => onDocumentClick(log.document_id as number)}
+                        data-document-id={String(log.document_id)}
+                        onClick={handleDocumentLinkClick}
                       >
                         {log.document_title || `#${log.document_id}`}
                       </button>

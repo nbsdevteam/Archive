@@ -59,6 +59,10 @@ export function AttachmentSidePanel({
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
+  const handleEditAttachmentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditAttachmentName(e.target.value);
+  const handleEditAttachmentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setEditAttachmentDescription(e.target.value);
+  const handleReplaceFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setReplaceFile(e.target.files?.[0] ?? null);
+
   if (isEditMode) {
     return (
       <SidePanel
@@ -90,7 +94,7 @@ export function AttachmentSidePanel({
             type="text"
             className="form-control"
             value={editAttachmentName}
-            onChange={(e) => setEditAttachmentName(e.target.value)}
+            onChange={handleEditAttachmentNameChange}
             maxLength={255}
             data-testid="attachment-edit-name"
           />
@@ -101,7 +105,7 @@ export function AttachmentSidePanel({
             className="form-control"
             rows={3}
             value={editAttachmentDescription}
-            onChange={(e) => setEditAttachmentDescription(e.target.value)}
+            onChange={handleEditAttachmentDescriptionChange}
             data-testid="attachment-edit-description"
           />
         </div>
@@ -111,7 +115,7 @@ export function AttachmentSidePanel({
             ref={fileInputRef}
             type="file"
             className="form-control"
-            onChange={(e) => setReplaceFile(e.target.files?.[0] ?? null)}
+            onChange={handleReplaceFileInputChange}
             aria-label={t("documents.replaceFileOptional", { defaultValue: "Replace file (optional)" })}
             data-testid="attachment-replace-file"
           />

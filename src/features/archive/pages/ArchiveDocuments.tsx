@@ -35,6 +35,9 @@ const ArchiveDocuments = () => {
   const currentPage = pagination?.page ?? 1;
   const total = pagination?.total ?? 0;
 
+  const handlePrevPage = () => paging.handlePageChange(currentPage - 1);
+  const handleNextPage = () => paging.handlePageChange(currentPage + 1);
+
   const columns = useMemo(
     () =>
       getDocumentTableColumns({
@@ -257,7 +260,7 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage <= 1}
-                    onClick={() => paging.handlePageChange(currentPage - 1)}
+                    onClick={handlePrevPage}
                   >
                     {t("common.previous", { defaultValue: "Previous" })}
                   </Button>
@@ -265,7 +268,7 @@ const ArchiveDocuments = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage >= totalPages}
-                    onClick={() => paging.handlePageChange(currentPage + 1)}
+                    onClick={handleNextPage}
                   >
                     {t("common.next", { defaultValue: "Next" })}
                   </Button>

@@ -78,6 +78,13 @@ const NotesPage = () => {
     [navigate, routes.folderDetail]
   );
 
+  const handlePrevPage = () => pagination && goToPage(pagination.page - 1);
+  const handleNextPage = () => pagination && goToPage(pagination.page + 1);
+  const handlePageNumberClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const page = e.currentTarget.dataset.page;
+    if (page != null) goToPage(Number(page));
+  };
+
   const pageTitle = t("notes.title", { defaultValue: "Notes" });
 
   return (
@@ -142,7 +149,7 @@ const NotesPage = () => {
                     <li className={`page-item ${pagination.page <= 1 ? "disabled" : ""}`}>
                       <button
                         className="page-link"
-                        onClick={() => goToPage(pagination.page - 1)}
+                        onClick={handlePrevPage}
                         disabled={pagination.page <= 1}
                       >
                         {t("common.previous", { defaultValue: "Previous" })}
@@ -153,7 +160,7 @@ const NotesPage = () => {
                         key={page}
                         className={`page-item ${page === pagination.page ? "active" : ""}`}
                       >
-                        <button className="page-link" onClick={() => goToPage(page)}>
+                        <button className="page-link" data-page={page} onClick={handlePageNumberClick}>
                           {page}
                         </button>
                       </li>
@@ -165,7 +172,7 @@ const NotesPage = () => {
                     >
                       <button
                         className="page-link"
-                        onClick={() => goToPage(pagination.page + 1)}
+                        onClick={handleNextPage}
                         disabled={pagination.page >= pagination.total_pages}
                       >
                         {t("common.next", { defaultValue: "Next" })}

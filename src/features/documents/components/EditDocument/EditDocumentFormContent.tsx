@@ -67,6 +67,11 @@ export function EditDocumentFormContent({
   /** Show "Link to folder" when document is in a folder (sub-doc or main in folder); always disabled and populated with folder_name. */
   const showLinkToFolder = isSubDoc || isInFolder;
 
+  /** Updates replace-file selection from file input. */
+  const handleReplaceFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onReplaceFileChange(e.target.files?.[0] ?? null);
+  };
+
   return (
     <>
       <h6 className="fw-semibold mb-2">{t("documents.basicDocumentInfo", { defaultValue: "Basic document info" })}</h6>
@@ -181,7 +186,7 @@ export function EditDocumentFormContent({
             ref={replaceFileInputRef}
             type="file"
             className="form-control"
-            onChange={(e) => onReplaceFileChange(e.target.files?.[0] ?? null)}
+            onChange={handleReplaceFileInputChange}
           />
           {replaceFile && (
             <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={onClearReplaceFile}>

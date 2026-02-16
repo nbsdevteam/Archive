@@ -224,6 +224,15 @@ export function UploadDocumentSidePanel({
     [setValue]
   );
 
+  /** Prevents default form submit and triggers upload validation + submit. */
+  const handleUploadFormSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      void handleUploadClick();
+    },
+    [handleUploadClick]
+  );
+
   const tagOptions: SelectOption[] = useMemo(() => tags.map((tag) => ({ value: tag.id, label: tag.name })), [tags]);
 
   return (
@@ -243,7 +252,7 @@ export function UploadDocumentSidePanel({
       loading={isUploading}
       width="50vw"
     >
-      <form onSubmit={(e) => { e.preventDefault(); handleUploadClick(); }} className="d-flex flex-column gap-0">
+      <form onSubmit={handleUploadFormSubmit} className="d-flex flex-column gap-0">
         <UploadDocumentFormContent
           submitError={submitError}
           control={control}

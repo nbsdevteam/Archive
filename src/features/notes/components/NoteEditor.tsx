@@ -225,6 +225,13 @@ export const NoteEditor = ({
     ]
   );
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value);
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value);
+  const handleVisibilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => setIsPrivate(e.target.value === 'private');
+  const handleColorChange = (e: React.ChangeEvent<HTMLSelectElement>) => setColor(parseInt(e.target.value, 10) as NoteColorCode);
+  const handlePinnedChange = (e: React.ChangeEvent<HTMLInputElement>) => setIsPinned(e.target.checked);
+  const handleSelectImageClick = () => fileInputRef.current?.click();
+
   return (
     <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
       {/* ── Folder linking (standalone mode only) ── */}
@@ -256,7 +263,7 @@ export const NoteEditor = ({
       <Input
         label={t('notes.title', { defaultValue: 'Title (optional)' })}
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={handleTitleChange}
         placeholder={t('notes.titlePlaceholder', { defaultValue: 'Enter note title...' })}
         disabled={isSaving}
       />
@@ -270,7 +277,7 @@ export const NoteEditor = ({
           className="form-control"
           rows={6}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           placeholder={t('notes.contentPlaceholder', {
             defaultValue: 'Enter note content...',
           })}
@@ -287,7 +294,7 @@ export const NoteEditor = ({
           <select
             className="form-select"
             value={isPrivate ? 'private' : 'public'}
-            onChange={(e) => setIsPrivate(e.target.value === 'private')}
+            onChange={handleVisibilityChange}
             disabled={isSaving}
           >
             <option value="private">
@@ -305,7 +312,7 @@ export const NoteEditor = ({
           <select
             className="form-select"
             value={color}
-            onChange={(e) => setColor(parseInt(e.target.value, 10) as NoteColorCode)}
+            onChange={handleColorChange}
             disabled={isSaving}
           >
             {colorOptions.map((opt) => (
@@ -323,7 +330,7 @@ export const NoteEditor = ({
           className="form-check-input"
           id="note-pinned"
           checked={isPinned}
-          onChange={(e) => setIsPinned(e.target.checked)}
+          onChange={handlePinnedChange}
           disabled={isSaving}
         />
         <label className="form-check-label" htmlFor="note-pinned">
@@ -349,7 +356,7 @@ export const NoteEditor = ({
             type="button"
             variant="outline"
             className="btn-outline-secondary flex-grow-1"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleSelectImageClick}
             disabled={isSaving}
           >
             <Icon name="file-check" className="me-1" />

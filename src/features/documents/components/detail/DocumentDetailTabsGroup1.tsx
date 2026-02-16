@@ -11,6 +11,15 @@ type AttachmentRow = { id: number; name: string; file_name: string; description?
 export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
   const { t, tabState, data, loading, selection, actions, attachmentTrashDialog, batchAttachmentTrashDialog } = props;
 
+  /** Downloads version using data-version-id and data-file-name on the button. */
+  const handleDownloadVersionClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.versionId;
+    const fileName = e.currentTarget.dataset.fileName ?? "";
+    if (id != null) actions.handleDownloadVersion(Number(id), fileName);
+  };
+
+  const handleOpenUploadVersionModal = () => actions.setModalUploadVersion(true);
+
   const attachmentColumns: ColumnDef<AttachmentRow>[] = useMemo(
     () => [
       { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name },
@@ -63,7 +72,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
               <p className="text-muted mb-2">{t("documents.downloadByVersion", { defaultValue: "By version" })}</p>
               <div className="d-flex flex-wrap gap-2">
                 {data.versions.map((v) => (
-                  <Button key={v.id} variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.handleDownloadVersion(v.id, v.file_name)}>
+                  <Button key={v.id} variant="outline" size="sm" className="btn-outline-secondary" data-version-id={String(v.id)} data-file-name={v.file_name} onClick={handleDownloadVersionClick}>
                     v{v.version_number} – {v.file_name}
                   </Button>
                 ))}
@@ -77,7 +86,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
         <>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <span>{t("documents.versionHistory", { defaultValue: "Version history" })}</span>
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.setModalUploadVersion(true)} aria-label={t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}>
+            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleOpenUploadVersionModal} aria-label={t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}>
               <Icon name="file-up" className="me-1" />
               {t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}
             </Button>
@@ -101,7 +110,7 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
                     <td>{v.uploaded_by ?? "–"}</td>
                     <td>{actions.formatDate(v.upload_date)}</td>
                     <td>
-                      <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={() => actions.handleDownloadVersion(v.id, v.file_name)}>
+                      <Button variant="outline" size="sm" className="btn-outline-secondary" data-version-id={String(v.id)} data-file-name={v.file_name} onClick={handleDownloadVersionClick}>
                         {t("documents.download", { defaultValue: "Download" })}
                       </Button>
                     </td>

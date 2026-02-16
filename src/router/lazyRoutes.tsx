@@ -10,6 +10,10 @@ class LazyErrorBoundary extends React.Component<
     this.state = { hasError: false };
   }
 
+  handleDismissError = () => {
+    this.setState({ hasError: false });
+  };
+
   static getDerivedStateFromError() {
     return { hasError: true };
   }
@@ -24,7 +28,7 @@ class LazyErrorBoundary extends React.Component<
         this.props.fallback || (
           <div className="error-boundary-fallback">
             <h3>Something went wrong loading this component.</h3>
-            <button onClick={() => this.setState({ hasError: false })}>
+            <button onClick={this.handleDismissError}>
               Try again
             </button>
           </div>

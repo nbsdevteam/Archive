@@ -34,6 +34,21 @@ export function FoldersToolbar({
   actions,
   loading,
 }: FoldersToolbarProps) {
+  const handleSetViewModeGrid = () => setViewMode("grid");
+  const handleSetViewModeList = () => setViewMode("list");
+  const handleGridViewKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setViewMode("grid");
+    }
+  };
+  const handleListViewKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setViewMode("list");
+    }
+  };
+
   return (
     <TablePageToolbar
       title={<h5 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h5>}
@@ -86,8 +101,8 @@ export function FoldersToolbar({
           role="button"
           tabIndex={0}
           className={`folders__view-option ${viewMode === "grid" ? "folders__view-option--active-grid" : ""}`}
-          onClick={() => setViewMode("grid")}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setViewMode("grid"); } }}
+          onClick={handleSetViewModeGrid}
+          onKeyDown={handleGridViewKeyDown}
           aria-pressed={viewMode === "grid"}
           aria-label={t("folders.gridView", { defaultValue: "Grid view" })}
         >
@@ -97,8 +112,8 @@ export function FoldersToolbar({
           role="button"
           tabIndex={0}
           className={`folders__view-option ${viewMode === "list" ? "folders__view-option--active-list" : ""}`}
-          onClick={() => setViewMode("list")}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setViewMode("list"); } }}
+          onClick={handleSetViewModeList}
+          onKeyDown={handleListViewKeyDown}
           aria-pressed={viewMode === "list"}
           aria-label={t("folders.listView", { defaultValue: "List view" })}
         >

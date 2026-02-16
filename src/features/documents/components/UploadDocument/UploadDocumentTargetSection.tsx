@@ -99,6 +99,12 @@ export function UploadDocumentTargetSection({
     label: t(`documents.folderTypeOptions.${value}`, { defaultValue: value }),
   }));
 
+  /** Calls RHF blur and fills folder name from title when appropriate. */
+  const handleTitleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    titleRegistration.onBlur(e);
+    fillFolderNameFromTitle(e.target.value ?? "");
+  };
+
   return (
     <>
       <h6 className="fw-semibold mb-2">{t("documents.basicDocumentInfo", { defaultValue: "Basic document info" })}</h6>
@@ -179,10 +185,7 @@ export function UploadDocumentTargetSection({
         <Input
           label={t("documents.documentTitle", { defaultValue: "Document title" })}
           {...titleRegistration}
-          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-            titleRegistration.onBlur(e);
-            fillFolderNameFromTitle(e.target.value ?? "");
-          }}
+          onBlur={handleTitleBlur}
           error={errors.title?.message}
           required
           autoComplete="off"

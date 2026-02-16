@@ -28,6 +28,29 @@ export function FolderDetailMainDocSection({
   isArchiving,
   isUnarchiving,
 }: FolderDetailMainDocSectionProps) {
+  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+  const handleMainDocRowClick = () => mainDoc && onNavigate(mainDoc.id);
+  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onDownload();
+  };
+  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (mainDoc && onEdit) onEdit(mainDoc.id);
+  };
+  const handleUnarchiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (mainDoc) onUnarchive(mainDoc.id);
+  };
+  const handleArchiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (mainDoc) onArchive(mainDoc.id);
+  };
+  const handleViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (mainDoc) onNavigate(mainDoc.id);
+  };
+
   return (
     <div className="card mb-3">
       <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -56,78 +79,33 @@ export function FolderDetailMainDocSection({
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  style={{ cursor: "pointer" }}
-                  onClick={() => onNavigate(mainDoc.id)}
-                >
+                <tr style={{ cursor: "pointer" }} onClick={handleMainDocRowClick}>
                   <td>{mainDoc.barcode ?? "–"}</td>
                   <td>{mainDoc.title ?? mainDoc.name ?? "–"}</td>
                   <td>{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</td>
                   <td>{formatDate(mainDoc.upload_date)}</td>
                   <td>{mainDoc.status ?? "–"}</td>
                   <td className="text-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="btn-outline-secondary me-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDownload();
-                      }}
-                    >
+                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleDownloadClick}>
                       <Icon name="download" className="me-1" />
                       {t("documents.download", { defaultValue: "Download" })}
                     </Button>
                     {onEdit && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="btn-outline-secondary me-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(mainDoc.id);
-                        }}
-                      >
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleEditClick}>
                         <Icon name="pencil" className="me-1" />
                         {t("common.edit", { defaultValue: "Edit" })}
                       </Button>
                     )}
                     {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="btn-outline-secondary me-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUnarchive(mainDoc.id);
-                        }}
-                        disabled={isUnarchiving}
-                      >
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleUnarchiveClick} disabled={isUnarchiving}>
                         {t("documents.unarchive", { defaultValue: "Unarchive" })}
                       </Button>
                     ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="btn-outline-secondary me-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onArchive(mainDoc.id);
-                        }}
-                        disabled={isArchiving}
-                      >
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleArchiveClick} disabled={isArchiving}>
                         {t("documents.archive", { defaultValue: "Archive" })}
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="btn-outline-secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigate(mainDoc.id);
-                      }}
-                    >
+                    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleViewClick}>
                       {t("common.view", { defaultValue: "View" })}
                     </Button>
                   </td>

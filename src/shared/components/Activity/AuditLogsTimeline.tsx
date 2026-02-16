@@ -19,6 +19,16 @@ import { useActivityTimelineFilterStore } from "./useActivityTimelineFilterStore
 import { formatAuditTimestamp, groupLogsByDay, humanizeAction } from "./utils";
 import "./activity.css";
 
+/** Returns an onChange handler for the action filter checkbox. */
+function getActionVisibilityChangeHandler(
+  action: string,
+  toggleActionVisibility: (action: string, visible: boolean) => void
+) {
+  return function handleActionVisibilityChange(checked: boolean) {
+    toggleActionVisibility(action, checked);
+  };
+}
+
 export interface AuditLogsTimelineTranslator {
   (
     key: string,
@@ -311,7 +321,7 @@ const AuditLogsTimelineComponent = ({
                   count: actionCount,
                 })}
                 checked={isVisible}
-                onChange={(checked) => toggleActionVisibility(action, checked)}
+                onChange={getActionVisibilityChangeHandler(action, toggleActionVisibility)}
                 className="activity-timeline-filter-item"
               />
             );

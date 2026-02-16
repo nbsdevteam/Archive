@@ -26,6 +26,19 @@ const SearchPage = () => {
     handleNavigateToDocument,
   } = useSearchPageContainer();
 
+  const handleSetSearchTypeStandard = () => setSearchType("standard");
+  const handleSetSearchTypeGlobal = () => setSearchType("global");
+  const handleSetSearchTypeBarcode = () => setSearchType("barcode");
+  const handleResultRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const id = e.currentTarget.dataset.docId;
+    if (id != null) handleNavigateToDocument(Number(id));
+  };
+  const handleResultViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.docId;
+    if (id != null) handleNavigateToDocument(Number(id));
+  };
+
   return (
     <PageLayout
       title={t("search.title", { defaultValue: "Search" })}
@@ -39,7 +52,7 @@ const SearchPage = () => {
               <button
                 type="button"
                 className={`btn btn-sm ${searchType === "standard" ? "btn-secondary" : "btn-outline-secondary"}`}
-                onClick={() => setSearchType("standard")}
+                onClick={handleSetSearchTypeStandard}
                 aria-pressed={searchType === "standard"}
                 aria-label={t("search.standardSearch", { defaultValue: "Standard search" })}
               >
@@ -48,7 +61,7 @@ const SearchPage = () => {
               <button
                 type="button"
                 className={`btn btn-sm ${searchType === "global" ? "btn-secondary" : "btn-outline-secondary"}`}
-                onClick={() => setSearchType("global")}
+                onClick={handleSetSearchTypeGlobal}
                 aria-pressed={searchType === "global"}
                 aria-label={t("search.globalSearch", { defaultValue: "Global search" })}
               >
@@ -57,7 +70,7 @@ const SearchPage = () => {
               <button
                 type="button"
                 className={`btn btn-sm ${searchType === "barcode" ? "btn-secondary" : "btn-outline-secondary"}`}
-                onClick={() => setSearchType("barcode")}
+                onClick={handleSetSearchTypeBarcode}
                 aria-pressed={searchType === "barcode"}
                 aria-label={t("search.barcodeSearch", { defaultValue: "Barcode search" })}
               >
@@ -127,7 +140,7 @@ const SearchPage = () => {
                   </thead>
                   <tbody>
                     {results.map((doc: SearchResult) => (
-                      <tr key={doc.id} style={{ cursor: "pointer" }} onClick={() => handleNavigateToDocument(doc.id)}>
+                      <tr key={doc.id} style={{ cursor: "pointer" }} data-doc-id={doc.id} onClick={handleResultRowClick}>
                         <td>{doc.name || doc.title || "-"}</td>
                         <td>{doc.barcode || "-"}</td>
                         <td>{doc.document_type_name || doc.document_type?.name || "-"}</td>
@@ -142,10 +155,8 @@ const SearchPage = () => {
                         <td className="text-end">
                           <button
                             className="btn btn-sm btn-light"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleNavigateToDocument(doc.id);
-                            }}
+                            data-doc-id={doc.id}
+                            onClick={handleResultViewClick}
                           >
                             {t("common.view", { defaultValue: "View" })}
                           </button>

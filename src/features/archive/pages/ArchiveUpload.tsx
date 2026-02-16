@@ -23,6 +23,9 @@ const ArchiveUpload = () => {
     handleSubmit,
   } = useArchiveUploadPageContainer();
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value });
+  const handleRemoveFileAt = (idx: number) => () => handleRemoveFile(idx);
+
   return (
     <PageLayout
       title={t("documents.upload", { defaultValue: "Upload" })}
@@ -42,7 +45,7 @@ const ArchiveUpload = () => {
                   type="text"
                   className="form-control"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={handleTitleChange}
                   placeholder={t("documents.enterDocumentTitle", { defaultValue: "Enter document title" })}
                 />
               </div>
@@ -74,7 +77,7 @@ const ArchiveUpload = () => {
                           <small>
                             {file.name} ({(file.size / 1024).toFixed(2)} KB)
                           </small>
-                          <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={() => handleRemoveFile(idx)}>
+                          <Button type="button" variant="outline" size="sm" className="btn-outline-secondary" onClick={handleRemoveFileAt(idx)}>
                             <Icon name="trash" className="me-1" />
                             {t("common.remove", { defaultValue: "Remove" })}
                           </Button>

@@ -40,6 +40,10 @@ const ResetPasswordPage = () => {
     }));
   };
 
+  const handleTogglePasswordVisibility = () => togglePasswordVisibility("password");
+  const handleToggleConfirmPasswordVisibility = () => togglePasswordVisibility("confirmPassword");
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => onChangePassword(e.target.value);
+
   const onChangePassword = (nextPassword: string) => {
     setPassword(nextPassword);
     if (nextPassword.match(/^$|\\s+/)) {
@@ -141,7 +145,7 @@ const ResetPasswordPage = () => {
                               <input
                                 type={passwordVisibility.password ? "text" : "password"}
                                 value={password}
-                                onChange={(e) => onChangePassword(e.target.value)}
+                                onChange={handlePasswordInputChange}
                                 className="form-control pass-input"
                                 placeholder={t("auth.enterPassword")}
                                 required
@@ -149,7 +153,7 @@ const ResetPasswordPage = () => {
                               />
                               <span
                                 className={`ti toggle-passwords ${passwordVisibility.password ? "ti-eye" : "ti-eye-off"}`}
-                                onClick={() => togglePasswordVisibility("password")}
+                                onClick={handleTogglePasswordVisibility}
                                 style={{ cursor: "pointer" }}
                                 role="button"
                                 tabIndex={0}
@@ -189,7 +193,7 @@ const ResetPasswordPage = () => {
                             />
                             <span
                               className={`ti toggle-passwords ${passwordVisibility.confirmPassword ? "ti-eye" : "ti-eye-off"}`}
-                              onClick={() => togglePasswordVisibility("confirmPassword")}
+                              onClick={handleToggleConfirmPasswordVisibility}
                               role="button"
                               tabIndex={0}
                               aria-label={t("auth.togglePasswordVisibility")}

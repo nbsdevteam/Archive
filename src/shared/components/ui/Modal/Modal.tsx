@@ -53,6 +53,13 @@ export const Modal = ({
 
   const sizeClass = size !== "md" ? `modal-${size}` : "";
 
+  /** Closes modal when user clicks the overlay (dialog backdrop), not when clicking inside the dialog. */
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   const modalContent = (
     <div
       className={`modal fade show ${className}`}
@@ -61,11 +68,7 @@ export const Modal = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? titleId : undefined}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+      onClick={handleOverlayClick}
     >
       {/* Backdrop first so it sits behind the dialog; dialog has higher z-index so it receives clicks */}
       <div className="modal-backdrop fade show" onClick={onClose} aria-hidden />

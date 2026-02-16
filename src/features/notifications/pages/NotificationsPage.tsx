@@ -22,6 +22,14 @@ const NotificationsPage = () => {
     handleRetry,
   } = useNotificationsPageContainer();
 
+  const handleSetFilterAll = () => setFilter("all");
+  const handleSetFilterUnread = () => setFilter("unread");
+  const handleNotificationItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const id = e.currentTarget.dataset.notifId;
+    const isRead = e.currentTarget.dataset.notifRead === "true";
+    if (id != null && !isRead) handleMarkAsRead(Number(id));
+  };
+
   return (
     <PageLayout
       title="Notifications"
@@ -35,13 +43,13 @@ const NotificationsPage = () => {
             <div className="notifications__headerRight btn-list d-flex flex-wrap align-items-center">
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setFilter("all")}
+                onClick={handleSetFilterAll}
               >
                 All
               </button>
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'unread' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setFilter("unread")}
+                onClick={handleSetFilterUnread}
               >
                 Unread ({unreadCount})
               </button>
@@ -81,7 +89,9 @@ const NotificationsPage = () => {
                   <div
                     key={notif.id}
                     className={`list-group-item notifications__item ${!notif.is_read ? 'notifications__item--unread' : ''}`}
-                    onClick={() => !notif.is_read && handleMarkAsRead(notif.id)}
+                    data-notif-id={notif.id}
+                    data-notif-read={String(notif.is_read)}
+                    onClick={handleNotificationItemClick}
                     style={{ cursor: !notif.is_read ? 'pointer' : 'default' }}
                   >
                     <div className="notifications__itemTitleRow">

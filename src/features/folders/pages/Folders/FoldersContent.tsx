@@ -21,8 +21,52 @@ export interface FoldersContentProps {
   onDeleteClick: (folderId: number) => void;
 }
 
+function stopPropagation(e: React.SyntheticEvent) {
+  e.stopPropagation();
+}
+
 export function FoldersContent(props: FoldersContentProps) {
   const { t, routes, filteredFolders, viewMode, loading, error, formatDate, actions, onDeleteClick } = props;
+
+  const handleGridCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) actions.handleNavigateToFolder(Number(id));
+  };
+  const handleGridCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) actions.handleGridKeyDown(Number(id), e);
+  };
+  const handleEditFolderClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const id = e.currentTarget.dataset.folderId;
+    const folder = id != null ? filteredFolders.find((f) => f.id === Number(id)) : undefined;
+    if (folder) actions.handleOpenEditFolder(folder);
+  };
+  const handleDeleteFolderClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) onDeleteClick(Number(id));
+  };
+  const handleListRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) actions.handleNavigateToFolder(Number(id));
+  };
+  const handleListViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) actions.handleNavigateToFolder(Number(id));
+  };
+  const handleListEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.folderId;
+    const folder = id != null ? filteredFolders.find((f) => f.id === Number(id)) : undefined;
+    if (folder) actions.handleOpenEditFolder(folder);
+  };
+  const handleListDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.folderId;
+    if (id != null) onDeleteClick(Number(id));
+  };
 
   if (error) {
     return (
@@ -55,7 +99,7 @@ export function FoldersContent(props: FoldersContentProps) {
           ) : (
             filteredFolders.map((folder) => (
               <div className="col-xl-3 col-md-6" key={folder.id}>
-                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} onClick={() => actions.handleNavigateToFolder(folder.id)} onKeyDown={(e) => actions.handleGridKeyDown(folder.id, e)} aria-label={t("folders.openFolder", { defaultValue: "Open folder" }) + ` ${folder.name}`}>
+                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} data-folder-id={folder.id} onClick={handleGridCardClick} onKeyDown={handleGridCardKeyDown} aria-label={t("folders.openFolder", { defaultValue: "Open folder" }) + ` ${folder.name}`}>
                   <Card className="folders__grid-card" bordered={false}>
                     <div className="card-body folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">
@@ -84,14 +128,14 @@ export function FoldersContent(props: FoldersContentProps) {
                         {folder.document_count ?? folder.docs ?? 0} documents
                         {folder.department_name && ` • ${folder.department_name}`}
                       </p>
-                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto" onClick={(e) => e.stopPropagation()}>
+                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto" onClick={stopPropagation}>
                         <Link to={routes.folderDetail.replace(":id", String(folder.id))} className="link-primary fs-13">
                           {t("common.view", { defaultValue: "View" })}
                         </Link>
-                        <button type="button" className="btn btn-sm btn-link p-0 text-primary" onClick={(e) => { e.preventDefault(); actions.handleOpenEditFolder(folder); }}>
+                        <button type="button" className="btn btn-sm btn-link p-0 text-primary" data-folder-id={folder.id} onClick={handleEditFolderClick}>
                           {t("folders.edit", { defaultValue: "Edit" })}
                         </button>
-                        <button type="button" className="btn btn-sm btn-link p-0 text-danger" onClick={(e) => { e.preventDefault(); onDeleteClick(folder.id); }} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
+                        <button type="button" className="btn btn-sm btn-link p-0 text-danger" data-folder-id={folder.id} onClick={handleDeleteFolderClick} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
                           {t("folders.delete", { defaultValue: "Delete" })}
                         </button>
                       </div>
@@ -127,7 +171,7 @@ export function FoldersContent(props: FoldersContentProps) {
             </thead>
             <tbody>
               {filteredFolders.map((folder) => (
-                <tr key={folder.id} style={{ cursor: "pointer" }} onClick={() => actions.handleNavigateToFolder(folder.id)}>
+                <tr key={folder.id} style={{ cursor: "pointer" }} data-folder-id={folder.id} onClick={handleListRowClick}>
                   <td>{folder.name || "-"}</td>
                   <td>{folder.code || "-"}</td>
                   <td>{folder.folder_type || "-"}</td>
@@ -140,13 +184,13 @@ export function FoldersContent(props: FoldersContentProps) {
                   </td>
                   <td>{formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}</td>
                   <td className="text-end">
-                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); actions.handleNavigateToFolder(folder.id); }}>
+                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-folder-id={folder.id} onClick={handleListViewClick}>
                       {t("common.view", { defaultValue: "View" })}
                     </Button>
-                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={(e) => { e.stopPropagation(); actions.handleOpenEditFolder(folder); }}>
+                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-folder-id={folder.id} onClick={handleListEditClick}>
                       {t("folders.edit", { defaultValue: "Edit" })}
                     </Button>
-                    <Button variant="outline" size="sm" className="btn-outline-danger" onClick={(e) => { e.stopPropagation(); onDeleteClick(folder.id); }} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
+                    <Button variant="outline" size="sm" className="btn-outline-danger" data-folder-id={folder.id} onClick={handleListDeleteClick} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
                       <Icon name="trash" className="me-1" />
                       {t("folders.delete", { defaultValue: "Delete" })}
                     </Button>

@@ -13,6 +13,16 @@ interface MultiSelectFieldProps<T extends FieldValues, Name extends FieldPath<T>
   className?: string;
 }
 
+/** Returns a change handler for multi Select that syncs selected ids with react-hook-form field. */
+function getMultiSelectChangeHandler(field: { onChange: (ids: number[]) => void }) {
+  return function handleMultiSelectChange(newValue: MultiValue<SelectOption>) {
+    const ids = newValue
+      .map((o) => o.value)
+      .filter((v): v is number => typeof v === "number");
+    field.onChange(ids);
+  };
+}
+
 /**
  * Multi select wired to react-hook-form via Controller.
  * Form value is number[] (e.g. tag ids); options are { value, label } with value as number.
@@ -45,12 +55,7 @@ export function MultiSelectField<T extends FieldValues, Name extends FieldPath<T
               options={options}
               value={selectedOptions}
               isDisabled={isDisabled}
-              onChange={(newValue: MultiValue<SelectOption>) => {
-                const ids = newValue
-                  .map((o) => o.value)
-                  .filter((v): v is number => typeof v === "number");
-                field.onChange(ids);
-              }}
+              onChange={getMultiSelectChangeHandler(field)}
               onBlur={field.onBlur}
               ref={field.ref}
               classNamePrefix="react-select"

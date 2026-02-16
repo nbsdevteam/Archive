@@ -65,6 +65,8 @@ export function TransferToFolderModal({
     void Promise.resolve(onConfirm(id));
   };
 
+  const handleSelectedFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSelectedFolderId(e.target.value);
+
   const canConfirm = Number.isFinite(Number(selectedFolderId)) && !isSubmitting;
 
   return (
@@ -84,7 +86,7 @@ export function TransferToFolderModal({
           <select
             className="form-select"
             value={selectedFolderId}
-            onChange={(e) => setSelectedFolderId(e.target.value)}
+            onChange={handleSelectedFolderChange}
             aria-label={t("folders.selectDestinationFolder", { defaultValue: "Destination folder" })}
             data-testid="transfer-folder-select"
           >

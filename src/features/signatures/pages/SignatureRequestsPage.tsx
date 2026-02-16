@@ -11,6 +11,17 @@ const SignatureRequestsPage = () => {
   const { routes, requests, isLoading, error, tab, setTab, processingId, handleApprove, handleReject, handleRetry } =
     useSignatureRequestsPageContainer();
 
+  const handleSetTabPending = () => setTab("pending");
+  const handleSetTabAll = () => setTab("all");
+  const handleApproveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.sigId;
+    if (id != null) handleApprove(Number(id));
+  };
+  const handleRejectClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id = e.currentTarget.dataset.sigId;
+    if (id != null) handleReject(Number(id));
+  };
+
   return (
     <PageLayout
       title="Signature Requests"
@@ -35,13 +46,13 @@ const SignatureRequestsPage = () => {
             <div className="d-flex gap-2">
               <button
                 className={`btn btn-sm ${tab === 'pending' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setTab("pending")}
+                onClick={handleSetTabPending}
               >
                 Pending
               </button>
               <button
                 className={`btn btn-sm ${tab === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                onClick={() => setTab("all")}
+                onClick={handleSetTabAll}
               >
                 All
               </button>
@@ -88,14 +99,16 @@ const SignatureRequestsPage = () => {
                               <>
                                 <button
                                   className="btn btn-sm btn-success me-1"
-                                  onClick={() => handleApprove(sig.id)}
+                                  data-sig-id={sig.id}
+                                  onClick={handleApproveClick}
                                   disabled={processingId === sig.id || isLoading}
                                 >
                                   {processingId === sig.id ? "Processing..." : "Approve"}
                                 </button>
                                 <button
                                   className="btn btn-sm btn-danger"
-                                  onClick={() => handleReject(sig.id)}
+                                  data-sig-id={sig.id}
+                                  onClick={handleRejectClick}
                                   disabled={processingId === sig.id || isLoading}
                                 >
                                   {processingId === sig.id ? "Processing..." : "Reject"}
