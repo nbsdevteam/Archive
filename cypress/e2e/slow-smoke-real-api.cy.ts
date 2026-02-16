@@ -46,6 +46,13 @@ function loginAndFlash(_flowName: string) {
   cy.wait(STEP_DELAY);
 }
 
+/** Folder options in UI are "Name — Code". Wait for option containing folderName then click (handles list load delay). */
+function selectFolderByName(folderName: string, _folderCode: string, timeout = 15000) {
+  cy.get('[data-testid="folder-select"]').find('.react-select__control').click({ force: true });
+  waitStep();
+  cy.contains('.react-select__option', folderName, { timeout }).click();
+}
+
 /** Fill department and document type (Finance, Invoice). Use force so disabled selects (e.g. while loading) do not fail. */
 function selectDepartmentAndType() {
   cy.get('[data-testid="department-select"]').find('.react-select__control').click({ force: true });
@@ -146,9 +153,7 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.get('.react-select__option').contains('Sub Document').click();
     waitStep();
     selectDepartmentAndType();
-    cy.get('[data-testid="folder-select"]').find('.react-select__control').click({ force: true });
-    waitStep();
-    cy.get('.react-select__option').contains(mainBaseFolder).click();
+    selectFolderByName(mainBaseFolder, 'MBF');
     waitStep();
     cy.get('input[name="title"]').clear().type(mainBaseSecondaryFile);
     waitStep();
