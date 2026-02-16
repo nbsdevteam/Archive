@@ -60,20 +60,23 @@ function selectFolderByName(folderName: string, folderCode: string, timeout = 20
 
 /** Fill department and document type (Finance, Invoice). Skips when selects are disabled (e.g. folder-context upload). */
 function selectDepartmentAndType() {
+  const menuTimeout = 12000;
   cy.get('[data-testid="department-select"]').then(($dept) => {
     const control = $dept.find('.react-select__control');
     const isDisabled = control.hasClass('react-select__control--is-disabled') || control.attr('aria-disabled') === 'true';
     if (isDisabled) return;
     cy.wrap($dept).find('.react-select__control').click({ force: true });
-    waitStep();
-    cy.get('.react-select__menu').should('be.visible').last().contains('Finance (FIN)').click();
+    cy.get('.react-select__menu', { timeout: menuTimeout }).should('be.visible').last().within(() => {
+      cy.contains('Finance (FIN)', { timeout: menuTimeout }).click();
+    });
     waitStep();
     cy.get('[data-testid="document-type-select"]').then(($type) => {
       const typeControl = $type.find('.react-select__control');
       if (typeControl.hasClass('react-select__control--is-disabled') || typeControl.attr('aria-disabled') === 'true') return;
       cy.wrap($type).find('.react-select__control').click({ force: true });
-      waitStep();
-      cy.get('.react-select__menu').should('be.visible').last().contains('Invoice (INV)').click();
+      cy.get('.react-select__menu', { timeout: menuTimeout }).should('be.visible').last().within(() => {
+        cy.contains('Invoice (INV)', { timeout: menuTimeout }).click();
+      });
       waitStep();
     });
   });
