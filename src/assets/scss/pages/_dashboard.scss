@@ -22,15 +22,15 @@ a.edit-icon {
 }
 .emp-dept {
     .dept-name {
-        margin-inline-end: 8px;
+        margin-right: 8px;
     }
     .emp-progress {
         position: relative;
-        padding-inline-start: 10px;
+        padding-left: 10px;
         &::before {
             position: absolute;
             content: "";
-            inset-inline-start: 0;
+            left: 0;
             top: 0;
             background: variables.$gray-200;
             width: 1px;

@@ -196,6 +196,7 @@
     "newFolderCode": "New folder code",
     "folderType": "Folder type",
     "folderDescription": "Folder description",
+    "folderCompanyBrand": "Folder Company/Brand",
     "confidentialityLevel": "Confidentiality level",
     "searchableNumbersOptional": "Searchable numbers (optional)",
     "poNumber": "PO number",

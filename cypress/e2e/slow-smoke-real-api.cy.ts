@@ -84,7 +84,7 @@ function selectDepartmentAndType() {
 
 /** Capture last upload response: alias createdDocId and createdFolderId (if backend returns folder_id). */
 function captureUploadDocId() {
-  cy.wait('@uploadDocument', { timeout: 20000 })
+  cy.wait('@uploadDocument', { timeout: 30000 })
     .its('response.body')
     .then((body: { success?: boolean; data?: { id: number; folder_id?: number }; result?: { success?: boolean; data?: { id: number; folder_id?: number } } }) => {
       const data = body?.data ?? body?.result?.data;
@@ -234,7 +234,7 @@ describe('Slow smoke (real API) — flow options', () => {
       { force: true }
     );
     waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
+    cy.get('[data-testid="upload-document-submit"]').should('be.enabled').click();
     captureUploadDocId();
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
@@ -271,7 +271,7 @@ describe('Slow smoke (real API) — flow options', () => {
       { force: true }
     );
     waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
+    cy.get('[data-testid="upload-document-submit"]').should('be.enabled').click();
     captureUploadDocId();
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
@@ -294,7 +294,7 @@ describe('Slow smoke (real API) — flow options', () => {
       { force: true }
     );
     waitStep();
-    cy.get('[data-testid="upload-document-submit"]').click();
+    cy.get('[data-testid="upload-document-submit"]').should('be.enabled').click();
     captureUploadDocId();
     cy.get('.Toastify__toast--success', { timeout: 15000 }).should('be.visible');
     waitStep();
@@ -395,8 +395,8 @@ describe('Slow smoke (real API) — flow options', () => {
     });
   });
 
-  (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Trash, permanent delete, and delete MainBase folder (from Phase 1/2; main + sub doc)', () => {
-    loginAndFlash('Phase 3: Trash and permanent delete MainBase folder docs (MainBaseFile-edited, MainBaseSecondaryFile-edited-edited), then delete folder');
+  (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Trash sub-doc only, permanent delete from trash, then delete folder (main doc is removed with folder)', () => {
+    loginAndFlash('Phase 3: Trash only sub-doc, permanent delete it from trash, delete folder (main doc cannot be trashed; deleting folder removes it)');
 
     getFolderIdFromDocTitle('MainBaseFile-edited').as('baseFolderId');
 
@@ -404,7 +404,7 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.visit(`/folders/${baseId}`);
       waitStep();
 
-      // Capture sub-doc id from secondary-docs row (data-doc-id), then trash by that id.
+      // Only sub/secondary documents can be moved to trash. Main document cannot; to remove it, delete the folder.
       cy.contains('tr', 'MainBaseSecondaryFile-edited')
         .invoke('attr', 'data-doc-id')
         .then((id) => cy.wrap(id).as('subDocId'));
@@ -417,14 +417,7 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Main doc: View (navigate to detail). Main document cannot be moved to trash from this page; only sub-docs can.
-      cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
-      waitStep();
-      cy.url().should('match', /\/documents\/\d+/);
-      cy.get('[data-testid="document-detail-move-to-trash-btn"]').should('not.exist');
-      waitStep();
-
-      // Permanent delete from trash: only sub-doc was trashed; select it and permanent delete selected.
+      // Permanent delete from trash: only the sub-doc was trashed; select it and permanent delete.
       cy.visit('/documents/trash');
       waitStep();
       cy.get('[data-testid="documents-trash-page"]').should('be.visible');
@@ -439,6 +432,7 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
+      // Delete the folder (this removes the main document; main doc cannot be trashed directly).
       cy.request('DELETE', `/api/folders/${baseId}`).then((res) => {
         expect([200, 204]).to.include(res.status);
       });

@@ -28,6 +28,7 @@ export interface UploadDocumentTargetSectionProps {
   departments: Department[];
   documentTypes: DocumentType[];
   folders: Folder[];
+  companies: Array<{ id: number; name: string }>;
   t: TFunction;
   fillFolderNameFromTitle: (titleValue: string) => void;
   /** File section: rendered directly below document type when provided. */
@@ -73,6 +74,7 @@ export function UploadDocumentTargetSection({
   departments,
   documentTypes,
   folders,
+  companies,
   t,
   fillFolderNameFromTitle,
   fileInputRef,
@@ -238,8 +240,20 @@ export function UploadDocumentTargetSection({
                 error={errors.folder_type?.message as string | undefined}
                 data-testid="folder-type-select"
               />
+              <SelectField
+                control={control}
+                name="folder_company_id"
+                options={companies.map((c) => ({ value: c.id, label: c.name }))}
+                label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
+                placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
+                allowZero
+                isClearable
+                isDisabled={lockFolderContext}
+                error={errors.folder_company_id?.message as string | undefined}
+              />
               <div className="mb-3">
-                <label className="form-label">{t("documents.folderDescription", { defaultValue: "Folder description" })}</label>
+                <label className="form-label">{t("documents.folderDescription", { defaultValue: "Folder description" })}
+                </label>
                 <textarea className="form-control" {...register("folder_description")} rows={2} autoComplete="off" disabled={lockFolderContext} />
               </div>
             </>

@@ -9,6 +9,7 @@ import { documentsApi } from "@/app/adapter/api/documents.api";
 import type { DocumentDetail } from "@/app/adapter/api/documents.api";
 import { adminApi } from "@/app/adapter/api/admin.api";
 import { listFolders } from "@/features/folders/services/folders.api";
+import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Folder } from "@/features/folders/types/folders.types";
@@ -108,6 +109,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [tags, setTags] = useState<{ id: number; name: string }[]>([]);
+  const { companies, fetchCompanies } = useCompaniesStore();
   const [replaceFile, setReplaceFile] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -174,6 +176,11 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
       });
     return () => { cancelled = true; };
   }, [isOpen]);
+
+  // Fetch companies when panel opens.
+  useEffect(() => {
+    if (isOpen) fetchCompanies({ limit: 100 });
+  }, [isOpen, fetchCompanies]);
 
   // Load document types and folders when department changes.
   useEffect(() => {
@@ -314,6 +321,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
             isSubDoc={isSubDoc}
             isInFolder={isInFolder}
             folderName={folderDisplayName}
+            companyName={doc.company_name}
             departmentId={departmentId}
             departments={departments}
             documentTypes={documentTypes}

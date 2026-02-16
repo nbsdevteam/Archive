@@ -230,6 +230,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           department_id: departmentId,
           folder_type: data.folder_type || "other",
           description: data.folder_description?.trim() || null,
+          ...(data.folder_company_id != null && data.folder_company_id >= 1 && { company_id: data.folder_company_id }),
         });
         finalFolderId = newFolder.id;
       }

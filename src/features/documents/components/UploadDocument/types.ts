@@ -16,6 +16,7 @@ export type UploadFormValues = {
   folder_code?: string;
   folder_type?: string;
   folder_description?: string;
+  folder_company_id?: number;
   confidentiality_level: "internal" | "public" | "confidential" | "strict";
   po_number?: string;
   bl_number?: string;
@@ -52,6 +53,7 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
     folder_code: initialValues?.folder_code ?? "",
     folder_type: initialValues?.folder_type ?? "other",
     folder_description: initialValues?.folder_description ?? "",
+    folder_company_id: initialValues?.folder_company_id ?? 0,
     confidentiality_level: initialValues?.confidentiality_level ?? "internal",
     po_number: initialValues?.po_number ?? "",
     bl_number: initialValues?.bl_number ?? "",

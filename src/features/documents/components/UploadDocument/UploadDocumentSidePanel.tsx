@@ -7,6 +7,7 @@ import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { adminApi } from "@/app/adapter/api/admin.api";
 import { listFolders } from "@/features/folders/services/folders.api";
+import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Tag } from "@/app/adapter/api/admin.api";
@@ -30,6 +31,7 @@ export function UploadDocumentSidePanel({
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const { companies, fetchCompanies } = useCompaniesStore();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -64,6 +66,7 @@ export function UploadDocumentSidePanel({
       setValue("folder_code", "");
       setValue("folder_type", "other");
       setValue("folder_description", "");
+      setValue("folder_company_id", 0);
     }
     if (uploadKind !== "sub") {
       setValue("upload_multiple_sub", false);
@@ -85,6 +88,10 @@ export function UploadDocumentSidePanel({
     })();
     return () => { cancelled = true; };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) fetchCompanies({ limit: 100 });
+  }, [isOpen, fetchCompanies]);
 
   useEffect(() => {
     if (!departmentId || departmentId < 1) {
@@ -278,6 +285,7 @@ export function UploadDocumentSidePanel({
           departments={departments}
           documentTypes={documentTypes}
           folders={folders}
+          companies={companies}
           fileInputRef={fileInputRef}
           selectedFile={selectedFile}
           selectedFiles={selectedFiles}

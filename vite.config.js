@@ -71,8 +71,19 @@ export default defineConfig({
         },
     },
     build: {
+        /** Target modern browsers for smaller output; tree shaking works best with ESM. */
+        target: "es2020",
+        /** Enable Rollup tree shaking: remove unused exports and dead code. */
         rollupOptions: {
+            treeshake: {
+                moduleSideEffects: "no-external",
+                propertyReadSideEffects: false,
+            },
             output: {
+                /** Named chunks improve caching and allow better tree-shaken vendor splits. */
+                chunkFileNames: "assets/[name]-[hash].js",
+                entryFileNames: "assets/[name]-[hash].js",
+                assetFileNames: "assets/[name]-[hash][extname]",
                 manualChunks(id) {
                     const normalizedId = id.split("\\").join("/");
                     if (normalizedId.includes("node_modules")) {
@@ -80,6 +91,10 @@ export default defineConfig({
                             normalizedId.includes("react-dom") ||
                             normalizedId.includes("react-router-dom")) {
                             return "react-vendor";
+                        }
+                        if (normalizedId.includes("@mui") ||
+                            normalizedId.includes("@emotion")) {
+                            return "mui-vendor";
                         }
                         if (normalizedId.includes("antd") ||
                             normalizedId.includes("react-bootstrap") ||
@@ -103,7 +118,15 @@ export default defineConfig({
             compress: {
                 drop_console: true,
                 drop_debugger: true,
+                passes: 1,
+                pure_funcs: ["console.log", "console.info", "console.debug"],
+            },
+            mangle: true,
+            format: {
+                comments: false,
             },
         },
+        /** Skip compressed size report for faster builds; use build:analyze when needed. */
+        reportCompressedSize: true,
     },
 });

@@ -102,6 +102,7 @@ export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormV
       folder_code: optionalTrimmedString(values.folder_code),
       folder_type: optionalTrimmedString(values.folder_type) || "other",
       folder_description: optionalTrimmedString(values.folder_description),
+      folder_company_id: typeof values.folder_company_id === "number" && values.folder_company_id >= 1 ? values.folder_company_id : 0,
       confidentiality_level,
       po_number: optionalTrimmedString(values.po_number),
       bl_number: optionalTrimmedString(values.bl_number),

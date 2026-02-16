@@ -24,6 +24,8 @@ export interface EditDocumentFormContentProps {
   isInFolder: boolean;
   /** Folder display name from API; shown in disabled "Link to folder" field when document is in a folder. */
   folderName?: string | null;
+  /** Company name from folder (if document has company_id); shown read-only. */
+  companyName?: string | null;
   departmentId: number;
   departments: Department[];
   documentTypes: DocumentType[];
@@ -46,6 +48,7 @@ export function EditDocumentFormContent({
   isSubDoc,
   isInFolder,
   folderName,
+  companyName,
   departmentId,
   departments,
   documentTypes,
@@ -135,6 +138,15 @@ export function EditDocumentFormContent({
               data-testid="edit-folder-select"
             />
           )
+        )}
+        {companyName && (
+          <Input
+            label={t("documents.companyBrand", { defaultValue: "Company/Brand" })}
+            value={companyName}
+            readOnly
+            disabled
+            autoComplete="off"
+          />
         )}
         <SelectField
           control={control}

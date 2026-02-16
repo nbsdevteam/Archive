@@ -30,6 +30,7 @@ export interface UploadDocumentFormContentProps {
   departments: Department[];
   documentTypes: DocumentType[];
   folders: Folder[];
+  companies: Array<{ id: number; name: string }>;
   fileInputRef: RefObject<HTMLInputElement | null>;
   selectedFile: File | undefined;
   selectedFiles: File[];
@@ -71,6 +72,7 @@ export function UploadDocumentFormContent({
   departments,
   documentTypes,
   folders,
+  companies,
   fileInputRef,
   selectedFile,
   selectedFiles,
@@ -117,6 +119,7 @@ export function UploadDocumentFormContent({
         departments={departments}
         documentTypes={documentTypes}
         folders={folders}
+        companies={companies}
         t={t}
         fillFolderNameFromTitle={fillFolderNameFromTitle}
         fileInputRef={fileInputRef}
