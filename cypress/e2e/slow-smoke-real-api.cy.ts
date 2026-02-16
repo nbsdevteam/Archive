@@ -398,38 +398,50 @@ describe('Slow smoke (real API) — flow options', () => {
   (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Trash, permanent delete, and delete MainBase folder (from Phase 1/2; main + sub doc)', () => {
     loginAndFlash('Phase 3: Trash and permanent delete MainBase folder docs (MainBaseFile-edited, MainBaseSecondaryFile-edited-edited), then delete folder');
 
-    // Use existing MainBase folder from Phase 1/2 (no new uploads).
     getFolderIdFromDocTitle('MainBaseFile-edited').as('baseFolderId');
 
     cy.get('@baseFolderId').then((baseId: number) => {
       cy.visit(`/folders/${baseId}`);
       waitStep();
 
-      // Trash sub-doc first (Secondary documents: MainBaseSecondaryFile-edited or MainBaseSecondaryFile-edited-edited after Phase 2).
-      cy.contains('tr', 'MainBaseSecondaryFile-edited').within(() => cy.contains('button', 'Move to trash').click());
+      // Capture sub-doc id from secondary-docs row (data-doc-id), then trash by that id.
+      cy.contains('tr', 'MainBaseSecondaryFile-edited')
+        .invoke('attr', 'data-doc-id')
+        .then((id) => cy.wrap(id).as('subDocId'));
+      cy.get('@subDocId').then((subDocId: string) => {
+        cy.get(`button[data-doc-id="${subDocId}"]`).contains('Move to trash').click();
+      });
       waitStep();
       cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
       waitStep();
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Trash main doc (Main document card: View then Move to trash).
+      // Main doc: View (navigate to detail), capture mainDocId from URL, then Move to trash.
       cy.get('.card').contains('Main document').parents('.card').find('button').contains('View').click();
       waitStep();
-      cy.get('[data-testid="document-detail-edit-document-btn"]').should('be.visible');
-      cy.contains('button', 'Move to trash').click();
+      cy.url().then((url) => {
+        const m = String(url).match(/\/documents\/(\d+)/);
+        if (m) cy.wrap(m[1]).as('mainDocId');
+      });
+      cy.get('[data-testid="document-detail-move-to-trash-btn"]').click();
+      waitStep();
       cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
       waitStep();
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Permanent delete from trash (only these two docs created in Phase 1/2).
+      // Permanent delete from trash: select rows by data-row-id (document id), then permanent delete selected.
       cy.visit('/documents/trash');
       waitStep();
       cy.get('[data-testid="documents-trash-page"]').should('be.visible');
-      cy.contains('tbody tr', 'MainBaseFile-edited').find('input[type="checkbox"]').click();
-      waitStep();
-      cy.contains('tbody tr', 'MainBaseSecondaryFile').find('input[type="checkbox"]').click();
+      cy.get('@mainDocId').then((mainDocId: string) => {
+        cy.get('@subDocId').then((subDocId: string) => {
+          cy.get(`tr[data-row-id="${mainDocId}"] input.form-check-input`).click();
+          waitStep();
+          cy.get(`tr[data-row-id="${subDocId}"] input.form-check-input`).click();
+        });
+      });
       waitStep();
       cy.contains('button', 'Permanent delete selected').click();
       waitStep();
@@ -438,7 +450,6 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Delete the empty MainBase folder (only this folder).
       cy.request('DELETE', `/api/folders/${baseId}`).then((res) => {
         expect([200, 204]).to.include(res.status);
       });
@@ -447,10 +458,17 @@ describe('Slow smoke (real API) — flow options', () => {
 
   (shouldRunPhase(4) ? it : it.skip)('Phase 4 — Batch: MainDocForBatchStuffYeahYeahh, 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete', () => {
     const suffix = uniqueSuffix();
+    const shortSuffix = suffix.replace(/[^a-z0-9]/gi, '').slice(0, 8);
     const mainTitle = `MainDocForBatchStuffYeahYeahh ${suffix}`;
     const folderName = `MainDocForBatchStuffYeahYeahh Folder ${suffix}`;
-    const folderCode = `BATCH-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
-    const subFileNames = ['BatchSub1.pdf', 'BatchSub2.pdf', 'BatchSub3.pdf', 'BatchSub4.pdf', 'BatchSub5.pdf'];
+    const folderCode = `BATCH-${shortSuffix}`;
+    const subFileNames = [
+      `BatchSub1-${shortSuffix}.pdf`,
+      `BatchSub2-${shortSuffix}.pdf`,
+      `BatchSub3-${shortSuffix}.pdf`,
+      `BatchSub4-${shortSuffix}.pdf`,
+      `BatchSub5-${shortSuffix}.pdf`,
+    ];
 
     loginAndFlash('Phase 4: Batch folder, 5 sub-docs, batch archive/unarchive/trash/restore/permanent delete');
 
@@ -502,10 +520,16 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 30000 }).should('be.visible');
       waitStep();
 
-      // Batch archive: folder detail has per-row Archive only; click Archive on each sub-doc row (5 times).
+      // Capture the 5 sub-doc ids from Secondary documents table for stable selection on trash later.
       cy.visit(`/folders/${folderId}`);
       waitStep();
       cy.get('.card').contains('Secondary documents').parents('.card').find('tbody tr').should('have.length.at.least', 5);
+      cy.get('.card').contains('Secondary documents').parents('.card').find('tbody tr').then(($rows) => {
+        const ids = $rows.slice(0, 5).toArray().map((row) => row.getAttribute('data-doc-id'));
+        cy.wrap(ids).as('batchSubDocIds');
+      });
+
+      // Batch archive: folder detail has per-row Archive only; click Archive on each sub-doc row (5 times).
       for (let i = 0; i < 5; i++) {
         cy.get('.card').contains('Secondary documents').parents('.card').find('tbody tr').first().within(() => {
           cy.contains('button', 'Archive').click();
@@ -515,21 +539,26 @@ describe('Slow smoke (real API) — flow options', () => {
         waitStep();
       }
 
-      // Batch unarchive: go to archived documents, select all from this folder, batch unarchive.
+      // Batch unarchive: go to archived documents, search by suffix to isolate our docs, select and unarchive.
       cy.visit('/archive/documents');
       waitStep();
-      cy.get('tbody input[type="checkbox"]').click({ multiple: true });
-      cy.contains('button', 'Unarchive selected').click();
+      cy.get('[data-testid="archived-documents-page"]').should('be.visible');
+      cy.get('[data-testid="archived-documents-search"] input').clear().type(shortSuffix);
+      waitStep();
+      cy.wait(600);
+      cy.get('[data-testid="archived-documents-page"] tbody tr').should('have.length', 5);
+      cy.get('[data-testid="archived-documents-page"] tbody .form-check-input').click({ multiple: true });
+      cy.get('[data-testid="archived-unarchive-selected"]').click();
       waitStep();
       cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
       waitStep();
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Batch move to trash: back to folder, select all 5 sub-docs, Move selected to trash.
+      // Batch move to trash: back to folder, select only our 5 sub-docs in Secondary documents card, Move selected to trash.
       cy.visit(`/folders/${folderId}`);
       waitStep();
-      cy.get('tbody .form-check-input').click({ multiple: true });
+      cy.get('.card').contains('Secondary documents').parents('.card').find('tbody .form-check-input').click({ multiple: true });
       cy.contains('button', 'Move selected to trash').click();
       waitStep();
       cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
@@ -537,11 +566,12 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Batch restore: trash page, select only our 5 sub-docs by file name, Restore selected.
+      // Batch restore: trash page, select only our 5 sub-docs by data-row-id, Restore selected.
       cy.visit('/documents/trash');
       waitStep();
-      subFileNames.forEach((name) => {
-        cy.contains('tbody tr', name).find('input[type="checkbox"]').click();
+      cy.get('[data-testid="documents-trash-page"]').should('be.visible');
+      cy.get('@batchSubDocIds').each((id: string) => {
+        cy.get(`tr[data-row-id="${id}"] input.form-check-input`).click();
         waitStep();
       });
       cy.get('[data-testid="trash-restore-selected"]').click();
@@ -551,10 +581,10 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Batch move to trash again.
+      // Batch move to trash again (only our 5 sub-docs).
       cy.visit(`/folders/${folderId}`);
       waitStep();
-      cy.get('tbody .form-check-input').click({ multiple: true });
+      cy.get('.card').contains('Secondary documents').parents('.card').find('tbody .form-check-input').click({ multiple: true });
       cy.contains('button', 'Move selected to trash').click();
       waitStep();
       cy.get('[role="dialog"]').within(() => cy.get('[data-testid="confirm-modal-confirm"]').click());
@@ -562,11 +592,11 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
       waitStep();
 
-      // Batch permanent delete: trash page, select only our 5 sub-docs by file name (do not touch any other file).
+      // Batch permanent delete: trash page, select only our 5 sub-docs by data-row-id (do not touch any other file).
       cy.visit('/documents/trash');
       waitStep();
-      subFileNames.forEach((name) => {
-        cy.contains('tbody tr', name).find('input[type="checkbox"]').click();
+      cy.get('@batchSubDocIds').each((id: string) => {
+        cy.get(`tr[data-row-id="${id}"] input.form-check-input`).click();
         waitStep();
       });
       cy.contains('button', 'Permanent delete selected').click();
