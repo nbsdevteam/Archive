@@ -318,6 +318,8 @@ describe('Slow smoke (real API) — flow options', () => {
         cy.wrap(ids.targetFolderId).as('targetFolderId');
       } else {
         cy.visit('/folders');
+        cy.wait('@listFolders', { timeout: 15000 });
+        waitStep();
         cy.contains('MainBaseFolder', { timeout: 20000 }).should('be.visible');
         cy.contains('MainTargetFolder', { timeout: 10000 }).should('be.visible');
         getFolderIdFromList('MainBaseFolder', 20000).then((id) => cy.wrap(id).as('baseFolderId'));

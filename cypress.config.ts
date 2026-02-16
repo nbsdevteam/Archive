@@ -3,16 +3,14 @@ import * as path from 'path';
 import { defineConfig } from 'cypress';
 import cypressFailFast from 'cypress-fail-fast/plugin';
 
-/** Path to Phase 1 persisted folder IDs (used by Phase 2 to avoid /folders list). */
-const PHASE1_IDS_PATH = path.join('cypress', '.phase1-ids.json');
-
 /**
  * Task: read Phase 1 folder IDs from disk. Returns { baseFolderId, targetFolderId } or null if file missing.
- * Used by slow-smoke-real-api Phase 2 so it doesn't depend on the /folders list.
+ * Uses projectRoot so the path is correct regardless of cwd.
  */
-function readPhase1Ids(): { baseFolderId: number; targetFolderId: number } | null {
+function readPhase1Ids(projectRoot: string): { baseFolderId: number; targetFolderId: number } | null {
+  const filePath = path.join(projectRoot, 'cypress', '.phase1-ids.json');
   try {
-    const raw = fs.readFileSync(PHASE1_IDS_PATH, 'utf8');
+    const raw = fs.readFileSync(filePath, 'utf8');
     const data = JSON.parse(raw) as { baseFolderId?: number; targetFolderId?: number };
     if (typeof data?.baseFolderId === 'number' && typeof data?.targetFolderId === 'number') {
       return { baseFolderId: data.baseFolderId, targetFolderId: data.targetFolderId };
@@ -43,8 +41,9 @@ export default defineConfig({
     /** Optional: set commandDelay (ms) to slow down click/type so you can watch the UI (e.g. e2e:slow script). */
     env: { commandDelay: 0 },
     setupNodeEvents(on, config) {
+      const projectRoot = config.projectRoot ?? process.cwd();
       on('task', {
-        readPhase1Ids,
+        readPhase1Ids: () => readPhase1Ids(projectRoot),
       });
       cypressFailFast(on, config);
       return config;
