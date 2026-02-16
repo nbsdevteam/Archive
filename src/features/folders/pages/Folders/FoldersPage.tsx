@@ -1,18 +1,26 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog } from "@/shared/hooks";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useFoldersPageContainer } from "@/features/folders/containers/useFoldersPageContainer";
 import "@/features/folders/styles/folders.css";
 import { FoldersToolbar } from "./FoldersToolbar";
 import { FoldersContent } from "./FoldersContent";
 import { FoldersModals } from "./FoldersModals";
 
-/** Folders list page: layout, toolbar, content, delete/edit modals. */
+/** Folders list page: layout, toolbar, content, delete/edit modals. Registers refresh shortcut (Alt+R). */
 const FoldersPage = () => {
   const { t } = useTranslation();
+  const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, actions, modals } = useFoldersPageContainer();
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
+    return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
+  }, [registerHandler, actions.handleRefresh]);
   const { routes, viewMode, setViewMode, folders, filteredFolders, foldersCountLabel, formatDate } = data;
   const deleteFolderDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteFolder });
 
