@@ -14,6 +14,11 @@
 
 const STEP_DELAY = 800;
 
+/** Inline unique suffix so spec works when support/commands (cy.flash, Cypress.uniqueE2ESuffix) are not loaded in runner. */
+function uniqueSuffix(): string {
+  return `${Date.now().toString(36)}-${Math.floor(Math.random() * 999) + 1}`;
+}
+
 /** When set (e.g. 2), only that phase runs. Use --env runPhase=2 to resume from Phase 2 after a fix. */
 const runOnlyPhase = Cypress.env('runPhase') as number | undefined;
 
@@ -25,8 +30,8 @@ function waitStep() {
   cy.wait(STEP_DELAY);
 }
 
-/** Shared login as admin, then optional flash. */
-function loginAndFlash(flowName: string) {
+/** Shared login as admin; optional visual pause (replaces cy.flash when support file not loaded). */
+function loginAndFlash(_flowName: string) {
   cy.visit('/login');
   waitStep();
   cy.get('#login-role-admin').check({ force: true });
@@ -38,7 +43,7 @@ function loginAndFlash(flowName: string) {
   cy.get('[data-testid="login-submit-btn"]').click();
   cy.url({ timeout: 15000 }).should('include', '/dashboard');
   waitStep();
-  cy.flash(flowName);
+  cy.wait(STEP_DELAY);
 }
 
 /** Fill department and document type (Finance, Invoice). Use force so disabled selects (e.g. while loading) do not fail. */
@@ -279,7 +284,7 @@ describe('Slow smoke (real API) — flow options', () => {
   });
 
   (shouldRunPhase(3) ? it : it.skip)('Phase 3 — Move to trash and permanent delete (only this test\'s folders and their files)', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const suffix = uniqueSuffix();
     const mainBaseTitle = `MainBaseFile ${suffix}`;
     const mainBaseFolderName = `MainBaseFile Folder ${suffix}`;
     const mainBaseFolderCode = `MBF-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
@@ -426,7 +431,7 @@ describe('Slow smoke (real API) — flow options', () => {
   });
 
   (shouldRunPhase(4) ? it : it.skip)('Phase 4 — Batch: MainDocForBatchStuffYeahYeahh, 5 sub-docs, batch archive → unarchive → trash → restore → trash → permanent delete', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const suffix = uniqueSuffix();
     const mainTitle = `MainDocForBatchStuffYeahYeahh ${suffix}`;
     const folderName = `MainDocForBatchStuffYeahYeahh Folder ${suffix}`;
     const folderCode = `BATCH-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
@@ -564,7 +569,7 @@ describe('Slow smoke (real API) — flow options', () => {
   });
 
   (shouldRunPhase(5) ? it : it.skip)('Update: update document and attachment', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const suffix = uniqueSuffix();
     const title = `UpdateFlow Doc ${suffix}`;
     const folderName = `UpdateFlow Folder ${suffix}`;
     const folderCode = `UPD-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 6)}`;
@@ -598,7 +603,7 @@ describe('Slow smoke (real API) — flow options', () => {
       waitStep();
       cy.contains(title).should('be.visible');
 
-      cy.flash('Update: editing document title');
+      cy.wait(STEP_DELAY);
       cy.get('[data-testid="document-detail-edit-document-btn"]').click();
       waitStep();
       cy.get('[data-testid="edit-document-side-panel"]').should('be.visible');
@@ -610,7 +615,7 @@ describe('Slow smoke (real API) — flow options', () => {
       cy.contains(updatedTitle).should('be.visible');
       waitStep();
 
-      cy.flash('Update: adding then editing attachment');
+      cy.wait(STEP_DELAY);
       cy.contains('button', 'Attachments').click();
       waitStep();
       cy.get('[data-testid="document-detail-add-attachment-btn"]').click();
