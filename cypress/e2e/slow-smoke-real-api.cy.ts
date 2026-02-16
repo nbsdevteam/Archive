@@ -139,6 +139,61 @@ function getFolderIdFromDocument(documentId: number): Cypress.Chainable<number |
   });
 }
 
+/** Result of document search: id and optional folder_id from list item. */
+interface DocSearchMatch {
+  id: number;
+  folder_id?: number | null;
+}
+
+/**
+ * Search documents by title via POST /api/documents (JSON-RPC). Returns best match (exact title, highest id) or null.
+ * Requires login so access_token is in localStorage.
+ */
+function getDocumentIdByTitleSearch(title: string): Cypress.Chainable<DocSearchMatch | null> {
+  return cy.window().then((win) => win.localStorage.getItem('access_token')).then((token) => {
+    if (!token) return cy.wrap(null);
+    const baseUrl = Cypress.config('baseUrl') || 'http://localhost:3003';
+    return cy.request({
+      method: 'POST',
+      url: `${baseUrl}/api/documents`,
+      body: { jsonrpc: '2.0', method: 'call', params: { search: title, per_page: 20 }, id: 1 },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      failOnStatusCode: false,
+    }).then((res) => {
+      const raw = res.body?.result ?? res.body;
+      const arr = Array.isArray(raw) ? raw : raw?.data ?? [];
+      const docs = arr as Array<{ id: number; title?: string; name?: string; folder_id?: number | null }>;
+      const exact = docs.filter((d) => (d.title ?? d.name ?? '') === title);
+      const best = exact.length ? exact.sort((a, b) => b.id - a.id)[0] : null;
+      if (!best) return cy.wrap(null);
+      return cy.wrap({ id: best.id, folder_id: best.folder_id ?? null });
+    });
+  });
+}
+
+/**
+ * Resolve folder_id for a folder that contains a main document with the given title.
+ * Uses document search then folder_id from list or getFolderIdFromDocument. Fails with clear message if doc not found.
+ */
+function getFolderIdFromDocTitle(title: string): Cypress.Chainable<number> {
+  return getDocumentIdByTitleSearch(title).then((match) => {
+    if (!match) {
+      expect(false, `Document with title "${title}" not found. Run Phase 1 first so MainBase/MainTarget docs exist.`).to.be.true;
+      return cy.wrap(0);
+    }
+    if (match.folder_id != null && match.folder_id > 0) {
+      return cy.wrap(match.folder_id);
+    }
+    return getFolderIdFromDocument(match.id).then((fid) => {
+      if (fid == null || fid < 1) {
+        expect(false, `Document "${title}" has no folder_id. Run Phase 1 first.`).to.be.true;
+        return cy.wrap(0);
+      }
+      return cy.wrap(fid);
+    });
+  });
+}
+
 describe('Slow smoke (real API) — flow options', () => {
   beforeEach(() => {
     cy.on('uncaught:exception', (err) => {
@@ -289,14 +344,9 @@ describe('Slow smoke (real API) — flow options', () => {
   (shouldRunPhase(2) ? it : it.skip)('Phase 2 — Transfer: open MainBase folder, transfer secondary to target, edit there, transfer back', () => {
     loginAndFlash('Phase 2: Transfer secondary to target, edit in target, transfer back to base');
 
-    // Open MainBase folder: go to /folders, wait for list, find MainBaseFolder and MainTargetFolder IDs.
-    cy.visit('/folders');
-    cy.wait('@listFolders', { timeout: 15000 });
-    waitStep();
-    cy.contains('MainBaseFolder', { timeout: 20000 }).should('be.visible');
-    cy.contains('MainTargetFolder', { timeout: 10000 }).should('be.visible');
-    getFolderIdFromList('MainBaseFolder', 20000).then((id) => cy.wrap(id).as('baseFolderId'));
-    getFolderIdFromList('MainTargetFolder', 20000).then((id) => cy.wrap(id).as('targetFolderId'));
+    // Resolve folder IDs from documents (MainBaseFile-edited and MainTargetFile-edited) so we don't depend on /folders list.
+    getFolderIdFromDocTitle('MainBaseFile-edited').as('baseFolderId');
+    getFolderIdFromDocTitle('MainTargetFile-edited').as('targetFolderId');
 
     cy.get('@baseFolderId').then((baseFolderId: number) => {
       cy.get('@targetFolderId').then((targetFolderId: number) => {
