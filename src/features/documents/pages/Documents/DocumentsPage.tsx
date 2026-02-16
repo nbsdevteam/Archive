@@ -155,7 +155,7 @@ const DocumentsPage = () => {
           }}
           modals={modals}
           batchArchiveDialog={batchArchiveDialog}
-          batchTrashDialog={batchTrashDialog}
+          onMoveSelectedToTrashClick={() => actions.handleBatchTrashClick(() => batchTrashDialog.open())}
           routes={routes}
         />
         <DocumentsTableCard
@@ -179,6 +179,7 @@ const DocumentsPage = () => {
             handleUploadSuccess: actions.handleUploadSuccess,
             handleCloseBatchMoveConfirm: actions.handleCloseBatchMoveConfirm,
             handleConfirmBatchMove: actions.handleConfirmBatchMove,
+            handleCloseMainFilesBlockModal: actions.handleCloseMainFilesBlockModal,
           } satisfies DocumentsModalsProps["actions"]
         }
         trashDialog={trashDialog}

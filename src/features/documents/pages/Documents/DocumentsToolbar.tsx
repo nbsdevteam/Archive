@@ -35,7 +35,8 @@ export interface DocumentsToolbarProps {
     isArchiving: boolean;
   };
   batchArchiveDialog: { open: () => void };
-  batchTrashDialog: { open: () => void };
+  /** Called when user clicks "Move selected to trash"; may open batch trash confirm or show main-files block modal. */
+  onMoveSelectedToTrashClick: () => void;
   routes: Record<string, string>;
 }
 
@@ -50,7 +51,7 @@ export function DocumentsToolbar({
   actions,
   modals,
   batchArchiveDialog,
-  batchTrashDialog,
+  onMoveSelectedToTrashClick,
   routes,
 }: DocumentsToolbarProps) {
   const countSlot =
@@ -105,7 +106,7 @@ export function DocumentsToolbar({
             variant="outline"
             size="md"
             className="btn-outline-danger d-inline-flex align-items-center me-2"
-            onClick={batchTrashDialog.open}
+            onClick={onMoveSelectedToTrashClick}
             disabled={modals.isTrashing}
             aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
           >

@@ -58,6 +58,7 @@ export const useDocumentsPageContainer = () => {
     selectedDocumentIds,
     selectionConfig,
     clearSelection,
+    deselectDocumentIds,
     isSomeSelected,
   } = list;
 
@@ -69,6 +70,11 @@ export const useDocumentsPageContainer = () => {
   /** Folder IDs to exclude from destination list (current folder(s) of documents being moved). */
   const [moveExcludeFolderIds, setMoveExcludeFolderIds] = useState<number[]>([]);
   const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
+  /** When batch trash is clicked, main files in selection are blocked and listed here; user must close modal and retry with remaining selection. */
+  const [mainFilesBlockModal, setMainFilesBlockModal] = useState<{ isOpen: boolean; mainFileNames: string[] }>({
+    isOpen: false,
+    mainFileNames: [],
+  });
 
   const handleOpenEdit = useCallback((documentId: number) => setEditDocumentId(documentId), []);
   const handleCloseEdit = useCallback(() => setEditDocumentId(null), []);
@@ -136,6 +142,32 @@ export const useDocumentsPageContainer = () => {
     });
     if (didTrash) clearSelection();
   }, [clearSelection, fetchDocuments, getFetchParams, selectedDocumentIds, t, trashDocument]);
+
+  /**
+   * Called when user clicks "Move Selected to Trash". If selection includes main files,
+   * shows block modal, deselects main files, and does not open batch trash confirm. Otherwise opens confirm.
+   */
+  const handleBatchTrashClick = useCallback(
+    (openBatchTrashDialog: () => void) => {
+      const mainDocs = documents.filter(
+        (d) => selectedDocumentIds.includes(d.id) && d.is_main_document === true
+      );
+      if (mainDocs.length > 0) {
+        const mainFileNames = mainDocs.map(
+          (d) => (d.title ?? d.name ?? d.barcode ?? String(d.id)) || String(d.id)
+        );
+        setMainFilesBlockModal({ isOpen: true, mainFileNames });
+        deselectDocumentIds(mainDocs.map((d) => d.id));
+        return;
+      }
+      openBatchTrashDialog();
+    },
+    [documents, selectedDocumentIds, deselectDocumentIds]
+  );
+
+  const handleCloseMainFilesBlockModal = useCallback(() => {
+    setMainFilesBlockModal((prev) => ({ ...prev, isOpen: false }));
+  }, []);
 
   const confirmBatchArchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
@@ -282,6 +314,8 @@ export const useDocumentsPageContainer = () => {
       handleOpenBatchMoveConfirm,
       handleCloseBatchMoveConfirm,
       handleConfirmBatchMove,
+      handleBatchTrashClick,
+      handleCloseMainFilesBlockModal,
     },
     modals: {
       isUploadOpen,
@@ -293,6 +327,7 @@ export const useDocumentsPageContainer = () => {
       isMoveSubmitting,
       isTrashing,
       isArchiving,
+      mainFilesBlockModal,
     },
   };
 };

@@ -36,7 +36,8 @@
     "clear": "Clear",
     "remove": "Remove",
     "cancelling": "Cancelling...",
-    "unexpectedError": "Unexpected error"
+    "unexpectedError": "Unexpected error",
+    "ok": "OK"
   },
   "errors": {
     "notFound": "Not found.",
@@ -148,6 +149,9 @@
     "selectDocument": "Select document \"{{title}}\"",
     "moveSelectedToTrash": "Move selected to trash",
     "confirmBatchMoveToTrash": "Move {{count}} document(s) to trash?",
+    "cannotDeleteMainFiles": "Cannot Delete Main Files",
+    "cannotDeleteMainFilesMessage": "Main files of the folder cannot be moved to trash.",
+    "mainFilesUncheckedFooter": "These files have been automatically unchecked.",
     "batchTrashed": "{{count}} document(s) moved to trash.",
     "batchTrashFailed": "Failed to move documents to trash.",
     "restore": "Restore",

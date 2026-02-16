@@ -36,7 +36,8 @@
     "clear": "مسح",
     "remove": "إزالة",
     "cancelling": "جاري الإلغاء...",
-    "unexpectedError": "خطأ غير متوقع"
+    "unexpectedError": "خطأ غير متوقع",
+    "ok": "موافق"
   },
   "errors": {
     "notFound": "غير موجود.",
@@ -148,6 +149,9 @@
     "selectDocument": "تحديد المستند \"{{title}}\"",
     "moveSelectedToTrash": "نقل المحدد إلى سلة المحذوفات",
     "confirmBatchMoveToTrash": "نقل {{count}} مستند(اً) إلى سلة المحذوفات؟",
+    "cannotDeleteMainFiles": "لا يمكن حذف الملفات الرئيسية",
+    "cannotDeleteMainFilesMessage": "لا يمكن نقل الملفات الرئيسية للمجلد إلى سلة المحذوفات.",
+    "mainFilesUncheckedFooter": "تم إلغاء تحديد هذه الملفات تلقائياً.",
     "batchTrashed": "تم نقل {{count}} مستند(اً) إلى سلة المحذوفات.",
     "batchTrashFailed": "فشل نقل المستندات إلى سلة المحذوفات.",
     "restore": "استعادة",

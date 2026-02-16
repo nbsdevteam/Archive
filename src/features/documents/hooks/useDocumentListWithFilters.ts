@@ -61,6 +61,7 @@ export function useDocumentListWithFilters(
     selectedIds: selectedDocumentIdsRaw,
     selectionConfig: baseSelectionConfig,
     clear: clearSelection,
+    deselectIds: deselectDocumentIds,
   } = useSelection<Document>(documents, (d) => d.id);
 
   const selectedDocumentIds = useMemo(
@@ -280,6 +281,7 @@ export function useDocumentListWithFilters(
     selectedDocumentIds,
     selectionConfig,
     clearSelection,
+    deselectDocumentIds,
     isSomeSelected,
   };
 }

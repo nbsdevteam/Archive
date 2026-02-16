@@ -1,9 +1,9 @@
 import type { TFunction } from "i18next";
-import { ConfirmModal } from "@/shared/components/ui";
+import { Button, ConfirmModal, Modal, ModalFooter } from "@/shared/components/ui";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
 import { TransferToFolderModal } from "@/features/folders/components";
 
-/** Props for document list modals: upload panel, confirm dialogs, transfer modal. */
+/** Props for document list modals: upload panel, confirm dialogs, transfer modal, main-files block modal. */
 export interface DocumentsModalsProps {
   t: TFunction;
   modals: {
@@ -14,12 +14,15 @@ export interface DocumentsModalsProps {
     /** Current folder(s) of documents being moved; excluded from destination list. */
     moveExcludeFolderIds: number[];
     isMoveSubmitting: boolean;
+    /** Shown when user tries to batch-trash and selection includes main files; lists names and confirms they were unchecked. */
+    mainFilesBlockModal: { isOpen: boolean; mainFileNames: string[] };
   };
   actions: {
     handleCloseUpload: () => void;
     handleUploadSuccess: () => void;
     handleCloseBatchMoveConfirm: () => void;
     handleConfirmBatchMove: (targetFolderId: number) => void | Promise<void>;
+    handleCloseMainFilesBlockModal: () => void;
   };
   trashDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   archiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
@@ -88,6 +91,29 @@ export function DocumentsModals({
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
       />
+      <Modal
+        isOpen={modals.mainFilesBlockModal.isOpen}
+        onClose={actions.handleCloseMainFilesBlockModal}
+        title={t("documents.cannotDeleteMainFiles", { defaultValue: "Cannot Delete Main Files" })}
+        size="md"
+      >
+        <p className="mb-2">{t("documents.cannotDeleteMainFilesMessage", { defaultValue: "Main files of the folder cannot be moved to trash." })}</p>
+        {modals.mainFilesBlockModal.mainFileNames.length > 0 && (
+          <ul className="list-group list-group-flush mb-2">
+            {modals.mainFilesBlockModal.mainFileNames.map((name, i) => (
+              <li key={i} className="list-group-item py-1 px-2">
+                {name}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="small text-muted mb-0">{t("documents.mainFilesUncheckedFooter", { defaultValue: "These files have been automatically unchecked." })}</p>
+        <ModalFooter>
+          <Button variant="primary" onClick={actions.handleCloseMainFilesBlockModal}>
+            {t("common.ok", { defaultValue: "OK" })}
+          </Button>
+        </ModalFooter>
+      </Modal>
       <TransferToFolderModal
         isOpen={modals.isMoveModalOpen}
         onClose={actions.handleCloseBatchMoveConfirm}

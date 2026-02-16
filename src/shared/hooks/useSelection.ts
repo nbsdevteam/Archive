@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 /**
  * Generic selection state for tables (e.g. DataTable).
- * Returns selectedIds, a SelectionConfig-compatible object, clear and setAll helpers.
+ * Returns selectedIds, a SelectionConfig-compatible object, clear, setAll, and deselectIds helpers.
  */
 export function useSelection<T>(
   rows: T[],
@@ -19,6 +19,8 @@ export function useSelection<T>(
   };
   clear: () => void;
   setAll: () => void;
+  /** Removes the given ids from the current selection (e.g. to uncheck main documents). */
+  deselectIds: (idsToDeselect: (string | number)[]) => void;
 } {
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
 
@@ -39,6 +41,10 @@ export function useSelection<T>(
 
   const clear = useCallback(() => setSelectedIds([]), []);
   const setAll = useCallback(() => setSelectedIds([...rowIds]), [rowIds]);
+  const deselectIds = useCallback((idsToDeselect: (string | number)[]) => {
+    const set = new Set(idsToDeselect);
+    setSelectedIds((prev) => prev.filter((id) => !set.has(id)));
+  }, []);
 
   const selectionConfig = useMemo(
     () => ({
@@ -52,5 +58,5 @@ export function useSelection<T>(
     [selectedIds, onToggle, onToggleAll, isAllSelected, isIndeterminate, getId]
   );
 
-  return { selectedIds, selectionConfig, clear, setAll };
+  return { selectedIds, selectionConfig, clear, setAll, deselectIds };
 }
