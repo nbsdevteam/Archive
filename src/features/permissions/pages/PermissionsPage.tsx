@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Button, Spinner, Icon } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
@@ -8,6 +9,7 @@ import { usePermissionsPageContainer } from "../containers/usePermissionsPageCon
  * PermissionsPage - Admin-only permissions management page with user search API
  */
 const PermissionsPage = () => {
+  const { t } = useTranslation();
   const {
     routes,
     isAdmin,
@@ -29,10 +31,10 @@ const PermissionsPage = () => {
         <div className="content">
           <div className="card">
             <div className="card-body text-center">
-              <h5>Access Denied</h5>
-              <p className="text-muted">You do not have permission to access this page.</p>
+              <h5>{t("app.accessDenied")}</h5>
+              <p className="text-muted">{t("app.noPermissionPage")}</p>
               <Link to={routes.adminDashboard} className="btn btn-secondary btn-md">
-                Go to Dashboard
+                {t("app.goToDashboard")}
               </Link>
             </div>
           </div>
@@ -43,24 +45,24 @@ const PermissionsPage = () => {
 
   return (
     <PageLayout
-      title="Permissions"
-      breadcrumbItems={[{ label: "Admin" }]}
+      title={t("app.permissions")}
+      breadcrumbItems={[{ label: t("app.administrator") }]}
       homeTo={routes.adminDashboard}
       rightContent={<CollapseHeader />}
     >
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between">
-            <h5 className="card-title mb-0">User Permissions</h5>
+            <h5 className="card-title mb-0">{t("app.userPermissions")}</h5>
             <div className="input-group" style={{ maxWidth: "300px" }}>
               <input
                 type="text"
                 className="form-control control-height-md"
-                placeholder="Search users..."
+                placeholder={t("app.searchUsers")}
                 value={searchTerm}
                 onChange={handleSearchTermChange}
-                aria-label="Search users"
+                aria-label={t("app.searchUsersAria")}
               />
-              <Button variant="secondary" size="md" type="button" aria-label="Search">
+              <Button variant="secondary" size="md" type="button" aria-label={t("app.searchAria")}>
                 <Icon name="search" />
               </Button>
             </div>
@@ -80,18 +82,18 @@ const PermissionsPage = () => {
                 <table className="table table-striped mb-0">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Departments</th>
-                      <th className="text-end">Actions</th>
+                      <th>{t("app.name")}</th>
+                      <th>{t("app.email")}</th>
+                      <th>{t("app.role")}</th>
+                      <th>{t("app.departments")}</th>
+                      <th className="text-end">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.length === 0 && !loading ? (
                       <tr>
                         <td colSpan={5} className="text-center py-4 text-muted">
-                          No users found
+                          {t("app.noUsersFound")}
                         </td>
                       </tr>
                     ) : (
@@ -110,7 +112,7 @@ const PermissionsPage = () => {
                           </td>
                           <td>{displayDepartments(u)}</td>
                           <td className="text-end">
-                            <Button variant="secondary" size="sm">Edit</Button>
+                            <Button variant="secondary" size="sm">{t("common.edit")}</Button>
                           </td>
                         </tr>
                       ))

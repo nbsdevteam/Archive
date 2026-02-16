@@ -179,7 +179,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
         <input
           type="text"
           className="form-control"
-          placeholder="Search documents, folders, or notes..."
+          placeholder={t("app.searchPlaceholder")}
           value={searchTerm}
           onChange={handleSearchInputChange}
           onFocus={handleSearchInputFocus}
@@ -195,21 +195,21 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           role="listbox"
         >
           {searchLoading ? (
-            <div className="p-3 text-center text-muted small">Searching...</div>
+            <div className="p-3 text-center text-muted small">{t("app.searching")}</div>
           ) : searchError ? (
             <div className="p-3 text-danger small">{searchError}</div>
           ) : searchResults.length === 0 ? (
-            <div className="p-3 text-muted small">No results</div>
+            <div className="p-3 text-muted small">{t("app.noResults")}</div>
           ) : (
             <div className="table-responsive mb-0">
               <table className="table table-sm table-hover mb-0">
                 <thead>
                   <tr>
-                    <th className="border-0 py-1 px-2 fs-11">Type</th>
-                    <th className="border-0 py-1 px-2 fs-11">Name</th>
-                    <th className="border-0 py-1 px-2 fs-11">Department</th>
-                    <th className="border-0 py-1 px-2 fs-11">Meta</th>
-                    <th className="border-0 py-1 px-2 fs-11 text-end">Action</th>
+                    <th className="border-0 py-1 px-2 fs-11">{t("app.type")}</th>
+                    <th className="border-0 py-1 px-2 fs-11">{t("app.name")}</th>
+                    <th className="border-0 py-1 px-2 fs-11">{t("documents.department")}</th>
+                    <th className="border-0 py-1 px-2 fs-11">{t("app.meta")}</th>
+                    <th className="border-0 py-1 px-2 fs-11 text-end">{t("app.action")}</th>
                   </tr>
                 </thead>
                 <tbody>

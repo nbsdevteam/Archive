@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Spinner, Alert } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
@@ -8,6 +9,7 @@ import "../styles/signatures.css";
  * SignatureRequestsPage - Signature requests management page
  */
 const SignatureRequestsPage = () => {
+  const { t } = useTranslation();
   const { routes, requests, isLoading, error, tab, setTab, processingId, handleApprove, handleReject, handleRetry } =
     useSignatureRequestsPageContainer();
 
@@ -24,7 +26,7 @@ const SignatureRequestsPage = () => {
 
   return (
     <PageLayout
-      title="Signature Requests"
+      title={t("app.signatureRequests")}
       breadcrumbItems={[]}
       homeTo={routes.adminDashboard}
       rightContent={<CollapseHeader />}
@@ -36,7 +38,7 @@ const SignatureRequestsPage = () => {
               className="btn btn-sm btn-outline-secondary ms-2"
               onClick={handleRetry}
             >
-              Retry
+              {t("common.retry")}
             </button>
           </Alert>
         )}
@@ -48,16 +50,16 @@ const SignatureRequestsPage = () => {
                 className={`btn btn-sm ${tab === 'pending' ? 'btn-secondary' : 'btn-outline-secondary'}`}
                 onClick={handleSetTabPending}
               >
-                Pending
+                {t("app.tabPending")}
               </button>
               <button
                 className={`btn btn-sm ${tab === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
                 onClick={handleSetTabAll}
               >
-                All
+                {t("app.filterAll")}
               </button>
             </div>
-            <h5 className="card-title mb-0">Signature Requests</h5>
+            <h5 className="card-title mb-0">{t("app.signatureRequests")}</h5>
           </div>
           <div className="card-body">
             {isLoading ? (
@@ -69,18 +71,18 @@ const SignatureRequestsPage = () => {
                 <table className="table table-striped mb-0">
                   <thead>
                     <tr>
-                      <th>Document</th>
-                      <th>Requester</th>
-                      <th>Signer</th>
-                      <th>Status</th>
-                      <th className="text-end">Actions</th>
+                      <th>{t("app.document")}</th>
+                      <th>{t("app.requester")}</th>
+                      <th>{t("app.signer")}</th>
+                      <th>{t("documents.status")}</th>
+                      <th className="text-end">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {requests.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="text-center py-4 text-muted">
-                          No signature requests found
+                          {t("app.noSignatureRequestsFound")}
                         </td>
                       </tr>
                     ) : (
@@ -103,7 +105,7 @@ const SignatureRequestsPage = () => {
                                   onClick={handleApproveClick}
                                   disabled={processingId === sig.id || isLoading}
                                 >
-                                  {processingId === sig.id ? "Processing..." : "Approve"}
+                                  {processingId === sig.id ? t("app.processing") : t("app.approve")}
                                 </button>
                                 <button
                                   className="btn btn-sm btn-danger"
@@ -111,7 +113,7 @@ const SignatureRequestsPage = () => {
                                   onClick={handleRejectClick}
                                   disabled={processingId === sig.id || isLoading}
                                 >
-                                  {processingId === sig.id ? "Processing..." : "Reject"}
+                                  {processingId === sig.id ? t("app.processing") : t("app.reject")}
                                 </button>
                               </>
                             )}

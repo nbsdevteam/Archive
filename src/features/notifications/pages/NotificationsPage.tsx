@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { Spinner, Alert } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
@@ -9,6 +10,7 @@ import "../styles/notifications.css";
  * NotificationsPage - Notifications management page
  */
 const NotificationsPage = () => {
+  const { t } = useTranslation();
   const {
     routes,
     notifications,
@@ -32,33 +34,33 @@ const NotificationsPage = () => {
 
   return (
     <PageLayout
-      title="Notifications"
+      title={t("app.notifications")}
       breadcrumbItems={[]}
       homeTo={routes.adminDashboard}
       rightContent={<CollapseHeader />}
     >
         <div className="card">
           <div className="card-header d-flex align-items-center justify-content-between notifications__header">
-            <h5 className="card-title mb-0">Notifications</h5>
+            <h5 className="card-title mb-0">{t("app.notifications")}</h5>
             <div className="notifications__headerRight btn-list d-flex flex-wrap align-items-center">
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'all' ? 'btn-secondary' : 'btn-outline-secondary'}`}
                 onClick={handleSetFilterAll}
               >
-                All
+                {t("app.filterAll")}
               </button>
               <button
                 className={`btn btn-sm control-height-sm d-inline-flex align-items-center ${filter === 'unread' ? 'btn-secondary' : 'btn-outline-secondary'}`}
                 onClick={handleSetFilterUnread}
               >
-                Unread ({unreadCount})
+                {t("app.filterUnread")} ({unreadCount})
               </button>
               {filter === "all" && notifications.length > 0 && (
                 <button
                   className="btn btn-sm control-height-sm btn-outline-secondary d-inline-flex align-items-center"
                   onClick={handleMarkAllAsRead}
                 >
-                  Mark All Read
+                  {t("app.markAllRead")}
                 </button>
               )}
             </div>
@@ -71,7 +73,7 @@ const NotificationsPage = () => {
                   className="btn btn-sm control-height-sm btn-outline-secondary d-inline-flex align-items-center ms-2"
                   onClick={handleRetry}
                 >
-                  Retry
+                  {t("common.retry")}
                 </button>
               </Alert>
             )}
@@ -81,7 +83,7 @@ const NotificationsPage = () => {
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-4 text-muted notifications__state">
-                No notifications found
+                {t("app.noNotificationsFound")}
               </div>
             ) : (
               <div className="list-group">
@@ -96,7 +98,7 @@ const NotificationsPage = () => {
                   >
                     <div className="notifications__itemTitleRow">
                       <strong>{notif.title}</strong>
-                      {!notif.is_read && <span className="badge bg-primary">New</span>}
+                      {!notif.is_read && <span className="badge bg-primary">{t("app.badgeNew")}</span>}
                     </div>
                     <div className="notifications__itemBody">
                       {notif.message}

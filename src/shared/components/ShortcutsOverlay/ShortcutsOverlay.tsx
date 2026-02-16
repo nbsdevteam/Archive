@@ -48,7 +48,7 @@ export function ShortcutsOverlay() {
           <div className="modal-content">
             <div className="modal-header">
               <h2 className="modal-title h5 mb-0" id={OVERLAY_TITLE_ID}>
-                Keyboard shortcuts
+                {t("app.keyboardShortcuts")}
               </h2>
               <button
                 ref={closeButtonRef}
@@ -60,7 +60,7 @@ export function ShortcutsOverlay() {
             </div>
             <div className="modal-body">
               <p id="shortcuts-overlay-description" className="text-muted small mb-3">
-                Press Alt to show this list. Then press the key for an action.
+                {t("app.shortcutsDescription")}
               </p>
               {availableShortcuts.length === 0 ? (
                 <p className="text-muted mb-0">{t("app.noShortcutsAvailable")}</p>
@@ -68,7 +68,7 @@ export function ShortcutsOverlay() {
                 <ul className="list-unstyled mb-0">
                   {availableShortcuts.map(({ id, label, keys }) => (
                     <li key={id} className="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-25">
-                      <span>{label}</span>
+                      <span>{t(`shortcuts.${id}`, { defaultValue: label })}</span>
                       <kbd className="px-2 py-1 bg-light border rounded text-muted small">{keys}</kbd>
                     </li>
                   ))}

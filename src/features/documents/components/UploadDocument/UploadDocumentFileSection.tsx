@@ -143,7 +143,7 @@ export function UploadDocumentFileSection({
             ? selectedFiles.length > 1
               ? `Selected: ${selectedFiles.length} files`
               : `Selected: ${selectedFile.name}`
-            : t("documents.selectFile", { defaultValue: "Select File" })}
+            : t("common.selectFile", { defaultValue: "Select File" })}
         </Button>
         {(selectedFile instanceof File || selectedFiles.length > 0) && (
           <Button type="button" variant="outline" className="btn-outline-secondary" onClick={onClear}>

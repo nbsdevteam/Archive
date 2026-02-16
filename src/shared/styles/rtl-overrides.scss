@@ -4,6 +4,12 @@
  */
 
 .layout-mode-rtl {
+  /* Sidebar logo: ensure inline padding so gap between sidebar edge and company text is consistent */
+  .sidebar-logo {
+    padding-inline-start: 16px;
+    padding-inline-end: 16px;
+  }
+
   /* Theme settings check position */
   div.sidebar-themesettings .input-themeselect input[type="radio"]:checked ~ label .checkboxs-theme::before {
     right: auto;
