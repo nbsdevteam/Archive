@@ -94,8 +94,8 @@ const DocumentsPage = () => {
           icon: "arrow-right-left",
           variant: "outline",
           className: "btn-outline-secondary me-1",
-          /** Show for main and secondary documents (both can be transferred to a folder). */
-          visible: (row) => row.is_main_document === true || row.is_main_document === false,
+          /** Only secondary (sub) documents can be transferred; main document cannot be transferred. */
+          visible: (row) => row.is_main_document === false,
           onClick: (row) => actions.handleOpenSingleMoveConfirm(row.id),
         },
         {
