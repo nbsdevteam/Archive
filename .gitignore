@@ -15,9 +15,6 @@ dist-ssr
 # Test coverage
 coverage
 
-# Cypress cross-phase state (slow-smoke Phase 1 → Phase 2)
-cypress/.phase1-ids.json
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
