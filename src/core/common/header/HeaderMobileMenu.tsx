@@ -12,8 +12,8 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
   return (
     <div className="dropdown mobile-user-menu">
       <Link to="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-label="User menu" aria-haspopup="true">
-        <span className="user-img" aria-hidden>
-          <ImageWithBasePath src="assets/img/profiles/avatar-12.jpg" alt="" className="img-fluid rounded-circle" role="presentation" />
+        <span className="user-img" aria-hidden role="presentation">
+          <ImageWithBasePath src="assets/img/profiles/avatar-12.jpg" alt="" className="img-fluid rounded-circle" />
         </span>
       </Link>
       <div className="dropdown-menu dropdown-menu-end">

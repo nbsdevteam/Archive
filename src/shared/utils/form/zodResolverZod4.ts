@@ -1,6 +1,6 @@
 import { toNestErrors } from "@hookform/resolvers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { FieldError } from "react-hook-form";
+import type { FieldError, FieldValues, Resolver, ResolverOptions, ResolverResult } from "react-hook-form";
 import { appendErrors } from "react-hook-form";
 
 /** Zod issue shape used by both Zod 3 (.errors) and Zod 4 (.issues). */
@@ -89,14 +89,22 @@ function parseErrorSchema(
  * @hookform/resolvers only recognizes Zod 3's error.errors; Zod 4 uses error.issues, so validation
  * failures were thrown as uncaught ZodError. This wrapper catches those and returns RHF-compatible errors.
  */
+/** Infers form values type from a Zod schema for typed resolver return. */
+type ZodSchemaInfer<T> = T extends { _output: infer O } ? O : FieldValues;
+
 export function zodResolverZod4<TSchema extends Parameters<typeof zodResolver>[0]>(
   schema: TSchema,
   schemaOptions?: Parameters<typeof zodResolver>[1],
   resolverOptions?: Parameters<typeof zodResolver>[2]
-): ReturnType<ReturnType<typeof zodResolver>> {
-  const base = zodResolver(schema, schemaOptions, resolverOptions);
+): Resolver<ZodSchemaInfer<TSchema>> {
+  const base = zodResolver(schema, schemaOptions, resolverOptions) as Resolver<ZodSchemaInfer<TSchema>>;
 
-  return async (values, context, options) => {
+  type TFieldValues = ZodSchemaInfer<TSchema>;
+  const wrapped: Resolver<TFieldValues> = async (
+    values: TFieldValues,
+    context: unknown,
+    options: ResolverOptions<TFieldValues>
+  ): Promise<ResolverResult<TFieldValues>> => {
     try {
       return await base(values, context, options);
     } catch (err) {
@@ -105,7 +113,7 @@ export function zodResolverZod4<TSchema extends Parameters<typeof zodResolver>[0
         const validateAllFieldCriteria =
           !options.shouldUseNativeValidation && options.criteriaMode === "all";
         return {
-          values: {},
+          values: {} as TFieldValues,
           errors: toNestErrors(
             parseErrorSchema(issues, validateAllFieldCriteria),
             options
@@ -115,4 +123,5 @@ export function zodResolverZod4<TSchema extends Parameters<typeof zodResolver>[0
       throw err;
     }
   };
+  return wrapped;
 }

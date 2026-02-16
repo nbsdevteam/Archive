@@ -64,7 +64,7 @@ export const CreateFolderSidePanel = ({
     reset,
   } = useForm<CreateFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(createFolderSchema),
+    resolver: zodResolverZod4(createFolderSchema) as import("react-hook-form").Resolver<CreateFolderFormValues>,
     defaultValues: {
       name: "",
       code: "",

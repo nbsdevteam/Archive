@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import type { Document, Attachment } from "@/app/adapter/api/documents.api";
+import type { Document, DocumentDetail, Attachment } from "@/app/adapter/api/documents.api";
 import type { Folder } from "@/features/folders/types/folders.types";
 import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
 import type { NoteListItem, CreateNotePayload } from "@/features/notes/types/notes.types";
@@ -27,7 +27,8 @@ export interface FolderDetailData {
   attachments: Attachment[];
   managers: Manager[];
   notes: NoteListItem[];
-  previewDoc: Document | null;
+  /** Current document from store (with versions); used for preview. */
+  previewDoc: DocumentDetail | null;
   previewFileName: string;
 }
 
@@ -103,7 +104,7 @@ export interface FolderDetailSelection {
  * All handler functions for user interactions.
  */
 export interface FolderDetailActions {
-  formatDate: (date?: string) => string;
+  formatDate: (date?: string | null) => string;
   handleNavigateToDocument: (docId: number) => void;
   handleUploadInFolder: () => void;
   handleAttachmentsDocIdChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -177,7 +178,7 @@ export interface FolderDetailModals {
   uploadPanelInitialValues: Partial<UploadFormValues>;
   uploadPanelLockFolderContext: boolean;
   transferModalOpen: boolean;
-  transferMode: "documents" | "attachments" | null;
+  transferMode: "docs" | "attachments" | null;
   transferDocIds: number[];
   transferAttachmentIds: number[];
   transferDepartmentId: number | null;

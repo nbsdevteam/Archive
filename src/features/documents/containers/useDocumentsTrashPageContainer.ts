@@ -28,8 +28,8 @@ export const useDocumentsTrashPageContainer = () => {
     setError(null);
     try {
       const response = await documentsApi.listTrashDocuments();
-      setDocuments(response?.data ?? []);
-      setPagination(response?.pagination);
+      setDocuments((response?.data ?? []) as TrashDoc[]);
+      setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
     } catch (e: unknown) {
       setError(handleApiError(e));
       setDocuments([]);

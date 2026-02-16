@@ -16,7 +16,8 @@ import { FolderDetailAttachmentsSection } from "./FolderDetailAttachmentsSection
 import { FolderDetailNotesSection } from "./FolderDetailNotesSection";
 import { FolderDetailPreviewSection } from "./FolderDetailPreviewSection";
 import { FolderDetailActivitySection } from "./FolderDetailActivitySection";
-import { FolderDetailModals } from "./FolderDetailModals";
+import { FolderDetailModals, type FolderDetailModalsProps } from "./FolderDetailModals";
+import type { DocumentDetail } from "@/app/adapter/api/documents.api";
 import { AttachmentSidePanel } from "@/features/documents/components";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 
@@ -190,7 +191,7 @@ const FolderDetailPage = () => {
         t={t}
         notes={data.notes}
         loadingNotes={loadingState.loadingNotes}
-        notesError={errors.notesError}
+        notesError={errors.notesError ?? null}
         onLoadNotes={actions.handleLoadNotes}
         onCreateNote={actions.handleCreateNote}
         onEditNote={actions.handleEditNote}
@@ -200,8 +201,8 @@ const FolderDetailPage = () => {
 
       <FolderDetailPreviewSection
         t={t}
-        previewDoc={data.previewDoc}
-        previewFileName={data.previewFileName}
+        previewDoc={data.previewDoc as DocumentDetail | null}
+        previewFileName={data.previewFileName != null ? data.previewFileName : ""}
         onDownload={actions.handleDownloadMainDocument}
       />
 
@@ -220,7 +221,7 @@ const FolderDetailPage = () => {
       <FolderDetailModals
         t={t}
         data={{ folder: data.folder, folderId: data.folderId, mainDoc: data.mainDoc, managers: data.managers }}
-        modals={modals}
+        modals={modals as FolderDetailModalsProps["modals"]}
         actions={{
           setSignatureOpen: actions.setSignatureOpen,
           setSignatureSignerId: actions.setSignatureSignerId,

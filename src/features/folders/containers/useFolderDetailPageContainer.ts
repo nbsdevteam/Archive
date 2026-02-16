@@ -24,7 +24,7 @@ import {
   useFolderSignaturesAndEditRequests,
   useFolderTransfer,
 } from "@/features/folders/hooks/folderDetail";
-import type { FolderDetailPageState } from "@/features/folders/types/folderDetailState";
+import type { FolderDetailPageState, FolderDetailModals } from "@/features/folders/types/folderDetailState";
 
 /**
  * Composes folder-detail hooks and returns typed state contract.
@@ -213,8 +213,8 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const previewDoc = currentDocument;
   const previewFileName = previewDoc?.file_name ?? "";
 
-  const formatDate = useCallback((dateStr?: string | null) => {
-    if (!dateStr) return "–";
+  const formatDate = useCallback<(date?: string | null) => string>((dateStr) => {
+    if (dateStr == null || dateStr === "") return "–";
     try {
       return formatRelativeTime(new Date(dateStr));
     } catch {
@@ -557,7 +557,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
       uploadPanelInitialValues,
       uploadPanelLockFolderContext,
       transferModalOpen,
-      transferMode,
+      transferMode: transferMode as FolderDetailModals["transferMode"],
       transferDocIds,
       transferAttachmentIds,
       transferDepartmentId,
@@ -568,8 +568,8 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
       isNotesEditorOpen: noteEditor.isNotesEditorOpen,
       editingNote: noteEditor.editingNote,
       noteImageViewerId: noteEditor.noteImageViewerId,
-      noteImageViewerTitle: noteEditor.noteImageViewerTitle,
-      noteImageViewerFilename: noteEditor.noteImageViewerFilename,
+      noteImageViewerTitle: noteEditor.noteImageViewerTitle ?? "",
+      noteImageViewerFilename: noteEditor.noteImageViewerFilename ?? "",
     },
   };
 };

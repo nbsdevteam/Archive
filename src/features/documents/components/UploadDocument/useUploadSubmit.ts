@@ -106,17 +106,21 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           announce(msg);
           return;
         }
-        const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [file];
+        const filesToUpload = selectedFiles.length > 0 ? selectedFiles : file != null ? [file] : [];
         const attachmentsPayload = await Promise.all(
-          filesToUpload.map(async (attachmentFile) => ({
-            name: attachmentFile.name,
-            file_name: attachmentFile.name,
-            file_data: await fileToBase64(attachmentFile),
-            description: null,
-            attachment_type: "supporting",
-          }))
+          filesToUpload.map(async (attachmentFile) => {
+            if (!attachmentFile) return null;
+            return {
+              name: attachmentFile.name,
+              file_name: attachmentFile.name,
+              file_data: await fileToBase64(attachmentFile),
+              description: null,
+              attachment_type: "supporting",
+            };
+          })
         );
-        const result = await documentsApi.uploadMultipleAttachments(docId, attachmentsPayload);
+        const payload = attachmentsPayload.filter((p): p is NonNullable<typeof p> => p != null);
+        const result = await documentsApi.uploadMultipleAttachments(docId, payload);
         if (!result.success) throw new Error(result.error ?? "Upload attachments failed");
         const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
         toast.success(successMsg);

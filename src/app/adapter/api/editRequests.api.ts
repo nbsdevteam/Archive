@@ -8,7 +8,11 @@ export interface EditRequest {
   requester_name: string;
   reason: string;
   state: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired';
+  /** Optional alias for state used by some endpoints. */
+  status?: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired';
   request_date: string;
+  /** Optional created timestamp when request_date is not provided. */
+  created_at?: string;
   response_date?: string;
   approver_id?: number;
   approver_name?: string;

@@ -19,7 +19,7 @@ export const useTrashDocumentCount = () => {
         page: 1,
         per_page: 1,
       });
-      const total = response?.pagination?.total ?? 0;
+      const total = (response?.pagination as { total?: number } | undefined)?.total ?? 0;
       setCount(total);
     } catch {
       setCount(0);

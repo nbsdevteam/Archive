@@ -93,12 +93,15 @@ export async function restoreDocument(documentIds: number | number[]): Promise<{
   return postRestore(toDocumentIds(documentIds));
 }
 
+/** Trash list item: document with optional deleted/restore fields. */
+type TrashDoc = import('./types').Document & { deleted_at?: string; restore_deadline?: string };
+
 /**
  * Get trashed documents with optional pagination. POST /api/documents/trash (JSON-RPC).
  */
 export async function getTrashDocuments(
   params?: { page?: number; per_page?: number; search?: string }
-): Promise<{ success: boolean; data: unknown[]; pagination?: unknown }> {
+): Promise<{ success: boolean; data: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } }> {
   const response = await apiClient.post('/api/documents/trash', {
     jsonrpc: '2.0',
     method: 'call',
@@ -112,5 +115,10 @@ export async function getTrashDocuments(
         'Failed to load trash'
     );
   }
-  return result as { success: boolean; data: unknown[]; pagination?: unknown };
+  const typed = result as { success: boolean; data?: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } };
+  return {
+    success: typed.success,
+    data: Array.isArray(typed.data) ? typed.data : [],
+    pagination: typed.pagination,
+  };
 }

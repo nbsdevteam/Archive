@@ -48,7 +48,7 @@ export const EditFolderSidePanel = ({
     reset,
   } = useForm<EditFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(editFolderSchema),
+    resolver: zodResolverZod4(editFolderSchema) as import("react-hook-form").Resolver<EditFolderFormValues>,
     defaultValues: {
       name: "",
       code: "",

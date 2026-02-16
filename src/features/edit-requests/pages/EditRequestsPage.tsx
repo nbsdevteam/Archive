@@ -61,7 +61,7 @@ const EditRequestsPage = () => {
                       </tr>
                     ) : (
                       requests.map((req) => {
-                        const status = req.state || req.status || "unknown";
+                        const status = req.state ?? req.status ?? "unknown";
                         const isPending = status === "pending";
                         return (
                           <tr key={req.id}>

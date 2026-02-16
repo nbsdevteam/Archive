@@ -1,16 +1,18 @@
 
 import { img_path} from '../../../environment';
 
-interface Image {
+/** Props for the image component (avoids conflict with global Image type). */
+export interface ImageWithBasePathProps {
   className?: string;
   src: string;
   alt?: string;
   height?: number;
   width?: number;
-  id?:string;
+  id?: string;
+  role?: string;
 }
 
-const ImageWithBasePath = (props: Image) => {
+const ImageWithBasePath = (props: ImageWithBasePathProps) => {
   // Combine the base path and the provided src to create the full image source URL
   const fullSrc = `${img_path}${props.src}`;
   return (
@@ -21,6 +23,7 @@ const ImageWithBasePath = (props: Image) => {
       alt={props.alt}
       width={props.width}
       id={props.id}
+      role={props.role}
     />
   );
 };

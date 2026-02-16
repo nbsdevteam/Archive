@@ -373,7 +373,8 @@ describe("useFolderDetailPageContainer", () => {
     });
 
     await waitFor(() => expect(result.current.data.subDocs).toHaveLength(2));
-    result.current.selection.subDocsSelectionConfig.onToggleAll();
+    expect(result.current.selection.subDocsSelectionConfig).not.toBeNull();
+    result.current.selection.subDocsSelectionConfig!.onToggleAll();
     await waitFor(() => expect(result.current.selection.subDocSelectedIds.length).toBe(2));
     mockGetFolderDocuments.mockClear();
 
@@ -421,7 +422,8 @@ describe("useFolderDetailPageContainer", () => {
 
     await waitFor(() => expect(result.current.data.attachmentsDocId).toBe(1));
     await waitFor(() => expect(result.current.data.attachments).toHaveLength(2));
-    result.current.selection.attachmentsSelectionConfig.onToggleAll();
+    expect(result.current.selection.attachmentsSelectionConfig).not.toBeNull();
+    result.current.selection.attachmentsSelectionConfig!.onToggleAll();
     await waitFor(() => expect(result.current.selection.attachmentSelectedIds.length).toBe(2));
     mockListAttachments.mockClear();
 

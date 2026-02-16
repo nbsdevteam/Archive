@@ -186,12 +186,11 @@ const RegisterPage = () => {
                               className="br-10 p-2 btn btn-info d-flex align-items-center justify-content-center"
                               aria-label={t("auth.signInWithFacebook")}
                             >
-                              <ImageWithBasePath
+                              <span role="presentation"><ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/facebook-logo.svg"
                                 alt=""
-                                role="presentation"
-                              />
+                              /></span>
                             </Link>
                           </div>
                           <div className="text-center me-2 flex-fill">
@@ -200,12 +199,11 @@ const RegisterPage = () => {
                               className="br-10 p-2 btn btn-outline-light border d-flex align-items-center justify-content-center"
                               aria-label={t("auth.signInWithGoogle")}
                             >
-                              <ImageWithBasePath
+                              <span role="presentation"><ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/google-logo.svg"
                                 alt=""
-                                role="presentation"
-                              />
+                              /></span>
                             </Link>
                           </div>
                           <div className="text-center flex-fill">
@@ -214,12 +212,11 @@ const RegisterPage = () => {
                               className="bg-dark br-10 p-2 btn btn-dark d-flex align-items-center justify-content-center"
                               aria-label={t("auth.signInWithApple")}
                             >
-                              <ImageWithBasePath
+                              <span role="presentation"><ImageWithBasePath
                                 className="img-fluid m-1"
                                 src="assets/img/icons/apple-logo.svg"
                                 alt=""
-                                role="presentation"
-                              />
+                              /></span>
                             </Link>
                           </div>
                         </div>

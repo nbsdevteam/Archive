@@ -59,7 +59,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 describe("useSearchPageContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useSearchStore as ReturnType<typeof vi.fn>).mockImplementation(() => createMockStore());
+    (useSearchStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => createMockStore());
   });
 
   it("exposes routes, searchQuery, searchType and handlers", () => {
@@ -152,7 +152,7 @@ describe("useSearchPageContainer", () => {
   });
 
   it("handleRetry calls clearError and re-runs search when searchQuery has value", () => {
-    (useSearchStore as ReturnType<typeof vi.fn>).mockImplementation(() =>
+    (useSearchStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(() =>
       createMockStore({ error: "Something failed", results: [] })
     );
     const { result } = renderHook(() => useSearchPageContainer(), { wrapper });
