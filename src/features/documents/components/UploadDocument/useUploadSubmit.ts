@@ -185,6 +185,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           confidentiality_level: data.confidentiality_level,
           auto_ocr: false,
           auto_barcode: false,
+          ...(data.folder_company_id != null && data.folder_company_id >= 1 && { company_id: data.folder_company_id }),
         });
         const jobId = startResponse.data?.job_id;
         if (!jobId) throw new Error("Bulk upload job id is missing.");

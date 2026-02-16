@@ -229,6 +229,7 @@
       "documentTypeRequired": "Document type is required",
       "folderNameRequired": "Folder name is required",
       "folderCodeRequired": "Folder code is required",
+      "folderCompanyRequired": "Folder company is required",
       "folderRequiredForSubDocument": "Link to folder is required for Sub Document",
       "folderRequiredForMainDocument": "Select an existing folder or create a new folder for Main Document"
     },

@@ -55,6 +55,7 @@ export function UploadDocumentSidePanel({
   const title = watch("title");
   const folderName = watch("folder_name");
   const folderCode = watch("folder_code");
+  const folderCompanyId = watch("folder_company_id");
   const targetDocumentId = watch("target_document_id");
   const folderId = watch("folder_id");
   const selectedFile = watch("file");
@@ -181,7 +182,7 @@ export function UploadDocumentSidePanel({
     uploadKind === "attachment"
       ? hasFile && Number(targetDocumentId) >= 1
       : uploadKind === "main" && uploadMultipleMain
-        ? hasMainMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1
+        ? hasMainMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1 && Number(folderCompanyId) >= 1
         : uploadKind === "sub" && uploadMultipleSub
           ? hasSubMultiFiles && Number(departmentId) >= 1 && Number(documentTypeId) >= 1 && Number(folderId) >= 1
           : hasRequiredTitle &&
@@ -189,7 +190,7 @@ export function UploadDocumentSidePanel({
             Number(departmentId) >= 1 &&
             Number(documentTypeId) >= 1 &&
             (uploadKind !== "sub" || Number(folderId) >= 1) &&
-            (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0));
+            (uploadKind !== "main" || ((folderName ?? "").trim().length > 0 && (folderCode ?? "").trim().length > 0 && Number(folderCompanyId) >= 1));
   const submitDisabled = !canSubmit || isUploading;
 
   /** Auto-fills folder name (only) from document title when uploading a main document; folder code is not prefilled. */

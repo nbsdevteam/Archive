@@ -49,11 +49,14 @@ export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormV
         t("documents.validation.documentTypeRequired")
       );
 
-      if (kind === "main" && !uploadMultipleMain) {
-        requiredTrimmedString(issues, ["title"], values.title, t("documents.validation.titleRequired"));
-        requiredTrimmedString(issues, ["folder_name"], values.folder_name, t("documents.validation.folderNameRequired"));
-        requiredTrimmedString(issues, ["folder_code"], values.folder_code, t("documents.validation.folderCodeRequired"));
-        requiredFile(issues, ["file"], values.file, t("documents.validation.fileRequired"));
+      if (kind === "main") {
+        requiredNumberMin1(issues, ["folder_company_id"], values.folder_company_id, t("documents.validation.folderCompanyRequired", { defaultValue: "Folder company is required" }));
+        if (!uploadMultipleMain) {
+          requiredTrimmedString(issues, ["title"], values.title, t("documents.validation.titleRequired"));
+          requiredTrimmedString(issues, ["folder_name"], values.folder_name, t("documents.validation.folderNameRequired"));
+          requiredTrimmedString(issues, ["folder_code"], values.folder_code, t("documents.validation.folderCodeRequired"));
+          requiredFile(issues, ["file"], values.file, t("documents.validation.fileRequired"));
+        }
       }
       if (kind === "sub") {
         const fid = values.folder_id;
@@ -102,7 +105,7 @@ export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormV
       folder_code: optionalTrimmedString(values.folder_code),
       folder_type: optionalTrimmedString(values.folder_type) || "other",
       folder_description: optionalTrimmedString(values.folder_description),
-      folder_company_id: typeof values.folder_company_id === "number" && values.folder_company_id >= 1 ? values.folder_company_id : 0,
+      folder_company_id: typeof values.folder_company_id === "number" ? values.folder_company_id : 0,
       confidentiality_level,
       po_number: optionalTrimmedString(values.po_number),
       bl_number: optionalTrimmedString(values.bl_number),
