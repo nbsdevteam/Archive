@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
-import { z } from "zod";
+import { createCreateFolderResolver } from "./createFolderValidation";
 import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";
@@ -34,17 +33,7 @@ export const CreateFolderSidePanel = ({
   const [departments, setDepartments] = useState<Department[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const createFolderSchema = useMemo(
-    () =>
-      z.object({
-        name: z.string().min(1, t("folders.validation.nameRequired")),
-        code: z.string().min(1, t("folders.validation.codeRequired")),
-        department_id: z.coerce.number().min(1, t("folders.validation.departmentRequired")),
-        folder_type: z.string().optional(),
-        description: z.string().optional(),
-      }),
-    [t]
-  );
+  const resolver = useMemo(() => createCreateFolderResolver(t), [t]);
 
   const FOLDER_TYPE_OPTIONS: SelectOption<string>[] = useMemo(
     () =>
@@ -64,7 +53,7 @@ export const CreateFolderSidePanel = ({
     reset,
   } = useForm<CreateFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(createFolderSchema) as import("react-hook-form").Resolver<CreateFolderFormValues>,
+    resolver,
     defaultValues: {
       name: "",
       code: "",
@@ -207,7 +196,7 @@ export const CreateFolderSidePanel = ({
             autoComplete="off"
           />
           {errors.description && (
-            <div className="invalid-feedback">{errors.description.message}</div>
+            <p className="invalid-feedback d-block mb-0" role="alert">{errors.description.message}</p>
           )}
         </div>
       </form>

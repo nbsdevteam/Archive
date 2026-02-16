@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { useForm, type Resolver } from "react-hook-form";
-import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
+import { useForm } from "react-hook-form";
+import { createEditDocumentResolver } from "./editDocumentValidation";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { documentsApi } from "@/app/adapter/api/documents.api";
@@ -14,7 +14,6 @@ import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Folder } from "@/features/folders/types/folders.types";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import type { EditDocumentFormValues, EditDocumentSidePanelProps } from "./types";
-import { getEditDocumentSchema } from "./editDocumentSchema";
 import { EditDocumentFormContent } from "./EditDocumentFormContent";
 import { Button } from "@/shared/components/ui";
 
@@ -114,12 +113,12 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const schema = useMemo(() => getEditDocumentSchema(t), [t]);
+  const resolver = useMemo(() => createEditDocumentResolver(t), [t]);
   const defaultValues = useMemo(() => getDefaultEditFormValues(), []);
 
   const { control, register, formState: { errors }, reset, watch, setValue, handleSubmit, trigger } = useForm<EditDocumentFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(schema) as Resolver<EditDocumentFormValues>,
+    resolver,
     defaultValues,
   });
 

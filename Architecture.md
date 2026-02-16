@@ -77,7 +77,7 @@ src/
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── schemas/
-│   │   │   ├── loginSchema.ts        # Zod schemas
+│   │   │   ├── loginSchema.ts        # Form validation schemas
 │   │   │   ├── registerSchema.ts
 │   │   │   └── index.ts
 │   │   │
@@ -433,11 +433,10 @@ Core
     * clsx / tailwind-merge - Conditional class management
 * Data Fetching & API
    * Axios - HTTP client
-   * Zod - Runtime validation & type inference
 * Forms & Validation
    * React Hook Form - Performant form management
-   * Zod - Schema validation
-   * @hookform/resolvers - Integration between RHF and Zod
+   * Custom validators (shared/utils/form/validation) - KISS/DRY validation + RHF resolver
+   * @hookform/resolvers - toNestErrors for RHF error shape
    * ------------------------
 * UI Components
       * Framer Motion - Animation library

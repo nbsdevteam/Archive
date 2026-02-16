@@ -137,7 +137,7 @@ export function UploadDocumentFileSection({
           </Button>
         )}
       </div>
-      {errorMessage && <div className="invalid-feedback d-block">{errorMessage}</div>}
+      {errorMessage && <p className="invalid-feedback d-block mb-0" role="alert">{errorMessage}</p>}
     </div>
   );
 }

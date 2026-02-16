@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
-import { z } from "zod";
+import { createEditFolderResolver } from "./editFolderValidation";
 import { SidePanel, Input, Button } from "../../../shared/components/ui";
 import { updateFolder } from "../services/folders.api";
 import type { Folder, FolderDetail } from "../types/folders.types";
@@ -31,15 +30,7 @@ export const EditFolderSidePanel = ({
   const { t } = useTranslation();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const editFolderSchema = useMemo(
-    () =>
-      z.object({
-        name: z.string().min(1, t("folders.validation.nameRequired")),
-        code: z.string().min(1, t("folders.validation.codeRequired")),
-        description: z.string().optional(),
-      }),
-    [t]
-  );
+  const resolver = useMemo(() => createEditFolderResolver(t), [t]);
 
   const {
     register,
@@ -48,7 +39,7 @@ export const EditFolderSidePanel = ({
     reset,
   } = useForm<EditFolderFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(editFolderSchema) as import("react-hook-form").Resolver<EditFolderFormValues>,
+    resolver,
     defaultValues: {
       name: "",
       code: "",
@@ -142,7 +133,7 @@ export const EditFolderSidePanel = ({
             autoComplete="off"
           />
           {errors.description && (
-            <div className="invalid-feedback">{errors.description.message}</div>
+            <p className="invalid-feedback d-block mb-0" role="alert">{errors.description.message}</p>
           )}
         </div>
       </form>

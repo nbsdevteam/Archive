@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { useForm, type Resolver } from "react-hook-form";
-import { zodResolverZod4 } from "@/shared/utils/form/zodResolverZod4";
+import { useForm } from "react-hook-form";
+import { createUploadDocumentResolver } from "./uploadDocumentValidation";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { adminApi } from "@/app/adapter/api/admin.api";
@@ -16,7 +16,6 @@ import { getDefaultUploadFormValues } from "./types";
 import { UploadDocumentFormContent } from "./UploadDocumentFormContent";
 import { UploadDocumentActions } from "./UploadDocumentActions";
 import { useUploadSubmit } from "./useUploadSubmit";
-import { getUploadDocumentSchema } from "./uploadDocumentSchema";
 
 /** Upload side panel: composes form state, submit logic, and target/file/optional/actions sections. */
 export function UploadDocumentSidePanel({
@@ -37,12 +36,12 @@ export function UploadDocumentSidePanel({
   const [isUploading, setIsUploading] = useState(false);
 
   const submitLogic = useUploadSubmit({ onSuccess, onClose, t, setSubmitError });
-  const uploadDocumentSchema = useMemo(() => getUploadDocumentSchema(t), [t]);
+  const resolver = useMemo(() => createUploadDocumentResolver(t), [t]);
 
   const defaultValues = useMemo(() => getDefaultUploadFormValues(initialValues, lockFolderContext), [initialValues, lockFolderContext]);
   const { control, register, handleSubmit, trigger, watch, formState: { errors }, reset, setValue } = useForm<UploadFormValues>({
     mode: "onChange",
-    resolver: zodResolverZod4(uploadDocumentSchema) as Resolver<UploadFormValues>,
+    resolver,
     defaultValues,
   });
 
