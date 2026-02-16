@@ -16,6 +16,24 @@
     padding-inline-end: 16px;
   }
 
+  /* Theme settings toggle: move to left side of screen and stop rotation in RTL */
+  .sidebar-contact {
+    right: auto;
+    left: -350px;
+    .toggle-theme {
+      right: auto;
+      left: 350px;
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      .fa-spin {
+        animation: none;
+        -webkit-animation: none;
+      }
+    }
+  }
+
   /* Theme settings check position */
   div.sidebar-themesettings .input-themeselect input[type="radio"]:checked ~ label .checkboxs-theme::before {
     right: auto;
