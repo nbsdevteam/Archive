@@ -4,6 +4,12 @@
  */
 
 .layout-mode-rtl {
+  /* Header top: space between sidebar and company heading so it is not glued to the edge */
+  .header .header-left {
+    padding-inline-start: 1.25rem;
+    margin-inline-start: 0.5rem;
+  }
+
   /* Sidebar logo: ensure inline padding so gap between sidebar edge and company text is consistent */
   .sidebar-logo {
     padding-inline-start: 16px;
