@@ -41,12 +41,19 @@ Cypress.Commands.add('flash', (message: string, durationMs: number = FLASH_DURAT
 
 /**
  * Returns a short unique suffix (timestamp + random 1–999) to avoid "name already exists" in E2E.
- * Use for document titles, folder names, attachment names, etc. Exposed as Cypress.uniqueE2ESuffix() in specs.
+ * Use for document titles, folder names, attachment names, etc.
  */
 function uniqueE2ESuffix(): string {
   return `${Date.now().toString(36)}-${Math.floor(Math.random() * 999) + 1}`;
 }
+/** Expose for specs that call Cypress.uniqueE2ESuffix() (legacy). */
 (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix = uniqueE2ESuffix;
+
+/**
+ * Command that yields a unique E2E suffix. Prefer this over Cypress.uniqueE2ESuffix() for Cypress 15+.
+ * Usage: cy.getUniqueE2ESuffix().then((suffix) => { ... });
+ */
+Cypress.Commands.add('getUniqueE2ESuffix', () => cy.wrap(uniqueE2ESuffix()));
 
 /**
  * Logs in via the UI as admin (username/password), then optionally visits a path.
@@ -119,6 +126,10 @@ declare global {
        * Show a centered full-screen flash message for a short duration (default 2.2s), then remove it.
        */
       flash(message: string, durationMs?: number): Chainable<void>;
+      /**
+       * Yields a unique suffix string for E2E names (documents, folders, attachments). Use in .then((suffix) => { ... }).
+       */
+      getUniqueE2ESuffix(): Chainable<string>;
     }
   }
 }

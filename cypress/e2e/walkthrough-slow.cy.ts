@@ -24,8 +24,11 @@ describe('Walkthrough: login and upload (slow)', () => {
     });
   });
 
+  /** Unique suffix for this run to avoid "name already exists" (avoids relying on support/commands in runner). */
+  const uniqueSuffix = () => `${Date.now().toString(36)}-${Math.floor(Math.random() * 999) + 1}`;
+
   it('logs in as admin then opens Upload Document from dashboard and fills form', () => {
-    const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
+    const suffix = uniqueSuffix();
     const title = `E2E Walkthrough Document ${suffix}`;
     const folderName = `E2E Walkthrough Folder ${suffix}`;
     const folderCode = `E2E-WALK-${suffix.replace(/[^a-z0-9]/gi, '').slice(0, 8)}`;
@@ -57,7 +60,7 @@ describe('Walkthrough: login and upload (slow)', () => {
     cy.url({ timeout: 15000 }).should('include', '/dashboard');
     waitStep();
 
-    cy.flash('Testing upload flow');
+    cy.wait(STEP_DELAY); // optional: was cy.flash('Testing upload flow')
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
 
@@ -87,10 +90,16 @@ describe('Walkthrough: login and upload (slow)', () => {
   });
 
   it('logs in as admin then opens Upload Documents from documents page', () => {
-    cy.loginAsAdmin('/documents');
+    cy.visit('/login');
+    cy.get('#login-role-admin').check({ force: true });
+    cy.get('#login-username').clear().type('admin');
+    cy.get('#login-password').clear().type('admin');
+    cy.get('form').submit();
+    cy.url({ timeout: 15000 }).should('include', '/dashboard');
+    cy.visit('/documents');
     waitStep();
 
-    cy.flash('Testing upload flow — documents page');
+    cy.wait(STEP_DELAY); // optional: was cy.flash('Testing upload flow — documents page')
     cy.get('[data-testid="upload-documents-btn"]').should('be.visible').click();
     waitStep();
 
