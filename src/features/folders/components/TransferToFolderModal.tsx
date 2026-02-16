@@ -11,7 +11,10 @@ export interface TransferToFolderModalProps {
   departmentId: number;
   title: string;
   subtitle?: string;
+  /** Exclude this folder from the destination list (e.g. current folder). */
   excludeFolderId?: number;
+  /** Exclude these folder IDs (e.g. current folders of documents being moved). Takes precedence when provided. */
+  excludeFolderIds?: number[];
   onConfirm: (folderId: number) => void | Promise<void>;
   /** When true, confirm button shows spinner and is disabled. */
   isSubmitting?: boolean;
@@ -28,6 +31,7 @@ export function TransferToFolderModal({
   title,
   subtitle,
   excludeFolderId,
+  excludeFolderIds,
   onConfirm,
   isSubmitting = false,
 }: TransferToFolderModalProps) {
@@ -49,15 +53,18 @@ export function TransferToFolderModal({
     listFolders({ department_id: departmentId })
       .then((res) => {
         const list = res.folders ?? [];
+        const excluded = (id: number) =>
+          (excludeFolderIds != null && excludeFolderIds.length > 0 && excludeFolderIds.includes(id)) ||
+          (excludeFolderId != null && id === excludeFolderId);
         const filtered = list.filter(
-          (f) => f.department_id === departmentId && f.id !== excludeFolderId
+          (f) => f.department_id === departmentId && !excluded(f.id)
         );
         setFolders(filtered);
         setSelectedFolderId("");
       })
       .catch((e) => setError((e as Error).message ?? "Failed to load folders"))
       .finally(() => setLoading(false));
-  }, [isOpen, departmentId, excludeFolderId]);
+  }, [isOpen, departmentId, excludeFolderId, excludeFolderIds]);
 
   const handleConfirm = () => {
     const id = Number(selectedFolderId);

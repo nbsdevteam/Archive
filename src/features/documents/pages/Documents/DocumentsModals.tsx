@@ -11,6 +11,8 @@ export interface DocumentsModalsProps {
     isMoveModalOpen: boolean;
     moveDepartmentId: number;
     moveDocumentIdsCount: number;
+    /** Current folder(s) of documents being moved; excluded from destination list. */
+    moveExcludeFolderIds: number[];
     isMoveSubmitting: boolean;
   };
   actions: {
@@ -95,6 +97,7 @@ export function DocumentsModals({
           defaultValue: "Transfer {{count}} document(s) to a folder in the same department.",
           count: modals.moveDocumentIdsCount,
         })}
+        excludeFolderIds={modals.moveExcludeFolderIds.length > 0 ? modals.moveExcludeFolderIds : undefined}
         onConfirm={actions.handleConfirmBatchMove}
         isSubmitting={modals.isMoveSubmitting}
       />

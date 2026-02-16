@@ -66,6 +66,8 @@ export const useDocumentsPageContainer = () => {
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
   const [moveDepartmentId, setMoveDepartmentId] = useState(0);
+  /** Folder IDs to exclude from destination list (current folder(s) of documents being moved). */
+  const [moveExcludeFolderIds, setMoveExcludeFolderIds] = useState<number[]>([]);
   const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
 
   const handleOpenEdit = useCallback((documentId: number) => setEditDocumentId(documentId), []);
@@ -157,6 +159,7 @@ export const useDocumentsPageContainer = () => {
     t,
   ]);
 
+  /** Opens transfer modal for given document IDs; excludes their current folder(s) from destination list. */
   const openMoveModalForIds = useCallback(
     (documentIds: number[]) => {
       if (documentIds.length === 0) return;
@@ -176,8 +179,16 @@ export const useDocumentsPageContainer = () => {
         );
         return;
       }
+      const excludeIds = [
+        ...new Set(
+          selectedDocs
+            .map((doc) => doc.folder_id)
+            .filter((id): id is number => id != null && id > 0)
+        ),
+      ];
       setMoveDocumentIds(documentIds);
       setMoveDepartmentId(departmentIds[0]);
+      setMoveExcludeFolderIds(excludeIds);
       setIsMoveModalOpen(true);
     },
     [documents, t]
@@ -195,6 +206,7 @@ export const useDocumentsPageContainer = () => {
       setIsMoveModalOpen(false);
       setMoveDocumentIds([]);
       setMoveDepartmentId(0);
+      setMoveExcludeFolderIds([]);
     }
   }, [isMoveSubmitting]);
   const handleConfirmBatchMove = useCallback(
@@ -210,6 +222,7 @@ export const useDocumentsPageContainer = () => {
         setIsMoveModalOpen(false);
         setMoveDocumentIds([]);
         setMoveDepartmentId(0);
+        setMoveExcludeFolderIds([]);
         await fetchDocuments(getFetchParams());
       } catch (err) {
         toast.error(handleApiError(err));
@@ -276,6 +289,7 @@ export const useDocumentsPageContainer = () => {
       isMoveModalOpen,
       moveDocumentIdsCount: moveDocumentIds.length,
       moveDepartmentId,
+      moveExcludeFolderIds,
       isMoveSubmitting,
       isTrashing,
       isArchiving,
