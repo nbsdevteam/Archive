@@ -127,7 +127,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
                     <th style={{ width: "3%" }} className="text-center">
                       {attachments.length > 0 && (
                         <div className="form-check d-inline-flex justify-content-center mb-0">
-                          <input type="checkbox" className="form-check-input" checked={selectionConfig.isAllSelected} onChange={selectionConfig.onToggleAll} aria-label={selectionConfig.isIndeterminate ? "Uncheck all" : "Check all"} />
+                          <input type="checkbox" className="form-check-input" checked={selectionConfig.isAllSelected} onChange={selectionConfig.onToggleAll} aria-label={selectionConfig.isIndeterminate ? t("common.uncheckAll") : t("common.checkAll")} />
                         </div>
                       )}
                     </th>

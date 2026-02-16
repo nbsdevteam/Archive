@@ -145,7 +145,7 @@ export function FolderDetailSubDocsSection({
                           className="form-check-input"
                           checked={selectionConfig.isAllSelected}
                           onChange={selectionConfig.onToggleAll}
-                          aria-label={selectionConfig.isIndeterminate ? "Uncheck all" : "Check all"}
+                          aria-label={selectionConfig.isIndeterminate ? t("common.uncheckAll") : t("common.checkAll")}
                         />
                       </div>
                     )}

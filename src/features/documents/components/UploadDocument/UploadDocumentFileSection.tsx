@@ -141,8 +141,8 @@ export function UploadDocumentFileSection({
           <Icon name="paperclip" className="me-1" />
           {selectedFile instanceof File
             ? selectedFiles.length > 1
-              ? `Selected: ${selectedFiles.length} files`
-              : `Selected: ${selectedFile.name}`
+              ? t("documents.selectedFilesCount", { count: selectedFiles.length, defaultValue: "Selected: {{count}} files" })
+              : t("documents.selectedFile", { name: selectedFile.name, defaultValue: "Selected: {{name}}" })
             : t("common.selectFile", { defaultValue: "Select File" })}
         </Button>
         {(selectedFile instanceof File || selectedFiles.length > 0) && (

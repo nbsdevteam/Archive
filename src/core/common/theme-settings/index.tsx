@@ -93,7 +93,7 @@ const ThemeSettings = () => {
                   aria-expanded="true"
                   aria-controls="layoutsetting"
                 >
-                  Select Layouts
+                  {t("app.chooseLayout")}
                 </button>
               </h2>
               <div id="layoutsetting" className="accordion-collapse collapse show">

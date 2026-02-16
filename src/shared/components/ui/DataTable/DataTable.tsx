@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Dropdown from "react-bootstrap/Dropdown";
 import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
@@ -35,10 +36,11 @@ export function DataTable<T>({
   onRowClick,
   rowActions,
   selection,
-  actionsColumnHeader = "Actions",
+  actionsColumnHeader,
   tableClassName = "table table-striped mb-0",
   tbodyClassName,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
   const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
 
@@ -110,7 +112,7 @@ export function DataTable<T>({
                       className="form-check-input"
                       checked={selection!.isAllSelected}
                       onChange={selection!.onToggleAll}
-                      aria-label={selection!.isIndeterminate ? "Uncheck all" : "Check all"}
+                      aria-label={selection!.isIndeterminate ? t("common.uncheckAll") : t("common.checkAll")}
                     />
                   </div>
                 )}
@@ -126,7 +128,7 @@ export function DataTable<T>({
               </th>
             ))}
             {hasActions && (
-              <th className="text-end">{actionsColumnHeader}</th>
+              <th className="text-end">{actionsColumnHeader ?? t("common.actions")}</th>
             )}
           </tr>
         </thead>
@@ -170,7 +172,7 @@ export function DataTable<T>({
                           aria-label={
                             selection!.getRowAriaLabel
                               ? selection!.getRowAriaLabel(row)
-                              : `Select row ${rowId}`
+                              : t("common.selectRow", { defaultValue: "Select row", rowId })
                           }
                         />
                       </div>
@@ -196,7 +198,7 @@ export function DataTable<T>({
                           variant="link"
                           size="sm"
                           className="datatable-row-actions-toggle p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
-                          aria-label={`Actions for row ${rowId}`}
+                          aria-label={`${t("common.actionsForRow")} ${rowId}`}
                         >
                           <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
                         </Dropdown.Toggle>

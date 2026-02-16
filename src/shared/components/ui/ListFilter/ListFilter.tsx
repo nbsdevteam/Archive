@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Select, { type SingleValue } from "react-select";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
@@ -44,12 +45,18 @@ export function ListFilter({
   onClear,
   applyDisabled = true,
   disabled = false,
-  applyLabel = "Apply",
-  clearLabel = "Clear",
-  closeAriaLabel = "Close filter",
-  ariaLabel = "Filter options",
+  applyLabel,
+  clearLabel,
+  closeAriaLabel,
+  ariaLabel,
 }: ListFilterProps) {
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
+  const resolvedApplyLabel = applyLabel ?? t("common.apply", { defaultValue: "Apply" });
+  const resolvedClearLabel = clearLabel ?? t("common.clear", { defaultValue: "Clear" });
+  const resolvedCloseAriaLabel = closeAriaLabel ?? t("common.close", { defaultValue: "Close filter" });
+  const resolvedAriaLabel = ariaLabel ?? t("documents.filterOptions", { defaultValue: "Filter options" });
+  const selectPlaceholder = t("app.selectPlaceholder", { defaultValue: "Select..." });
 
   const handleApply = useCallback(() => {
     onApply();
@@ -126,16 +133,16 @@ export function ListFilter({
         ref={panelRef}
         className={styles.panel}
         role="dialog"
-        aria-label={ariaLabel}
+        aria-label={resolvedAriaLabel}
         aria-modal="true"
       >
       <div className={styles.header}>
-        <span className={styles.headerTitle}>{ariaLabel}</span>
+        <span className={styles.headerTitle}>{resolvedAriaLabel}</span>
         <button
           type="button"
           className={styles.closeBtn}
           onClick={handleCloseClick}
-          aria-label={closeAriaLabel}
+          aria-label={resolvedCloseAriaLabel}
           disabled={disabled}
         >
           <Icon name="x" style={{ width: "1rem", height: "1rem" }} />
@@ -147,7 +154,7 @@ export function ListFilter({
           <div className={styles.selectWrap}>
             <Select<SelectOption>
               isClearable
-              placeholder="Select..."
+              placeholder={selectPlaceholder}
               options={primaryFilter.options}
               value={primaryOption}
               isDisabled={disabled}
@@ -162,7 +169,7 @@ export function ListFilter({
           <div className={styles.selectWrap}>
             <Select<SelectOption>
               isClearable
-              placeholder="Select..."
+              placeholder={selectPlaceholder}
               options={secondaryFilter.options}
               value={secondaryOption}
               isDisabled={disabled}
@@ -182,7 +189,7 @@ export function ListFilter({
             onClick={handleClear}
             disabled={disabled}
           >
-            {clearLabel}
+            {resolvedClearLabel}
           </Button>
         )}
         <Button
@@ -191,7 +198,7 @@ export function ListFilter({
           onClick={handleApply}
           disabled={disabled || applyDisabled}
         >
-          {applyLabel}
+          {resolvedApplyLabel}
         </Button>
       </div>
     </div>
