@@ -1,0 +1,7 @@
+@use "../../assets/scss/utils/variables" as v;
+
+/* Arabic UI: same weight/size scale as EN; avoid synthetic bold. Icon fonts (ti, fa) keep their own family. */
+html[lang="ar"] body {
+  font-family: v.$font-family-arabic;
+  font-synthesis: none;
+}

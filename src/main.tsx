@@ -7,9 +7,10 @@ import "./i18n/config";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Global CSS: Bootstrap LTR/RTL loaded at runtime via BootstrapDirectionStyles; app SCSS, icon fonts
+// Global CSS: Bootstrap LTR/RTL loaded from head link (pre-paint + BootstrapDirectionSync); app SCSS, icon fonts
 import "../src/assets/css/feather.css";
 import "../src/assets/scss/custom.scss";
+import "../src/shared/styles/arabic-font.scss";
 import "../src/shared/styles/rtl-overrides.scss";
 import "../src/assets/icon/boxicons/boxicons/css/boxicons.min.css";
 import "../src/assets/icon/weather/weathericons.css";

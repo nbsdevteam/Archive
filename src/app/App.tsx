@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppProviders } from "./providers/AppProviders";
-import { BootstrapDirectionStyles } from "./providers/BootstrapDirectionStyles";
+import { BootstrapDirectionSync } from "./providers/BootstrapDirectionSync";
 import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
 import { usePrefersColorScheme } from "../shared/hooks";
@@ -13,23 +13,23 @@ import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
 const RTL_BODY_CLASS = "layout-mode-rtl";
 
 /**
- * Syncs html dir/lang and body class for RTL when Arabic is active.
+ * Syncs html dir/lang and body class for RTL when Arabic is active; leaves EN unchanged.
  */
 function RtlSync() {
   const { i18n } = useTranslation();
   useEffect(() => {
-    const isRtl = i18n.language === "ar";
+    const isAr = i18n.language === "ar";
     const root = document.documentElement;
-    root.dir = isRtl ? "rtl" : "ltr";
-    root.lang = isRtl ? "ar" : "en";
-    if (isRtl) {
+    root.dir = isAr ? "rtl" : "ltr";
+    root.lang = isAr ? "ar" : "en";
+    if (isAr) {
       document.body.classList.add(RTL_BODY_CLASS);
     } else {
       document.body.classList.remove(RTL_BODY_CLASS);
     }
     return () => {
-      root.dir = "";
-      root.lang = "";
+      root.dir = "ltr";
+      root.lang = "en";
       document.body.classList.remove(RTL_BODY_CLASS);
     };
   }, [i18n.language]);
@@ -37,7 +37,7 @@ function RtlSync() {
 }
 
 /**
- * ToastContainer with resolved theme and RTL from current language.
+ * ToastContainer with resolved theme and RTL when Arabic is active.
  */
 const ThemedToastContainer = () => {
   const { i18n } = useTranslation();
@@ -71,7 +71,7 @@ export const App = () => {
     <BrowserRouter basename={base_path}>
       <AppProviders>
         <LiveAnnouncerProvider>
-          <BootstrapDirectionStyles />
+          <BootstrapDirectionSync />
           <RtlSync />
           <AppRouter />
           <ThemedToastContainer />

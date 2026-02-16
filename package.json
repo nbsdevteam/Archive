@@ -3,12 +3,18 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "sideEffects": ["*.css", "*.scss", "**/*.css", "**/*.scss"],
+  "sideEffects": [
+    "*.css",
+    "*.scss",
+    "**/*.css",
+    "**/*.scss"
+  ],
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "build": "rimraf dist && tsc -b && vite build",
     "build:prod": "npm run lint && rimraf dist && tsc -b && vite build",
     "build:analyze": "npm run build && node scripts/analyze-bundle.js",
+    "build:bootstrap-rtl": "rtlcss public/assets/css/bootstrap.min.css public/assets/css/bootstrap.rtl.min.css",
     "analyze": "node scripts/analyze-bundle.js",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -128,6 +134,7 @@
     "resolve-url-loader": "^5.0.0",
     "rimraf": "^6.1.2",
     "rollup": "^4.53.3",
+    "rtlcss": "^4.3.0",
     "sass": "^1.94.2",
     "slick-carousel": "^1.8.1",
     "start-server-and-test": "^2.1.3",

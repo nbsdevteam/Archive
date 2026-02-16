@@ -13,10 +13,13 @@ import { HeaderMobileMenu } from "./HeaderMobileMenu";
 const Header = React.memo(() => {
   const { t, i18n } = useTranslation();
   const routes = all_routes;
-  const isArabic = i18n.language === "ar";
-  const handleLanguageToggle = useCallback(() => {
-    i18n.changeLanguage(isArabic ? "en" : "ar");
-  }, [i18n, isArabic]);
+  const isAr = i18n.language === "ar";
+  const setLanguage = useCallback(
+    (lng: "en" | "ar") => () => {
+      i18n.changeLanguage(lng);
+    },
+    [i18n]
+  );
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { setMobileSidebar, mobileSidebar, toggleMiniSidebar } = useSidebarUiStore();
@@ -68,15 +71,40 @@ const Header = React.memo(() => {
               </div>
 
               <div className="d-flex align-items-center">
-                <button
-                  type="button"
-                  onClick={handleLanguageToggle}
-                  className="btn btn-menubar me-1"
-                  aria-label={isArabic ? t("app.switchToEnglish") : t("app.switchToArabic")}
-                  title={isArabic ? t("app.switchToEnglish") : t("app.switchToArabic")}
-                >
-                  <span aria-hidden>{isArabic ? "EN" : "AR"}</span>
-                </button>
+                <div className="dropdown me-1">
+                  <button
+                    type="button"
+                    className="btn btn-menubar"
+                    data-bs-toggle="dropdown"
+                    aria-label={t("app.switchLanguage")}
+                    aria-haspopup="true"
+                    title={t("app.switchLanguage")}
+                  >
+                    <i className="ti ti-world" aria-hidden></i>
+                  </button>
+                  <div className="dropdown-menu dropdown-menu-end">
+                    <button
+                      type="button"
+                      className={`dropdown-item d-flex align-items-center ${!isAr ? "active" : ""}`}
+                      onClick={setLanguage("en")}
+                    >
+                      <span className="me-2" style={{ width: "1.25rem", textAlign: "start" }}>
+                        {!isAr && <i className="ti ti-check" aria-hidden></i>}
+                      </span>
+                      {t("app.english")}
+                    </button>
+                    <button
+                      type="button"
+                      className={`dropdown-item d-flex align-items-center ${isAr ? "active" : ""}`}
+                      onClick={setLanguage("ar")}
+                    >
+                      <span className="me-2" style={{ width: "1.25rem", textAlign: "start" }}>
+                        {isAr && <i className="ti ti-check" aria-hidden></i>}
+                      </span>
+                      العربية
+                    </button>
+                  </div>
+                </div>
                 <div className="me-1">
                   <Link to="#" onClick={toggleFullscreen} className="btn btn-menubar btnFullscreen" aria-label={t("app.toggleFullscreen")}>
                     <i className="ti ti-maximize" aria-hidden></i>
