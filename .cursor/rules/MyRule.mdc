@@ -3,6 +3,8 @@ description:
 alwaysApply: true
 ---
 
+**Cypress "run that shit":** When the user says "run that shit", "comon bitch run that shit", "just run cypress", or similar, run Cypress in slow mode with the Cypress UI (menu) open. Use: `npm run e2e:slow:ui` (starts dev server, then opens Cypress with slow specs so the user can pick and run tests from the menu).
+
 After every AI code completion make a git commit with proper git message.
 Add a proper brief comment on each functions and complex hook usages.
 
