@@ -109,6 +109,7 @@ export interface AuditPagination {
 /** Params sent in the /api/audit-logs JSON-RPC request. date_from/date_to use YYYY-MM-DDTHH:mm:ss. */
 export interface AuditLogsApiParams {
   document_id?: number;
+  folder_id?: number;
   action?: AuditAction | string;
   /** Start of day, e.g. "2025-01-01T00:00:00" */
   date_from?: string;

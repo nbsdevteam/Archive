@@ -134,7 +134,7 @@ export const adminApi = {
   },
 
   /**
-   * Get audit logs. Params: document_id, action, date_from, date_to (YYYY-MM-DDTHH:mm:ss), page, per_page.
+   * Get audit logs. Params: document_id, folder_id, action, date_from, date_to (YYYY-MM-DDTHH:mm:ss), page, per_page.
    */
   getAuditLogs: async (params?: AuditLogsApiParams): Promise<{
     success: boolean;

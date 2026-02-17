@@ -52,7 +52,6 @@ vi.mock("../../activity/hooks/useFolderAuditLogs", () => ({
     logs: [],
     loading: false,
     error: null,
-    documentCount: 0,
     refresh: vi.fn(),
   }),
 }));

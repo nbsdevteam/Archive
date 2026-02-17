@@ -64,13 +64,10 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     logs: activityLogs,
     loading: activityLoading,
     error: activityError,
-    documentCount: activityDocumentCount,
     refresh: refreshActivityLogs,
   } = useFolderAuditLogs(folderId, {
     enabled: Boolean(folderId),
     perPage: 50,
-    maxDocuments: 20,
-    concurrency: 4,
   });
 
   const {
@@ -469,7 +466,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
       activityLogs,
       activityLoading,
       activityError,
-      activityDocumentCount,
+      activityDocumentCount: documents.length,
       activityViewMode,
       setActivityViewMode,
       refreshActivityLogs,
