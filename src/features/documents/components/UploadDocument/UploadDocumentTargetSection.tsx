@@ -162,6 +162,19 @@ export function UploadDocumentTargetSection({
             error={errors.document_type_id?.message as string | undefined}
             data-testid="document-type-select"
           />
+          {/* Folder Company/Brand: main uploads only, below document type and above file section. */}
+          {uploadKind === "main" && (
+            <SelectField
+              control={control}
+              name="folder_company_id"
+              options={companies.map((c) => ({ value: c.id, label: c.name }))}
+              label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
+              placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
+              required
+              isDisabled={lockFolderContext}
+              error={errors.folder_company_id?.message as string | undefined}
+            />
+          )}
         </>
       )}
 
@@ -246,19 +259,6 @@ export function UploadDocumentTargetSection({
                 <textarea className="form-control" {...register("folder_description")} rows={2} autoComplete="off" disabled={lockFolderContext} />
               </div>
             </>
-          )}
-
-          {uploadKind === "main" && (
-            <SelectField
-              control={control}
-              name="folder_company_id"
-              options={companies.map((c) => ({ value: c.id, label: c.name }))}
-              label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
-              placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
-              required
-              isDisabled={lockFolderContext}
-              error={errors.folder_company_id?.message as string | undefined}
-            />
           )}
 
           <SelectField
