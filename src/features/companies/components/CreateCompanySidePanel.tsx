@@ -38,7 +38,7 @@ export function CreateCompanySidePanel({
 }: CreateCompanySidePanelProps) {
   const { t } = useTranslation();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
-  const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache();
+  const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache(isOpen);
 
   const resolver = useMemo(() => createCreateCompanyResolver(t), [t]);
 

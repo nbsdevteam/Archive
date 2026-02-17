@@ -1,6 +1,6 @@
 /**
- * Returns country options for company forms. Uses localStorage cache only; fetches API once on cache miss.
- * Does not use global state — cache is read/written from localStorage so the API is not triggered on every Create open.
+ * Returns country options for company forms. Uses localStorage cache; fetches API only when enabled and cache is empty.
+ * Call with enabled=true only when the Create Company panel is open so the API runs at most once (on first Create open with empty cache).
  */
 
 import { useEffect, useState, useMemo } from "react";
@@ -33,23 +33,32 @@ function setCachedCountries(data: ApiCountryRow[]): void {
 }
 
 /**
- * Reads countries from localStorage first; if missing, fetches once from POST /api/countries and caches.
- * Returns { countryOptions, selectOptions, loading, error }. API is not called when cache exists.
+ * When enabled is true: syncs from localStorage; if cache empty and fetchIfEmpty, fetches once and caches.
+ * When enabled is false: no effect, no API. Create panel: useCountriesFromCache(isOpen, true). Edit: useCountriesFromCache(isOpen, false).
  */
-export function useCountriesFromCache(): {
+export function useCountriesFromCache(
+  enabled: boolean,
+  fetchIfEmpty: boolean = true
+): {
   countryOptions: CountryOption[];
   selectOptions: SelectOption[];
   loading: boolean;
   error: string | null;
 } {
   const [rawList, setRawList] = useState<ApiCountryRow[]>(() => getCachedCountries() ?? []);
-  const [loading, setLoading] = useState(() => getCachedCountries() === null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     const cached = getCachedCountries();
     if (cached !== null) {
       setRawList(cached);
+      setLoading(false);
+      return;
+    }
+    if (!fetchIfEmpty) {
+      setRawList([]);
       setLoading(false);
       return;
     }
@@ -75,7 +84,7 @@ export function useCountriesFromCache(): {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [enabled, fetchIfEmpty]);
 
   const countryOptions = useMemo(() => mapApiCountriesToOptions(rawList), [rawList]);
   const selectOptions = useMemo(
