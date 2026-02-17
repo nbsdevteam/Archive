@@ -101,6 +101,7 @@
 
 .activity-flow-node-log {
   border-color: rgba(13, 110, 253, 0.2);
+  margin-bottom: 0.5rem;
 }
 
 .activity-flow-node-title {

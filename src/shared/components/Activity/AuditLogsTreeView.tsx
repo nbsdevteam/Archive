@@ -108,7 +108,8 @@ const AuditLogsTreeViewComponent = ({
     const edges: Edge[] = [];
     const groupX = 80;
     const logX = 460;
-    const logVerticalSpacing = 120;
+    /** Vertical gap between log cards; must fit card height (4 rows + optional metadata + padding) to avoid overlap. */
+    const logVerticalSpacing = 180;
     const groupSectionGap = 80;
     let cursorY = 40;
 
