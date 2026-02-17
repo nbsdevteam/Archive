@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
@@ -14,10 +14,20 @@ import { CreateCompanySidePanel } from "../../components/CreateCompanySidePanel"
 import { EditCompanySidePanel } from "../../components/EditCompanySidePanel";
 import { CompanyDetailsSidePanel } from "../../components/CompanyDetailsSidePanel";
 
+/** Returns true if the event target is an editable field (input, textarea, contenteditable). */
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  const tag = target.tagName.toLowerCase();
+  const role = target.getAttribute?.("role");
+  if (tag === "input" || tag === "textarea" || tag === "select") return true;
+  if (target.isContentEditable || role === "textbox") return true;
+  return false;
+}
+
 /**
  * Companies list page: table with search, refresh, create (admin), row actions
  * (View details, Edit, Delete). Uses side panels for create/edit/details and
- * confirm modal for delete.
+ * confirm modal for delete. Keyboard: Ctrl+C = create company, R = refresh (when not in an input).
  */
 export default function CompaniesPage() {
   const { t } = useTranslation();
@@ -25,6 +35,28 @@ export default function CompaniesPage() {
   const { companies, countLabel, routes } = data;
 
   const deleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDelete });
+
+  /** Register page shortcuts: Ctrl+C = create company, R = refresh (ignored when focus is in an input). */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const inInput = isEditableTarget(e.target);
+      if (e.ctrlKey && e.key.toLowerCase() === "c") {
+        if (isAdmin && !inInput) {
+          e.preventDefault();
+          actions.handleOpenCreate();
+        }
+        return;
+      }
+      if (e.key.toLowerCase() === "r" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!inInput) {
+          e.preventDefault();
+          actions.handleRefresh();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [isAdmin, actions.handleOpenCreate, actions.handleRefresh]);
 
   const columns = useMemo(
     () => getCompanyTableColumns({ t }),
