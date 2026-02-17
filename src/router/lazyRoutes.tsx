@@ -131,6 +131,10 @@ export const FolderDetailPage = createLazyComponent(
   () => import("../features/folders/pages/FolderDetail"),
   <LoadingSpinner text="Loading folder..." />
 );
+export const CompaniesPage = createLazyComponent(
+  () => import("../features/companies/pages/Companies/CompaniesPage"),
+  <LoadingSpinner text="Loading companies..." />
+);
 
 // Requests + notifications
 export const EditRequestsPage = createLazyComponent(

@@ -6,7 +6,7 @@ import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { SidebarDataTest } from "../../data/json/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
-import { useAuth } from "../../../features/auth/hooks/useAuth";
+import { IS_ADMIN } from "../../../shared/constants/access";
 import {
   Sidebar as NbsSidebarImport,
   type SidebarConfig,
@@ -21,6 +21,7 @@ import {
   LayoutDashboard,
   FileText,
   Folder,
+  Building2,
   Pencil,
   PenTool,
   StickyNote,
@@ -34,6 +35,7 @@ const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
   FileText,
   Folder,
+  Building2,
   Pencil,
   PenTool,
   StickyNote,
@@ -87,10 +89,9 @@ const Sidebar = memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
   const { setExpandMenu } = useSidebarUiStore();
-  const { user } = useAuth();
   const { t } = useTranslation();
 
-  const isAdmin = user?.role === "admin" || (user as any)?.is_admin === true;
+  const isAdmin = IS_ADMIN;
   const [activeHref, setActiveHref] = useState<string>(() => location.pathname);
 
   const allHrefs = useMemo(() => {

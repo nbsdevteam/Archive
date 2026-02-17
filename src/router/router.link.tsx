@@ -3,6 +3,7 @@ import { all_routes } from "./all_routes";
 import { PublicRoute } from "../app/routes/PublicRoute";
 import {
   ActivityPage,
+  CompaniesPage,
   DashboardPage,
   DocumentAttachmentViewPage,
   DocumentDetailPage,
@@ -80,6 +81,10 @@ export const publicRoutes = [
   {
     path: routes.folderDetail,
     element: <FolderDetailPage />,
+  },
+  {
+    path: routes.companies,
+    element: <CompaniesPage />,
   },
   // Requests + notifications
   {

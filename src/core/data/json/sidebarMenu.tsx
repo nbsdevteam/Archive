@@ -43,6 +43,15 @@ export const SidebarDataTest = [
         base2: routes.folderDetail,
       },
       {
+        label: "Companies",
+        translationKey: "companies",
+        link: routes.companies,
+        submenu: false,
+        showSubRoute: false,
+        icon: "Building2",
+        base: routes.companies,
+      },
+      {
         label: "Edit Requests",
         translationKey: "editRequests",
         link: routes.editRequests,

@@ -1,0 +1,165 @@
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import { PageLayout } from "@/shared/layout/PageLayout";
+import { useConfirmDialog } from "@/shared/hooks";
+import { Alert, Button, DataTable, Icon, SearchInput } from "@/shared/components/ui";
+import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
+import { ConfirmModal } from "@/shared/components/ui";
+import { buildRowActions } from "@/shared/utils/buildRowActions";
+import type { Company } from "@/shared/types/company";
+import { useCompaniesPageContainer } from "../../containers/useCompaniesPageContainer";
+import { getCompanyTableColumns } from "../../utils/companyTableColumns";
+import { CreateCompanySidePanel } from "../../components/CreateCompanySidePanel";
+import { EditCompanySidePanel } from "../../components/EditCompanySidePanel";
+import { CompanyDetailsSidePanel } from "../../components/CompanyDetailsSidePanel";
+
+/**
+ * Companies list page: table with search, refresh, create (admin), row actions
+ * (View details, Edit, Delete). Uses side panels for create/edit/details and
+ * confirm modal for delete.
+ */
+export default function CompaniesPage() {
+  const { t } = useTranslation();
+  const { data, loading, error, actions, modals, isAdmin } = useCompaniesPageContainer();
+  const { companies, countLabel, routes } = data;
+
+  const deleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDelete });
+
+  const columns = useMemo(
+    () => getCompanyTableColumns({ t }),
+    [t]
+  );
+
+  const rowActions = useMemo(
+    () =>
+      buildRowActions<Company>(t, [
+        {
+          id: "view",
+          labelKey: "common.view",
+          defaultValue: "View",
+          variant: "light",
+          onClick: (row) => actions.handleOpenDetails(row.id),
+        },
+        {
+          id: "edit",
+          labelKey: "common.edit",
+          defaultValue: "Edit",
+          icon: "pencil",
+          variant: "outline",
+          className: "btn-outline-secondary me-1",
+          visible: () => isAdmin,
+          onClick: (row) => actions.handleOpenEdit(row.id),
+        },
+        {
+          id: "delete",
+          labelKey: "common.delete",
+          defaultValue: "Delete",
+          icon: "trash-2",
+          variant: "outline",
+          className: "btn-outline-danger",
+          visible: () => isAdmin,
+          onClick: (row) => deleteDialog.open(row.id),
+        },
+      ]),
+    [t, isAdmin, actions.handleOpenDetails, actions.handleOpenEdit, deleteDialog.open]
+  );
+
+  return (
+    <PageLayout
+      title={t("companies.title", { defaultValue: "Companies" })}
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
+      <div className="card companies__table-card">
+        <TablePageToolbar
+          title={<h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>}
+          countSlot={countLabel}
+        >
+          <SearchInput
+            placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
+            debounceMs={300}
+            onDebouncedChange={actions.handleSearchDebounced}
+            icon="search"
+            wide
+            highlight
+            aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
+          />
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-secondary"
+            onClick={actions.handleRefresh}
+            disabled={loading}
+            aria-label={t("common.refresh", { defaultValue: "Refresh" })}
+          >
+            <Icon name="refresh-cw" className="me-1" />
+            {t("common.refresh", { defaultValue: "Refresh" })}
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={actions.handleOpenCreate}
+              aria-label={t("companies.createCompany", { defaultValue: "Create company" })}
+            >
+              <Icon name="file-up" className="me-1" />
+              {t("companies.createCompany", { defaultValue: "Create company" })}
+            </Button>
+          )}
+        </TablePageToolbar>
+        <div className="card-body h-min-50vh">
+          {error && (
+            <Alert variant="danger" className="mb-3">
+              {error}
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-secondary ms-2"
+                onClick={actions.handleRefresh}
+              >
+                {t("common.retry", { defaultValue: "Retry" })}
+              </Button>
+            </Alert>
+          )}
+          <DataTable<Company>
+            data={companies}
+            getRowId={(row) => row.id}
+            columns={columns}
+            loading={loading}
+            emptyMessage={t("companies.noCompaniesFound", { defaultValue: "No companies found" })}
+            rowActions={rowActions}
+            actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+          />
+        </div>
+      </div>
+
+      <ConfirmModal
+        {...deleteDialog.modalProps}
+        title={t("companies.deleteCompany", { defaultValue: "Delete company" })}
+        message={t("companies.confirmDelete", { defaultValue: "Are you sure you want to delete this company?" })}
+        confirmLabel={t("common.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+      />
+
+      <CreateCompanySidePanel
+        isOpen={modals.isCreateOpen}
+        onClose={actions.handleCloseCreate}
+        onSuccess={actions.handleCreateSuccess}
+      />
+      <EditCompanySidePanel
+        isOpen={modals.editCompanyId != null}
+        companyId={modals.editCompanyId}
+        onClose={actions.handleCloseEdit}
+        onSuccess={actions.handleEditSuccess}
+      />
+      <CompanyDetailsSidePanel
+        isOpen={modals.detailsCompanyId != null}
+        companyId={modals.detailsCompanyId}
+        onClose={actions.handleCloseDetails}
+      />
+    </PageLayout>
+  );
+}

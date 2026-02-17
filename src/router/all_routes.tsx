@@ -17,6 +17,7 @@ export const all_routes: Record<string, string> = {
   documentAttachmentView: "/documents/:id/attachments/:attachmentId",
   folders: "/folders",
   folderDetail: "/folders/:id",
+  companies: "/companies",
   editRequests: "/edit-requests",
   signatures: "/signatures",
   notes: "/notes",
