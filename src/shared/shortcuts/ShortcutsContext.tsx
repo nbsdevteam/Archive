@@ -71,9 +71,9 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
       if (overlayOpen) {
         const key = e.key.toLowerCase();
         const id = (Object.entries(SHORTCUT_TRIGGER_KEYS).find(
-          ([, v]) => v === key
+          ([idEntry, v]) => v === key && typeof handlersRef.current[idEntry as ShortcutKeyId] === "function"
         ) as [ShortcutKeyId, string] | undefined)?.[0];
-        if (id && handlersRef.current[id]) {
+        if (id) {
           e.preventDefault();
           e.stopPropagation();
           runHandler(id);

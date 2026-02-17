@@ -9,6 +9,7 @@ export const SHORTCUT_KEYS = {
   VIEW_TRASH: "view-trash",
   REFRESH_PAGE: "refresh-page",
   CREATE_NOTE: "create-note",
+  CREATE_COMPANY: "create-company",
   OPEN_FILTER: "open-filter",
 } as const;
 
@@ -22,6 +23,7 @@ export const SHORTCUT_LABELS: Record<ShortcutKeyId, { label: string; keys: strin
   [SHORTCUT_KEYS.VIEW_TRASH]: { label: "View trash", keys: "Alt + T" },
   [SHORTCUT_KEYS.REFRESH_PAGE]: { label: "Refresh page", keys: "Alt + R" },
   [SHORTCUT_KEYS.CREATE_NOTE]: { label: "Create note", keys: "Alt + C" },
+  [SHORTCUT_KEYS.CREATE_COMPANY]: { label: "Create company", keys: "Ctrl + C" },
   [SHORTCUT_KEYS.OPEN_FILTER]: { label: "Filter", keys: "Alt + F" },
 };
 
@@ -33,5 +35,6 @@ export const SHORTCUT_TRIGGER_KEYS: Record<ShortcutKeyId, string> = {
   [SHORTCUT_KEYS.VIEW_TRASH]: "t",
   [SHORTCUT_KEYS.REFRESH_PAGE]: "r",
   [SHORTCUT_KEYS.CREATE_NOTE]: "c",
+  [SHORTCUT_KEYS.CREATE_COMPANY]: "c",
   [SHORTCUT_KEYS.OPEN_FILTER]: "f",
 };

@@ -8,6 +8,8 @@ import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { ConfirmModal } from "@/shared/components/ui";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import type { Company } from "@/shared/types/company";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useCompaniesPageContainer } from "../../containers/useCompaniesPageContainer";
 import { getCompanyTableColumns } from "../../utils/companyTableColumns";
 import { CreateCompanySidePanel } from "../../components/CreateCompanySidePanel";
@@ -35,8 +37,23 @@ export default function CompaniesPage() {
   const { companies, countLabel, routes } = data;
 
   const deleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDelete });
+  const { registerHandler } = useShortcuts();
 
-  /** Register page shortcuts: Ctrl+C = create company, R = refresh (ignored when focus is in an input). */
+  /** Register with global shortcut context so Alt overlay shows and Alt+R / Alt+C work. */
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
+    return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
+  }, [registerHandler, actions.handleRefresh]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, () => actions.handleOpenCreate());
+      return () => registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, undefined);
+    }
+    registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, undefined);
+  }, [isAdmin, registerHandler, actions.handleOpenCreate]);
+
+  /** Local keydown: Ctrl+C = create company, R = refresh (ignored when focus is in an input). */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const inInput = isEditableTarget(e.target);

@@ -695,6 +695,7 @@
     "create-sub-document": "Create sub-document",
     "view-trash": "View trash",
     "refresh-page": "Refresh page",
-    "create-note": "Create note"
+    "create-note": "Create note",
+    "create-company": "Create company"
   }
 }
