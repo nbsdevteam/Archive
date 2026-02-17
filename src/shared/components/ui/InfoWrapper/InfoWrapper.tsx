@@ -61,8 +61,6 @@ export function InfoWrapper({
         trigger={isClick ? ["click"] : ["hover", "focus"]}
         placement={position}
         overlay={overlay}
-        delay={{ show: 200, hide: 100 }}
-        transition={false}
       >
         <span className="d-inline-flex align-items-center cursor-pointer">
           {triggerElement}

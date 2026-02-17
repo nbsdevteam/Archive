@@ -1,7 +1,18 @@
 /**
  * InfoWrapper popover: theme-based styling using --primary-rgb and --app-* tokens.
- * Applied to popovers with class .info-wrapper-popover (no header, body only + arrow).
+ * No transition: errors and info popover show immediately.
  */
+
+/* No fade/transition on popovers and form errors — show immediately */
+.fade,
+.invalid-feedback,
+.invalid-tooltip,
+.valid-feedback,
+.valid-tooltip,
+.info-wrapper-popover,
+.popover {
+  transition: none !important;
+}
 
 .info-wrapper-popover {
   --info-wrapper-bg: var(--app-body-bg, #fff);
