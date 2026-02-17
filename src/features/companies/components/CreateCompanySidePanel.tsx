@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
 import { createCreateCompanyResolver } from "./createCompanyValidation";
 import { createCompany } from "../services/companies.api";
+import { getCountryOptions } from "../utils/countryPhoneUtils";
+import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface CreateCompanySidePanelProps {
   isOpen: boolean;
@@ -14,12 +17,13 @@ export interface CreateCompanySidePanelProps {
 
 export type CreateCompanyFormValues = {
   name: string;
-  phone?: string;
+  countryIso2?: string;
+  dialCode?: string;
+  nationalNumber?: string;
   email?: string;
   vat?: string;
   street?: string;
   city?: string;
-  country_id?: number;
   website?: string;
 };
 
@@ -29,13 +33,23 @@ export function CreateCompanySidePanel({
   onSuccess,
 }: CreateCompanySidePanelProps) {
   const { t } = useTranslation();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const nationalNumberRef = useRef<HTMLInputElement | null>(null);
+  const countryOptions = useMemo(() => getCountryOptions(), []);
+  const selectOptions = useMemo(
+    () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
+    [countryOptions]
+  );
 
   const resolver = useMemo(() => createCreateCompanyResolver(t), [t]);
 
   const {
     register,
+    control,
     handleSubmit,
+    setValue,
+    setError,
+    clearErrors,
+    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CreateCompanyFormValues>({
@@ -43,7 +57,9 @@ export function CreateCompanySidePanel({
     resolver,
     defaultValues: {
       name: "",
-      phone: "",
+      countryIso2: "",
+      dialCode: "",
+      nationalNumber: "",
       email: "",
       vat: "",
       street: "",
@@ -56,28 +72,41 @@ export function CreateCompanySidePanel({
     if (isOpen) {
       reset({
         name: "",
-        phone: "",
+        countryIso2: "",
+        dialCode: "",
+        nationalNumber: "",
         email: "",
         vat: "",
         street: "",
         city: "",
         website: "",
       });
-      setSubmitError(null);
     }
   }, [isOpen, reset]);
 
   const onSubmit = async (data: CreateCompanyFormValues) => {
-    setSubmitError(null);
+    const dialCode = (data.dialCode ?? "").toString().replace(/\D/g, "");
+    const nationalNumber = (data.nationalNumber ?? "").trim().replace(/\D/g, "");
+    const phoneE164 =
+      dialCode && nationalNumber
+        ? formatPhoneToE164(nationalNumber, data.countryIso2 ?? dialCode, !!data.countryIso2)
+        : undefined;
+    const selectedCountry = data.countryIso2
+      ? countryOptions.find((o) => o.value === data.countryIso2)
+      : null;
+    const country_id = dialCode ? parseInt(dialCode, 10) : undefined;
+    const country_name = selectedCountry?.englishName ?? undefined;
+
     try {
       await createCompany({
         name: data.name.trim(),
-        phone: data.phone?.trim() || undefined,
+        phone: phoneE164,
         email: data.email?.trim() || undefined,
         vat: data.vat?.trim() || undefined,
         street: data.street?.trim() || undefined,
         city: data.city?.trim() || undefined,
-        country_id: data.country_id != null && data.country_id >= 1 ? data.country_id : undefined,
+        country_id: !Number.isNaN(country_id) ? country_id : undefined,
+        country_name,
         website: data.website?.trim() || undefined,
       });
       toast.success(t("companies.createSuccess", { defaultValue: "Company created successfully." }));
@@ -85,7 +114,7 @@ export function CreateCompanySidePanel({
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("companies.createFailed", { defaultValue: "Failed to create company." });
-      setSubmitError(msg);
+      setError("root", { message: msg });
       toast.error(msg);
     }
   };
@@ -116,9 +145,9 @@ export function CreateCompanySidePanel({
       width="50vw"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-0">
-        {submitError && (
+        {errors.root?.message && (
           <div className="alert alert-danger py-2 mb-3" role="alert">
-            {submitError}
+            {errors.root.message}
           </div>
         )}
         <Input
@@ -128,11 +157,24 @@ export function CreateCompanySidePanel({
           required
           autoComplete="off"
         />
-        <Input
-          label={t("companies.phone", { defaultValue: "Phone" })}
-          {...register("phone")}
-          error={errors.phone?.message}
-          autoComplete="off"
+        <PhoneCountryInput
+          control={control}
+          getValues={getValues}
+          countryIso2Name="countryIso2"
+          dialCodeName="dialCode"
+          nationalNumberName="nationalNumber"
+          countryOptions={countryOptions}
+          setValue={setValue}
+          setError={setError}
+          clearErrors={clearErrors}
+          errors={{
+            dialCode: errors.dialCode,
+            nationalNumber: errors.nationalNumber,
+            countryIso2: errors.countryIso2,
+          }}
+          selectOptions={selectOptions}
+          t={t}
+          nationalNumberRef={nationalNumberRef}
         />
         <Input
           label={t("companies.email", { defaultValue: "Email" })}

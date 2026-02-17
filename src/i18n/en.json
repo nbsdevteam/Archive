@@ -472,6 +472,12 @@
     "street": "Street",
     "city": "City",
     "country": "Country",
+    "countryId": "Country ID",
+    "countryIdOptional": "Optional",
+    "countryName": "Country name",
+    "phoneCountryCode": "Phone",
+    "phoneNumber": "Phone number",
+    "phoneNumberPlaceholder": "Phone number",
     "website": "Website",
     "createCompany": "Create company",
     "editCompany": "Edit company",
@@ -496,7 +502,11 @@
     "byDepartment": "By department",
     "byType": "By type",
     "validation": {
-      "nameRequired": "Name is required."
+      "nameRequired": "Name is required.",
+      "invalidCountryCode": "Please provide a correct country code.",
+      "invalidPhone": "Please enter a valid phone number for the selected country.",
+      "invalidEmail": "Please enter a valid email address.",
+      "selectCountryFirst": "Select a country or enter country code first."
     }
   },
   "notes": {

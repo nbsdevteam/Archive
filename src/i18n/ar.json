@@ -470,6 +470,12 @@
     "street": "الشارع",
     "city": "المدينة",
     "country": "الدولة",
+    "countryId": "معرف الدولة",
+    "countryIdOptional": "اختياري",
+    "countryName": "اسم الدولة",
+    "phoneCountryCode": "الهاتف",
+    "phoneNumber": "رقم الهاتف",
+    "phoneNumberPlaceholder": "رقم الهاتف",
     "website": "الموقع",
     "createCompany": "إنشاء شركة",
     "editCompany": "تعديل الشركة",
@@ -494,7 +500,11 @@
     "byDepartment": "حسب القسم",
     "byType": "حسب النوع",
     "validation": {
-      "nameRequired": "الاسم مطلوب."
+      "nameRequired": "الاسم مطلوب.",
+      "invalidCountryCode": "يرجى إدخال رمز دولة صحيح.",
+      "invalidPhone": "يرجى إدخال رقم هاتف صحيح للدولة المحددة.",
+      "invalidEmail": "يرجى إدخال بريد إلكتروني صحيح.",
+      "selectCountryFirst": "اختر الدولة أو أدخل رمز الدولة أولاً."
     }
   },
   "notes": {

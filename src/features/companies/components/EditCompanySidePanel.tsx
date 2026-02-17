@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
 import { createValidationResolver } from "@/shared/utils/form/validation";
-import { requiredTrimmedString, optionalTrimmedString } from "@/shared/utils/form/validation";
+import { requiredTrimmedString, optionalTrimmedString, addIssue } from "@/shared/utils/form/validation";
 import type { Validator } from "@/shared/utils/form/validation";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { getCompany, updateCompany } from "../services/companies.api";
 import type { CompanyDetail } from "../types/companies.types";
+import { getCountryOptions, getCountryByCallingCode } from "../utils/countryPhoneUtils";
+import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface EditCompanySidePanelProps {
   isOpen: boolean;
@@ -18,7 +22,9 @@ export interface EditCompanySidePanelProps {
 
 export type EditCompanyFormValues = {
   name: string;
-  phone?: string;
+  countryIso2?: string;
+  dialCode?: string;
+  nationalNumber?: string;
   email?: string;
   vat?: string;
   street?: string;
@@ -27,6 +33,8 @@ export type EditCompanyFormValues = {
 };
 
 const PATH_NAME = ["name"];
+const PATH_EMAIL = ["email"];
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function makeEditCompanyValidator(t: (key: string, opts?: { defaultValue?: string }) => string): Validator<EditCompanyFormValues> {
   return (values: EditCompanyFormValues) => {
@@ -37,11 +45,17 @@ function makeEditCompanyValidator(t: (key: string, opts?: { defaultValue?: strin
       values.name,
       t("companies.validation.nameRequired", { defaultValue: "Name is required." })
     );
+    const email = optionalTrimmedString(values.email);
+    if (email && !EMAIL_REGEX.test(email)) {
+      addIssue(issues, PATH_EMAIL, t("companies.validation.invalidEmail", { defaultValue: "Please enter a valid email address." }), "pattern");
+    }
     return {
       values: {
         name: optionalTrimmedString(values.name),
-        phone: optionalTrimmedString(values.phone),
-        email: optionalTrimmedString(values.email),
+        countryIso2: typeof values.countryIso2 === "string" ? values.countryIso2.trim() || undefined : undefined,
+        dialCode: typeof values.dialCode === "string" ? values.dialCode.replace(/\D/g, "") || undefined : undefined,
+        nationalNumber: optionalTrimmedString(values.nationalNumber ?? ""),
+        email: email || undefined,
         vat: optionalTrimmedString(values.vat),
         street: optionalTrimmedString(values.street),
         city: optionalTrimmedString(values.city),
@@ -59,9 +73,12 @@ export function EditCompanySidePanel({
   onSuccess,
 }: EditCompanySidePanelProps) {
   const { t } = useTranslation();
-  const [company, setCompany] = useState<CompanyDetail | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const nationalNumberRef = useRef<HTMLInputElement | null>(null);
+  const countryOptions = useMemo(() => getCountryOptions(), []);
+  const selectOptions = useMemo(
+    () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
+    [countryOptions]
+  );
 
   const resolver = useMemo(
     () => createValidationResolver(makeEditCompanyValidator(t)),
@@ -70,7 +87,12 @@ export function EditCompanySidePanel({
 
   const {
     register,
+    control,
     handleSubmit,
+    setValue,
+    setError,
+    clearErrors,
+    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<EditCompanyFormValues>({
@@ -78,7 +100,9 @@ export function EditCompanySidePanel({
     resolver,
     defaultValues: {
       name: "",
-      phone: "",
+      countryIso2: "",
+      dialCode: "",
+      nationalNumber: "",
       email: "",
       vat: "",
       street: "",
@@ -88,51 +112,70 @@ export function EditCompanySidePanel({
   });
 
   useEffect(() => {
-    if (!isOpen || !companyId) {
-      setCompany(null);
-      setLoadError(null);
-      return;
-    }
+    if (!isOpen || !companyId) return;
+    clearErrors("root");
     let cancelled = false;
-    setLoadError(null);
     getCompany(companyId)
       .then((data) => {
-        if (!cancelled) {
-          setCompany(data);
-          reset({
-            name: data.name ?? "",
-            phone: data.phone ?? "",
-            email: data.email ?? "",
-            vat: data.vat ?? "",
-            street: data.street ?? "",
-            city: data.city ?? "",
-            website: data.website ?? "",
-          });
+        if (cancelled) return;
+        let countryIso2 = "";
+        let dialCode = "";
+        let nationalNumber = "";
+        if (data.phone?.trim()) {
+          const parsed = parsePhoneNumberFromString(data.phone.trim());
+          if (parsed) {
+            countryIso2 = parsed.country ?? "";
+            dialCode = parsed.countryCallingCode ?? "";
+            nationalNumber = parsed.nationalNumber ?? "";
+          }
         }
+        if (!countryIso2 && data.country_id != null) {
+          const found = getCountryByCallingCode(String(data.country_id), undefined);
+          if (found) {
+            countryIso2 = found.iso2;
+            dialCode = String(data.country_id);
+          }
+        }
+        reset({
+          name: data.name ?? "",
+          countryIso2: countryIso2 || "",
+          dialCode: dialCode || "",
+          nationalNumber: nationalNumber || "",
+          email: data.email ?? "",
+          vat: data.vat ?? "",
+          street: data.street ?? "",
+          city: data.city ?? "",
+          website: data.website ?? "",
+        });
       })
       .catch(() => {
-        if (!cancelled) setLoadError(t("errors.loadFailed", { defaultValue: "Failed to load." }));
+        if (!cancelled) setError("root", { message: t("errors.loadFailed", { defaultValue: "Failed to load." }) });
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, companyId, reset, t]);
-
-  useEffect(() => {
-    if (!isOpen) setSubmitError(null);
-  }, [isOpen]);
+    return () => { cancelled = true; };
+  }, [isOpen, companyId, reset, setError, clearErrors, t]);
 
   const onSubmit = async (data: EditCompanyFormValues) => {
     if (!companyId) return;
-    setSubmitError(null);
+    const dialCode = (data.dialCode ?? "").toString().replace(/\D/g, "");
+    const nationalNumber = (data.nationalNumber ?? "").trim().replace(/\D/g, "");
+    const phoneE164 =
+      dialCode && nationalNumber
+        ? formatPhoneToE164(nationalNumber, data.countryIso2 ?? dialCode, !!data.countryIso2)
+        : undefined;
+    const selectedCountry = data.countryIso2 ? countryOptions.find((o) => o.value === data.countryIso2) : null;
+    const country_id = dialCode ? parseInt(dialCode, 10) : undefined;
+    const country_name = selectedCountry?.englishName ?? undefined;
+
     try {
       await updateCompany(companyId, {
         name: data.name.trim(),
-        phone: data.phone?.trim() || undefined,
+        phone: phoneE164,
         email: data.email?.trim() || undefined,
         vat: data.vat?.trim() || undefined,
         street: data.street?.trim() || undefined,
         city: data.city?.trim() || undefined,
+        country_id: !Number.isNaN(country_id) ? country_id : undefined,
+        country_name,
         website: data.website?.trim() || undefined,
       });
       toast.success(t("companies.updateSuccess", { defaultValue: "Company updated successfully." }));
@@ -140,7 +183,7 @@ export function EditCompanySidePanel({
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("companies.updateFailed", { defaultValue: "Failed to update company." });
-      setSubmitError(msg);
+      setError("root", { message: msg });
       toast.error(msg);
     }
   };
@@ -154,7 +197,7 @@ export function EditCompanySidePanel({
         variant="primary"
         isLoading={isSubmitting}
         onClick={handleSubmit(onSubmit)}
-        disabled={isSubmitting || !company}
+        disabled={isSubmitting}
       >
         {t("common.save")}
       </Button>
@@ -172,15 +215,10 @@ export function EditCompanySidePanel({
       loading={isSubmitting}
       width="50vw"
     >
-      {loadError && (
-        <div className="alert alert-danger py-2 mb-3" role="alert">
-          {loadError}
-        </div>
-      )}
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-0">
-        {submitError && (
+        {errors.root?.message && (
           <div className="alert alert-danger py-2 mb-3" role="alert">
-            {submitError}
+            {errors.root.message}
           </div>
         )}
         <Input
@@ -190,11 +228,24 @@ export function EditCompanySidePanel({
           required
           autoComplete="off"
         />
-        <Input
-          label={t("companies.phone", { defaultValue: "Phone" })}
-          {...register("phone")}
-          error={errors.phone?.message}
-          autoComplete="off"
+        <PhoneCountryInput
+          control={control}
+          getValues={getValues}
+          countryIso2Name="countryIso2"
+          dialCodeName="dialCode"
+          nationalNumberName="nationalNumber"
+          countryOptions={countryOptions}
+          setValue={setValue}
+          setError={setError}
+          clearErrors={clearErrors}
+          errors={{
+            dialCode: errors.dialCode,
+            nationalNumber: errors.nationalNumber,
+            countryIso2: errors.countryIso2,
+          }}
+          selectOptions={selectOptions}
+          t={t}
+          nationalNumberRef={nationalNumberRef}
         />
         <Input
           label={t("companies.email", { defaultValue: "Email" })}

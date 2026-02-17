@@ -8,7 +8,7 @@ export interface CompanyColumnsOptions {
 
 /**
  * Returns DataTable column definitions for the companies list.
- * Columns: name, phone, email, vat, city, country.
+ * Columns: name, phone, email, vat, street, city, country_id, country_name, (details/actions).
  */
 export function getCompanyTableColumns(
   options: CompanyColumnsOptions
@@ -36,13 +36,23 @@ export function getCompanyTableColumns(
       render: (row: Company) => row.vat ?? "-",
     },
     {
+      id: "street",
+      header: t("companies.street", { defaultValue: "Street" }),
+      render: (row: Company) => row.street ?? "-",
+    },
+    {
       id: "city",
       header: t("companies.city", { defaultValue: "City" }),
       render: (row: Company) => row.city ?? "-",
     },
     {
+      id: "country_id",
+      header: t("companies.countryId", { defaultValue: "Country ID" }),
+      render: (row: Company) => (row.country_id != null ? String(row.country_id) : "-"),
+    },
+    {
       id: "country",
-      header: t("companies.country", { defaultValue: "Country" }),
+      header: t("companies.countryName", { defaultValue: "Country name" }),
       render: (row: Company) => row.country_name ?? "-",
     },
   ];

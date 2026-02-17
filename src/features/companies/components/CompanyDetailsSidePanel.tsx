@@ -87,7 +87,9 @@ export function CompanyDetailsSidePanel({
               <dd className="mb-1">{detail.street ?? "-"}</dd>
               <dt className="text-muted">{t("companies.city", { defaultValue: "City" })}</dt>
               <dd className="mb-1">{detail.city ?? "-"}</dd>
-              <dt className="text-muted">{t("companies.country", { defaultValue: "Country" })}</dt>
+              <dt className="text-muted">{t("companies.countryId", { defaultValue: "Country ID" })}</dt>
+              <dd className="mb-1">{detail.country_id != null ? String(detail.country_id) : "-"}</dd>
+              <dt className="text-muted">{t("companies.countryName", { defaultValue: "Country name" })}</dt>
               <dd className="mb-1">{detail.country_name ?? "-"}</dd>
               <dt className="text-muted">{t("companies.website", { defaultValue: "Website" })}</dt>
               <dd className="mb-1">{detail.website ?? "-"}</dd>

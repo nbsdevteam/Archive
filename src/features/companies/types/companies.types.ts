@@ -27,7 +27,7 @@ export interface CompanyStats {
   by_type: Record<string, number>;
 }
 
-/** Create company request body (name required; rest optional). */
+/** Create company request body (name required; rest optional). country_id = calling code number. */
 export interface CompanyCreatePayload {
   name: string;
   phone?: string;
@@ -36,10 +36,11 @@ export interface CompanyCreatePayload {
   street?: string;
   city?: string;
   country_id?: number;
+  country_name?: string;
   website?: string;
 }
 
-/** Update company request body (patch: only fields to update). */
+/** Update company request body (patch: only fields to update). country_id = calling code number. */
 export interface CompanyUpdatePayload {
   name?: string;
   phone?: string;
@@ -48,6 +49,7 @@ export interface CompanyUpdatePayload {
   street?: string;
   city?: string;
   country_id?: number;
+  country_name?: string;
   website?: string;
 }
 
