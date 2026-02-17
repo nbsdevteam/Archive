@@ -1,3 +1,7 @@
+/**
+ * Edit company side panel: loads company, prefills form (including country/phone from store options), submit uses country_name and E.164 phone.
+ */
+
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -8,9 +12,9 @@ import { requiredTrimmedString, optionalTrimmedString, addIssue } from "@/shared
 import type { Validator } from "@/shared/utils/form/validation";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { getCompany, updateCompany } from "../services/companies.api";
-import type { CompanyDetail } from "../types/companies.types";
-import { getCountryOptions, getCountryByCallingCode } from "../utils/countryPhoneUtils";
-import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { getCountryByPhoneCode, formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { useCountriesStore } from "@/shared/stores/countriesStore";
+import { mapApiCountriesToOptions } from "../utils/countryPhoneUtils";
 import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface EditCompanySidePanelProps {
@@ -36,7 +40,9 @@ const PATH_NAME = ["name"];
 const PATH_EMAIL = ["email"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function makeEditCompanyValidator(t: (key: string, opts?: { defaultValue?: string }) => string): Validator<EditCompanyFormValues> {
+function makeEditCompanyValidator(
+  t: (key: string, opts?: { defaultValue?: string }) => string
+): Validator<EditCompanyFormValues> {
   return (values: EditCompanyFormValues) => {
     const issues: { path: (string | number)[]; message: string; code?: string }[] = [];
     requiredTrimmedString(
@@ -74,11 +80,19 @@ export function EditCompanySidePanel({
 }: EditCompanySidePanelProps) {
   const { t } = useTranslation();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
-  const countryOptions = useMemo(() => getCountryOptions(), []);
+  const { countries, isLoading: countriesLoading, error: countriesError, fetchCountries } = useCountriesStore();
+
+  const countryOptions = useMemo(() => mapApiCountriesToOptions(countries), [countries]);
   const selectOptions = useMemo(
     () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
     [countryOptions]
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCountries({ limit: 300 });
+    }
+  }, [isOpen, fetchCountries]);
 
   const resolver = useMemo(
     () => createValidationResolver(makeEditCompanyValidator(t)),
@@ -118,52 +132,55 @@ export function EditCompanySidePanel({
     getCompany(companyId)
       .then((data) => {
         if (cancelled) return;
-        let countryIso2 = "";
+        let countryCode = "";
         let dialCode = "";
         let nationalNumber = "";
         if (data.phone?.trim()) {
           const parsed = parsePhoneNumberFromString(data.phone.trim());
           if (parsed) {
-            countryIso2 = parsed.country ?? "";
+            countryCode = parsed.country ?? "";
             dialCode = parsed.countryCallingCode ?? "";
             nationalNumber = parsed.nationalNumber ?? "";
           }
         }
-        if (!countryIso2 && data.country_id != null) {
-          const found = getCountryByCallingCode(String(data.country_id), undefined);
-          if (found) {
-            countryIso2 = found.iso2;
-            dialCode = String(data.country_id);
-          }
-        }
+        const optionByCode = countryOptions.find((o) => o.value === countryCode);
+        const optionByCallingCode = dialCode ? countryOptions.find((o) => String(o.callingCode) === String(dialCode)) : undefined;
+        const optionByName = data.country_name ? countryOptions.find((o) => o.englishName === data.country_name) : undefined;
+        const option = optionByCode ?? optionByName ?? optionByCallingCode;
+        const formCountryValue = option ? option.value : countryCode || "";
+
+        if (!dialCode && option?.callingCode) dialCode = option.callingCode;
+
         reset({
           name: data.name ?? "",
-          countryIso2: countryIso2 || "",
+          countryIso2: formCountryValue,
           dialCode: dialCode || "",
           nationalNumber: nationalNumber || "",
           email: data.email ?? "",
           vat: data.vat ?? "",
           street: data.street ?? "",
           city: data.city ?? "",
-          website: data.website ?? "",
+          website: (data as { website?: string }).website ?? "",
         });
       })
       .catch(() => {
         if (!cancelled) setError("root", { message: t("errors.loadFailed", { defaultValue: "Failed to load." }) });
       });
-    return () => { cancelled = true; };
-  }, [isOpen, companyId, reset, setError, clearErrors, t]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, companyId, countryOptions, reset, setError, clearErrors, t]);
 
   const onSubmit = async (data: EditCompanyFormValues) => {
     if (!companyId) return;
+    const selectedCountry = data.countryIso2 ? countryOptions.find((o) => o.value === data.countryIso2) : null;
     const dialCode = (data.dialCode ?? "").toString().replace(/\D/g, "");
     const nationalNumber = (data.nationalNumber ?? "").trim().replace(/\D/g, "");
+    const callingCodeForE164 = selectedCountry?.callingCode ?? dialCode;
     const phoneE164 =
-      dialCode && nationalNumber
-        ? formatPhoneToE164(nationalNumber, data.countryIso2 ?? dialCode, !!data.countryIso2)
+      callingCodeForE164 && nationalNumber
+        ? formatPhoneToE164(nationalNumber, callingCodeForE164, false)
         : undefined;
-    const selectedCountry = data.countryIso2 ? countryOptions.find((o) => o.value === data.countryIso2) : null;
-    const country_id = dialCode ? parseInt(dialCode, 10) : undefined;
     const country_name = selectedCountry?.englishName ?? undefined;
 
     try {
@@ -174,7 +191,6 @@ export function EditCompanySidePanel({
         vat: data.vat?.trim() || undefined,
         street: data.street?.trim() || undefined,
         city: data.city?.trim() || undefined,
-        country_id: !Number.isNaN(country_id) ? country_id : undefined,
         country_name,
         website: data.website?.trim() || undefined,
       });
@@ -221,6 +237,11 @@ export function EditCompanySidePanel({
             {errors.root.message}
           </div>
         )}
+        {countriesError && (
+          <div className="alert alert-warning py-2 mb-3" role="alert">
+            {countriesError}
+          </div>
+        )}
         <Input
           label={t("companies.name", { defaultValue: "Name" })}
           {...register("name")}
@@ -246,6 +267,7 @@ export function EditCompanySidePanel({
           selectOptions={selectOptions}
           t={t}
           nationalNumberRef={nationalNumberRef}
+          countrySelectDisabled={countriesLoading}
         />
         <Input
           label={t("companies.email", { defaultValue: "Email" })}

@@ -1,136 +1,149 @@
 /**
- * Companies API: list (JSON-RPC), get single + stats (JSON-RPC), create/update/delete (plain HTTP).
+ * Companies API: list/get/details/stats via JSON-RPC; create/update via HTTP POST; delete via HTTP DELETE.
+ * Countries list via JSON-RPC POST /api/countries.
  */
 
-import { jsonRpcRequest, httpRequest, httpDelete } from "@/shared/lib/http";
+import { jsonRpcRequest, httpClient, httpDelete } from "@/shared/lib/http";
 import type { Company } from "@/shared/types/company";
-import type {
-  CompanyDetail,
-  CompanyStats,
-  CompanyCreatePayload,
-  CompanyUpdatePayload,
-} from "../types/companies.types";
 
-/** JSON-RPC list result shape (success, data, count). */
-interface CompaniesListResult {
-  success: boolean;
-  data: Company[];
+/** Country row from POST /api/countries (jsonrpc) result.data[]. */
+export interface ApiCountryRow {
+  id?: number;
+  name?: string;
+  code?: string;
+  phone_code?: number;
+  [key: string]: unknown;
+}
+
+export interface ListCompaniesParams {
+  search?: string;
+  limit?: number;
+}
+
+export interface ListCountriesParams {
+  search?: string;
+  limit?: number;
+}
+
+export interface CompanyDetail extends Company {
+  website?: string;
+  folder_count?: number;
+  document_count?: number;
+}
+
+export interface CreateCompanyPayload {
+  name: string;
+  phone?: string;
+  email?: string;
+  vat?: string;
+  street?: string;
+  city?: string;
+  country_name?: string;
+  website?: string;
+}
+
+export interface UpdateCompanyPayload extends CreateCompanyPayload {}
+
+/** JSON-RPC result shape for list endpoints. */
+interface JsonRpcListResult<T> {
+  success?: boolean;
+  data?: T[];
   count?: number;
 }
 
 /**
- * List companies with optional search and limit.
- * POST /api/companies (JSON-RPC).
+ * List companies (JSON-RPC POST /api/companies).
  */
-export async function listCompanies(params?: {
-  search?: string;
-  limit?: number;
-}): Promise<{ data: Company[]; count?: number }> {
-  const payload: Record<string, unknown> = {};
-  if (params?.search != null) payload.search = params.search;
-  if (params?.limit != null) payload.limit = params.limit;
-  const result = await jsonRpcRequest<CompaniesListResult>(
+export async function listCompanies(
+  params: ListCompaniesParams = {}
+): Promise<{ data: Company[]; count?: number }> {
+  const result = await jsonRpcRequest<JsonRpcListResult<Company> | Company[]>(
     "/api/companies",
-    payload
+    { search: params.search ?? undefined, limit: params.limit ?? undefined }
   );
-  const raw = result as CompaniesListResult;
-  const data = Array.isArray((raw as { data?: Company[] }).data)
-    ? (raw as CompaniesListResult).data
-    : (raw as unknown as { data: Company[] }).data ?? [];
-  const count =
-    typeof (raw as CompaniesListResult).count === "number"
-      ? (raw as CompaniesListResult).count
-      : undefined;
-  return { data, count };
+  if (Array.isArray(result)) return { data: result };
+  const r = result as JsonRpcListResult<Company>;
+  return { data: r?.data ?? [], count: r?.count };
 }
 
 /**
- * Get single company with optional website and folder/document counts.
- * POST /api/companies/<company_id> (JSON-RPC).
+ * Get company by id (JSON-RPC POST /api/companies/<id>).
  */
-export async function getCompany(companyId: number): Promise<CompanyDetail> {
+export async function getCompany(id: number): Promise<CompanyDetail> {
   const result = await jsonRpcRequest<{ success?: boolean; data?: CompanyDetail } | CompanyDetail>(
-    `/api/companies/${companyId}`,
+    `/api/companies/${id}`,
     {}
   );
-  const raw = result as { success?: boolean; data?: CompanyDetail };
-  if (raw && typeof raw === "object" && "data" in raw && raw.data) {
-    return raw.data as CompanyDetail;
+  if (result && typeof result === "object" && "data" in result && (result as { data?: CompanyDetail }).data) {
+    return (result as { data: CompanyDetail }).data;
   }
   return result as CompanyDetail;
 }
 
 /**
- * Get company statistics (totals, by_department, by_type).
- * POST /api/companies/<company_id>/stats (JSON-RPC).
+ * Get company statistics (JSON-RPC POST /api/companies/<id>/stats).
  */
-export async function getCompanyStats(companyId: number): Promise<CompanyStats> {
-  const result = await jsonRpcRequest<{ success?: boolean; data?: CompanyStats } | CompanyStats>(
-    `/api/companies/${companyId}/stats`,
+export async function getCompanyStats(
+  id: number
+): Promise<{
+  company?: { id: number; name: string };
+  totals?: { folders: number; documents: number; main_documents: number; sub_documents: number };
+  by_department?: Record<string, { count: number; main: number; sub: number }>;
+  by_type?: Record<string, number>;
+}> {
+  const result = await jsonRpcRequest<{ success?: boolean; data?: unknown }>(
+    `/api/companies/${id}/stats`,
     {}
   );
-  const raw = result as { success?: boolean; data?: CompanyStats };
-  if (raw && typeof raw === "object" && "data" in raw && raw.data) {
-    return raw.data as CompanyStats;
-  }
-  return result as CompanyStats;
+  const r = result as { success?: boolean; data?: unknown };
+  return (r?.data as Record<string, unknown>) ?? {};
 }
 
 /**
- * Create company (managers only). Plain HTTP POST.
- * POST /api/companies/create
+ * Create company (HTTP POST /api/companies/create). Sends country_name and E.164 phone.
  */
-export async function createCompany(
-  payload: CompanyCreatePayload
-): Promise<{ id: number; name: string }> {
-  const res = await httpRequest<{ id: number; name: string }>(
+export async function createCompany(payload: CreateCompanyPayload): Promise<Company> {
+  const res = await httpClient.post<{ success?: boolean; message?: string; data?: Company }>(
     "/api/companies/create",
     payload
   );
-  if (!res.success || !res.data) {
-    throw new Error(res.error ?? "Create failed");
-  }
-  return res.data;
+  const body = res.data;
+  if (!body?.data) throw new Error(body?.message ?? "Failed to create company");
+  return body.data;
 }
 
 /**
- * Update company (managers only). Send only fields to update.
- * POST /api/companies/<company_id>/update
+ * Update company (HTTP POST /api/companies/<id>/update). Sends country_name and E.164 phone.
  */
-export async function updateCompany(
-  companyId: number,
-  patch: CompanyUpdatePayload
-): Promise<{ id: number; name: string }> {
-  const res = await httpRequest<{ id: number; name: string }>(
-    `/api/companies/${companyId}/update`,
-    patch
+export async function updateCompany(id: number, payload: UpdateCompanyPayload): Promise<Company> {
+  const res = await httpClient.post<{ success?: boolean; message?: string; data?: Company }>(
+    `/api/companies/${id}/update`,
+    payload
   );
-  if (!res.success || !res.data) {
-    throw new Error(res.error ?? "Update failed");
-  }
-  return res.data;
+  const body = res.data;
+  if (!body?.data) throw new Error(body?.message ?? "Failed to update company");
+  return body.data;
 }
 
 /**
- * Delete company (managers only). Fails if company has folders.
- * DELETE /api/companies/<company_id>
+ * Delete company (HTTP DELETE /api/companies/<id>).
  */
-export async function deleteCompany(companyId: number): Promise<{ id: number }> {
-  const res = await httpDelete<{ success?: boolean; data?: { id: number }; error?: string; code?: string; folder_count?: number; message_ar?: string }>(
-    `/api/companies/${companyId}`
-  );
-  const body = res as { success?: boolean; data?: { id: number }; error?: string; code?: string; folder_count?: number; message_ar?: string };
-  if (body && body.success === false) {
-    const err = new Error(body.error ?? "Delete failed") as Error & {
-      code?: string;
-      folder_count?: number;
-      message_ar?: string;
-    };
-    err.code = body.code;
-    err.folder_count = body.folder_count;
-    err.message_ar = body.message_ar;
-    throw err;
+export async function deleteCompany(id: number): Promise<void> {
+  await httpDelete(`/api/companies/${id}`);
+}
+
+/**
+ * List countries (JSON-RPC POST /api/countries). Used for country dropdown; response logged in dev only.
+ */
+export async function listCountries(params: ListCountriesParams = {}): Promise<{ data: ApiCountryRow[]; count?: number }> {
+  const result = await jsonRpcRequest<JsonRpcListResult<ApiCountryRow>>("/api/countries", {
+    search: params.search ?? undefined,
+    limit: params.limit ?? undefined,
+  });
+  const r = result as JsonRpcListResult<ApiCountryRow>;
+  const data = r?.data ?? [];
+  if (import.meta.env.DEV) {
+    console.log("[listCountries] /api/countries response:", result);
   }
-  const data = body && typeof body === "object" && "data" in body ? (body as { data: { id: number } }).data : { id: companyId };
-  return data;
+  return { data, count: r?.count };
 }

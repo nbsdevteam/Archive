@@ -1,12 +1,17 @@
+/**
+ * Create company side panel: fetches countries once when opened (via store), country dropdown + phone inputs, submit with country_name and E.164 phone.
+ */
+
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
-import { createCreateCompanyResolver } from "./createCompanyValidation";
 import { createCompany } from "../services/companies.api";
-import { getCountryOptions } from "../utils/countryPhoneUtils";
 import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { useCountriesStore } from "@/shared/stores/countriesStore";
+import { mapApiCountriesToOptions } from "../utils/countryPhoneUtils";
+import { createCreateCompanyResolver } from "./createCompanyValidation";
 import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface CreateCompanySidePanelProps {
@@ -34,11 +39,19 @@ export function CreateCompanySidePanel({
 }: CreateCompanySidePanelProps) {
   const { t } = useTranslation();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
-  const countryOptions = useMemo(() => getCountryOptions(), []);
+  const { countries, isLoading: countriesLoading, error: countriesError, fetchCountries } = useCountriesStore();
+
+  const countryOptions = useMemo(() => mapApiCountriesToOptions(countries), [countries]);
   const selectOptions = useMemo(
     () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
     [countryOptions]
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCountries({ limit: 300 });
+    }
+  }, [isOpen, fetchCountries]);
 
   const resolver = useMemo(() => createCreateCompanyResolver(t), [t]);
 
@@ -85,16 +98,16 @@ export function CreateCompanySidePanel({
   }, [isOpen, reset]);
 
   const onSubmit = async (data: CreateCompanyFormValues) => {
-    const dialCode = (data.dialCode ?? "").toString().replace(/\D/g, "");
-    const nationalNumber = (data.nationalNumber ?? "").trim().replace(/\D/g, "");
-    const phoneE164 =
-      dialCode && nationalNumber
-        ? formatPhoneToE164(nationalNumber, data.countryIso2 ?? dialCode, !!data.countryIso2)
-        : undefined;
     const selectedCountry = data.countryIso2
       ? countryOptions.find((o) => o.value === data.countryIso2)
       : null;
-    const country_id = dialCode ? parseInt(dialCode, 10) : undefined;
+    const dialCode = (data.dialCode ?? "").toString().replace(/\D/g, "");
+    const nationalNumber = (data.nationalNumber ?? "").trim().replace(/\D/g, "");
+    const callingCodeForE164 = selectedCountry?.callingCode ?? dialCode;
+    const phoneE164 =
+      callingCodeForE164 && nationalNumber
+        ? formatPhoneToE164(nationalNumber, callingCodeForE164, false)
+        : undefined;
     const country_name = selectedCountry?.englishName ?? undefined;
 
     try {
@@ -105,7 +118,6 @@ export function CreateCompanySidePanel({
         vat: data.vat?.trim() || undefined,
         street: data.street?.trim() || undefined,
         city: data.city?.trim() || undefined,
-        country_id: !Number.isNaN(country_id) ? country_id : undefined,
         country_name,
         website: data.website?.trim() || undefined,
       });
@@ -150,6 +162,11 @@ export function CreateCompanySidePanel({
             {errors.root.message}
           </div>
         )}
+        {countriesError && (
+          <div className="alert alert-warning py-2 mb-3" role="alert">
+            {countriesError}
+          </div>
+        )}
         <Input
           label={t("companies.name", { defaultValue: "Name" })}
           {...register("name")}
@@ -175,6 +192,7 @@ export function CreateCompanySidePanel({
           selectOptions={selectOptions}
           t={t}
           nationalNumberRef={nationalNumberRef}
+          countrySelectDisabled={countriesLoading}
         />
         <Input
           label={t("companies.email", { defaultValue: "Email" })}

@@ -1,19 +1,26 @@
 /**
  * Combined country dropdown + dial code + national number inputs with sync and blur validation.
- * Used in Create/Edit company side panels.
+ * Used in Create/Edit company side panels; country options come from API via store.
  */
 
-import { useRef, useCallback } from "react";
-import type { Control, UseFormSetValue, UseFormSetError, UseFormClearErrors, UseFormGetValues, FieldPath, FieldValues } from "react-hook-form";
+import { useCallback } from "react";
+import type {
+  Control,
+  UseFormSetValue,
+  UseFormSetError,
+  UseFormClearErrors,
+  UseFormGetValues,
+  FieldPath,
+  FieldValues,
+} from "react-hook-form";
 import { Controller } from "react-hook-form";
 import Select, { type SingleValue } from "react-select";
 import type { SelectOption } from "@/shared/components/ui";
 import type { CountryOption } from "../utils/countryPhoneUtils";
 import {
-  getCountryByCallingCode,
+  getCountryByPhoneCode,
   isValidCallingCode,
   validatePhoneForCountry,
-  type CountryOption as CountryOptionType,
 } from "../utils/countryPhoneUtils";
 
 export interface PhoneCountryInputProps<T extends FieldValues> {
@@ -22,18 +29,23 @@ export interface PhoneCountryInputProps<T extends FieldValues> {
   countryIso2Name: FieldPath<T>;
   dialCodeName: FieldPath<T>;
   nationalNumberName: FieldPath<T>;
-  countryOptions: CountryOptionType[];
+  countryOptions: CountryOption[];
   setValue: UseFormSetValue<T>;
   setError: UseFormSetError<T>;
   clearErrors: UseFormClearErrors<T>;
-  errors: { dialCode?: { message?: string }; nationalNumber?: { message?: string }; countryIso2?: { message?: string } };
+  errors: {
+    dialCode?: { message?: string };
+    nationalNumber?: { message?: string };
+    countryIso2?: { message?: string };
+  };
   selectOptions: SelectOption[];
   t: (key: string, opts?: { defaultValue?: string }) => string;
   nationalNumberRef?: React.RefObject<HTMLInputElement | null>;
+  countrySelectDisabled?: boolean;
 }
 
 /**
- * Renders country react-select, small dial-code input, and national number input.
+ * Renders country Select, dial-code input, and national number input.
  * On country change: sets dial code and focuses national number. On dial code blur: resolves country or sets error.
  * On national number blur: validates phone for selected country.
  */
@@ -51,6 +63,7 @@ export function PhoneCountryInput<T extends FieldValues>({
   selectOptions,
   t,
   nationalNumberRef,
+  countrySelectDisabled,
 }: PhoneCountryInputProps<T>) {
   const handleCountryChange = useCallback(
     (newValue: SingleValue<SelectOption>, fieldOnChange: (v: string) => void) => {
@@ -69,22 +82,28 @@ export function PhoneCountryInput<T extends FieldValues>({
   );
 
   const handleDialCodeBlur = useCallback(
-    (dialCode: string, currentIso2: string | undefined) => {
+    (dialCode: string, currentCode: string | undefined) => {
       const digits = dialCode.replace(/\D/g, "");
       if (!digits) {
         setValue(countryIso2Name, "" as T[FieldPath<T>]);
         clearErrors(dialCodeName);
         return;
       }
-      const found = getCountryByCallingCode(digits, currentIso2 || undefined);
+      if (!isValidCallingCode(digits)) {
+        setError(dialCodeName, {
+          type: "manual",
+          message: t("companies.validation.invalidCountryCode", { defaultValue: "Enter a valid country code." }),
+        });
+        return;
+      }
+      const found = getCountryByPhoneCode(digits, currentCode || undefined);
       if (found) {
-        setValue(countryIso2Name, found.iso2 as T[FieldPath<T>]);
-        setValue(dialCodeName, digits as T[FieldPath<T>]);
+        setValue(countryIso2Name, found.code as T[FieldPath<T>]);
         clearErrors(dialCodeName);
       } else {
         setError(dialCodeName, {
           type: "manual",
-          message: t("companies.validation.invalidCountryCode", { defaultValue: "Please provide a correct country code." }),
+          message: t("companies.validation.unknownCountryCode", { defaultValue: "Unknown country code." }),
         });
       }
     },
@@ -92,7 +111,7 @@ export function PhoneCountryInput<T extends FieldValues>({
   );
 
   const handleNationalNumberBlur = useCallback(
-    (nationalNumber: string, countryIso2: string | undefined, dialCode: string) => {
+    (nationalNumber: string, countryCode: string | undefined, dialCode: string) => {
       const digits = nationalNumber.replace(/\D/g, "");
       if (!digits) {
         clearErrors(nationalNumberName);
@@ -105,7 +124,7 @@ export function PhoneCountryInput<T extends FieldValues>({
         });
         return;
       }
-      const valid = validatePhoneForCountry(nationalNumber, countryIso2 || undefined, dialCode);
+      const valid = validatePhoneForCountry(nationalNumber, countryCode || undefined, dialCode);
       if (!valid) {
         setError(nationalNumberName, {
           type: "manual",
@@ -128,6 +147,7 @@ export function PhoneCountryInput<T extends FieldValues>({
             <label className="form-label">{t("companies.country", { defaultValue: "Country" })}</label>
             <Select<SelectOption>
               isClearable
+              isDisabled={countrySelectDisabled}
               placeholder={t("companies.country", { defaultValue: "Select country..." })}
               options={selectOptions}
               value={selectOptions.find((o) => o.value === field.value) ?? null}
@@ -161,11 +181,11 @@ export function PhoneCountryInput<T extends FieldValues>({
                     const digits = e.target.value.replace(/\D/g, "");
                     field.onChange(digits);
                   }}
-                  onBlur={(e) => {
+                  onBlur={() => {
                     field.onBlur();
                     const digits = (field.value ?? "").toString().replace(/\D/g, "");
-                    const currentIso2 = getValues(countryIso2Name as FieldPath<T>) as string | undefined;
-                    handleDialCodeBlur(digits, currentIso2);
+                    const currentCode = getValues(countryIso2Name as FieldPath<T>) as string | undefined;
+                    handleDialCodeBlur(digits, currentCode);
                   }}
                   aria-label={t("companies.phoneCountryCode", { defaultValue: "Country code" })}
                 />
@@ -183,18 +203,20 @@ export function PhoneCountryInput<T extends FieldValues>({
                 <input
                   ref={(el) => {
                     field.ref(el);
-                    if (nationalNumberRef) (nationalNumberRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                    if (nationalNumberRef && el) {
+                      (nationalNumberRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                    }
                   }}
                   type="tel"
                   className={`form-control form-control-md ${errors.nationalNumber?.message ? "is-invalid" : ""}`}
                   placeholder={t("companies.phoneNumberPlaceholder", { defaultValue: "Phone number" })}
                   value={field.value ?? ""}
                   onChange={(e) => field.onChange(e.target.value)}
-                  onBlur={(e) => {
+                  onBlur={() => {
                     field.onBlur();
-                    const countryIso2 = getValues(countryIso2Name as FieldPath<T>) as string | undefined;
+                    const countryCode = getValues(countryIso2Name as FieldPath<T>) as string | undefined;
                     const dialCode = (getValues(dialCodeName as FieldPath<T>) ?? "").toString().replace(/\D/g, "");
-                    handleNationalNumberBlur((field.value ?? "").toString(), countryIso2, dialCode);
+                    handleNationalNumberBlur((field.value ?? "").toString(), countryCode, dialCode);
                   }}
                   aria-label={t("companies.phoneNumber", { defaultValue: "Phone number" })}
                 />
