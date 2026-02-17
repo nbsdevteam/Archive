@@ -67,6 +67,10 @@ export function DocumentDetailInfoCard({
                   <td className="text-muted">{t("documents.uploadDate", { defaultValue: "Upload date" })}</td>
                   <td>{formatDate(doc.upload_date)}</td>
                 </tr>
+                <tr>
+                  <td className="text-muted">{t("documents.lastModified", { defaultValue: "Last modified" })}</td>
+                  <td>{formatDate(doc.last_modified)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
