@@ -1,5 +1,5 @@
 /**
- * Create company side panel: fetches countries once when opened (via store), country dropdown + phone inputs, submit with country_name and E.164 phone.
+ * Create company side panel: country options from localStorage cache (API only on cache miss). Submit with country_name and E.164 phone.
  */
 
 import { useEffect, useMemo, useRef } from "react";
@@ -9,8 +9,7 @@ import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
 import { createCompany } from "../services/companies.api";
 import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
-import { useCountriesStore } from "@/shared/stores/countriesStore";
-import { mapApiCountriesToOptions } from "../utils/countryPhoneUtils";
+import { useCountriesFromCache } from "../hooks/useCountriesFromCache";
 import { createCreateCompanyResolver } from "./createCompanyValidation";
 import { PhoneCountryInput } from "./PhoneCountryInput";
 
@@ -39,19 +38,7 @@ export function CreateCompanySidePanel({
 }: CreateCompanySidePanelProps) {
   const { t } = useTranslation();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
-  const { countries, isLoading: countriesLoading, error: countriesError, fetchCountries } = useCountriesStore();
-
-  const countryOptions = useMemo(() => mapApiCountriesToOptions(countries), [countries]);
-  const selectOptions = useMemo(
-    () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
-    [countryOptions]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchCountries({ limit: 300 });
-    }
-  }, [isOpen, fetchCountries]);
+  const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache();
 
   const resolver = useMemo(() => createCreateCompanyResolver(t), [t]);
 

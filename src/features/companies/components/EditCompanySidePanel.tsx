@@ -1,5 +1,5 @@
 /**
- * Edit company side panel: loads company, prefills form (including country/phone from store options), submit uses country_name and E.164 phone.
+ * Edit company side panel: country options from localStorage cache. Loads company, prefills form; submit uses country_name and E.164 phone.
  */
 
 import { useEffect, useMemo, useRef } from "react";
@@ -12,9 +12,8 @@ import { requiredTrimmedString, optionalTrimmedString, addIssue } from "@/shared
 import type { Validator } from "@/shared/utils/form/validation";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { getCompany, updateCompany } from "../services/companies.api";
-import { getCountryByPhoneCode, formatPhoneToE164 } from "../utils/countryPhoneUtils";
-import { useCountriesStore } from "@/shared/stores/countriesStore";
-import { mapApiCountriesToOptions } from "../utils/countryPhoneUtils";
+import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
+import { useCountriesFromCache } from "../hooks/useCountriesFromCache";
 import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface EditCompanySidePanelProps {
@@ -80,19 +79,7 @@ export function EditCompanySidePanel({
 }: EditCompanySidePanelProps) {
   const { t } = useTranslation();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
-  const { countries, isLoading: countriesLoading, error: countriesError, fetchCountries } = useCountriesStore();
-
-  const countryOptions = useMemo(() => mapApiCountriesToOptions(countries), [countries]);
-  const selectOptions = useMemo(
-    () => countryOptions.map((o) => ({ value: o.value, label: o.label })),
-    [countryOptions]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchCountries({ limit: 300 });
-    }
-  }, [isOpen, fetchCountries]);
+  const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache();
 
   const resolver = useMemo(
     () => createValidationResolver(makeEditCompanyValidator(t)),
