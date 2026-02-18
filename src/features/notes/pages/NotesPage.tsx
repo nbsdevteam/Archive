@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ConfirmModal, Icon, Modal, Pagination } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui";
+import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
@@ -152,19 +153,16 @@ const NotesPage = () => {
               })}
             />
 
-            {/* Pagination: First/Prev/numbers/Next/Last + per-page, URL-synced */}
             {pagination && pagination.total_pages > 0 && (
-              <div className="d-flex justify-content-center justify-content-md-between flex-wrap align-items-center mt-3 gap-2">
-                <Pagination
-                  page={pagination.page}
-                  perPage={pagination.per_page}
-                  total={pagination.total}
-                  totalPages={pagination.total_pages}
-                  onPageChange={handlePageChange}
-                  onPerPageChange={handlePerPageChange}
-                  disabled={loading}
-                />
-              </div>
+              <PaginationSection
+                page={pagination.page}
+                perPage={pagination.per_page}
+                total={pagination.total}
+                totalPages={pagination.total_pages}
+                onPageChange={handlePageChange}
+                onPerPageChange={handlePerPageChange}
+                disabled={loading}
+              />
             )}
           </div>
         </div>

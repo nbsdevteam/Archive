@@ -13,4 +13,3 @@ export * from "./ListFilter";
 export * from "./DataTable";
 export * from "./InfoWrapper";
 export * from "./Checkbox";
-export * from "./Pagination";

@@ -2,7 +2,8 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, Pagination } from "../../../shared/components/ui";
+import { Button } from "../../../shared/components/ui";
+import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { usePaginationFromUrl } from "../../../shared/hooks";
 import { useAuditLogs } from "../hooks/useAuditLogs";
@@ -239,16 +240,14 @@ const ArchiveActivityPage = () => {
             )}
 
             {!loading && (pagination?.total ?? 0) > 0 && (
-              <div className="d-flex flex-wrap justify-content-center justify-content-md-between align-items-center mt-3 gap-2">
-                <Pagination
-                  page={pagination?.page ?? 1}
-                  perPage={pagination?.per_page ?? 50}
-                  total={pagination?.total}
-                  onPageChange={handlePageChange}
-                  onPerPageChange={handlePerPageChange}
-                  disabled={loading}
-                />
-              </div>
+              <PaginationSection
+                page={pagination?.page ?? 1}
+                perPage={pagination?.per_page ?? 50}
+                total={pagination?.total}
+                onPageChange={handlePageChange}
+                onPerPageChange={handlePerPageChange}
+                disabled={loading}
+              />
             )}
           </div>
         </div>

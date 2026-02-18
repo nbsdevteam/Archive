@@ -13,7 +13,7 @@ import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
-import { Pagination } from "@/shared/components/ui";
+import { PaginationSection } from "@/shared/components/PaginationSection";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "@/features/documents/styles/documents.css";
@@ -172,17 +172,15 @@ const DocumentsPage = () => {
           onRowClick={actions.handleNavigateToDocument}
         />
         {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
-          <div className="d-flex justify-content-center justify-content-md-between flex-wrap align-items-center mt-3 gap-2 px-3 pb-3">
-            <Pagination
-              page={pagination.page ?? 1}
-              perPage={pagination.per_page ?? 20}
-              total={pagination.total}
-              totalPages={pagination.total_pages}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-              disabled={loading}
-            />
-          </div>
+          <PaginationSection
+            page={pagination.page ?? 1}
+            perPage={pagination.per_page ?? 20}
+            total={pagination.total}
+            totalPages={pagination.total_pages}
+            onPageChange={handlePageChange}
+            onPerPageChange={handlePerPageChange}
+            disabled={loading}
+          />
         )}
       </div>
       <DocumentsModals
