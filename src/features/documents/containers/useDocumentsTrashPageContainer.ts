@@ -4,7 +4,7 @@ import { all_routes } from "@/router/all_routes";
 import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useDocumentOperations, useSelection } from "@/shared/hooks";
+import { useDocumentOperations, useSelection, usePaginationFromUrl } from "@/shared/hooks";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
@@ -12,6 +12,7 @@ export const useDocumentsTrashPageContainer = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const { user } = useAuth();
+  const { page, perPage, setPage, setPerPage } = usePaginationFromUrl(20);
   const { isRestoring, isPermanentDeleting, restoreDocument, permanentDeleteSingle, permanentDeleteBatch } =
     useDocumentOperations();
   const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
@@ -27,7 +28,7 @@ export const useDocumentsTrashPageContainer = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await documentsApi.listTrashDocuments();
+      const response = await documentsApi.listTrashDocuments({ page, per_page: perPage });
       setDocuments((response?.data ?? []) as TrashDoc[]);
       setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
     } catch (e: unknown) {
@@ -36,7 +37,7 @@ export const useDocumentsTrashPageContainer = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage]);
 
   useEffect(() => {
     fetchTrash();
@@ -116,6 +117,20 @@ export const useDocumentsTrashPageContainer = () => {
     if (didDelete) clearSelection();
   }, [clearSelection, fetchTrash, permanentDeleteBatch, selectedDocumentIds, t]);
 
+  const handlePageChange = useCallback(
+    (p: number) => {
+      setPage(p);
+    },
+    [setPage]
+  );
+
+  const handlePerPageChange = useCallback(
+    (pp: number) => {
+      setPerPage(pp);
+    },
+    [setPerPage]
+  );
+
   /** Grouped return shape: data, loading, error, selection, actions, modals (KISS/DRY). */
   return {
     data: {
@@ -137,6 +152,8 @@ export const useDocumentsTrashPageContainer = () => {
       confirmPermanentDelete,
       confirmBatchRestore,
       confirmBatchPermanentDelete,
+      handlePageChange,
+      handlePerPageChange,
     },
     modals: {
       restoreLoadingId: isRestoring ? restoreLoadingId : null,

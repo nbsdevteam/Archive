@@ -34,6 +34,8 @@ export interface UseNotesOptions {
   autoLoad?: boolean;
   /** Items per page (default 50) */
   perPage?: number;
+  /** Initial page to load (e.g. from URL); when provided, effect uses this instead of 1 */
+  initialPage?: number;
 }
 
 /**
@@ -46,6 +48,7 @@ export const useNotes = (options: UseNotesOptions = {}) => {
     includePrivate = true,
     autoLoad = true,
     perPage = 50,
+    initialPage,
   } = options;
 
   const [notes, setNotes] = useState<NoteListItem[]>([]);
@@ -115,14 +118,14 @@ export const useNotes = (options: UseNotesOptions = {}) => {
   );
 
   /**
-   * Auto-load on mount or when filters change
+   * Auto-load on mount or when filters / page / perPage change. Uses initialPage when provided (e.g. from URL).
    */
   useEffect(() => {
     if (autoLoad) {
-      loadNotes(1);
+      loadNotes(initialPage ?? 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLoad, documentId, folderId, includePrivate, perPage]);
+  }, [autoLoad, documentId, folderId, includePrivate, perPage, initialPage]);
 
   return {
     notes,

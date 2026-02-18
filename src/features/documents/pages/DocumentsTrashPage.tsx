@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "@/shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, Pagination } from "@/shared/components/ui";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
@@ -15,7 +15,7 @@ import "@/features/documents/styles/documents.css";
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();
   const { data, loading, error, selection, actions, modals } = useDocumentsTrashPageContainer();
-  const { routes, documents, isAdmin } = data;
+  const { routes, documents, pagination, isAdmin } = data;
   const { selectedDocumentIds, isSomeSelected, selectionConfig } = selection;
   const { isRestoring, isPermanentDeleting } = modals;
 
@@ -141,6 +141,19 @@ const DocumentsTrashPage = () => {
               selection={data.isAdmin ? selectionConfig : undefined}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             />
+            {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
+              <div className="d-flex justify-content-center justify-content-md-between flex-wrap align-items-center mt-3 gap-2">
+                <Pagination
+                  page={pagination.page ?? 1}
+                  perPage={pagination.per_page ?? 20}
+                  total={pagination.total}
+                  totalPages={pagination.total_pages}
+                  onPageChange={actions.handlePageChange}
+                  onPerPageChange={actions.handlePerPageChange}
+                  disabled={loading}
+                />
+              </div>
+            )}
           </div>
         </div>
 

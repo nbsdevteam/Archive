@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button } from "../../../shared/components/ui";
+import { Button, Pagination } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
+import { usePaginationFromUrl } from "../../../shared/hooks";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
 import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../../../shared/components/Activity";
@@ -20,6 +21,7 @@ const getDateDaysAgoFormatted = (days: number): string => {
 const ArchiveActivityPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
+  const { page: urlPage, perPage: urlPerPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(50);
   const [viewMode, setViewMode] = useState<ActivityViewMode>("timeline");
   const [treeGroupBy, setTreeGroupBy] = useState<"document" | "action">("document");
   const [dateFromInput, setDateFromInput] = useState("");
@@ -38,23 +40,27 @@ const ArchiveActivityPage = () => {
   } = useAuditLogs({
     initialParams: {
       date_from: defaultDateFrom,
-      page: 1,
-      per_page: 50,
+      page: urlPage,
+      per_page: urlPerPage,
     },
   });
 
-  /** Applies filters; sends date_from/date_to as YYYY-MM-DDTHH:mm:ss per audit-logs API. */
-  const applyFilters = async (nextPage = 1) => {
-    const nextParams = {
-      ...params,
-      page: nextPage,
-      date_from: dateFromInput ? formatDateForAuditApi(dateFromInput, false) : params.date_from,
-      date_to: dateToInput ? formatDateForAuditApi(dateToInput, true) : undefined,
-      action: actionInput || undefined,
-    };
-    setParams(nextParams);
-    await fetchLogs(nextParams);
-  };
+  /** Applies filters; sends date_from/date_to as YYYY-MM-DDTHH:mm:ss per audit-logs API. Resets URL to page 1. */
+  const applyFilters = useCallback(
+    async (nextPage = 1) => {
+      const nextParams = {
+        ...params,
+        page: nextPage,
+        per_page: urlPerPage,
+        date_from: dateFromInput ? formatDateForAuditApi(dateFromInput, false) : params.date_from,
+        date_to: dateToInput ? formatDateForAuditApi(dateToInput, true) : undefined,
+        action: actionInput || undefined,
+      };
+      setParams(nextParams);
+      await fetchLogs(nextParams);
+    },
+    [params, dateFromInput, dateToInput, actionInput, urlPerPage, setParams, fetchLogs]
+  );
 
   const actionOptions = useMemo(() => {
     return [
@@ -89,14 +95,28 @@ const ArchiveActivityPage = () => {
   };
   const handleFiltersSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    resetPage();
     applyFilters(1).catch(() => undefined);
   };
   const handleDateFromChange = (event: React.ChangeEvent<HTMLInputElement>) => setDateFromInput(event.target.value);
   const handleDateToChange = (event: React.ChangeEvent<HTMLInputElement>) => setDateToInput(event.target.value);
   const handleActionInputChange = (event: React.ChangeEvent<HTMLSelectElement>) => setActionInput(event.target.value);
   const handleTreeGroupByChange = (event: React.ChangeEvent<HTMLSelectElement>) => setTreeGroupBy(event.target.value as "document" | "action");
-  const handlePrevPageClick = () => applyFilters((pagination?.page ?? 1) - 1);
-  const handleNextPageClick = () => applyFilters((pagination?.page ?? 1) + 1);
+
+  const handlePageChange = useCallback(
+    (p: number) => {
+      setPage(p);
+      applyFilters(p).catch(() => undefined);
+    },
+    [setPage, applyFilters]
+  );
+  const handlePerPageChange = useCallback(
+    (pp: number) => {
+      setPerPage(pp);
+      applyFilters(1).catch(() => undefined);
+    },
+    [setPerPage, applyFilters]
+  );
 
   const pageTitle = t("activity.title", { defaultValue: "Activity" });
 
@@ -219,33 +239,15 @@ const ArchiveActivityPage = () => {
             )}
 
             {!loading && (pagination?.total ?? 0) > 0 && (
-              <div className="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
-                <span className="text-muted small">
-                  {t("activity.paginationInfo", {
-                    defaultValue: "Page {{page}}",
-                    page: pagination?.page ?? 1,
-                  })}
-                </span>
-                <div className="d-flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-secondary"
-                    disabled={(pagination?.page ?? 1) <= 1 || loading}
-                    onClick={handlePrevPageClick}
-                  >
-                    {t("common.previous", { defaultValue: "Previous" })}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-secondary"
-                    disabled={loading || (logs.length < (pagination?.per_page ?? 50))}
-                    onClick={handleNextPageClick}
-                  >
-                    {t("common.next", { defaultValue: "Next" })}
-                  </Button>
-                </div>
+              <div className="d-flex flex-wrap justify-content-center justify-content-md-between align-items-center mt-3 gap-2">
+                <Pagination
+                  page={pagination?.page ?? 1}
+                  perPage={pagination?.per_page ?? 50}
+                  total={pagination?.total}
+                  onPageChange={handlePageChange}
+                  onPerPageChange={handlePerPageChange}
+                  disabled={loading}
+                />
               </div>
             )}
           </div>

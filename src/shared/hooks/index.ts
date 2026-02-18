@@ -11,3 +11,4 @@ export {
   useConfirmDialog,
   useConfirmDialogEmpty,
 } from "./useConfirmDialog";
+export { usePaginationFromUrl } from "./usePaginationFromUrl";

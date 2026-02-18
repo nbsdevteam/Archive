@@ -30,6 +30,8 @@ export const listFolders = async (
     folder_type: params.folder_type,
     state: params.state || "active",
     ...(params.company_id != null && { company_id: params.company_id }),
+    ...(params.page != null && { page: params.page }),
+    ...(params.per_page != null && { per_page: params.per_page }),
   });
 
   // Handle different response shapes; map date fields to Arabia Standard Time for display

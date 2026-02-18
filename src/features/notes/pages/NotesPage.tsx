@@ -7,9 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, Modal, Pagination } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { useConfirmDialog } from "../../../shared/hooks";
+import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
@@ -22,6 +22,7 @@ const NotesPage = () => {
   const routes = all_routes;
   const navigate = useNavigate();
   const { registerHandler } = useShortcuts();
+  const { page: urlPage, perPage: urlPerPage, setPage, setPerPage } = usePaginationFromUrl(50);
 
   const {
     notes,
@@ -33,7 +34,8 @@ const NotesPage = () => {
   } = useNotes({
     includePrivate: true,
     autoLoad: true,
-    perPage: 50,
+    perPage: urlPerPage,
+    initialPage: urlPage,
   });
 
   const {
@@ -78,12 +80,21 @@ const NotesPage = () => {
     [navigate, routes.folderDetail]
   );
 
-  const handlePrevPage = () => pagination && goToPage(pagination.page - 1);
-  const handleNextPage = () => pagination && goToPage(pagination.page + 1);
-  const handlePageNumberClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const page = e.currentTarget.dataset.page;
-    if (page != null) goToPage(Number(page));
-  };
+  const handlePageChange = useCallback(
+    (p: number) => {
+      setPage(p);
+      goToPage(p);
+    },
+    [setPage, goToPage]
+  );
+
+  const handlePerPageChange = useCallback(
+    (pp: number) => {
+      setPerPage(pp);
+      // URL updates to page=1; useNotes effect will reload with new perPage
+    },
+    [setPerPage]
+  );
 
   const pageTitle = t("notes.title", { defaultValue: "Notes" });
 
@@ -141,45 +152,18 @@ const NotesPage = () => {
               })}
             />
 
-            {/* Pagination */}
-            {pagination && pagination.total_pages > 1 && (
-              <div className="d-flex justify-content-center mt-3">
-                <nav>
-                  <ul className="pagination mb-0">
-                    <li className={`page-item ${pagination.page <= 1 ? "disabled" : ""}`}>
-                      <button
-                        className="page-link"
-                        onClick={handlePrevPage}
-                        disabled={pagination.page <= 1}
-                      >
-                        {t("common.previous", { defaultValue: "Previous" })}
-                      </button>
-                    </li>
-                    {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((page) => (
-                      <li
-                        key={page}
-                        className={`page-item ${page === pagination.page ? "active" : ""}`}
-                      >
-                        <button className="page-link" data-page={page} onClick={handlePageNumberClick}>
-                          {page}
-                        </button>
-                      </li>
-                    ))}
-                    <li
-                      className={`page-item ${
-                        pagination.page >= pagination.total_pages ? "disabled" : ""
-                      }`}
-                    >
-                      <button
-                        className="page-link"
-                        onClick={handleNextPage}
-                        disabled={pagination.page >= pagination.total_pages}
-                      >
-                        {t("common.next", { defaultValue: "Next" })}
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
+            {/* Pagination: First/Prev/numbers/Next/Last + per-page, URL-synced */}
+            {pagination && pagination.total_pages > 0 && (
+              <div className="d-flex justify-content-center justify-content-md-between flex-wrap align-items-center mt-3 gap-2">
+                <Pagination
+                  page={pagination.page}
+                  perPage={pagination.per_page}
+                  total={pagination.total}
+                  totalPages={pagination.total_pages}
+                  onPageChange={handlePageChange}
+                  onPerPageChange={handlePerPageChange}
+                  disabled={loading}
+                />
               </div>
             )}
           </div>

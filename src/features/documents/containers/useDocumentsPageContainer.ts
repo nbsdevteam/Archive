@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
-import { useDocumentOperations } from "@/shared/hooks";
+import { useDocumentOperations, usePaginationFromUrl } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -27,6 +27,7 @@ export const useDocumentsPageContainer = () => {
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
+  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
   const { fetchDocuments } = useDocumentStore();
   const {
     isArchiving,
@@ -35,21 +36,27 @@ export const useDocumentsPageContainer = () => {
     trashDocument,
   } = useDocumentOperations();
 
-  const list = useDocumentListWithFilters({ paginated: false });
+  const list = useDocumentListWithFilters({
+    paginated: true,
+    pageOverride: page,
+    perPageOverride: perPage,
+  });
   const {
     documents,
     isLoading,
     error,
+    pagination,
     getFetchParams,
     handleSearchDebounced,
     handleOpenFilter,
     handleCloseFilter,
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
+    handleApplyFilter: listHandleApplyFilter,
+    handleClearFilter: listHandleClearFilter,
     handleRetry,
     handleRefresh,
+    handlePageChange: listHandlePageChange,
     draftFilters,
     departmentOptions,
     documentTypeOptions,
@@ -63,6 +70,32 @@ export const useDocumentsPageContainer = () => {
     deselectDocumentIds,
     isSomeSelected,
   } = list;
+
+  const handleApplyFilter = useCallback(() => {
+    resetPage();
+    listHandleApplyFilter();
+  }, [resetPage, listHandleApplyFilter]);
+
+  const handleClearFilter = useCallback(() => {
+    resetPage();
+    listHandleClearFilter();
+  }, [resetPage, listHandleClearFilter]);
+
+  const handlePageChange = useCallback(
+    (p: number) => {
+      setPage(p);
+      listHandlePageChange(p);
+    },
+    [setPage, listHandlePageChange]
+  );
+
+  const handlePerPageChange = useCallback(
+    (pp: number) => {
+      setPerPage(pp);
+      listHandlePageChange(1);
+    },
+    [setPerPage, listHandlePageChange]
+  );
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
@@ -267,11 +300,11 @@ export const useDocumentsPageContainer = () => {
     [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
   );
 
-  /** Grouped return shape: data, loading, error, filter, selection, actions, modals (KISS/DRY). */
+  /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
     data: {
       documents,
-      pagination: list.pagination,
+      pagination,
       routes,
     },
     loading: isLoading,
@@ -297,6 +330,11 @@ export const useDocumentsPageContainer = () => {
       selectionConfig,
       clearSelection,
       isSomeSelected,
+    },
+    paging: {
+      pagination,
+      handlePageChange,
+      handlePerPageChange,
     },
     actions: {
       handleNavigateToDocument,

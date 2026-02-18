@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
-import { useDocumentOperations } from "@/shared/hooks";
+import { useDocumentOperations, usePaginationFromUrl } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -30,6 +30,7 @@ export const useArchivedDocumentsPageContainer = () => {
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
+  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
   const { fetchDocuments } = useDocumentStore();
   const {
     isTrashing,
@@ -41,6 +42,8 @@ export const useArchivedDocumentsPageContainer = () => {
   const list = useDocumentListWithFilters({
     status: ARCHIVED_STATUS,
     paginated: true,
+    pageOverride: page,
+    perPageOverride: perPage,
   });
   const {
     documents,
@@ -53,11 +56,11 @@ export const useArchivedDocumentsPageContainer = () => {
     handleCloseFilter,
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
-    handleApplyFilter,
-    handleClearFilter,
+    handleApplyFilter: listHandleApplyFilter,
+    handleClearFilter: listHandleClearFilter,
     handleRetry,
     handleRefresh,
-    handlePageChange,
+    handlePageChange: listHandlePageChange,
     draftFilters,
     departmentOptions,
     documentTypeOptions,
@@ -79,6 +82,32 @@ export const useArchivedDocumentsPageContainer = () => {
   const refetch = useCallback(() => {
     fetchDocuments(getFetchParams());
   }, [fetchDocuments, getFetchParams]);
+
+  const handleApplyFilter = useCallback(() => {
+    resetPage();
+    listHandleApplyFilter();
+  }, [resetPage, listHandleApplyFilter]);
+
+  const handleClearFilter = useCallback(() => {
+    resetPage();
+    listHandleClearFilter();
+  }, [resetPage, listHandleClearFilter]);
+
+  const handlePageChange = useCallback(
+    (p: number) => {
+      setPage(p);
+      listHandlePageChange(p);
+    },
+    [setPage, listHandlePageChange]
+  );
+
+  const handlePerPageChange = useCallback(
+    (pp: number) => {
+      setPerPage(pp);
+      listHandlePageChange(1);
+    },
+    [setPerPage, listHandlePageChange]
+  );
 
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {
@@ -244,6 +273,7 @@ export const useArchivedDocumentsPageContainer = () => {
     paging: {
       pagination,
       handlePageChange,
+      handlePerPageChange,
     },
     actions: {
       handleNavigateToDocument,

@@ -61,6 +61,9 @@ export interface FolderListParams {
   folder_type?: string;
   state?: string;
   company_id?: number;
+  /** Optional pagination; show pagination UI only when backend returns pagination. */
+  page?: number;
+  per_page?: number;
 }
 
 export interface FolderListResponse {

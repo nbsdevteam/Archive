@@ -19,6 +19,10 @@ export interface UseDocumentListWithFiltersOptions {
   status?: string;
   /** If true, fetches use page/per_page and the hook returns pagination + handlePageChange. */
   paginated?: boolean;
+  /** When set (e.g. from URL), fetches use this page and refetch when it changes. */
+  pageOverride?: number;
+  /** When set (e.g. from URL), fetches use this per_page and refetch when it changes. */
+  perPageOverride?: number;
 }
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -31,7 +35,7 @@ const DEFAULT_PAGE_SIZE = 20;
 export function useDocumentListWithFilters(
   options: UseDocumentListWithFiltersOptions = {}
 ) {
-  const { status, paginated = false } = options;
+  const { status, paginated = false, pageOverride, perPageOverride } = options;
   const { t } = useTranslation();
 
   const {
@@ -82,12 +86,12 @@ export function useDocumentListWithFilters(
         ...(search.length >= 1 ? { search } : {}),
       };
       if (paginated) {
-        params.page = overrides?.page ?? 1;
-        params.per_page = overrides?.per_page ?? DEFAULT_PAGE_SIZE;
+        params.page = overrides?.page ?? pageOverride ?? 1;
+        params.per_page = overrides?.per_page ?? perPageOverride ?? DEFAULT_PAGE_SIZE;
       }
       return params;
     },
-    [appliedFilters, status, paginated]
+    [appliedFilters, status, paginated, pageOverride, perPageOverride]
   );
 
   const initialFetch = useCallback(() => {
@@ -100,7 +104,24 @@ export function useDocumentListWithFilters(
   useRunOnceOnMount(() => {
     fetchCompanies({ limit: 100 });
   });
-  useRunOnceOnMount(initialFetch);
+  /** When paginated with URL overrides, the effect below does the fetch; otherwise run once on mount. */
+  useRunOnceOnMount(() => {
+    if (paginated && (pageOverride != null || perPageOverride != null)) return;
+    initialFetch();
+  });
+
+  /** When URL-driven page/per_page are provided, fetch so list stays in sync with URL (and on mount). */
+  useEffect(() => {
+    if (!paginated) return;
+    if (pageOverride != null || perPageOverride != null) {
+      fetchDocuments(
+        getFetchParams({
+          page: pageOverride ?? 1,
+          per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
+        })
+      );
+    }
+  }, [paginated, pageOverride, perPageOverride, fetchDocuments, getFetchParams]);
 
   const departmentIdForTypes = draftFilters.department_id;
 
@@ -261,9 +282,13 @@ export function useDocumentListWithFilters(
 
   const handlePageChange = useCallback(
     (page: number) => {
-      fetchDocuments({ ...getFetchParams(), page, per_page: DEFAULT_PAGE_SIZE });
+      fetchDocuments({
+        ...getFetchParams(),
+        page,
+        per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
+      });
     },
-    [fetchDocuments, getFetchParams]
+    [fetchDocuments, getFetchParams, perPageOverride]
   );
 
   const isSomeSelected = selectedDocumentIds.length > 0;
