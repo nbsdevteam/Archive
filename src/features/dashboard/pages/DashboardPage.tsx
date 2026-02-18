@@ -132,7 +132,7 @@ const DashboardPage = () => {
                     </Link>
                   </div>
                   <div className="dashboard-stat-grid__item d-flex">
-                    <Link to={routes.documents} className="dashboard-stat-card-link flex-fill">
+                    <Link to={routes.archivedDocuments} className="dashboard-stat-card-link flex-fill">
                       <Card className="flex-fill" glassEffect>
                         <span className="avatar rounded-circle bg-dark mb-2">
                           <Icon name="archive" className="fs-16" />
