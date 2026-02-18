@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
-import { useDraftAppliedFilters } from "@/shared/hooks";
+import { useDraftAppliedFilters, usePaginationFromUrl } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
 import type { SelectOption } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
@@ -37,6 +37,7 @@ export function useFoldersPageContainer() {
   // ─── View & list state ─────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
   const [searchQuery, setSearchQuery] = useState("");
+  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
 
   const filterState = useDraftAppliedFilters<FoldersFilterState>();
   const { appliedFilters, draftFilters, setDraftFilters, isFilterOpen, filterApplyDisabled, handleOpenFilter, handleCloseFilter, handleApplyFilter: baseHandleApplyFilter, handleClearFilter: baseHandleClearFilter } = filterState;
@@ -47,8 +48,10 @@ export function useFoldersPageContainer() {
       department_id: appliedFilters.department_id,
       folder_type: appliedFilters.folder_type,
       company_id: appliedFilters.company_id,
+      page,
+      per_page: perPage,
     }),
-    [appliedFilters.department_id, appliedFilters.folder_type, appliedFilters.company_id]
+    [appliedFilters.department_id, appliedFilters.folder_type, appliedFilters.company_id, page, perPage]
   );
 
   const { folders, loading, error, pagination, fetchFolders } = useFolders({
@@ -84,18 +87,21 @@ export function useFoldersPageContainer() {
   );
 
   const handleApplyFilter = useCallback(() => {
+    resetPage();
     baseHandleApplyFilter();
     fetchFolders({
       department_id: draftFilters.department_id,
       folder_type: draftFilters.folder_type,
       company_id: draftFilters.company_id,
+      page: 1,
     });
-  }, [baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, draftFilters.company_id, fetchFolders]);
+  }, [resetPage, baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, draftFilters.company_id, fetchFolders]);
 
   const handleClearFilter = useCallback(() => {
+    resetPage();
     baseHandleClearFilter();
-    fetchFolders({});
-  }, [baseHandleClearFilter, fetchFolders]);
+    fetchFolders({ page: 1 });
+  }, [resetPage, baseHandleClearFilter, fetchFolders]);
 
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -191,16 +197,30 @@ export function useFoldersPageContainer() {
     setEditingFolder(null);
   }, [fetchFolders]);
 
+  // ─── Pagination handlers ────────────────────────────────────────────────────
+  const handlePageChange = useCallback(
+    (p: number) => { setPage(p); },
+    [setPage]
+  );
+
+  const handlePerPageChange = useCallback(
+    (pp: number) => { setPerPage(pp); },
+    [setPerPage]
+  );
+
   // ─── Derived labels ───────────────────────────────────────────────────────
   const foldersCountLabel = useMemo(() => {
     if (loading) return t("common.loading", { defaultValue: "Loading..." });
     const count = filteredFolders.length;
+    const total = pagination?.total;
     const singular = t("folders.folder", { defaultValue: "folder" });
     const plural = t("folders.folders", { defaultValue: "folders" });
-    return `${count} ${count === 1 ? singular : plural}`;
-  }, [filteredFolders.length, loading, t]);
+    const suffix = count === 1 ? singular : plural;
+    if (total != null && total !== count) return `${count} / ${total} ${suffix}`;
+    return `${count} ${suffix}`;
+  }, [filteredFolders.length, loading, pagination?.total, t]);
 
-  /** Grouped return shape: data, loading, error, filter, actions, modals (KISS/DRY). */
+  /** Grouped return shape: data, loading, error, filter, paging, actions, modals (KISS/DRY). */
   return {
     data: {
       routes: all_routes,
@@ -214,6 +234,11 @@ export function useFoldersPageContainer() {
     },
     loading,
     error,
+    paging: {
+      pagination,
+      handlePageChange,
+      handlePerPageChange,
+    },
     filter: {
       isFilterOpen,
       draftFilters,

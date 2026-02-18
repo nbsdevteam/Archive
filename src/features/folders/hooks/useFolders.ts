@@ -28,6 +28,8 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
   const departmentIdParam = initialParams.department_id;
   const folderTypeParam = initialParams.folder_type;
   const companyIdParam = initialParams.company_id;
+  const pageParam = initialParams.page;
+  const perPageParam = initialParams.per_page;
 
   const fetchFolders = useCallback(
     async (params: FolderListParams = {}) => {
@@ -39,6 +41,8 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
           ...(departmentIdParam !== undefined && { department_id: departmentIdParam }),
           ...(folderTypeParam !== undefined && { folder_type: folderTypeParam }),
           ...(companyIdParam !== undefined && { company_id: companyIdParam }),
+          ...(pageParam !== undefined && { page: pageParam }),
+          ...(perPageParam !== undefined && { per_page: perPageParam }),
           ...params,
         };
         let response: FolderListResponse;
@@ -63,14 +67,14 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
         setLoading(false);
       }
     },
-    [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam]
+    [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam]
   );
 
-  /** Re-fetches folders when list params change (e.g. filter by company). */
+  /** Re-fetches folders when list params change (e.g. filter, pagination). */
   useEffect(() => {
     fetchFolders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam]);
+  }, [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam]);
 
   return {
     folders,

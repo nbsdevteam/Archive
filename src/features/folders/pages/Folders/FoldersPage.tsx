@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
+import { PaginationSection } from "@/shared/components/PaginationSection";
 import { useConfirmDialog } from "@/shared/hooks";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
@@ -15,7 +16,7 @@ import { FoldersModals } from "./FoldersModals";
 const FoldersPage = () => {
   const { t } = useTranslation();
   const { registerHandler } = useShortcuts();
-  const { data, loading, error, filter, actions, modals } = useFoldersPageContainer();
+  const { data, loading, error, filter, paging, actions, modals } = useFoldersPageContainer();
 
   useEffect(() => {
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
@@ -72,6 +73,17 @@ const FoldersPage = () => {
           }}
           onDeleteClick={(id) => deleteFolderDialog.open(id)}
         />
+        {paging.pagination && (paging.pagination.total_pages > 0 || (paging.pagination.total ?? 0) > 0) && (
+          <PaginationSection
+            page={paging.pagination.page ?? 1}
+            perPage={paging.pagination.per_page ?? 20}
+            total={paging.pagination.total}
+            totalPages={paging.pagination.total_pages}
+            onPageChange={paging.handlePageChange}
+            onPerPageChange={paging.handlePerPageChange}
+            disabled={loading}
+          />
+        )}
       </div>
       <FoldersModals
         t={t}
