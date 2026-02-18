@@ -129,8 +129,9 @@ const DocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger",
-          /** Show only when document is not in trash (trash items get Restore instead). */
+          /** Hide move-to-trash for main documents on /documents (main docs are managed via folder). Show only when not in trash. */
           visible: (row) => {
+            if (row.is_main_document === true) return false;
             const s = (row.status ?? "").toLowerCase();
             return !s.includes("trash") && !s.includes("deleted");
           },
