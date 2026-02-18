@@ -34,7 +34,7 @@ interface DocumentState {
   archiveDocument: (documentIds: number | number[]) => Promise<void>;
   unarchiveDocument: (documentIds: number | number[]) => Promise<void>;
   trashDocument: (documentIds: number | number[], reason?: string) => Promise<void>;
-  restoreDocument: (documentIds: number | number[]) => Promise<void>;
+  restoreDocument: (documentIds: number | number[]) => Promise<{ restored: number[]; failed: number[] }>;
   permanentDeleteDocuments: (documentIds: number[]) => Promise<void>;
   clearError: () => void;
   clearCurrentDocument: () => void;
@@ -226,18 +226,21 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
-  /** Restores selected documents in one API call and refreshes list state. */
-  restoreDocument: async (documentIds: number | number[]): Promise<void> => {
+  /** Restores selected documents in one API call; returns { restored, failed }. Refetches only when any restored. */
+  restoreDocument: async (documentIds: number | number[]): Promise<{ restored: number[]; failed: number[] }> => {
     const ids = Array.isArray(documentIds) ? documentIds : [documentIds];
-    if (ids.length === 0) return;
+    if (ids.length === 0) return { restored: [], failed: [] };
     set({ error: null });
     try {
-      await documentsApi.restoreDocument(ids);
-      const currentId = get().currentDocument?.id;
-      if (currentId && ids.includes(currentId)) {
-        await get().fetchDocument(currentId);
+      const result = await documentsApi.restoreDocument(ids);
+      if (result.restored.length > 0) {
+        const currentId = get().currentDocument?.id;
+        if (currentId && result.restored.includes(currentId)) {
+          await get().fetchDocument(currentId);
+        }
+        await get().fetchDocuments();
       }
-      await get().fetchDocuments();
+      return result;
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;

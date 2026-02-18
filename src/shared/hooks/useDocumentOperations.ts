@@ -112,16 +112,26 @@ export const useDocumentOperations = () => {
     [getErrorMessage, toDocumentIds, trashDocument]
   );
 
+  /** Restore uses API result { restored, failed }; shows success only when restored.length > 0, error when failed.length > 0. */
   const restoreDocumentAction = useCallback(
     async (documentIds: number | number[], options?: OperationOptions): Promise<boolean> => {
       const ids = toDocumentIds(documentIds);
       if (ids.length === 0) return false;
       setIsRestoring(true);
       try {
-        await restoreDocument(ids);
-        if (options?.successMessage) toast.success(options.successMessage);
-        await options?.onSuccess?.();
-        return true;
+        const { restored, failed } = await restoreDocument(ids);
+        if (restored.length > 0) {
+          if (options?.successMessage) toast.success(options.successMessage);
+          await options?.onSuccess?.();
+        }
+        if (failed.length > 0) {
+          const failMsg =
+            failed.length === 1
+              ? (options?.errorMessage ?? "Failed to restore document.")
+              : `${failed.length} document(s) could not be restored.`;
+          toast.error(failMsg);
+        }
+        return restored.length > 0;
       } catch (error) {
         toast.error(getErrorMessage(error, options?.errorMessage));
         return false;

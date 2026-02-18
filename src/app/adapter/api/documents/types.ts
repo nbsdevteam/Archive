@@ -227,3 +227,9 @@ export interface DeleteLikeResponse {
   error?: string;
   message?: string;
 }
+
+/** Response from POST /api/documents/restore: lists restored and failed document IDs. */
+export interface RestoreResponse {
+  restored?: number[];
+  failed?: number[];
+}

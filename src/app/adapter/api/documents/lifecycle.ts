@@ -88,9 +88,11 @@ export async function permanentDeleteDocument(documentIds: number | number[]): P
 
 /**
  * Restore one or many trashed documents.
- * Accepts single ID or array. Converts to array, calls postRestore, returns { success: boolean }.
+ * Accepts single ID or array. Converts to array, calls postRestore, returns { restored, failed } from API.
  */
-export async function restoreDocument(documentIds: number | number[]): Promise<{ success: boolean; message?: string }> {
+export async function restoreDocument(
+  documentIds: number | number[]
+): Promise<{ restored: number[]; failed: number[] }> {
   return postRestore(toDocumentIds(documentIds));
 }
 

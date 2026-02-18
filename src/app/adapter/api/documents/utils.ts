@@ -1,6 +1,6 @@
 /** Shared utility functions for documents API */
 
-import type { DeleteLikeResponse } from './types';
+import type { DeleteLikeResponse, RestoreResponse } from './types';
 import apiClient from '../client';
 
 /**
@@ -55,23 +55,26 @@ export const postPermanentDelete = async (documentIds: number[]): Promise<{ ok: 
 
 /**
  * Restores one or many trashed document IDs via unified endpoint.
- * Backend accepts body: { ids: number[] }.
+ * Backend accepts body: { ids: number[] }, returns { restored: number[], failed: number[] }.
+ * Parses that shape and returns restored/failed arrays so callers can show correct toasts.
  */
-export const postRestore = async (documentIds: number[]): Promise<{ success: boolean; message?: string }> => {
+export const postRestore = async (documentIds: number[]): Promise<{ restored: number[]; failed: number[] }> => {
   if (documentIds.length === 0) {
-    return { success: true };
+    return { restored: [], failed: [] };
   }
   const response = await apiClient.post('/api/documents/restore', {
     ids: documentIds,
   });
-  const result = getRpcResult<DeleteLikeResponse>(response.data ?? {});
+  const result = getRpcResult<RestoreResponse & DeleteLikeResponse>(response.data ?? {});
   if (result && result.success === false) {
     throw new Error(result.error || result.message || 'Failed to restore document(s)');
   }
-  if (result && result.error && result.success !== true) {
+  if (result && typeof result === 'object' && result.error && result.success !== true) {
     throw new Error(result.error || result.message || 'Failed to restore document(s)');
   }
-  return { success: true, message: result?.message };
+  const restored = Array.isArray((result as RestoreResponse)?.restored) ? (result as RestoreResponse).restored! : [];
+  const failed = Array.isArray((result as RestoreResponse)?.failed) ? (result as RestoreResponse).failed! : [];
+  return { restored, failed };
 };
 
 /**
