@@ -71,7 +71,7 @@ export function DocumentsModals({
         })}
         confirmLabel={t("documents.restore", { defaultValue: "Restore" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
-        confirmVariant="success"
+        confirmVariant="primary"
       />
       <ConfirmModal
         {...archiveDialog.modalProps}
