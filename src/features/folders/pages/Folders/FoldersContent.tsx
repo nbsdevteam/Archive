@@ -107,7 +107,7 @@ export function FoldersContent(props: FoldersContentProps) {
                           <Icon name="folder" className="folders__folder-icon-symbol fs-18" />
                         </span>
                         <span className="badge bg-light text-dark">
-                          {t("folders.updated", { defaultValue: "Updated" })} {formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}
+                          {t("folders.updated", { defaultValue: "Updated" })} {formatDate(folder.last_modified ?? folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated)}
                         </span>
                       </div>
                       <div className="folders__folder-name-wrapper mb-1">
@@ -185,7 +185,7 @@ export function FoldersContent(props: FoldersContentProps) {
                       {folder.state || "unknown"}
                     </span>
                   </td>
-                  <td>{formatDate(folder.updated_at ?? folder.create_date ?? folder.updated)}</td>
+                  <td>{formatDate(folder.last_modified ?? folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated)}</td>
                   <td className="text-end">
                     <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-folder-id={folder.id} onClick={handleListViewClick}>
                       {t("common.view", { defaultValue: "View" })}
