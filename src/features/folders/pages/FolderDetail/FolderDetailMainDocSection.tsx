@@ -74,6 +74,7 @@ export function FolderDetailMainDocSection({
                   <th>{t("documents.name", { defaultValue: "Name" })}</th>
                   <th>{t("documents.type", { defaultValue: "Type" })}</th>
                   <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
+                  <th>{t("folders.updated", { defaultValue: "Updated" })}</th>
                   <th>{t("documents.status", { defaultValue: "Status" })}</th>
                   <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
                 </tr>
@@ -84,6 +85,7 @@ export function FolderDetailMainDocSection({
                   <td>{mainDoc.title ?? mainDoc.name ?? "–"}</td>
                   <td>{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</td>
                   <td>{formatDate(mainDoc.upload_date)}</td>
+                  <td>{formatDate(mainDoc.last_modified ?? mainDoc.upload_date)}</td>
                   <td>{mainDoc.status ?? "–"}</td>
                   <td className="text-end">
                     <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleDownloadClick}>
