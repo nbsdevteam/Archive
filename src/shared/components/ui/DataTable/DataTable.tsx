@@ -72,11 +72,10 @@ export function DataTable<T>({
     [data, getRowId, onRowClick]
   );
 
-  /** Toggles selection for the row whose data-row-id is on the event target. */
+  /** Toggles selection for the given row id (uses typed id so checked state matches selection). */
   const handleSelectionToggle = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const id = e.currentTarget.dataset.rowId;
-      if (id != null && selection) selection.onToggle(id);
+    (rowId: string | number) => {
+      if (selection) selection.onToggle(rowId);
     },
     [selection]
   );
@@ -167,7 +166,7 @@ export function DataTable<T>({
                           className="form-check-input"
                           checked={isSelected}
                           data-row-id={rowIdStr}
-                          onChange={handleSelectionToggle}
+                          onChange={() => handleSelectionToggle(rowId)}
                           onClick={stopPropagation}
                           aria-label={
                             selection!.getRowAriaLabel
