@@ -48,6 +48,7 @@ const DocumentsPage = () => {
 
   const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });
+  const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
   const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
   const batchArchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchArchive });
 
@@ -111,6 +112,16 @@ const DocumentsPage = () => {
           onClick: (row) => archiveDialog.open(row.id),
         },
         {
+          id: "unarchive",
+          labelKey: "documents.unarchive",
+          defaultValue: "Unarchive",
+          icon: "archive",
+          variant: "outline",
+          className: "btn-outline-secondary me-1",
+          visible: (row) => (row.status ?? "").toLowerCase() === "archived",
+          onClick: (row) => unarchiveDialog.open(row.id),
+        },
+        {
           id: "trash",
           labelKey: "documents.moveToTrash",
           defaultValue: "Move to trash",
@@ -129,6 +140,7 @@ const DocumentsPage = () => {
       actions.handleOpenEdit,
       actions.handleOpenSingleMoveConfirm,
       archiveDialog.open,
+      unarchiveDialog.open,
       trashDialog.open,
     ]
   );
@@ -197,6 +209,7 @@ const DocumentsPage = () => {
         }
         trashDialog={trashDialog}
         archiveDialog={archiveDialog}
+        unarchiveDialog={unarchiveDialog}
         batchArchiveDialog={batchArchiveDialog}
         batchTrashDialog={batchTrashDialog}
         selectedDocumentIds={selectedDocumentIds}

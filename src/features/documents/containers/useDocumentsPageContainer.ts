@@ -33,6 +33,7 @@ export const useDocumentsPageContainer = () => {
     isArchiving,
     isTrashing,
     archiveDocument,
+    unarchiveDocument,
     trashDocument,
   } = useDocumentOperations();
 
@@ -161,6 +162,18 @@ export const useDocumentsPageContainer = () => {
       });
     },
     [archiveDocument, t, fetchDocuments, getFetchParams]
+  );
+
+  /** Single-doc unarchive: call from useConfirmDialog onConfirm. Refetches list on success. */
+  const confirmUnarchive = useCallback(
+    async (documentId: number) => {
+      await unarchiveDocument(documentId, {
+        successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
+        errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
+        onSuccess: () => fetchDocuments(getFetchParams()),
+      });
+    },
+    [unarchiveDocument, t, fetchDocuments, getFetchParams]
   );
 
   const confirmBatchTrash = useCallback(async () => {
@@ -350,6 +363,7 @@ export const useDocumentsPageContainer = () => {
       handleEditSuccess,
       confirmTrash,
       confirmArchive,
+      confirmUnarchive,
       confirmBatchTrash,
       confirmBatchArchive,
       handleOpenSingleMoveConfirm,
