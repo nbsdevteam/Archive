@@ -81,6 +81,10 @@ const DocumentDetailPage = () => {
             <Icon name="pencil" className="me-1" />
             {t("common.edit", { defaultValue: "Edit" })}
           </Button>
+          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={() => void actions.handleRefreshDocument()} disabled={loading.isLoading} aria-label={t("common.refresh", { defaultValue: "Refresh" })} data-testid="document-detail-refresh-btn">
+            <Icon name="refresh-cw" className="me-1" />
+            {t("common.refresh", { defaultValue: "Refresh" })}
+          </Button>
           {data.isArchived ? (
             <Button variant="secondary" size="sm" onClick={actions.handleUnarchive}>
               <Icon name="archive" className="me-1" />

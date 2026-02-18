@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { all_routes } from "@/router/all_routes";
 import { useDocumentOperations } from "@/shared/hooks";
@@ -59,6 +60,13 @@ export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
     if (docId != null) fetchDocument(docId);
     setEditDocumentId(null);
   }, [docId, fetchDocument]);
+
+  /** Refetches current document from API; shows success toast when done. */
+  const handleRefreshDocument = useCallback(async () => {
+    if (docId == null) return;
+    await fetchDocument(docId);
+    toast.success(t("documents.refreshed", { defaultValue: "Document refreshed." }));
+  }, [docId, fetchDocument, t]);
 
   const { tabs, activeTab, setActiveTab } = useDocumentTabs(t);
   const {
@@ -405,6 +413,7 @@ export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
       handleOpenEdit,
       handleCloseEdit,
       handleEditSuccess,
+      handleRefreshDocument,
       handleArchive,
       handleUnarchive,
       handleRunOcr,

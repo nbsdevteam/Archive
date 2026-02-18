@@ -147,6 +147,8 @@ export interface DocumentDetailActions {
   handleOpenEdit: () => void;
   handleCloseEdit: () => void;
   handleEditSuccess: () => void;
+  /** Refetches the current document from the API (e.g. after stale prefetched state or user request). */
+  handleRefreshDocument: () => Promise<void>;
   handleArchive: () => Promise<void>;
   handleUnarchive: () => Promise<void>;
   handleRunOcr: () => Promise<void>;
