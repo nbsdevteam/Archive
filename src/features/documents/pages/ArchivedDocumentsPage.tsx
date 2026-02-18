@@ -164,7 +164,7 @@ const ArchivedDocumentsPage = () => {
           </div>
           <Link
             to={routes.documentsTrash}
-            className="btn btn-outline-secondary btn-md d-inline-flex align-items-center"
+            className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
             aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
           >
             <Icon name="trash" className="me-2" />

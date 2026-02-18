@@ -28,6 +28,7 @@ import {
   Bell,
   Shield,
   Activity,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ const iconMap: Record<string, LucideIcon> = {
   Bell,
   Shield,
   Activity,
+  Trash2,
 };
 
 interface SidebarMenuItem {

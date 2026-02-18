@@ -184,9 +184,10 @@ export function DocumentsToolbar({
         <Icon name="file-up" className="me-2" />
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
       </Button>
+      {/* Trash link uses control-height-md to match toolbar Button height. */}
       <Link
         to={routes.documentsTrash}
-        className="btn btn-outline-secondary btn-md d-inline-flex align-items-center"
+        className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
         aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
       >
         <Icon name="trash" className="me-2" />
