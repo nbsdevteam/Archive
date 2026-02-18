@@ -4,7 +4,7 @@ import { all_routes } from "@/router/all_routes";
 import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useDocumentOperations, useSelection, usePaginationFromUrl } from "@/shared/hooks";
+import { useDocumentOperations, useSelection, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
@@ -43,11 +43,15 @@ export const useDocumentsTrashPageContainer = () => {
     fetchTrash();
   }, [fetchTrash]);
 
+  /** Client-side pagination: slices documents when backend doesn't paginate. */
+  const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
+    useClientPagination(documents, page, perPage, pagination);
+
   const {
     selectedIds: selectedDocumentIdsRaw,
     selectionConfig: baseSelectionConfig,
     clear: clearSelection,
-  } = useSelection<TrashDoc>(documents, (d) => d.id);
+  } = useSelection<TrashDoc>(paginatedDocuments, (d) => d.id);
   const selectedDocumentIds = useMemo(
     () => selectedDocumentIdsRaw.map((id) => Number(id)),
     [selectedDocumentIdsRaw]
@@ -135,8 +139,8 @@ export const useDocumentsTrashPageContainer = () => {
   return {
     data: {
       routes,
-      documents,
-      pagination,
+      documents: paginatedDocuments,
+      pagination: resolvedPagination,
       isAdmin,
     },
     loading,

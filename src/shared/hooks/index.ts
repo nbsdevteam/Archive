@@ -12,3 +12,5 @@ export {
   useConfirmDialogEmpty,
 } from "./useConfirmDialog";
 export { usePaginationFromUrl } from "./usePaginationFromUrl";
+export { useClientPagination } from "./useClientPagination";
+export type { PaginationMeta } from "./useClientPagination";

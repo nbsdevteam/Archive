@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
-import { useDocumentOperations, usePaginationFromUrl } from "@/shared/hooks";
+import { useDocumentOperations, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -73,6 +73,10 @@ export const useArchivedDocumentsPageContainer = () => {
     clearSelection,
     isSomeSelected,
   } = list;
+
+  /** Client-side pagination: slices documents when backend doesn't paginate. */
+  const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
+    useClientPagination(documents, page, perPage, pagination);
 
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
@@ -242,8 +246,8 @@ export const useArchivedDocumentsPageContainer = () => {
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
     data: {
-      documents,
-      pagination,
+      documents: paginatedDocuments,
+      pagination: resolvedPagination,
       routes,
     },
     loading: isLoading,
@@ -271,7 +275,7 @@ export const useArchivedDocumentsPageContainer = () => {
       isSomeSelected,
     },
     paging: {
-      pagination,
+      pagination: resolvedPagination,
       handlePageChange,
       handlePerPageChange,
     },

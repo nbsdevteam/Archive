@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
-import { useDraftAppliedFilters, usePaginationFromUrl } from "@/shared/hooks";
+import { useDraftAppliedFilters, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
 import type { SelectOption } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
@@ -63,6 +63,10 @@ export function useFoldersPageContainer() {
     () => filterFoldersBySearch(folders, searchQuery),
     [folders, searchQuery]
   );
+
+  /** Client-side pagination: slices filteredFolders when backend doesn't paginate. */
+  const { paginatedItems: paginatedFolders, pagination: resolvedPagination } =
+    useClientPagination(filteredFolders, page, perPage, pagination);
 
   const { departments, fetchDepartments } = useDepartmentsStore();
   const { companies, fetchCompanies } = useCompaniesStore();
@@ -122,9 +126,11 @@ export function useFoldersPageContainer() {
     [navigate]
   );
 
+  /** Resets to page 1 on search so the user sees results from the start. */
   const handleSearchDebounced = useCallback((value: string) => {
     setSearchQuery(value);
-  }, []);
+    resetPage();
+  }, [resetPage]);
 
   const handleRefresh = useCallback(() => {
     fetchFolders();
@@ -211,22 +217,22 @@ export function useFoldersPageContainer() {
   // ─── Derived labels ───────────────────────────────────────────────────────
   const foldersCountLabel = useMemo(() => {
     if (loading) return t("common.loading", { defaultValue: "Loading..." });
-    const count = filteredFolders.length;
-    const total = pagination?.total;
+    const count = paginatedFolders.length;
+    const total = resolvedPagination.total;
     const singular = t("folders.folder", { defaultValue: "folder" });
     const plural = t("folders.folders", { defaultValue: "folders" });
     const suffix = count === 1 ? singular : plural;
-    if (total != null && total !== count) return `${count} / ${total} ${suffix}`;
+    if (total > count) return `${count} / ${total} ${suffix}`;
     return `${count} ${suffix}`;
-  }, [filteredFolders.length, loading, pagination?.total, t]);
+  }, [paginatedFolders.length, loading, resolvedPagination.total, t]);
 
   /** Grouped return shape: data, loading, error, filter, paging, actions, modals (KISS/DRY). */
   return {
     data: {
       routes: all_routes,
       folders,
-      filteredFolders,
-      pagination,
+      filteredFolders: paginatedFolders,
+      pagination: resolvedPagination,
       foldersCountLabel,
       formatDate,
       viewMode,
@@ -235,7 +241,7 @@ export function useFoldersPageContainer() {
     loading,
     error,
     paging: {
-      pagination,
+      pagination: resolvedPagination,
       handlePageChange,
       handlePerPageChange,
     },

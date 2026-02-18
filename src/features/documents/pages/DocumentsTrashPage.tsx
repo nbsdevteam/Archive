@@ -80,7 +80,10 @@ const DocumentsTrashPage = () => {
               <span className="text-muted fs-13">
                 {loading ? t("common.loading", { defaultValue: "Loading..." }) : (
                   <>
-                    <span className="Num">{documents.length}</span>{" "}
+                    <span className="Num">{documents.length}</span>
+                    {pagination && pagination.total > documents.length && (
+                      <> / {pagination.total}</>
+                    )}{" "}
                     {documents.length === 1
                       ? t("documents.document", { defaultValue: "document" })
                       : t("documents.documents", { defaultValue: "documents" })}
