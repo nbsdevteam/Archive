@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { all_routes } from "@/router/all_routes";
+import { navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
 import { useDocumentOperations } from "@/shared/hooks";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
@@ -265,17 +266,18 @@ export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
     if (didDelete) clearAttachmentSelection();
   }, [attachmentSelectedIds, deleteAttachments, clearAttachmentSelection]);
 
-  /** Navigate to attachment view; pass doc title in state to avoid duplicate getDocument call. */
+  /** Navigate to attachment view; pass doc title and attachments list to avoid duplicate API calls. */
   const handleViewAttachment = useCallback(
     (attachmentId: number) => {
       if (!docId) return;
-      const path = routes.documentAttachmentView
-        .replace(":id", String(docId))
-        .replace(":attachmentId", String(attachmentId));
       const title = doc?.title ?? doc?.name;
-      navigate(path, title != null ? { state: { prefetchedDocId: docId, prefetchedDocTitle: title } } : undefined);
+      navigateToAttachmentView(navigate, routes.documentAttachmentView, docId, attachmentId, {
+        prefetchedDocTitle: title ?? null,
+        prefetchedAttachments: attachments,
+        prefetchedFrom: "documentDetail",
+      });
     },
-    [docId, doc, navigate, routes.documentAttachmentView]
+    [docId, doc, navigate, attachments, routes.documentAttachmentView]
   );
 
   const handleArchive = useCallback(async () => {

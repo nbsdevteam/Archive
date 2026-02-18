@@ -7,6 +7,7 @@ import { FilePreview } from "@/shared/components/FilePreview";
 import { Alert, Icon, Spinner } from "@/shared/components/ui";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { documentsApi } from "@/app/adapter/api/documents.api";
+import type { AttachmentViewRouteState } from "@/shared/utils/navigation/navigateWithState";
 import "@/features/documents/styles/documents.css";
 
 /**
@@ -41,7 +42,7 @@ const DocumentAttachmentViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /** Load attachment; skip getDocument when route state has prefetched doc title (same-endpoint dedup). */
+  /** Load attachment; skip getDocument and/or listAttachments when route state has prefetched data. */
   useEffect(() => {
     if (!docId || !attachmentIdNum) {
       setLoading(false);
@@ -49,8 +50,9 @@ const DocumentAttachmentViewPage = () => {
       return;
     }
 
-    const routeState = location.state as { prefetchedDocId?: number; prefetchedDocTitle?: string } | undefined;
+    const routeState = location.state as AttachmentViewRouteState | undefined;
     const usePrefetchedTitle = routeState?.prefetchedDocId === docId && routeState?.prefetchedDocTitle != null;
+    const usePrefetchedAttachments = routeState?.prefetchedDocId === docId && Array.isArray(routeState?.prefetchedAttachments);
 
     let cancelled = false;
     setLoading(true);
@@ -61,8 +63,15 @@ const DocumentAttachmentViewPage = () => {
         if (usePrefetchedTitle) {
           setDocTitle(routeState!.prefetchedDocTitle!);
         }
-        const attachmentsRes = await documentsApi.listAttachments(docId);
-        if (cancelled) return;
+        
+        let list: Array<{ id: number; name: string; file_name: string; description?: string | null }> = [];
+        if (usePrefetchedAttachments) {
+          list = routeState!.prefetchedAttachments!;
+        } else {
+          const attachmentsRes = await documentsApi.listAttachments(docId);
+          if (cancelled) return;
+          list = (attachmentsRes as { data?: Array<{ id: number; name: string; file_name: string; description?: string | null }> }).data ?? [];
+        }
 
         if (!usePrefetchedTitle) {
           const docRes = await documentsApi.getDocument(docId);
@@ -71,7 +80,6 @@ const DocumentAttachmentViewPage = () => {
           if (docData) setDocTitle(docData.title ?? docData.name ?? null);
         }
 
-        const list = (attachmentsRes as { data?: Array<{ id: number; name: string; file_name: string; description?: string | null }> }).data ?? [];
         const found = list.find((a) => a.id === attachmentIdNum);
         if (found) {
           setAttachment(found);

@@ -9,6 +9,7 @@ import { useFolderAuditLogs } from "@/features/activity/hooks/useFolderAuditLogs
 import type { ActivityViewMode } from "@/features/activity/types";
 import { all_routes } from "@/router/all_routes";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { navigateToDocumentDetail, navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "@/shared/hooks";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
@@ -215,18 +216,10 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   /** Navigate to document detail; pass prefetched document in state when it matches to avoid duplicate API call. */
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {
-      const path = routes.documentDetail.replace(":id", String(documentId));
-      if (previewDoc?.id === documentId) {
-        navigate(path, {
-          state: {
-            prefetchedDocument: previewDoc,
-            prefetchedAt: Date.now(),
-            prefetchedFrom: "folderDetail",
-          },
-        });
-      } else {
-        navigate(path);
-      }
+      navigateToDocumentDetail(navigate, routes.documentDetail, documentId, {
+        prefetchedDocument: previewDoc,
+        prefetchedFrom: "folderDetail",
+      });
     },
     [navigate, routes.documentDetail, previewDoc]
   );
@@ -331,17 +324,18 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     if (didTrash) clearAttachmentsSelection();
   }, [attachmentSelectedIds, clearAttachmentsSelection, trashAttachmentsByIds]);
 
-  /** Navigate to attachment view; pass doc title in state when we have previewDoc to avoid duplicate getDocument. */
+  /** Navigate to attachment view; pass doc title and attachments list to avoid duplicate API calls. */
   const handleViewAttachment = useCallback(
     (attachmentId: number) => {
       if (typeof attachmentsDocId !== "number") return;
-      const path = routes.documentAttachmentView
-        .replace(":id", String(attachmentsDocId))
-        .replace(":attachmentId", String(attachmentId));
       const title = previewDoc?.id === attachmentsDocId ? (previewDoc.title ?? previewDoc.name) : undefined;
-      navigate(path, title != null ? { state: { prefetchedDocId: attachmentsDocId, prefetchedDocTitle: title } } : undefined);
+      navigateToAttachmentView(navigate, routes.documentAttachmentView, attachmentsDocId, attachmentId, {
+        prefetchedDocTitle: title ?? null,
+        prefetchedAttachments: attachments,
+        prefetchedFrom: "folderDetail",
+      });
     },
-    [attachmentsDocId, navigate, previewDoc, routes.documentAttachmentView]
+    [attachmentsDocId, navigate, previewDoc, attachments, routes.documentAttachmentView]
   );
 
   /** Clears edit state so the attachment sidebar shows add form. */

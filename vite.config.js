@@ -32,15 +32,17 @@ export default defineConfig({
     server: {
         /**
          * Dev server settings (only used when you run `vite`/`npm run dev`).
+         * strictPort: true ensures the server fails if 3003 is in use (no fallback port).
          */
         port: 3003,
+        strictPort: true,
         host: true,
         proxy: {
             /**
              * Proxy rules (development only).
              *
              * Why proxy?
-             * - Your frontend is served from `http://localhost:5173`
+             * - Your frontend is served from `http://localhost:3003`
              * - Your backend is on a different origin (different host/port)
              * - Browsers enforce CORS rules across origins
              * - Proxying makes requests look "same-origin" from the browser's perspective
@@ -58,7 +60,7 @@ export default defineConfig({
             /**
              * WebSocket proxy (development only).
              * If the backend exposes WS at `/websocket`, the frontend can connect to:
-             *   ws://localhost:5173/websocket
+             *   ws://localhost:3003/websocket
              * and Vite will forward it to the backend WS server.
              */
             '/websocket': {

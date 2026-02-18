@@ -1,16 +1,17 @@
 import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import type { DocumentDetail, DocumentVersion } from "@/app/adapter/api/documents.api";
+import type {
+  DocumentDetail,
+  DocumentVersion,
+} from "@/app/adapter/api/documents.api";
 import { clearDocumentPreviewCache } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
-import { getDocumentTypeName, getDepartmentName, getUploaderName } from "@/features/documents/utils/documentShapeHelpers";
-
-/** Route state when navigating to document detail with prefetched data (e.g. from folder detail). */
-export interface DocumentDetailRouteState {
-  prefetchedDocument?: DocumentDetail;
-  prefetchedAt?: number;
-  prefetchedFrom?: string;
-}
+import {
+  getDocumentTypeName,
+  getDepartmentName,
+  getUploaderName,
+} from "@/features/documents/utils/documentShapeHelpers";
+import type { DocumentDetailRouteState } from "@/shared/utils/navigation/navigateWithState";
 
 /**
  * Fetches document by id and derives display fields (title, fileName, versions, ocr, etc.).
@@ -29,7 +30,7 @@ export function useDocumentDetailData(docId: number | null) {
 
   useEffect(() => {
     if (!docId) return;
-
+    console.log("location.state", location.state);
     const routeState = location.state as DocumentDetailRouteState | undefined;
     if (routeState?.prefetchedDocument?.id === docId) {
       setCurrentDocument(routeState.prefetchedDocument);
@@ -39,8 +40,15 @@ export function useDocumentDetailData(docId: number | null) {
       return;
     }
     clearDocumentPreviewCache(docId).catch(() => {});
+    console.log("logger: ", "fetchDocument");
     fetchDocument(docId);
-  }, [docId, fetchDocument, setCurrentDocument, location.state, currentDocument?.id]);
+  }, [
+    docId,
+    fetchDocument,
+    setCurrentDocument,
+    location.state,
+    currentDocument?.id,
+  ]);
 
   const doc = currentDocument as DocumentDetail | null;
 
@@ -49,18 +57,25 @@ export function useDocumentDetailData(docId: number | null) {
   const documentTypeName = getDocumentTypeName(doc) || "–";
   const departmentName = getDepartmentName(doc) || "–";
   const uploaderName = getUploaderName(doc) || "–";
-  const versions: DocumentVersion[] = Array.isArray(doc?.versions) ? doc.versions : [];
+  const versions: DocumentVersion[] = Array.isArray(doc?.versions)
+    ? doc.versions
+    : [];
   const tags = Array.isArray(doc?.tags) ? doc.tags : [];
   const ocr = doc?.ocr ?? {};
-  const ocrStatus = (doc?.ocr_status ?? (ocr as { ocr_status?: string })?.ocr_status) ?? "pending";
+  const ocrStatus =
+    doc?.ocr_status ??
+    (ocr as { ocr_status?: string })?.ocr_status ??
+    "pending";
   /** Backend returns newest version first in version history. */
   const latestVersion = versions.length > 0 ? versions[0] : null;
   const fileName =
-    (doc?.file_name && doc.file_name.trim() !== "")
+    doc?.file_name && doc.file_name.trim() !== ""
       ? doc.file_name
       : (latestVersion?.file_name ?? "");
   const fileExt = (fileName.split(".").pop() ?? "").toLowerCase();
-  const isOcrSupported = ["pdf", "jpg", "jpeg", "png", "tiff"].includes(fileExt);
+  const isOcrSupported = ["pdf", "jpg", "jpeg", "png", "tiff"].includes(
+    fileExt,
+  );
   const latestVersionId = latestVersion?.id;
   const isTrashed = useMemo(() => {
     const status = String(doc?.status ?? "").toLowerCase();
