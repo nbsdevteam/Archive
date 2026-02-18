@@ -56,9 +56,9 @@
 
 /* Navigation buttons (First/Prev/Next/Last) */
 .pagination-section__btn {
-  min-width: 2rem;
+  width: 2rem;
   height: 2rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -73,9 +73,9 @@
 
 /* Individual page number button */
 .pagination-section__page-btn {
-  min-width: 2rem;
+  width: 2rem;
   height: 2rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0;
   border: 1px solid var(--bs-border-color);
   border-radius: 0.25rem;
   background-color: var(--bs-body-bg);
@@ -83,6 +83,9 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pagination-section__page-btn:hover:not(:disabled) {
@@ -108,9 +111,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
+  width: 2rem;
   height: 2rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0;
   color: var(--bs-secondary);
   font-size: 0.875rem;
   user-select: none;
