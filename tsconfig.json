@@ -51,7 +51,6 @@
       "@/hooks/*": ["src/core/hooks/*"],
       "@/utils/*": ["src/core/utils/*"],
       "@/types/*": ["src/core/data/types/*"],
-      "@/store/*": ["src/core/data/redux/*"],
       "@/assets/*": ["src/assets/*"],
       "@/styles/*": ["src/assets/scss/*"]
     },
