@@ -192,22 +192,23 @@ export const useDocumentsPageContainer = () => {
   }, [clearSelection, fetchDocuments, getFetchParams, selectedDocumentIds, t, trashDocument]);
 
   /**
-   * Called when user clicks "Move Selected to Trash". If selection includes main files,
-   * shows block modal, deselects main files, and does not open batch trash confirm. Otherwise opens confirm.
+   * Called when user clicks "Move Selected to Trash". Temporarily allow all documents including main.
+   * (Previously: if selection included main files, showed block modal and did not open batch trash confirm.)
    */
   const handleBatchTrashClick = useCallback(
     (openBatchTrashDialog: () => void) => {
-      const mainDocs = documents.filter(
-        (d) => selectedDocumentIds.includes(d.id) && d.is_main_document === true
-      );
-      if (mainDocs.length > 0) {
-        const mainFileNames = mainDocs.map(
-          (d) => (d.title ?? d.name ?? d.barcode ?? String(d.id)) || String(d.id)
-        );
-        setMainFilesBlockModal({ isOpen: true, mainFileNames });
-        deselectDocumentIds(mainDocs.map((d) => d.id));
-        return;
-      }
+      // Commented out main-document block so we allow deletion of all.
+      // const mainDocs = documents.filter(
+      //   (d) => selectedDocumentIds.includes(d.id) && d.is_main_document === true
+      // );
+      // if (mainDocs.length > 0) {
+      //   const mainFileNames = mainDocs.map(
+      //     (d) => (d.title ?? d.name ?? d.barcode ?? String(d.id)) || String(d.id)
+      //   );
+      //   setMainFilesBlockModal({ isOpen: true, mainFileNames });
+      //   deselectDocumentIds(mainDocs.map((d) => d.id));
+      //   return;
+      // }
       openBatchTrashDialog();
     },
     [documents, selectedDocumentIds, deselectDocumentIds]

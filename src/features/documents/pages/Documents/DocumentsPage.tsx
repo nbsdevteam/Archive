@@ -128,8 +128,9 @@ const DocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger",
-          /** Hide move-to-trash for main documents on /documents (main docs are managed via folder). */
-          visible: (row) => row.is_main_document !== true,
+          /** Temporarily allow move-to-trash for all documents including main. */
+          // visible: (row) => row.is_main_document !== true,
+          visible: () => true,
           onClick: (row) => trashDialog.open(row.id),
         },
       ]),
