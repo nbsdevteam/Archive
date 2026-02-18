@@ -142,18 +142,19 @@ const DocumentsTrashPage = () => {
               selection={data.isAdmin ? selectionConfig : undefined}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             />
-            {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
-              <PaginationSection
-                page={pagination.page ?? 1}
-                perPage={pagination.per_page ?? 20}
-                total={pagination.total}
-                totalPages={pagination.total_pages}
-                onPageChange={actions.handlePageChange}
-                onPerPageChange={actions.handlePerPageChange}
-                disabled={loading}
-              />
-            )}
           </div>
+          {/* Generic pagination: same component and layout as Documents page (per-page + First/Prev/numbers/Next/Last). */}
+          {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
+            <PaginationSection
+              page={pagination.page ?? 1}
+              perPage={pagination.per_page ?? 20}
+              total={pagination.total}
+              totalPages={pagination.total_pages}
+              onPageChange={actions.handlePageChange}
+              onPerPageChange={actions.handlePerPageChange}
+              disabled={loading}
+            />
+          )}
         </div>
 
         <ConfirmModal
