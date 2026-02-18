@@ -157,6 +157,7 @@
     "batchTrashed": "{{count}} document(s) moved to trash.",
     "batchTrashFailed": "Failed to move documents to trash.",
     "restore": "Restore",
+    "confirmRestore": "Restore this document from trash?",
     "restored": "Document restored.",
     "restoreFailed": "Failed to restore.",
     "deleteAttachment": "Delete",

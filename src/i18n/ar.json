@@ -156,6 +156,7 @@
     "batchTrashed": "تم نقل {{count}} مستند(اً) إلى سلة المحذوفات.",
     "batchTrashFailed": "فشل نقل المستندات إلى سلة المحذوفات.",
     "restore": "استعادة",
+    "confirmRestore": "استعادة هذا المستند من سلة المحذوفات؟",
     "restored": "تمت استعادة المستند.",
     "restoreFailed": "فشل الاستعادة.",
     "deleteAttachment": "حذف",

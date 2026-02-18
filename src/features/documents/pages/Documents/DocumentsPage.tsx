@@ -47,6 +47,7 @@ const DocumentsPage = () => {
   }, [registerHandler, actions.handleRefresh]);
 
   const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
+  const restoreDialog = useConfirmDialog<number>({ onConfirm: actions.confirmRestore });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
   const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
@@ -128,10 +129,26 @@ const DocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger",
-          /** Temporarily allow move-to-trash for all documents including main. */
-          // visible: (row) => row.is_main_document !== true,
-          visible: () => true,
+          /** Show only when document is not in trash (trash items get Restore instead). */
+          visible: (row) => {
+            const s = (row.status ?? "").toLowerCase();
+            return !s.includes("trash") && !s.includes("deleted");
+          },
           onClick: (row) => trashDialog.open(row.id),
+        },
+        {
+          id: "restore",
+          labelKey: "documents.restore",
+          defaultValue: "Restore",
+          icon: "refresh-cw",
+          variant: "outline",
+          className: "btn-outline-success",
+          /** Show only for documents with trash/deleted status. */
+          visible: (row) => {
+            const s = (row.status ?? "").toLowerCase();
+            return s.includes("trash") || s.includes("deleted");
+          },
+          onClick: (row) => restoreDialog.open(row.id),
         },
       ]),
     [
@@ -143,6 +160,7 @@ const DocumentsPage = () => {
       archiveDialog.open,
       unarchiveDialog.open,
       trashDialog.open,
+      restoreDialog.open,
     ]
   );
 
@@ -209,6 +227,7 @@ const DocumentsPage = () => {
           } satisfies DocumentsModalsProps["actions"]
         }
         trashDialog={trashDialog}
+        restoreDialog={restoreDialog}
         archiveDialog={archiveDialog}
         unarchiveDialog={unarchiveDialog}
         batchArchiveDialog={batchArchiveDialog}

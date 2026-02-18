@@ -35,6 +35,7 @@ export const useDocumentsPageContainer = () => {
     archiveDocument,
     unarchiveDocument,
     trashDocument,
+    restoreDocument,
   } = useDocumentOperations();
 
   const list = useDocumentListWithFilters({
@@ -174,6 +175,18 @@ export const useDocumentsPageContainer = () => {
       });
     },
     [unarchiveDocument, t, fetchDocuments, getFetchParams]
+  );
+
+  /** Single-doc restore from trash: call from useConfirmDialog onConfirm. Refetches list on success. */
+  const confirmRestore = useCallback(
+    async (documentId: number) => {
+      await restoreDocument(documentId, {
+        successMessage: t("documents.restored", { defaultValue: "Document restored." }),
+        errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
+        onSuccess: () => fetchDocuments(getFetchParams()),
+      });
+    },
+    [restoreDocument, t, fetchDocuments, getFetchParams]
   );
 
   const confirmBatchTrash = useCallback(async () => {
@@ -363,6 +376,7 @@ export const useDocumentsPageContainer = () => {
       handleCloseEdit,
       handleEditSuccess,
       confirmTrash,
+      confirmRestore,
       confirmArchive,
       confirmUnarchive,
       confirmBatchTrash,
