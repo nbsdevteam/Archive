@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { createEditFolderResolver } from "./editFolderValidation";
+import { createEditFolderResolver } from "../utils/EditFolderSidePanel.validations";
 import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import { useCompaniesStore } from "../../../shared/stores/companiesStore";
 import { updateFolder } from "../services/folders.api";

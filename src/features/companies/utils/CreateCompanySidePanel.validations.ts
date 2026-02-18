@@ -1,3 +1,7 @@
+/**
+ * Create-company form validation. Name required; email format if provided.
+ */
+
 import type { TFunction } from "i18next";
 import {
   createValidationResolver,
@@ -6,7 +10,7 @@ import {
   addIssue,
 } from "@/shared/utils/form/validation";
 import type { Validator } from "@/shared/utils/form/validation";
-import type { CreateCompanyFormValues } from "./CreateCompanySidePanel";
+import type { CreateCompanyFormValues } from "../components/CreateCompanySidePanel";
 
 const PATH_NAME = ["name"];
 const PATH_EMAIL = ["email"];

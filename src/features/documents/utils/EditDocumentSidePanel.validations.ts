@@ -1,3 +1,7 @@
+/**
+ * Edit-document form validation. Title, department_id, document_type_id required.
+ */
+
 import type { TFunction } from "i18next";
 import {
   createValidationResolver,
@@ -8,7 +12,7 @@ import {
   requiredNumberMin1,
   requiredTrimmedString,
 } from "@/shared/utils/form/validation";
-import type { EditDocumentFormValues } from "./types";
+import type { EditDocumentFormValues } from "../components/EditDocument/types";
 import type { Validator } from "@/shared/utils/form/validation";
 
 const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "strict"] as const;

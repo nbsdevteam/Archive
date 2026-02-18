@@ -10,7 +10,7 @@ import { SidePanel, Input, Button } from "@/shared/components/ui";
 import { createCompany } from "../services/companies.api";
 import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
 import { useCountriesFromCache } from "../hooks/useCountriesFromCache";
-import { createCreateCompanyResolver } from "./createCompanyValidation";
+import { createCreateCompanyResolver } from "../utils/CreateCompanySidePanel.validations";
 import { PhoneCountryInput } from "./PhoneCountryInput";
 
 export interface CreateCompanySidePanelProps {

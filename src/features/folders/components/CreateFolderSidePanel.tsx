@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { createCreateFolderResolver } from "./createFolderValidation";
+import { createCreateFolderResolver } from "../utils/CreateFolderSidePanel.validations";
 import { SidePanel, Input, SelectField, Button } from "../../../shared/components/ui";
 import type { SelectOption } from "../../../shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "../../../shared/constants/folderTypeOptions";

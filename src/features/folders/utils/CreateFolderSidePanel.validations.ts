@@ -1,3 +1,7 @@
+/**
+ * Create-folder form validation. Name, code, and department_id required.
+ */
+
 import type { TFunction } from "i18next";
 import {
   createValidationResolver,
@@ -5,7 +9,7 @@ import {
   requiredTrimmedString,
   optionalTrimmedString,
 } from "@/shared/utils/form/validation";
-import type { CreateFolderFormValues } from "./CreateFolderSidePanel";
+import type { CreateFolderFormValues } from "../components/CreateFolderSidePanel";
 import type { Validator } from "@/shared/utils/form/validation";
 
 const PATH_NAME = ["name"];

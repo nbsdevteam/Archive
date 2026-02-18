@@ -1,3 +1,7 @@
+/**
+ * Upload-document form validation. Handles main/sub/attachment flows and conditional required fields.
+ */
+
 import type { TFunction } from "i18next";
 import {
   addIssue,
@@ -10,15 +14,14 @@ import {
   requiredNumberMin1,
   requiredTrimmedString,
 } from "@/shared/utils/form/validation";
-import type { UploadFormValues } from "./types";
+import type { UploadFormValues } from "../components/UploadDocument/types";
 import type { Validator } from "@/shared/utils/form/validation";
 
 const CONFIDENTIALITY_LEVELS = ["public", "internal", "confidential", "strict"] as const;
 
 /**
- * Builds the upload-document validator with translated messages. Replicates previous Zod
- * logic: attachment (target_document_id + file); main/sub (department, document_type;
- * conditional title/folder_name/folder_code/file and folder_id for sub).
+ * Builds the upload-document validator with translated messages. Handles attachment (target_document_id + file);
+ * main/sub (department, document_type; conditional title/folder_name/folder_code/file and folder_id for sub).
  */
 export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormValues> {
   return (values: UploadFormValues) => {

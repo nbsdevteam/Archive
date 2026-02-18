@@ -7,9 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
-import { createValidationResolver } from "@/shared/utils/form/validation";
-import { requiredTrimmedString, optionalTrimmedString, addIssue } from "@/shared/utils/form/validation";
-import type { Validator } from "@/shared/utils/form/validation";
+import { createEditCompanyResolver } from "../utils/EditCompanySidePanel.validations";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { getCompany, updateCompany } from "../services/companies.api";
 import { formatPhoneToE164 } from "../utils/countryPhoneUtils";
@@ -35,42 +33,6 @@ export type EditCompanyFormValues = {
   website?: string;
 };
 
-const PATH_NAME = ["name"];
-const PATH_EMAIL = ["email"];
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function makeEditCompanyValidator(
-  t: (key: string, opts?: { defaultValue?: string }) => string
-): Validator<EditCompanyFormValues> {
-  return (values: EditCompanyFormValues) => {
-    const issues: { path: (string | number)[]; message: string; code?: string }[] = [];
-    requiredTrimmedString(
-      issues,
-      PATH_NAME,
-      values.name,
-      t("companies.validation.nameRequired", { defaultValue: "Name is required." })
-    );
-    const email = optionalTrimmedString(values.email);
-    if (email && !EMAIL_REGEX.test(email)) {
-      addIssue(issues, PATH_EMAIL, t("companies.validation.invalidEmail", { defaultValue: "Please enter a valid email address." }), "pattern");
-    }
-    return {
-      values: {
-        name: optionalTrimmedString(values.name),
-        countryIso2: typeof values.countryIso2 === "string" ? values.countryIso2.trim() || undefined : undefined,
-        dialCode: typeof values.dialCode === "string" ? values.dialCode.replace(/\D/g, "") || undefined : undefined,
-        nationalNumber: optionalTrimmedString(values.nationalNumber ?? ""),
-        email: email || undefined,
-        vat: optionalTrimmedString(values.vat),
-        street: optionalTrimmedString(values.street),
-        city: optionalTrimmedString(values.city),
-        website: optionalTrimmedString(values.website),
-      },
-      issues,
-    };
-  };
-}
-
 export function EditCompanySidePanel({
   isOpen,
   companyId,
@@ -81,10 +43,7 @@ export function EditCompanySidePanel({
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
   const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache(isOpen, false);
 
-  const resolver = useMemo(
-    () => createValidationResolver(makeEditCompanyValidator(t)),
-    [t]
-  );
+  const resolver = useMemo(() => createEditCompanyResolver(t), [t]);
 
   const {
     register,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { createEditDocumentResolver } from "./editDocumentValidation";
+import { createEditDocumentResolver } from "../../utils/EditDocumentSidePanel.validations";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { documentsApi } from "@/app/adapter/api/documents.api";

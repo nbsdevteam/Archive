@@ -1,10 +1,14 @@
+/**
+ * Edit-folder form validation. Name and code required.
+ */
+
 import type { TFunction } from "i18next";
 import {
   createValidationResolver,
   requiredTrimmedString,
   optionalTrimmedString,
 } from "@/shared/utils/form/validation";
-import type { EditFolderFormValues } from "./EditFolderSidePanel";
+import type { EditFolderFormValues } from "../components/EditFolderSidePanel";
 import type { Validator } from "@/shared/utils/form/validation";
 
 const PATH_NAME = ["name"];
