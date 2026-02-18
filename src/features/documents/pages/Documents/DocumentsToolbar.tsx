@@ -10,6 +10,10 @@ export interface DocumentsToolbarProps {
   documents: unknown[];
   isSomeSelected: boolean;
   selectedDocumentIds: number[];
+  /** True when every selected document is trashed (show only Batch Restore). */
+  allSelectedAreTrashed: boolean;
+  /** True when at least one selected document is NOT trashed (show Transfer/Archive/Trash). */
+  someSelectedAreNonTrashed: boolean;
   filter: {
     handleSearchDebounced: (value: string) => void;
     handleOpenFilter: () => void;
@@ -35,8 +39,10 @@ export interface DocumentsToolbarProps {
     isMoveSubmitting: boolean;
     isTrashing: boolean;
     isArchiving: boolean;
+    isRestoring: boolean;
   };
   batchArchiveDialog: { open: () => void };
+  batchRestoreDialog: { open: () => void };
   /** Called when user clicks "Move selected to trash"; may open batch trash confirm or show main-files block modal. */
   onMoveSelectedToTrashClick: () => void;
   routes: Record<string, string>;
@@ -49,10 +55,13 @@ export function DocumentsToolbar({
   documents,
   isSomeSelected,
   selectedDocumentIds,
+  allSelectedAreTrashed,
+  someSelectedAreNonTrashed,
   filter,
   actions,
   modals,
   batchArchiveDialog,
+  batchRestoreDialog,
   onMoveSelectedToTrashClick,
   routes,
 }: DocumentsToolbarProps) {
@@ -76,48 +85,70 @@ export function DocumentsToolbar({
     >
       {documents.length > 0 && isSomeSelected && (
         <>
-          <Button
-            variant="outline"
-            size="md"
-            className="btn-outline-secondary d-inline-flex align-items-center me-2"
-            onClick={actions.handleOpenBatchMoveConfirm}
-            disabled={modals.isMoveSubmitting || modals.isTrashing || modals.isArchiving}
-            aria-label={t("documents.transferSelected", { defaultValue: "Transfer selected" })}
-          >
-            <Icon name="arrow-right-left" className="me-1" />
-            {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
-            {selectedDocumentIds.length > 0 && (
-              <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="md"
-            className="btn-outline-secondary d-inline-flex align-items-center me-2"
-            onClick={batchArchiveDialog.open}
-            disabled={modals.isArchiving}
-            aria-label={t("documents.archiveSelected", { defaultValue: "Archive selected" })}
-          >
-            <Icon name="archive" className="me-1" />
-            {t("documents.archiveSelected", { defaultValue: "Archive selected" })}
-            {selectedDocumentIds.length > 0 && (
-              <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="md"
-            className="btn-outline-danger d-inline-flex align-items-center me-2"
-            onClick={onMoveSelectedToTrashClick}
-            disabled={modals.isTrashing}
-            aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-          >
-            <Icon name="trash-2" className="me-1" />
-            {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-            {selectedDocumentIds.length > 0 && (
-              <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
-            )}
-          </Button>
+          {/* Batch Restore: shown when all selected documents are trashed */}
+          {allSelectedAreTrashed && (
+            <Button
+              variant="outline"
+              size="md"
+              className="btn-outline-success d-inline-flex align-items-center me-2"
+              onClick={batchRestoreDialog.open}
+              disabled={modals.isRestoring}
+              aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+            >
+              <Icon name="refresh-cw" className="me-1" />
+              {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+              {selectedDocumentIds.length > 0 && (
+                <span className="badge bg-success ms-2">{selectedDocumentIds.length}</span>
+              )}
+            </Button>
+          )}
+          {/* Transfer / Archive / Trash: shown when at least one selected document is NOT trashed */}
+          {someSelectedAreNonTrashed && (
+            <>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center me-2"
+                onClick={actions.handleOpenBatchMoveConfirm}
+                disabled={modals.isMoveSubmitting || modals.isTrashing || modals.isArchiving}
+                aria-label={t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+              >
+                <Icon name="arrow-right-left" className="me-1" />
+                {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+                {selectedDocumentIds.length > 0 && (
+                  <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center me-2"
+                onClick={batchArchiveDialog.open}
+                disabled={modals.isArchiving}
+                aria-label={t("documents.archiveSelected", { defaultValue: "Archive selected" })}
+              >
+                <Icon name="archive" className="me-1" />
+                {t("documents.archiveSelected", { defaultValue: "Archive selected" })}
+                {selectedDocumentIds.length > 0 && (
+                  <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-danger d-inline-flex align-items-center me-2"
+                onClick={onMoveSelectedToTrashClick}
+                disabled={modals.isTrashing}
+                aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+              >
+                <Icon name="trash-2" className="me-1" />
+                {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+                {selectedDocumentIds.length > 0 && (
+                  <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
+                )}
+              </Button>
+            </>
+          )}
         </>
       )}
       <SearchInput

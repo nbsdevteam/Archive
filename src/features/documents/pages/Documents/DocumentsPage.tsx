@@ -28,7 +28,7 @@ const DocumentsPage = () => {
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
   const { documents, routes, pagination } = data;
-  const { selectedDocumentIds, selectionConfig, isSomeSelected } = selection;
+  const { selectedDocumentIds, selectionConfig, isSomeSelected, allSelectedAreTrashed, someSelectedAreNonTrashed } = selection;
   const { handlePageChange, handlePerPageChange } = paging;
 
   useEffect(() => {
@@ -52,6 +52,7 @@ const DocumentsPage = () => {
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
   const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
   const batchArchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchArchive });
+  const batchRestoreDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchRestore });
 
   const columns = useMemo(
     () =>
@@ -181,6 +182,8 @@ const DocumentsPage = () => {
           documents={documents}
           isSomeSelected={isSomeSelected}
           selectedDocumentIds={selectedDocumentIds}
+          allSelectedAreTrashed={allSelectedAreTrashed}
+          someSelectedAreNonTrashed={someSelectedAreNonTrashed}
           filter={filter}
           actions={{
             handleOpenBatchMoveConfirm: actions.handleOpenBatchMoveConfirm,
@@ -189,6 +192,7 @@ const DocumentsPage = () => {
           }}
           modals={modals}
           batchArchiveDialog={batchArchiveDialog}
+          batchRestoreDialog={batchRestoreDialog}
           onMoveSelectedToTrashClick={() => actions.handleBatchTrashClick(() => batchTrashDialog.open())}
           routes={routes}
         />
@@ -233,6 +237,7 @@ const DocumentsPage = () => {
         unarchiveDialog={unarchiveDialog}
         batchArchiveDialog={batchArchiveDialog}
         batchTrashDialog={batchTrashDialog}
+        batchRestoreDialog={batchRestoreDialog}
         selectedDocumentIds={selectedDocumentIds}
       />
       <EditDocumentSidePanel

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -32,6 +32,7 @@ export const useDocumentsPageContainer = () => {
   const {
     isArchiving,
     isTrashing,
+    isRestoring,
     archiveDocument,
     unarchiveDocument,
     trashDocument,
@@ -230,6 +231,22 @@ export const useDocumentsPageContainer = () => {
     setMainFilesBlockModal((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
+  /** Batch restore: restores all selected trashed documents. */
+  const confirmBatchRestore = useCallback(async () => {
+    if (selectedDocumentIds.length === 0) return;
+    const didRestore = await restoreDocument(selectedDocumentIds, {
+      successMessage: t("documents.batchRestored", {
+        defaultValue: "{{count}} document(s) restored.",
+        count: selectedDocumentIds.length,
+      }),
+      errorMessage: t("documents.batchRestoreFailed", {
+        defaultValue: "Failed to restore selected documents.",
+      }),
+      onSuccess: () => fetchDocuments(getFetchParams()),
+    });
+    if (didRestore) clearSelection();
+  }, [clearSelection, fetchDocuments, getFetchParams, restoreDocument, selectedDocumentIds, t]);
+
   const confirmBatchArchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didArchive = await archiveDocument(selectedDocumentIds, {
@@ -326,6 +343,29 @@ export const useDocumentsPageContainer = () => {
     [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
   );
 
+  /** Whether a document has a trashed/deleted status. */
+  const isTrashedStatus = useCallback((status?: string) => {
+    const s = (status ?? "").toLowerCase();
+    return s.includes("trash") || s.includes("deleted");
+  }, []);
+
+  /** True when every selected document is in trash (show only Batch Restore). */
+  const allSelectedAreTrashed = useMemo(() => {
+    if (selectedDocumentIds.length === 0) return false;
+    return selectedDocumentIds.every((id) => {
+      const doc = documents.find((d) => d.id === id);
+      return doc ? isTrashedStatus(doc.status) : false;
+    });
+  }, [documents, selectedDocumentIds, isTrashedStatus]);
+
+  /** True when at least one selected document is NOT trashed (show Transfer/Archive/Trash). */
+  const someSelectedAreNonTrashed = useMemo(() => {
+    return selectedDocumentIds.some((id) => {
+      const doc = documents.find((d) => d.id === id);
+      return doc ? !isTrashedStatus(doc.status) : false;
+    });
+  }, [documents, selectedDocumentIds, isTrashedStatus]);
+
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
     data: {
@@ -356,6 +396,8 @@ export const useDocumentsPageContainer = () => {
       selectionConfig,
       clearSelection,
       isSomeSelected,
+      allSelectedAreTrashed,
+      someSelectedAreNonTrashed,
     },
     paging: {
       pagination,
@@ -380,6 +422,7 @@ export const useDocumentsPageContainer = () => {
       confirmUnarchive,
       confirmBatchTrash,
       confirmBatchArchive,
+      confirmBatchRestore,
       handleOpenSingleMoveConfirm,
       handleOpenBatchMoveConfirm,
       handleCloseBatchMoveConfirm,
@@ -397,6 +440,7 @@ export const useDocumentsPageContainer = () => {
       isMoveSubmitting,
       isTrashing,
       isArchiving,
+      isRestoring,
       mainFilesBlockModal,
     },
   };
