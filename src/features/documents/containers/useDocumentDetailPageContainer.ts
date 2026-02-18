@@ -257,16 +257,17 @@ export const useDocumentDetailPageContainer = (): DocumentDetailPageState => {
     if (didDelete) clearAttachmentSelection();
   }, [attachmentSelectedIds, deleteAttachments, clearAttachmentSelection]);
 
+  /** Navigate to attachment view; pass doc title in state to avoid duplicate getDocument call. */
   const handleViewAttachment = useCallback(
     (attachmentId: number) => {
       if (!docId) return;
-      navigate(
-        routes.documentAttachmentView
-          .replace(":id", String(docId))
-          .replace(":attachmentId", String(attachmentId))
-      );
+      const path = routes.documentAttachmentView
+        .replace(":id", String(docId))
+        .replace(":attachmentId", String(attachmentId));
+      const title = doc?.title ?? doc?.name;
+      navigate(path, title != null ? { state: { prefetchedDocId: docId, prefetchedDocTitle: title } } : undefined);
     },
-    [docId, navigate, routes.documentAttachmentView]
+    [docId, doc, navigate, routes.documentAttachmentView]
   );
 
   const handleArchive = useCallback(async () => {

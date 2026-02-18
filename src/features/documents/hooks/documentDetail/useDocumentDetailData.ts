@@ -1,30 +1,46 @@
 import { useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import type { DocumentDetail, DocumentVersion } from "@/app/adapter/api/documents.api";
 import { clearDocumentPreviewCache } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentTypeName, getDepartmentName, getUploaderName } from "@/features/documents/utils/documentShapeHelpers";
 
+/** Route state when navigating to document detail with prefetched data (e.g. from folder detail). */
+export interface DocumentDetailRouteState {
+  prefetchedDocument?: DocumentDetail;
+  prefetchedAt?: number;
+  prefetchedFrom?: string;
+}
+
 /**
  * Fetches document by id and derives display fields (title, fileName, versions, ocr, etc.).
- * Clears preview cache to ensure the latest version is shown.
+ * Uses prefetched document from location.state when present and IDs match to avoid duplicate API call.
+ * Falls back to fetch when state is missing (e.g. refresh, direct URL). Clears preview cache before fetch.
  */
 export function useDocumentDetailData(docId: number | null) {
+  const location = useLocation();
   const {
     currentDocument,
     isLoading,
     error: storeError,
     fetchDocument,
+    setCurrentDocument,
   } = useDocumentStore();
 
   useEffect(() => {
-    if (docId) {
-      // Clear preview cache to ensure latest version is shown
-      clearDocumentPreviewCache(docId).catch(() => {
-        // Ignore cache clear errors - fetchDocument will still work
-      });
-      fetchDocument(docId);
+    if (!docId) return;
+
+    const routeState = location.state as DocumentDetailRouteState | undefined;
+    if (routeState?.prefetchedDocument?.id === docId) {
+      setCurrentDocument(routeState.prefetchedDocument);
+      return;
     }
-  }, [docId, fetchDocument]);
+    if (currentDocument?.id === docId) {
+      return;
+    }
+    clearDocumentPreviewCache(docId).catch(() => {});
+    fetchDocument(docId);
+  }, [docId, fetchDocument, setCurrentDocument, location.state, currentDocument?.id]);
 
   const doc = currentDocument as DocumentDetail | null;
 

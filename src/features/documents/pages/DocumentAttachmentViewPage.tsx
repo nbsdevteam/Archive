@@ -41,7 +41,7 @@ const DocumentAttachmentViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /** Refetch document and attachments when visiting this URL (pathname) so the attachments API is always called. */
+  /** Load attachment; skip getDocument when route state has prefetched doc title (same-endpoint dedup). */
   useEffect(() => {
     if (!docId || !attachmentIdNum) {
       setLoading(false);
@@ -49,25 +49,30 @@ const DocumentAttachmentViewPage = () => {
       return;
     }
 
+    const routeState = location.state as { prefetchedDocId?: number; prefetchedDocTitle?: string } | undefined;
+    const usePrefetchedTitle = routeState?.prefetchedDocId === docId && routeState?.prefetchedDocTitle != null;
+
     let cancelled = false;
     setLoading(true);
     setError(null);
 
     const load = async () => {
       try {
-        const [docRes, attachmentsRes] = await Promise.all([
-          documentsApi.getDocument(docId),
-          documentsApi.listAttachments(docId),
-        ]);
+        if (usePrefetchedTitle) {
+          setDocTitle(routeState!.prefetchedDocTitle!);
+        }
+        const attachmentsRes = await documentsApi.listAttachments(docId);
         if (cancelled) return;
 
-        const docData = (docRes as { data?: { title?: string; name?: string } }).data;
+        if (!usePrefetchedTitle) {
+          const docRes = await documentsApi.getDocument(docId);
+          if (cancelled) return;
+          const docData = (docRes as { data?: { title?: string; name?: string } }).data;
+          if (docData) setDocTitle(docData.title ?? docData.name ?? null);
+        }
+
         const list = (attachmentsRes as { data?: Array<{ id: number; name: string; file_name: string; description?: string | null }> }).data ?? [];
         const found = list.find((a) => a.id === attachmentIdNum);
-
-        if (docData) {
-          setDocTitle(docData.title ?? docData.name ?? null);
-        }
         if (found) {
           setAttachment(found);
         } else {
@@ -86,7 +91,7 @@ const DocumentAttachmentViewPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [docId, attachmentIdNum, location.pathname, t]);
+  }, [docId, attachmentIdNum, location.pathname, location.state, t]);
 
   if (loading) {
     return (

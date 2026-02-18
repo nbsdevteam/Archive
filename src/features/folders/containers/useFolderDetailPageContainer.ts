@@ -212,11 +212,23 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   /** Dates are already in Arabia Standard Time from the API. */
   const formatDate = useCallback<(date?: string | null) => string>((dateStr) => (dateStr?.trim() ? dateStr : "–"), []);
 
+  /** Navigate to document detail; pass prefetched document in state when it matches to avoid duplicate API call. */
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {
-      navigate(routes.documentDetail.replace(":id", String(documentId)));
+      const path = routes.documentDetail.replace(":id", String(documentId));
+      if (previewDoc?.id === documentId) {
+        navigate(path, {
+          state: {
+            prefetchedDocument: previewDoc,
+            prefetchedAt: Date.now(),
+            prefetchedFrom: "folderDetail",
+          },
+        });
+      } else {
+        navigate(path);
+      }
     },
-    [navigate, routes.documentDetail]
+    [navigate, routes.documentDetail, previewDoc]
   );
 
   const handleDownloadMainDocument = useCallback(async () => {
@@ -319,17 +331,17 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     if (didTrash) clearAttachmentsSelection();
   }, [attachmentSelectedIds, clearAttachmentsSelection, trashAttachmentsByIds]);
 
+  /** Navigate to attachment view; pass doc title in state when we have previewDoc to avoid duplicate getDocument. */
   const handleViewAttachment = useCallback(
     (attachmentId: number) => {
-      if (typeof attachmentsDocId === "number") {
-        navigate(
-          routes.documentAttachmentView
-            .replace(":id", String(attachmentsDocId))
-            .replace(":attachmentId", String(attachmentId))
-        );
-      }
+      if (typeof attachmentsDocId !== "number") return;
+      const path = routes.documentAttachmentView
+        .replace(":id", String(attachmentsDocId))
+        .replace(":attachmentId", String(attachmentId));
+      const title = previewDoc?.id === attachmentsDocId ? (previewDoc.title ?? previewDoc.name) : undefined;
+      navigate(path, title != null ? { state: { prefetchedDocId: attachmentsDocId, prefetchedDocTitle: title } } : undefined);
     },
-    [attachmentsDocId, navigate, routes.documentAttachmentView]
+    [attachmentsDocId, navigate, previewDoc, routes.documentAttachmentView]
   );
 
   /** Clears edit state so the attachment sidebar shows add form. */

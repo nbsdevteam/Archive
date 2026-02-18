@@ -38,6 +38,8 @@ interface DocumentState {
   permanentDeleteDocuments: (documentIds: number[]) => Promise<void>;
   clearError: () => void;
   clearCurrentDocument: () => void;
+  /** Hydrate current document from prefetched route state without calling the API. */
+  setCurrentDocument: (doc: DocumentDetail | null) => void;
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
@@ -262,4 +264,6 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   clearError: () => set({ error: null }),
 
   clearCurrentDocument: () => set({ currentDocument: null }),
+
+  setCurrentDocument: (doc) => set({ currentDocument: doc, error: null }),
 }));
