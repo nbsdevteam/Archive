@@ -8,10 +8,10 @@ import tseslint from "typescript-eslint";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
-import performancePlugin from "eslint-plugin-performance";
+import localPlugin from "./eslint-rules/index.js";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "coverage", "cypress", "cypress.config.ts"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -25,6 +25,7 @@ export default tseslint.config(
         ecmaFeatures: {
           jsx: true,
         },
+        project: "./tsconfig.json",
       },
     },
     plugins: {
@@ -34,7 +35,6 @@ export default tseslint.config(
       "jsx-a11y": jsxA11y,
       "@typescript-eslint": typescript,
       import: importPlugin,
-      performance: performancePlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -86,18 +86,6 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-call": "error",
       "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-unsafe-return": "error",
-      "performance/no-array-push-push": "error",
-      "performance/no-array-reverse": "error",
-      "performance/no-delete-var": "error",
-      "performance/no-double-equals": "error",
-      "performance/no-inefficient-array-methods": "error",
-      "performance/no-inefficient-regex": "error",
-      "performance/no-inefficient-string-concatenation": "error",
-      "performance/no-inefficient-substring": "error",
-      "performance/no-new-array": "error",
-      "performance/no-new-object": "error",
-      "performance/no-new-string": "error",
-      "performance/no-unsafe-regex": "error",
       "import/no-unresolved": "error",
       "import/named": "error",
       "import/default": "error",
@@ -235,7 +223,7 @@ export default tseslint.config(
       "no-unmodified-loop-condition": "error",
       "no-unused-expressions": "error",
       "no-useless-call": "error",
-      "no-useless-else": "error",
+      "no-useless-else": "off",
       "no-void": "error",
       "prefer-promise-reject-errors": "error",
       radix: "error",
@@ -386,6 +374,13 @@ export default tseslint.config(
           project: "./tsconfig.json",
         },
       },
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: { local: localPlugin },
+    rules: {
+      "local/hook-order": "warn",
     },
   },
   {
