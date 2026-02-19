@@ -223,8 +223,8 @@ export function useDocumentsTableSort(documents: Document[]) {
     }
   }, []);
 
-  type SortIconResult = {type: 'asc' | 'desc' | 'group'; groupLabel?: string} | null;
-  /** Returns sort icon state for a column: type (asc/desc/group) and optional group label. */
+  type SortIconResult = {type: 'asc' | 'desc'; groupLabel?: string} | null;
+  /** Returns sort icon state: asc/desc for arrow highlight; groupLabel when column uses group cycling (for aria/title). */
   const getSortIconForColumn = useCallback(
     (columnId: string): SortIconResult => {
       if (!sortState) {
@@ -241,7 +241,9 @@ export function useDocumentsTableSort(documents: Document[]) {
         const groupLabel = uniqueValuesSorted.length > 0
           ? uniqueValuesSorted[sortState.pivotIndex % uniqueValuesSorted.length]
           : undefined;
-        return {type: 'group', groupLabel};
+        // Alternate up/down arrow by pivot so group columns toggle like directional columns
+        const direction = sortState.pivotIndex % 2 === 0 ? 'asc' : 'desc';
+        return {type: direction, groupLabel};
       }
       return null;
     },

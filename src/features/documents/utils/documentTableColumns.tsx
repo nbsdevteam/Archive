@@ -10,7 +10,7 @@ export type DocumentStatusBadgeVariantFn = (status?: string) => string;
 /** Optional sort UI: when provided, column headers show an arrow control for sorting. */
 export interface DocumentTableSortOptions {
   onSortClick: (columnId: string) => void;
-  getSortIconForColumn: (columnId: string) => { type: "asc" | "desc" | "group"; groupLabel?: string } | null;
+  getSortIconForColumn: (columnId: string) => { type: "asc" | "desc"; groupLabel?: string } | null;
 }
 
 export interface DocumentColumnsOptions {
@@ -42,24 +42,23 @@ function SortableHeader({
 }) {
   const iconState = sort.getSortIconForColumn(columnId);
 
-  const isAsc   = iconState?.type === "asc";
-  const isDesc  = iconState?.type === "desc";
-  const isGroup = iconState?.type === "group";
+  const isAsc  = iconState?.type === "asc";
+  const isDesc = iconState?.type === "desc";
 
-  /** CSS modifier class added to the button to drive up/down opacity via CSS. */
-  const sortModifier = isAsc ? "sort-dir--asc" : isDesc ? "sort-dir--desc" : isGroup ? "sort-dir--group" : "";
+  /** CSS modifier: one arrow highlighted (same for directional and group columns). */
+  const sortModifier = isAsc ? "sort-dir--asc" : isDesc ? "sort-dir--desc" : "";
 
   const ariaLabel =
-    isAsc
-      ? t("documents.sortAsc", { defaultValue: "Sort by {{label}} (ascending)", label })
-      : isDesc
-        ? t("documents.sortDesc", { defaultValue: "Sort by {{label}} (descending)", label })
-        : isGroup && iconState.groupLabel
-          ? t("documents.groupByLabel", {
-              defaultValue: "Group by {{label}} (show {{value}} first)",
-              label,
-              value: iconState.groupLabel,
-            })
+    iconState?.groupLabel
+      ? t("documents.groupByLabel", {
+          defaultValue: "Group by {{label}} (show {{value}} first)",
+          label,
+          value: iconState.groupLabel,
+        })
+      : isAsc
+        ? t("documents.sortAsc", { defaultValue: "Sort by {{label}} (ascending)", label })
+        : isDesc
+          ? t("documents.sortDesc", { defaultValue: "Sort by {{label}} (descending)", label })
           : t("documents.sortByLabel", { defaultValue: "Sort by {{label}}", label });
 
   return (
