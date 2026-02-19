@@ -1,4 +1,5 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 import "./LoadingSpinner.scss";
 
 interface LoadingSpinnerProps {
@@ -7,11 +8,12 @@ interface LoadingSpinnerProps {
   text?: string;
 }
 
-const THEME_CREAMY = "#c9a86c";
-
+/**
+ * Route/lazy-loading full-screen spinner. Centered horizontally and vertically,
+ * uses Loader2 from lucide-react with a light theme-colored icon.
+ */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "medium",
-  color = THEME_CREAMY,
   text,
 }) => {
   const containerClass = `loading-spinner-container ${
@@ -22,15 +24,18 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       : ""
   }`;
 
+  const iconSize = size === "small" ? 24 : size === "large" ? 48 : 32;
+
   return (
-    <div
-      className={containerClass}
-      style={{ ["--loading-spinner-color" as string]: color }}
-    >
-      <div className="loading-spinner" style={{ borderTopColor: color }}>
-        <div className="spinner-ring" style={{ borderTopColor: color }}></div>
+    <div className={containerClass}>
+      <div className="loading-spinner-inner">
+        <Loader2
+          size={iconSize}
+          className="loading-spinner-icon"
+          aria-hidden
+        />
+        {text && <div className="loading-text">{text}</div>}
       </div>
-      {text && <div className="loading-text">{text}</div>}
     </div>
   );
 };

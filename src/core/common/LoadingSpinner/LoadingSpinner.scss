@@ -13,6 +13,9 @@
   bottom: 0;
   z-index: 9999;
   background: rgba(255, 255, 255, 0.85);
+  /* Ensure horizontal and vertical centering of inner content */
+  margin: 0;
+  box-sizing: border-box;
 
   &.loading-spinner-small {
     position: relative;
@@ -26,50 +29,20 @@
   }
 }
 
-.loading-spinner {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(var(--primary-rgb), 0.12);
-  border-top: 3px solid rgb(var(--primary-rgb));
-  border-radius: 50%;
+/* Wrapper so the icon + optional text are centered as one block horizontally and vertically */
+.loading-spinner-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Lucide Loader2: light theme color (not solid), with spin */
+.loading-spinner-icon {
+  color: rgba(var(--primary-rgb, 242, 101, 34), 0.55);
   animation: spin 1s linear infinite;
-
-  .spinner-ring {
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    width: 40px;
-    height: 40px;
-    border: 3px solid transparent;
-    border-top: 3px solid rgba(var(--primary-rgb), 0.35);
-    border-radius: 50%;
-    animation: spin 1.5s linear infinite reverse;
-  }
-}
-
-.loading-spinner-small .loading-spinner {
-  width: 24px;
-  height: 24px;
-  border-width: 2px;
-
-  .spinner-ring {
-    width: 24px;
-    height: 24px;
-    border-width: 2px;
-  }
-}
-
-.loading-spinner-large .loading-spinner {
-  width: 60px;
-  height: 60px;
-  border-width: 4px;
-
-  .spinner-ring {
-    width: 60px;
-    height: 60px;
-    border-width: 4px;
-  }
+  flex-shrink: 0;
 }
 
 .loading-text {
