@@ -17,7 +17,8 @@
   border-radius: 0.625rem;
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 520px;
+  /* 400px gives ~336px usable width: ÷7 days = ~48px per cell — comfortable and not cramped */
+  max-width: 400px;
   overflow: hidden;
   animation: modalSlideIn 0.15s ease-out;
 }
@@ -132,7 +133,9 @@
   background: transparent !important;
 }
 
-/* Make the inline calendar consume the modal width and remove awkward inner spacing */
+/* ── Full-width calendar grid ────────────────────────────────────────── */
+
+/* Outer shell: stretch to modal width */
 .calendarWrap :global(.react-datepicker) {
   width: 100%;
 }
@@ -142,17 +145,53 @@
   float: none;
 }
 
-.calendarWrap :global(.react-datepicker__month) {
+/* Header area */
+.calendarWrap :global(.react-datepicker__header) {
+  padding: 0 1rem 0;
+  background: transparent;
+  border-bottom: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.175));
+}
+
+/* Day-name row: spread evenly */
+.calendarWrap :global(.react-datepicker__day-names) {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0 0.375rem;
   margin: 0;
 }
 
-.calendarWrap :global(.react-datepicker__header) {
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
+.calendarWrap :global(.react-datepicker__day-name) {
+  flex: 1;
+  width: auto;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
 }
 
+/* Month body */
 .calendarWrap :global(.react-datepicker__month) {
-  padding: 0 0.75rem 0.75rem;
+  margin: 0;
+  padding: 0.5rem 1rem 1rem;
+}
+
+/* Each week row: spread evenly */
+.calendarWrap :global(.react-datepicker__week) {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Each day cell: fill its share, centred text, comfortable tap target */
+.calendarWrap :global(.react-datepicker__day) {
+  flex: 1;
+  width: auto;
+  max-width: none;
+  margin: 0.15rem 0.1rem;
+  min-height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border-radius: var(--bs-border-radius, 0.375rem);
 }
 
 /* ── Custom calendar header (CalendarNav) ────────────────────────────── */
