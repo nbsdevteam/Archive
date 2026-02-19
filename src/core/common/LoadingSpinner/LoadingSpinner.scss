@@ -1,21 +1,18 @@
+/* Full-viewport route loading: centered horizontally and vertically, no blue Bootstrap spinner */
 .loading-spinner-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  min-height: 100vh;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  background: rgba(255, 255, 255, 0.85);
-  /* Ensure horizontal and vertical centering of inner content */
   margin: 0;
   box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  background: rgba(255, 255, 255, 0.85);
 
   &.loading-spinner-small {
     position: relative;

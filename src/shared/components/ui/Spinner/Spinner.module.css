@@ -1,0 +1,13 @@
+/* Inline/page spinner: same look as route LoadingSpinner (Lucide Loader, light theme color) */
+.loaderIcon {
+  color: rgba(var(--primary-rgb, 242, 101, 34), 0.55);
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

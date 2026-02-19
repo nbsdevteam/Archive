@@ -1,4 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { Spinner } from "../Spinner";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "light" | "outline";
@@ -46,11 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     >
       {isLoading ? (
         <>
-          <span
-            className="spinner-border spinner-border-sm me-2"
-            role="status"
-            aria-hidden="true"
-          />
+          <Spinner size="sm" className="me-2" />
           Loading...
         </>
       ) : (
