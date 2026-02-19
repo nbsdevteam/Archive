@@ -5,6 +5,7 @@ import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/
 import { handleApiError } from "@/app/adapter/api/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDocumentOperations, useSelection, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
+import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
@@ -57,6 +58,11 @@ export const useDocumentsTrashPageContainer = () => {
     [selectedDocumentIdsRaw]
   );
   const isSomeSelected = selectedDocumentIds.length > 0;
+  /** Batch action visibility from shared service (trash page: all items trashed, so canBatchRestore when selection exists). */
+  const batchActions = useMemo(
+    () => getAllowedBatchActionsForDocumentsSelection(paginatedDocuments, selectedDocumentIds),
+    [paginatedDocuments, selectedDocumentIds]
+  );
   const selectionConfig = useMemo(
     () => ({
       ...baseSelectionConfig,
@@ -149,6 +155,7 @@ export const useDocumentsTrashPageContainer = () => {
       selectedDocumentIds,
       isSomeSelected,
       selectionConfig,
+      batchActions,
     },
     actions: {
       fetchTrash,

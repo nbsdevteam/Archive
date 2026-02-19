@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocu
 import { navigateToDocumentDetail, navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useAttachmentOperations, useDocumentOperations, useSelection } from "@/shared/hooks";
+import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
 import type { Document, Attachment } from "@/app/adapter/api/documents.api";
@@ -82,6 +83,16 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     selectionConfig: attachmentsSelectionConfig,
     clear: clearAttachmentsSelection,
   } = useSelection<Attachment>(attachments, (a) => a.id);
+
+  /** Batch action visibility for sub-docs from shared service (Transfer/Trash only when allowed for all selected). */
+  const subDocsBatchActions = useMemo(
+    () =>
+      getAllowedBatchActionsForDocumentsSelection(
+        subDocs,
+        subDocSelectedIds.map((id) => Number(id))
+      ),
+    [subDocs, subDocSelectedIds]
+  );
 
   const {
     notes,
@@ -479,6 +490,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     },
     selection: {
       subDocSelectedIds,
+      subDocsBatchActions,
       subDocsSelectionConfig,
       attachmentSelectedIds,
       attachmentsSelectionConfig,

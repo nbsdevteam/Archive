@@ -6,6 +6,7 @@ import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations, usePaginationFromUrl } from "@/shared/hooks";
+import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -33,6 +34,7 @@ export const useDocumentsPageContainer = () => {
     isArchiving,
     isTrashing,
     isRestoring,
+    isUnarchiving,
     archiveDocument,
     unarchiveDocument,
     trashDocument,
@@ -269,6 +271,29 @@ export const useDocumentsPageContainer = () => {
     t,
   ]);
 
+  /** Batch unarchive: unarchives all selected archived documents. */
+  const confirmBatchUnarchive = useCallback(async () => {
+    if (selectedDocumentIds.length === 0) return;
+    const didUnarchive = await unarchiveDocument(selectedDocumentIds, {
+      successMessage: t("documents.batchUnarchived", {
+        defaultValue: "{{count}} document(s) unarchived.",
+        count: selectedDocumentIds.length,
+      }),
+      errorMessage: t("documents.batchUnarchiveFailed", {
+        defaultValue: "Failed to unarchive documents.",
+      }),
+      onSuccess: () => fetchDocuments(getFetchParams()),
+    });
+    if (didUnarchive) clearSelection();
+  }, [
+    clearSelection,
+    fetchDocuments,
+    getFetchParams,
+    selectedDocumentIds,
+    t,
+    unarchiveDocument,
+  ]);
+
   /** Opens transfer modal for given document IDs; excludes their current folder(s) from destination list. */
   const openMoveModalForIds = useCallback(
     (documentIds: number[]) => {
@@ -343,28 +368,11 @@ export const useDocumentsPageContainer = () => {
     [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
   );
 
-  /** Whether a document has a trashed/deleted status. */
-  const isTrashedStatus = useCallback((status?: string) => {
-    const s = (status ?? "").toLowerCase();
-    return s.includes("trash") || s.includes("deleted");
-  }, []);
-
-  /** True when every selected document is in trash (show only Batch Restore). */
-  const allSelectedAreTrashed = useMemo(() => {
-    if (selectedDocumentIds.length === 0) return false;
-    return selectedDocumentIds.every((id) => {
-      const doc = documents.find((d) => d.id === id);
-      return doc ? isTrashedStatus(doc.status) : false;
-    });
-  }, [documents, selectedDocumentIds, isTrashedStatus]);
-
-  /** True when at least one selected document is NOT trashed (show Transfer/Archive/Trash). */
-  const someSelectedAreNonTrashed = useMemo(() => {
-    return selectedDocumentIds.some((id) => {
-      const doc = documents.find((d) => d.id === id);
-      return doc ? !isTrashedStatus(doc.status) : false;
-    });
-  }, [documents, selectedDocumentIds, isTrashedStatus]);
+  /** Batch action visibility: common-only rules via shared service (no Transfer/Trash when any main doc selected). */
+  const batchActions = useMemo(
+    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
+    [documents, selectedDocumentIds]
+  );
 
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
@@ -396,8 +404,7 @@ export const useDocumentsPageContainer = () => {
       selectionConfig,
       clearSelection,
       isSomeSelected,
-      allSelectedAreTrashed,
-      someSelectedAreNonTrashed,
+      batchActions,
     },
     paging: {
       pagination,
@@ -422,6 +429,7 @@ export const useDocumentsPageContainer = () => {
       confirmUnarchive,
       confirmBatchTrash,
       confirmBatchArchive,
+      confirmBatchUnarchive,
       confirmBatchRestore,
       handleOpenSingleMoveConfirm,
       handleOpenBatchMoveConfirm,
@@ -441,6 +449,7 @@ export const useDocumentsPageContainer = () => {
       isTrashing,
       isArchiving,
       isRestoring,
+      isUnarchiving,
       mainFilesBlockModal,
     },
   };

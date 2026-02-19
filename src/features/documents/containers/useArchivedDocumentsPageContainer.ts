@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -6,6 +6,7 @@ import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
+import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -77,6 +78,12 @@ export const useArchivedDocumentsPageContainer = () => {
   /** Client-side pagination: slices documents when backend doesn't paginate. */
   const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
     useClientPagination(documents, page, perPage, pagination);
+
+  /** Batch action visibility from shared service (common-only; all listed docs are archived). */
+  const batchActions = useMemo(
+    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
+    [documents, selectedDocumentIds]
+  );
 
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
@@ -273,6 +280,7 @@ export const useArchivedDocumentsPageContainer = () => {
       selectionConfig,
       clearSelection,
       isSomeSelected,
+      batchActions,
     },
     paging: {
       pagination: resolvedPagination,

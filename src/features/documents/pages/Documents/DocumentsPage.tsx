@@ -28,7 +28,7 @@ const DocumentsPage = () => {
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
   const { documents, routes, pagination } = data;
-  const { selectedDocumentIds, selectionConfig, isSomeSelected, allSelectedAreTrashed, someSelectedAreNonTrashed } = selection;
+  const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { handlePageChange, handlePerPageChange } = paging;
 
   useEffect(() => {
@@ -52,6 +52,7 @@ const DocumentsPage = () => {
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
   const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
   const batchArchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchArchive });
+  const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
   const batchRestoreDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchRestore });
 
   const columns = useMemo(
@@ -182,8 +183,7 @@ const DocumentsPage = () => {
           documents={documents}
           isSomeSelected={isSomeSelected}
           selectedDocumentIds={selectedDocumentIds}
-          allSelectedAreTrashed={allSelectedAreTrashed}
-          someSelectedAreNonTrashed={someSelectedAreNonTrashed}
+          batchActions={batchActions}
           filter={filter}
           actions={{
             handleOpenBatchMoveConfirm: actions.handleOpenBatchMoveConfirm,
@@ -193,6 +193,7 @@ const DocumentsPage = () => {
           modals={modals}
           batchArchiveDialog={batchArchiveDialog}
           batchRestoreDialog={batchRestoreDialog}
+          batchUnarchiveDialog={batchUnarchiveDialog}
           onMoveSelectedToTrashClick={() => actions.handleBatchTrashClick(() => batchTrashDialog.open())}
           routes={routes}
         />
@@ -236,6 +237,7 @@ const DocumentsPage = () => {
         archiveDialog={archiveDialog}
         unarchiveDialog={unarchiveDialog}
         batchArchiveDialog={batchArchiveDialog}
+        batchUnarchiveDialog={batchUnarchiveDialog}
         batchTrashDialog={batchTrashDialog}
         batchRestoreDialog={batchRestoreDialog}
         selectedDocumentIds={selectedDocumentIds}

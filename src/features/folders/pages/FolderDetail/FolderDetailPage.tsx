@@ -153,6 +153,7 @@ const FolderDetailPage = () => {
         t={t}
         subDocs={data.subDocs}
         selectionConfig={selection.subDocsSelectionConfig}
+        subDocsBatchActions={selection.subDocsBatchActions}
         formatDate={actions.formatDate}
         onNavigate={actions.handleNavigateToDocument}
         onDownload={actions.handleDownloadDocument}

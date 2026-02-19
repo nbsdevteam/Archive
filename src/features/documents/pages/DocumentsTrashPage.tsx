@@ -17,7 +17,7 @@ const DocumentsTrashPage = () => {
   const { t } = useTranslation();
   const { data, loading, error, selection, actions, modals } = useDocumentsTrashPageContainer();
   const { routes, documents, pagination, isAdmin } = data;
-  const { selectedDocumentIds, isSomeSelected, selectionConfig } = selection;
+  const { selectedDocumentIds, isSomeSelected, selectionConfig, batchActions } = selection;
   const { isRestoring, isPermanentDeleting } = modals;
 
   const permanentDeleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmPermanentDelete });
@@ -94,21 +94,23 @@ const DocumentsTrashPage = () => {
             <div className="d-flex align-items-center gap-2">
               {isSomeSelected && (
                 <>
-                  <Button
-                    variant="outline"
-                    size="md"
-                    className="btn-outline-secondary d-inline-flex align-items-center"
-                    onClick={batchRestoreDialog.open}
-                    disabled={isRestoring}
-                    aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-                    data-testid="trash-restore-selected"
-                  >
-                    <Icon name="refresh-cw" className="me-1" />
-                    {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-                    {selectedDocumentIds.length > 0 && (
-                      <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-                    )}
-                  </Button>
+                  {batchActions.canBatchRestore && (
+                    <Button
+                      variant="outline"
+                      size="md"
+                      className="btn-outline-secondary d-inline-flex align-items-center"
+                      onClick={batchRestoreDialog.open}
+                      disabled={isRestoring}
+                      aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+                      data-testid="trash-restore-selected"
+                    >
+                      <Icon name="refresh-cw" className="me-1" />
+                      {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+                      {selectedDocumentIds.length > 0 && (
+                        <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                      )}
+                    </Button>
+                  )}
                   {isAdmin && (
                     <Button
                       variant="outline"

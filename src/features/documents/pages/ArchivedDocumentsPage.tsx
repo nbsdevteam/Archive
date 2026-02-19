@@ -23,7 +23,7 @@ const ArchivedDocumentsPage = () => {
     useArchivedDocumentsPageContainer();
   const { documents, routes, pagination } = data;
   const { handlePageChange, handlePerPageChange } = paging;
-  const { selectedDocumentIds, selectionConfig, isSomeSelected } = selection;
+  const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
 
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.handleUnarchive });
   const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
@@ -120,35 +120,39 @@ const ArchivedDocumentsPage = () => {
         >
           {documents.length > 0 && isSomeSelected && (
             <>
-              <Button
-                variant="outline"
-                size="md"
-                className="btn-outline-secondary d-inline-flex align-items-center me-2"
-                onClick={batchUnarchiveDialog.open}
-                disabled={modals.isUnarchiving}
-                aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-                data-testid="archived-unarchive-selected"
-              >
-                <Icon name="archive" className="me-1" />
-                {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-                {selectedDocumentIds.length > 0 && (
-                  <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                size="md"
-                className="btn-outline-danger d-inline-flex align-items-center me-2"
-                onClick={batchTrashDialog.open}
-                disabled={modals.isTrashing}
-                aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-              >
-                <Icon name="trash-2" className="me-1" />
-                {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-                {selectedDocumentIds.length > 0 && (
-                  <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
-                )}
-              </Button>
+              {batchActions.canBatchUnarchive && (
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="btn-outline-secondary d-inline-flex align-items-center me-2"
+                  onClick={batchUnarchiveDialog.open}
+                  disabled={modals.isUnarchiving}
+                  aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+                  data-testid="archived-unarchive-selected"
+                >
+                  <Icon name="archive" className="me-1" />
+                  {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+                  {selectedDocumentIds.length > 0 && (
+                    <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+                  )}
+                </Button>
+              )}
+              {batchActions.canBatchTrash && (
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="btn-outline-danger d-inline-flex align-items-center me-2"
+                  onClick={batchTrashDialog.open}
+                  disabled={modals.isTrashing}
+                  aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+                >
+                  <Icon name="trash-2" className="me-1" />
+                  {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+                  {selectedDocumentIds.length > 0 && (
+                    <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
+                  )}
+                </Button>
+              )}
             </>
           )}
           <div data-testid="archived-documents-search">

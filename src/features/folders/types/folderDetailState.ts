@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import type { Document, DocumentDetail, Attachment } from "@/app/adapter/api/documents.api";
+import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
 import type { Folder } from "@/features/folders/types/folders.types";
 import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
 import type { NoteListItem, CreateNotePayload } from "@/features/notes/types/notes.types";
@@ -82,6 +83,8 @@ export interface FolderDetailActivity {
  */
 export interface FolderDetailSelection {
   subDocSelectedIds: (string | number)[];
+  /** Batch action visibility for sub-docs (common-only; from shared service). */
+  subDocsBatchActions: DocumentBatchActionsResult;
   subDocsSelectionConfig: {
     isAllSelected: boolean;
     isIndeterminate: boolean;

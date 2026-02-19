@@ -29,6 +29,7 @@ export interface DocumentsModalsProps {
   archiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   unarchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchArchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
+  batchUnarchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchTrashDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchRestoreDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   selectedDocumentIds: number[];
@@ -44,6 +45,7 @@ export function DocumentsModals({
   archiveDialog,
   unarchiveDialog,
   batchArchiveDialog,
+  batchUnarchiveDialog,
   batchTrashDialog,
   batchRestoreDialog,
   selectedDocumentIds,
@@ -101,6 +103,17 @@ export function DocumentsModals({
           count: selectedDocumentIds.length,
         })}
         confirmLabel={t("documents.archive", { defaultValue: "Archive" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="secondary"
+      />
+      <ConfirmModal
+        {...batchUnarchiveDialog.modalProps}
+        title={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+        message={t("documents.confirmBatchUnarchive", {
+          defaultValue: "Unarchive {{count}} document(s)?",
+          count: selectedDocumentIds.length,
+        })}
+        confirmLabel={t("documents.unarchive", { defaultValue: "Unarchive" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="secondary"
       />

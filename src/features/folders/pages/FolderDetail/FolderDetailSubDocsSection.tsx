@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
+import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
 import { Button, Icon } from "@/shared/components/ui";
 
 export interface SubDocsSelectionConfig {
@@ -14,6 +15,8 @@ export interface FolderDetailSubDocsSectionProps {
   t: TFunction;
   subDocs: Document[];
   selectionConfig: SubDocsSelectionConfig | null;
+  /** Batch action visibility from shared service (common-only). */
+  subDocsBatchActions: DocumentBatchActionsResult;
   formatDate: (date?: string | null) => string;
   onNavigate: (documentId: number) => void;
   onDownload: (documentId: number) => void;
@@ -35,6 +38,7 @@ export function FolderDetailSubDocsSection({
   t,
   subDocs,
   selectionConfig,
+  subDocsBatchActions,
   formatDate,
   onNavigate,
   onDownload,
@@ -105,26 +109,30 @@ export function FolderDetailSubDocsSection({
         <h6 className="mb-0">🧩 {t("folders.secondaryDocuments", { defaultValue: "Secondary documents" })}</h6>
         {subDocs.length > 0 && hasSelection && (
           <div className="d-flex align-items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="btn-outline-secondary"
-              onClick={handleTransferSelectedClick}
-              disabled={transferSubmitting}
-            >
-              <Icon name="arrow-right-left" className="me-1" />
-              {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="btn-outline-danger"
-              onClick={onBatchTrash}
-              disabled={isSubDocTrashing}
-            >
-              <Icon name="trash-2" className="me-1" />
-              {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-            </Button>
+            {subDocsBatchActions.canBatchTransfer && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-secondary"
+                onClick={handleTransferSelectedClick}
+                disabled={transferSubmitting}
+              >
+                <Icon name="arrow-right-left" className="me-1" />
+                {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+              </Button>
+            )}
+            {subDocsBatchActions.canBatchTrash && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-danger"
+                onClick={onBatchTrash}
+                disabled={isSubDocTrashing}
+              >
+                <Icon name="trash-2" className="me-1" />
+                {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onClearSelection}>
               {t("common.clearSelection", { defaultValue: "Clear selection" })}
             </Button>
