@@ -42,6 +42,7 @@ export interface UploadDocumentFormContentProps {
   uploadMultipleSub?: boolean;
   onUploadMultipleSubChange?: (value: boolean) => void;
   onMainSingleFileSelected?: (baseName: string) => void;
+  onSubSingleFileSelected?: (baseName: string) => void;
   tagOptions: SelectOption[];
   bulkJobId: string | null;
   bulkProgress: BulkUploadProgressData | null;
@@ -84,6 +85,7 @@ export function UploadDocumentFormContent({
   uploadMultipleSub,
   onUploadMultipleSubChange,
   onMainSingleFileSelected,
+  onSubSingleFileSelected,
   tagOptions,
   bulkJobId,
   bulkProgress,
@@ -133,6 +135,7 @@ export function UploadDocumentFormContent({
         uploadMultipleSub={uploadMultipleSub}
         onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
+        onSubSingleFileSelected={onSubSingleFileSelected}
       />
 
       {((uploadKind === "sub" && uploadMultipleSub && isUploading && bulkJobId && bulkProgress) || (uploadKind === "main" && uploadMultipleMain && isUploading && bulkJobId && bulkProgress)) && (

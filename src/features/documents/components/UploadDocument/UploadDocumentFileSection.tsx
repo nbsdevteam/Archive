@@ -19,6 +19,8 @@ export interface UploadDocumentFileSectionProps {
   onUploadMultipleSubChange?: (value: boolean) => void;
   /** Called when a single main file is selected so parent can prefill title and folder name from filename. */
   onMainSingleFileSelected?: (baseName: string) => void;
+  /** Called when a single sub file is selected so parent can prefill title from filename. */
+  onSubSingleFileSelected?: (baseName: string) => void;
   uploadWhatDocumentLabel: string;
   t: TFunction;
   setValue: (name: "file", value: File | undefined, opts?: { shouldValidate?: boolean }) => void;
@@ -38,6 +40,7 @@ export function UploadDocumentFileSection({
   uploadMultipleSub = false,
   onUploadMultipleSubChange,
   onMainSingleFileSelected,
+  onSubSingleFileSelected,
   uploadWhatDocumentLabel,
   t,
   setValue,
@@ -52,6 +55,9 @@ export function UploadDocumentFileSection({
       setValue("file", file, { shouldValidate: true });
       if (uploadKind === "main" && !uploadMultipleMain && files.length === 1 && onMainSingleFileSelected) {
         onMainSingleFileSelected(getBaseName(file.name));
+      }
+      if (uploadKind === "sub" && !uploadMultipleSub && files.length === 1 && onSubSingleFileSelected) {
+        onSubSingleFileSelected(getBaseName(file.name));
       }
     } else {
       setValue("file", undefined, { shouldValidate: true });

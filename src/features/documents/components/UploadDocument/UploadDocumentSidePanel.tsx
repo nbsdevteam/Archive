@@ -238,6 +238,14 @@ export function UploadDocumentSidePanel({
     [setValue]
   );
 
+  /** Prefill title from filename when user selects a single sub file. */
+  const handleSubSingleFileSelected = useCallback(
+    (baseName: string) => {
+      setValue("title", baseName, { shouldValidate: true });
+    },
+    [setValue]
+  );
+
   /** Prevents default form submit and triggers upload validation + submit. */
   const handleUploadFormSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -298,6 +306,7 @@ export function UploadDocumentSidePanel({
           uploadMultipleSub={uploadMultipleSub}
           onUploadMultipleSubChange={handleUploadMultipleSubChange}
           onMainSingleFileSelected={handleMainSingleFileSelected}
+          onSubSingleFileSelected={handleSubSingleFileSelected}
           tagOptions={tagOptions}
           bulkJobId={submitLogic.bulkJobId}
           bulkProgress={submitLogic.bulkProgress}

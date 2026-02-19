@@ -45,6 +45,7 @@ export interface UploadDocumentTargetSectionProps {
   uploadMultipleSub?: boolean;
   onUploadMultipleSubChange?: (value: boolean) => void;
   onMainSingleFileSelected?: (baseName: string) => void;
+  onSubSingleFileSelected?: (baseName: string) => void;
 }
 
 const UPLOAD_KIND_OPTIONS = (t: TFunction): SelectOption<string>[] => [
@@ -88,6 +89,7 @@ export function UploadDocumentTargetSection({
   uploadMultipleSub = false,
   onUploadMultipleSubChange,
   onMainSingleFileSelected,
+  onSubSingleFileSelected,
 }: UploadDocumentTargetSectionProps) {
   const titleRegistration = register("title");
   const departmentOptions: SelectOption[] = departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
@@ -191,6 +193,7 @@ export function UploadDocumentTargetSection({
         uploadMultipleSub={uploadMultipleSub}
         onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
+        onSubSingleFileSelected={onSubSingleFileSelected}
         uploadWhatDocumentLabel={uploadWhatDocumentLabel}
         t={t}
         setValue={setValue}
