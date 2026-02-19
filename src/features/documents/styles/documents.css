@@ -58,6 +58,6 @@
 .sort-dir--desc .sort-arrow-up   { opacity: 0.25; }
 .sort-dir--desc .sort-arrow-down { opacity: 1; }
 
-/* Group cycling active: both arrows highlighted */
-.sort-dir--group .sort-arrow-up,
+/* Group cycling active: one arrow highlighted (down) so behavior matches asc/desc */
+.sort-dir--group .sort-arrow-up   { opacity: 0.25; }
 .sort-dir--group .sort-arrow-down { opacity: 1; }
