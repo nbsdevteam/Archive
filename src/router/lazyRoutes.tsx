@@ -52,7 +52,7 @@ const createLazyComponent = (
 
   return (props: object) => (
     <LazyErrorBoundary fallback={fallback}>
-      <Suspense fallback={null}>
+      <Suspense fallback={fallback ?? null}>
         <LazyComponent {...props} />
       </Suspense>
     </LazyErrorBoundary>

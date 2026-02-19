@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 import "./LoadingSpinner.scss";
 
 interface LoadingSpinnerProps {
@@ -10,7 +10,7 @@ interface LoadingSpinnerProps {
 
 /**
  * Route/lazy-loading full-screen spinner. Centered horizontally and vertically,
- * uses Loader2 from lucide-react with a light theme-colored icon.
+ * uses Loader from lucide-react with a light theme-colored icon.
  */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "medium",
@@ -29,7 +29,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className={containerClass}>
       <div className="loading-spinner-inner">
-        <Loader2
+        <Loader
           size={iconSize}
           className="loading-spinner-icon"
           aria-hidden
