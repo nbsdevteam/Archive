@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button } from "@/shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, ListFilter } from "@/shared/components/ui";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
@@ -15,7 +15,7 @@ import "@/features/documents/styles/documents.css";
 
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();
-  const { data, loading, error, selection, actions, modals } = useDocumentsTrashPageContainer();
+  const { data, loading, error, selection, actions, modals, filter } = useDocumentsTrashPageContainer();
   const { routes, documents, pagination, isAdmin } = data;
   const { selectedDocumentIds, isSomeSelected, selectionConfig, batchActions } = selection;
   const { isRestoring, isPermanentDeleting } = modals;
@@ -92,6 +92,40 @@ const DocumentsTrashPage = () => {
               </span>
             </div>
             <div className="d-flex align-items-center gap-2">
+              <div className="position-relative d-inline-block">
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="btn-outline-secondary d-inline-flex align-items-center"
+                  onClick={filter.handleOpenFilter}
+                  aria-label={t("documents.filter", { defaultValue: "Filter" })}
+                  aria-expanded={filter.isFilterOpen}
+                >
+                  <Icon name="filter" className="me-1" />
+                  {t("documents.filter", { defaultValue: "Filter" })}
+                </Button>
+                <ListFilter
+                  isOpen={filter.isFilterOpen}
+                  onClose={filter.handleCloseFilter}
+                  dateRange={{
+                    label: t("filter.byDate", { defaultValue: "By Date" }),
+                    mode: filter.dateRangeMode,
+                    fromDate: filter.dateRangeFromDate,
+                    toDate: filter.dateRangeToDate,
+                    onModeChange: filter.handleDateRangeModeChange,
+                    onDatesChange: filter.handleDateRangeChange,
+                    onCancel: filter.hasAppliedDateFilter ? filter.handleCancelFilter : undefined,
+                    cancelLabel: t("common.cancel", { defaultValue: "Cancel" }),
+                  }}
+                  onApply={filter.handleApplyFilter}
+                  onClear={filter.handleClearFilter}
+                  applyDisabled={filter.filterApplyDisabled}
+                  applyLabel={t("common.apply", { defaultValue: "Apply" })}
+                  clearLabel={t("common.clear", { defaultValue: "Clear" })}
+                  closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
+                  ariaLabel={t("documents.filterOptions", { defaultValue: "Filter options" })}
+                />
+              </div>
               {isSomeSelected && (
                 <>
                   {batchActions.canBatchRestore && (

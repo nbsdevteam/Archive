@@ -4,6 +4,7 @@ import {
   ArrowRightLeft,
   Archive,
   Bell,
+  Calendar,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -78,6 +79,7 @@ const iconMap = {
   info: Info,
   edit: Pencil,
   pencil: Pencil,
+  calendar: Calendar,
 } as const;
 
 export type IconName = keyof typeof iconMap;

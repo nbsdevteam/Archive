@@ -1,9 +1,11 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Select, { type SingleValue } from "react-select";
+import DatePicker from "react-datepicker";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import type { SelectOption } from "../Select";
+import { formatDate } from "@/shared/utils/format/date";
 import styles from "./ListFilter.module.css";
 
 export interface ListFilterFilterConfig {
@@ -13,13 +15,31 @@ export interface ListFilterFilterConfig {
   onChange: (value: number | string | null) => void;
 }
 
+/** Mode for date range filter: after = from_date only, upto = to_date only, between = both. */
+export type DateRangeMode = "after" | "upto" | "between";
+
+export interface ListFilterDateRangeConfig {
+  label: string;
+  mode: DateRangeMode;
+  fromDate: Date | null;
+  toDate: Date | null;
+  onModeChange: (mode: DateRangeMode) => void;
+  onDatesChange: (args: { fromDate: Date | null; toDate: Date | null }) => void;
+  /** Called when user clicks Cancel; only refetch/clear when date was applied. */
+  onCancel?: () => void;
+  cancelLabel?: string;
+}
+
 export interface ListFilterProps {
   isOpen: boolean;
   onClose: () => void;
-  primaryFilter: ListFilterFilterConfig;
-  secondaryFilter: ListFilterFilterConfig;
+  /** When absent (e.g. Trash page), only date range row is shown if dateRange is provided. */
+  primaryFilter?: ListFilterFilterConfig;
+  secondaryFilter?: ListFilterFilterConfig;
   /** Optional third filter row (e.g. Company/Brand). */
   tertiaryFilter?: ListFilterFilterConfig;
+  /** Optional date range row (By Date); when absent, no date row or Cancel is shown. */
+  dateRange?: ListFilterDateRangeConfig;
   onApply: () => void;
   onClear?: () => void;
   /** When true, Apply button is disabled (e.g. when draft has no changes from applied). Enable Apply only when user has changed a value. */
@@ -38,12 +58,30 @@ function isStringOption(
   return typeof options[0].value === "string";
 }
 
+/** Builds display string for date range: "-" | "after D" | "upto D" | "between D1 - D2". */
+function getDateRangeDisplayValue(
+  fromDate: Date | null,
+  toDate: Date | null,
+  t: (key: string, opts?: { defaultValue?: string }) => string
+): string {
+  const hasFrom = fromDate != null && !isNaN(fromDate.getTime());
+  const hasTo = toDate != null && !isNaN(toDate.getTime());
+  if (!hasFrom && !hasTo) return "–";
+  const afterLabel = t("filter.dateAfter", { defaultValue: "after" });
+  const uptoLabel = t("filter.dateUpto", { defaultValue: "upto" });
+  const betweenLabel = t("filter.dateBetween", { defaultValue: "between" });
+  if (hasFrom && !hasTo) return `${afterLabel} ${formatDate(fromDate)}`;
+  if (!hasFrom && hasTo) return `${uptoLabel} ${formatDate(toDate)}`;
+  return `${betweenLabel} ${formatDate(fromDate!)} – ${formatDate(toDate!)}`;
+}
+
 export function ListFilter({
   isOpen,
   onClose,
   primaryFilter,
   secondaryFilter,
   tertiaryFilter,
+  dateRange,
   onApply,
   onClear,
   applyDisabled = true,
@@ -55,11 +93,13 @@ export function ListFilter({
 }: ListFilterProps) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const resolvedApplyLabel = applyLabel ?? t("common.apply", { defaultValue: "Apply" });
   const resolvedClearLabel = clearLabel ?? t("common.clear", { defaultValue: "Clear" });
   const resolvedCloseAriaLabel = closeAriaLabel ?? t("common.close", { defaultValue: "Close filter" });
   const resolvedAriaLabel = ariaLabel ?? t("documents.filterOptions", { defaultValue: "Filter options" });
   const selectPlaceholder = t("app.selectPlaceholder", { defaultValue: "Select..." });
+  const resolvedCancelLabel = dateRange?.cancelLabel ?? t("common.cancel", { defaultValue: "Cancel" });
 
   const handleApply = useCallback(() => {
     onApply();
@@ -71,6 +111,11 @@ export function ListFilter({
     onClose();
   }, [onClear, onClose]);
 
+  const handleCancel = useCallback(() => {
+    dateRange?.onCancel?.();
+    onClose();
+  }, [dateRange, onClose]);
+
   const handleCloseClick = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -81,8 +126,8 @@ export function ListFilter({
     e.stopPropagation();
   }, []);
 
-  const primaryIsString = isStringOption(primaryFilter.options);
-  const secondaryIsString = isStringOption(secondaryFilter.options);
+  const primaryIsString = primaryFilter ? isStringOption(primaryFilter.options) : false;
+  const secondaryIsString = secondaryFilter ? isStringOption(secondaryFilter.options) : false;
   const tertiaryIsString = tertiaryFilter ? isStringOption(tertiaryFilter.options) : false;
 
   const handlePrimarySelectChange = useCallback(
@@ -130,11 +175,17 @@ export function ListFilter({
   if (!isOpen) return null;
 
   const primaryOption =
-    primaryFilter.value !== null && primaryFilter.value !== undefined && primaryFilter.value !== ""
+    primaryFilter &&
+    primaryFilter.value !== null &&
+    primaryFilter.value !== undefined &&
+    primaryFilter.value !== ""
       ? primaryFilter.options.find((o) => o.value === primaryFilter.value) ?? null
       : null;
   const secondaryOption =
-    secondaryFilter.value !== null && secondaryFilter.value !== undefined && secondaryFilter.value !== ""
+    secondaryFilter &&
+    secondaryFilter.value !== null &&
+    secondaryFilter.value !== undefined &&
+    secondaryFilter.value !== ""
       ? secondaryFilter.options.find((o) => o.value === secondaryFilter.value) ?? null
       : null;
   const tertiaryOption =
@@ -173,36 +224,40 @@ export function ListFilter({
         </button>
       </div>
       <div className={styles.rows}>
-        <div className={styles.row}>
-          <span className={styles.label}>{primaryFilter.label}</span>
-          <div className={styles.selectWrap}>
-            <Select<SelectOption>
-              isClearable
-              placeholder={selectPlaceholder}
-              options={primaryFilter.options}
-              value={primaryOption}
-              isDisabled={disabled}
-              onChange={handlePrimarySelectChange}
-              classNamePrefix="react-select"
-              styles={{ control: selectStyles }}
-            />
+        {primaryFilter != null && (
+          <div className={styles.row}>
+            <span className={styles.label}>{primaryFilter.label}</span>
+            <div className={styles.selectWrap}>
+              <Select<SelectOption>
+                isClearable
+                placeholder={selectPlaceholder}
+                options={primaryFilter.options}
+                value={primaryOption}
+                isDisabled={disabled}
+                onChange={handlePrimarySelectChange}
+                classNamePrefix="react-select"
+                styles={{ control: selectStyles }}
+              />
+            </div>
           </div>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.label}>{secondaryFilter.label}</span>
-          <div className={styles.selectWrap}>
-            <Select<SelectOption>
-              isClearable
-              placeholder={selectPlaceholder}
-              options={secondaryFilter.options}
-              value={secondaryOption}
-              isDisabled={disabled}
-              onChange={handleSecondarySelectChange}
-              classNamePrefix="react-select"
-              styles={{ control: selectStyles }}
-            />
+        )}
+        {secondaryFilter != null && (
+          <div className={styles.row}>
+            <span className={styles.label}>{secondaryFilter.label}</span>
+            <div className={styles.selectWrap}>
+              <Select<SelectOption>
+                isClearable
+                placeholder={selectPlaceholder}
+                options={secondaryFilter.options}
+                value={secondaryOption}
+                isDisabled={disabled}
+                onChange={handleSecondarySelectChange}
+                classNamePrefix="react-select"
+                styles={{ control: selectStyles }}
+              />
+            </div>
           </div>
-        </div>
+        )}
         {tertiaryFilter != null && (
           <div className={styles.row}>
             <span className={styles.label}>{tertiaryFilter.label}</span>
@@ -220,8 +275,87 @@ export function ListFilter({
             </div>
           </div>
         )}
+        {dateRange != null && (
+          <div className={styles.row}>
+            <span className={styles.label}>{dateRange.label}</span>
+            <div className={styles.dateWrap}>
+              <div className={styles.dateTriggerWrap}>
+                <button
+                  type="button"
+                  className={styles.dateTrigger}
+                  onClick={() => setDatePickerOpen((o) => !o)}
+                  disabled={disabled}
+                  aria-expanded={datePickerOpen}
+                  aria-haspopup="dialog"
+                >
+                  <Icon name="calendar" style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
+                  <span className={styles.dateTriggerText}>
+                    {getDateRangeDisplayValue(dateRange.fromDate, dateRange.toDate, t)}
+                  </span>
+                </button>
+                {datePickerOpen && (
+                  <div className={styles.datePickerDropdown}>
+                    <div className={styles.dateModeTabs}>
+                      {(["after", "upto", "between"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          className={dateRange.mode === mode ? styles.dateModeTabActive : styles.dateModeTab}
+                          onClick={() => dateRange.onModeChange(mode)}
+                        >
+                          {t(`filter.dateMode.${mode}`, {
+                            defaultValue: mode === "after" ? "After" : mode === "upto" ? "Upto" : "Between",
+                          })}
+                        </button>
+                      ))}
+                    </div>
+                    {dateRange.mode === "between" ? (
+                      <DatePicker
+                        selectsRange
+                        startDate={dateRange.fromDate}
+                        endDate={dateRange.toDate}
+                        onChange={(dates) => {
+                          const [start, end] = dates ?? [null, null];
+                          dateRange.onDatesChange({ fromDate: start ?? null, toDate: end ?? null });
+                        }}
+                        shouldCloseOnSelect={false}
+                        inline
+                        calendarClassName={styles.reactDatepicker}
+                      />
+                    ) : (
+                      <DatePicker
+                        selected={dateRange.mode === "after" ? dateRange.fromDate : dateRange.toDate}
+                        onChange={(date) => {
+                          if (dateRange.mode === "after") {
+                            dateRange.onDatesChange({ fromDate: date ?? null, toDate: dateRange.toDate });
+                          } else {
+                            dateRange.onDatesChange({ fromDate: dateRange.fromDate, toDate: date ?? null });
+                          }
+                        }}
+                        shouldCloseOnSelect={false}
+                        inline
+                        calendarClassName={styles.reactDatepicker}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <div className={styles.actions}>
+        {dateRange?.onCancel != null && (
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-secondary"
+            onClick={handleCancel}
+            disabled={disabled}
+          >
+            {resolvedCancelLabel}
+          </Button>
+        )}
         {onClear != null && (
           <Button
             variant="outline"

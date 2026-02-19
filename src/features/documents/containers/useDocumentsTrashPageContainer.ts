@@ -4,14 +4,41 @@ import { all_routes } from "@/router/all_routes";
 import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useDocumentOperations, useSelection, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
+import { useDocumentOperations, useSelection, usePaginationFromUrl, useClientPagination, useDraftAppliedFilters } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
+import type { DateRangeMode } from "@/shared/components/ui";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
+export interface TrashFilterState {
+  from_date?: string;
+  to_date?: string;
+  date_mode?: DateRangeMode;
+}
+
+function toDateOnlyString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function parseDateOnly(s: string | undefined): Date | null {
+  if (!s || s.trim() === "") return null;
+  const d = new Date(s + "T00:00:00");
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function deriveDateMode(f: TrashFilterState): DateRangeMode {
+  if (f.from_date && f.to_date) return "between";
+  if (f.from_date) return "after";
+  if (f.to_date) return "upto";
+  return "after";
+}
+
 /**
- * Container for the Trash page: loads trashed documents, selection, batch restore/permanent-delete.
- * Returns grouped state (data, loading, selection, actions, modals) for DocumentsTrashPage.
+ * Container for the Trash page: loads trashed documents, selection, batch restore/permanent-delete, and optional date filter.
+ * Returns grouped state (data, loading, selection, actions, modals, filter) for DocumentsTrashPage.
  */
 export const useDocumentsTrashPageContainer = () => {
   const [documents, setDocuments] = useState<TrashDoc[]>([]);
@@ -23,10 +50,23 @@ export const useDocumentsTrashPageContainer = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const { user } = useAuth();
-  const { page, perPage, setPage, setPerPage } = usePaginationFromUrl(20);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
   const { isRestoring, isPermanentDeleting, restoreDocument, permanentDeleteSingle, permanentDeleteBatch } =
     useDocumentOperations();
   const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
+
+  const filterState = useDraftAppliedFilters<TrashFilterState>();
+  const {
+    appliedFilters,
+    draftFilters,
+    setDraftFilters,
+    isFilterOpen,
+    filterApplyDisabled,
+    handleOpenFilter: baseHandleOpenFilter,
+    handleCloseFilter,
+    handleApplyFilter: baseHandleApplyFilter,
+    handleClearFilter: baseHandleClearFilter,
+  } = filterState;
 
   /** Client-side pagination: slices documents when backend doesn't paginate. */
   const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
@@ -61,24 +101,76 @@ export const useDocumentsTrashPageContainer = () => {
     [baseSelectionConfig, t]
   );
 
-  const fetchTrash = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await documentsApi.listTrashDocuments({ page, per_page: perPage });
-      setDocuments((response?.data ?? []) as TrashDoc[]);
-      setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
-    } catch (e: unknown) {
-      setError(handleApiError(e));
-      setDocuments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, perPage]);
+  const fetchTrash = useCallback(
+    async (override?: TrashFilterState) => {
+      setLoading(true);
+      setError(null);
+      const f = override ?? appliedFilters;
+      const params: { page: number; per_page: number; from_date?: string; to_date?: string } = {
+        page,
+        per_page: perPage,
+      };
+      if (f.from_date != null && f.from_date !== "") params.from_date = f.from_date;
+      if (f.to_date != null && f.to_date !== "") params.to_date = f.to_date;
+      try {
+        const response = await documentsApi.listTrashDocuments(params);
+        setDocuments((response?.data ?? []) as TrashDoc[]);
+        setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
+      } catch (e: unknown) {
+        setError(handleApiError(e));
+        setDocuments([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, perPage, appliedFilters.from_date, appliedFilters.to_date]
+  );
 
   useEffect(() => {
     fetchTrash();
   }, [fetchTrash]);
+
+  const handleOpenFilter = useCallback(() => {
+    baseHandleOpenFilter();
+    setDraftFilters({ ...appliedFilters, date_mode: deriveDateMode(appliedFilters) });
+  }, [baseHandleOpenFilter, setDraftFilters, appliedFilters]);
+
+  const handleApplyFilter = useCallback(() => {
+    resetPage();
+    baseHandleApplyFilter();
+    fetchTrash(draftFilters);
+  }, [resetPage, baseHandleApplyFilter, draftFilters, fetchTrash]);
+
+  const handleClearFilter = useCallback(() => {
+    resetPage();
+    baseHandleClearFilter();
+    fetchTrash({});
+  }, [resetPage, baseHandleClearFilter, fetchTrash]);
+
+  const handleDateRangeModeChange = useCallback(
+    (mode: DateRangeMode) => {
+      setDraftFilters((prev) => ({ ...prev, date_mode: mode }));
+    },
+    [setDraftFilters]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (args: { fromDate: Date | null; toDate: Date | null }) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        from_date: args.fromDate != null ? toDateOnlyString(args.fromDate) : undefined,
+        to_date: args.toDate != null ? toDateOnlyString(args.toDate) : undefined,
+      }));
+    },
+    [setDraftFilters]
+  );
+
+  const handleCancelFilter = useCallback(() => {
+    const hadDate = !!(appliedFilters.from_date || appliedFilters.to_date);
+    if (!hadDate) return;
+    baseHandleClearFilter();
+    fetchTrash({});
+  }, [appliedFilters.from_date, appliedFilters.to_date, baseHandleClearFilter, fetchTrash]);
 
   const handleRestore = useCallback(async (documentId: number) => {
     setRestoreLoadingId(documentId);
@@ -146,7 +238,7 @@ export const useDocumentsTrashPageContainer = () => {
     [setPerPage]
   );
 
-  /** Grouped return shape: data, loading, error, selection, actions, modals (KISS/DRY). */
+  /** Grouped return shape: data, loading, error, selection, actions, modals, filter (KISS/DRY). */
   return {
     data: {
       routes,
@@ -175,6 +267,21 @@ export const useDocumentsTrashPageContainer = () => {
       restoreLoadingId: isRestoring ? restoreLoadingId : null,
       isRestoring,
       isPermanentDeleting,
+    },
+    filter: {
+      isFilterOpen,
+      handleOpenFilter,
+      handleCloseFilter,
+      handleApplyFilter,
+      handleClearFilter,
+      handleCancelFilter,
+      handleDateRangeModeChange,
+      handleDateRangeChange,
+      filterApplyDisabled,
+      dateRangeFromDate: parseDateOnly(draftFilters.from_date),
+      dateRangeToDate: parseDateOnly(draftFilters.to_date),
+      dateRangeMode: draftFilters.date_mode ?? deriveDateMode(draftFilters),
+      hasAppliedDateFilter: !!(appliedFilters.from_date || appliedFilters.to_date),
     },
   };
 };

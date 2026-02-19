@@ -73,7 +73,7 @@ describe("useDocumentsTrashPageContainer", () => {
     resetStores();
   });
 
-  it("fetches trash documents on mount and exposes data", async () => {
+  it("fetches trash documents on mount and exposes data and filter", async () => {
     const doc = makeDocument({ id: 10, title: "Trashed Doc" });
     mockListTrashDocuments.mockResolvedValue({
       data: [doc],
@@ -83,9 +83,70 @@ describe("useDocumentsTrashPageContainer", () => {
     const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
 
     await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    expect(mockListTrashDocuments).toHaveBeenCalledWith(expect.objectContaining({ page: 1, per_page: 20 }));
     await waitFor(() => expect(result.current.data.documents).toHaveLength(1));
     expect(result.current.data.documents[0].title).toBe("Trashed Doc");
     expect(result.current.data.isAdmin).toBe(true);
+    expect(result.current.filter).toBeDefined();
+    expect(result.current.filter.isFilterOpen).toBe(false);
+    expect(result.current.filter.handleApplyFilter).toBeDefined();
+  });
+
+  it("apply date filter calls listTrashDocuments with from_date and to_date", async () => {
+    const { act } = await import("@testing-library/react");
+    mockListTrashDocuments.mockResolvedValue(defaultTrashResponse);
+
+    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
+    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    mockListTrashDocuments.mockClear();
+
+    const fromDate = new Date("2026-02-01T00:00:00");
+    const toDate = new Date("2026-02-18T00:00:00");
+    await act(async () => {
+      result.current.filter.handleDateRangeChange({ fromDate, toDate });
+    });
+    await act(async () => {
+      result.current.filter.handleApplyFilter();
+    });
+
+    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    expect(mockListTrashDocuments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: 1,
+        per_page: 20,
+        from_date: "2026-02-01",
+        to_date: "2026-02-18",
+      })
+    );
+  });
+
+  it("clear filter calls listTrashDocuments without from_date or to_date", async () => {
+    const { act } = await import("@testing-library/react");
+    mockListTrashDocuments.mockResolvedValue(defaultTrashResponse);
+
+    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
+    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    mockListTrashDocuments.mockClear();
+
+    await act(async () => {
+      result.current.filter.handleDateRangeChange({
+        fromDate: new Date("2026-02-01"),
+        toDate: new Date("2026-02-18"),
+      });
+    });
+    await act(async () => {
+      result.current.filter.handleApplyFilter();
+    });
+    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    mockListTrashDocuments.mockClear();
+
+    await act(async () => {
+      result.current.filter.handleClearFilter();
+    });
+    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
+    const lastCall = mockListTrashDocuments.mock.calls[mockListTrashDocuments.mock.calls.length - 1][0];
+    expect(lastCall.from_date).toBeUndefined();
+    expect(lastCall.to_date).toBeUndefined();
   });
 
   it("calls restoreDocument and refetches when handleRestore is called", async () => {

@@ -144,6 +144,31 @@ describe("useFoldersPageContainer", () => {
     expect(result.current.filter.isFilterOpen).toBe(false);
   });
 
+  it("filter: apply with date range calls fetchFolders with from_date and to_date", () => {
+    const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
+
+    act(() => {
+      result.current.filter.handleOpenFilter();
+    });
+    act(() => {
+      result.current.filter.handleDateRangeChange({
+        fromDate: new Date("2026-02-01T00:00:00"),
+        toDate: new Date("2026-02-18T00:00:00"),
+      });
+    });
+    act(() => {
+      result.current.filter.handleApplyFilter();
+    });
+
+    expect(mockFetchFolders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from_date: "2026-02-01",
+        to_date: "2026-02-18",
+        page: 1,
+      })
+    );
+  });
+
   it("handleOpenEditFolder and handleCloseEditFolder set editingFolder", () => {
     const folder = makeFolder({ id: 1, name: "Edit Me" });
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });

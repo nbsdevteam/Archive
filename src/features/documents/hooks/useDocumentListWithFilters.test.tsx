@@ -120,6 +120,32 @@ describe("useDocumentListWithFilters", () => {
       const lastCall = mockGetDocuments.mock.calls[mockGetDocuments.mock.calls.length - 1][0];
       expect(lastCall.department_id).toBeUndefined();
       expect(lastCall.document_type_id).toBeUndefined();
+      expect(lastCall.from_date).toBeUndefined();
+      expect(lastCall.to_date).toBeUndefined();
     });
+  });
+
+  it("calls fetchDocuments with from_date/to_date when date range is applied", async () => {
+    const { result } = renderHook(() => useDocumentListWithFilters({}), { wrapper });
+
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+    mockGetDocuments.mockClear();
+
+    await act(async () => {
+      result.current.handleDateRangeChange({
+        fromDate: new Date("2026-02-01T00:00:00"),
+        toDate: new Date("2026-02-18T00:00:00"),
+      });
+    });
+    await act(async () => {
+      result.current.handleApplyFilter();
+    });
+
+    expect(mockGetDocuments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from_date: "2026-02-01",
+        to_date: "2026-02-18",
+      })
+    );
   });
 });

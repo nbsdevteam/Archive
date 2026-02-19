@@ -100,10 +100,10 @@ export async function restoreDocument(
 type TrashDoc = import('./types').Document & { deleted_at?: string; restore_deadline?: string };
 
 /**
- * Get trashed documents with optional pagination. POST /api/documents/trash (JSON-RPC).
+ * Get trashed documents with optional pagination and date range. POST /api/documents/trash (JSON-RPC).
  */
 export async function getTrashDocuments(
-  params?: { page?: number; per_page?: number; search?: string }
+  params?: { page?: number; per_page?: number; search?: string; from_date?: string; to_date?: string }
 ): Promise<{ success: boolean; data: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } }> {
   const response = await apiClient.post('/api/documents/trash', {
     jsonrpc: '2.0',

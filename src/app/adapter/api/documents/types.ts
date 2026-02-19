@@ -132,6 +132,9 @@ export interface GetDocumentsParams {
   search?: string;
   page?: number;
   per_page?: number;
+  /** Date-only filter (YYYY-MM-DD). Omit both to avoid date filter. */
+  from_date?: string;
+  to_date?: string;
 }
 
 export interface UploadDocumentRequest {

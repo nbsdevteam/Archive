@@ -71,8 +71,12 @@ export const useDocumentsPageContainer = () => {
     handleCloseFilter,
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
+    handleTertiaryFilterChange,
+    handleDateRangeModeChange,
+    handleDateRangeChange,
     handleApplyFilter: listHandleApplyFilter,
     handleClearFilter: listHandleClearFilter,
+    handleCancelFilter: listHandleCancelFilter,
     handleRetry,
     handleRefresh,
     handlePageChange: listHandlePageChange,
@@ -80,7 +84,6 @@ export const useDocumentsPageContainer = () => {
     departmentOptions,
     documentTypeOptions,
     companyOptions,
-    handleTertiaryFilterChange,
     filterApplyDisabled,
     isFilterOpen,
     selectedDocumentIds,
@@ -88,6 +91,10 @@ export const useDocumentsPageContainer = () => {
     clearSelection,
     deselectDocumentIds,
     isSomeSelected,
+    dateRangeFromDate,
+    dateRangeToDate,
+    dateRangeMode,
+    hasAppliedDateFilter,
   } = list;
 
   /** Batch action visibility: shared service intersection; drives toolbar batch buttons (Transfer/Archive/Trash etc.). */
@@ -105,6 +112,11 @@ export const useDocumentsPageContainer = () => {
     resetPage();
     listHandleClearFilter();
   }, [resetPage, listHandleClearFilter]);
+
+  const handleCancelFilter = useCallback(() => {
+    resetPage();
+    listHandleCancelFilter();
+  }, [resetPage, listHandleCancelFilter]);
 
   const handlePageChange = useCallback(
     (p: number) => {
@@ -397,10 +409,17 @@ export const useDocumentsPageContainer = () => {
       handlePrimaryFilterChange,
       handleSecondaryFilterChange,
       handleTertiaryFilterChange,
+      handleDateRangeModeChange,
+      handleDateRangeChange,
       handleApplyFilter,
       handleClearFilter,
+      handleCancelFilter,
       filterApplyDisabled,
       handleSearchDebounced,
+      dateRangeFromDate,
+      dateRangeToDate,
+      dateRangeMode,
+      hasAppliedDateFilter,
     },
     selection: {
       selectedDocumentIds,

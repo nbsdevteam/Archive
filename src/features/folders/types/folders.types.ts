@@ -64,6 +64,9 @@ export interface FolderListParams {
   /** Optional pagination; show pagination UI only when backend returns pagination. */
   page?: number;
   per_page?: number;
+  /** Date-only filter (YYYY-MM-DD). Omit both to avoid date filter. */
+  from_date?: string;
+  to_date?: string;
 }
 
 export interface FolderListResponse {

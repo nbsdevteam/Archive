@@ -32,6 +32,8 @@ export const listFolders = async (
     ...(params.company_id != null && { company_id: params.company_id }),
     ...(params.page != null && { page: params.page }),
     ...(params.per_page != null && { per_page: params.per_page }),
+    ...(params.from_date != null && params.from_date !== "" && { from_date: params.from_date }),
+    ...(params.to_date != null && params.to_date !== "" && { to_date: params.to_date }),
   });
 
   // Handle different response shapes; map date fields to Arabia Standard Time for display

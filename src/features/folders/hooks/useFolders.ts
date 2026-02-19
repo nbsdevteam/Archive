@@ -30,6 +30,8 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
   const companyIdParam = initialParams.company_id;
   const pageParam = initialParams.page;
   const perPageParam = initialParams.per_page;
+  const fromDateParam = initialParams.from_date;
+  const toDateParam = initialParams.to_date;
 
   const fetchFolders = useCallback(
     async (params: FolderListParams = {}) => {
@@ -43,6 +45,8 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
           ...(companyIdParam !== undefined && { company_id: companyIdParam }),
           ...(pageParam !== undefined && { page: pageParam }),
           ...(perPageParam !== undefined && { per_page: perPageParam }),
+          ...(fromDateParam != null && fromDateParam !== "" && { from_date: fromDateParam }),
+          ...(toDateParam != null && toDateParam !== "" && { to_date: toDateParam }),
           ...params,
         };
         let response: FolderListResponse;
@@ -67,14 +71,14 @@ export const useFolders = (options: UseFoldersOptions = {}) => {
         setLoading(false);
       }
     },
-    [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam]
+    [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam, fromDateParam, toDateParam]
   );
 
-  /** Re-fetches folders when list params change (e.g. filter, pagination). */
+  /** Re-fetches folders when list params change (e.g. filter, pagination, date range). */
   useEffect(() => {
     fetchFolders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam]);
+  }, [useApi, stateParam, departmentIdParam, folderTypeParam, companyIdParam, pageParam, perPageParam, fromDateParam, toDateParam]);
 
   return {
     folders,

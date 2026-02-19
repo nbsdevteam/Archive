@@ -2,16 +2,43 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { adminApi } from "@/app/adapter/api/admin.api";
 import type { Document } from "@/app/adapter/api/documents.api";
-import type { SelectOption } from "@/shared/components/ui";
+import type { DateRangeMode, SelectOption } from "@/shared/components/ui";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import { useRunOnceOnMount, useSelection } from "@/shared/hooks";
 
+/** Converts a Date to YYYY-MM-DD for API (date-only, no time). */
+function toDateOnlyString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Parses YYYY-MM-DD string to Date at local midnight. */
+function parseDateOnly(s: string | undefined): Date | null {
+  if (!s || s.trim() === "") return null;
+  const d = new Date(s + "T00:00:00");
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Derives date range mode from applied/draft from_date and to_date. */
+function deriveDateMode(f: DocumentListFilterState): DateRangeMode {
+  if (f.from_date && f.to_date) return "between";
+  if (f.from_date) return "after";
+  if (f.to_date) return "upto";
+  return "after";
+}
+
 export interface DocumentListFilterState {
   department_id?: number;
   document_type_id?: number;
   company_id?: number;
+  from_date?: string;
+  to_date?: string;
+  /** UI-only: which date range mode is selected (after/upto/between). */
+  date_mode?: DateRangeMode;
 }
 
 export interface UseDocumentListWithFiltersOptions {
@@ -77,12 +104,16 @@ export function useDocumentListWithFilters(
     [selectedDocumentIdsRaw]
   );
 
-  /** Builds fetch params from current filter state, optional status, search ref, and pagination. */
+  /** Builds fetch params from current filter state; only includes from_date/to_date when set (never "-" or empty). */
   const getFetchParams = useCallback(
     (overrides?: { page?: number; per_page?: number }) => {
       const search = lastSearchRef.current;
       const params: Record<string, unknown> = {
-        ...appliedFilters,
+        ...(appliedFilters.department_id != null ? { department_id: appliedFilters.department_id } : {}),
+        ...(appliedFilters.document_type_id != null ? { document_type_id: appliedFilters.document_type_id } : {}),
+        ...(appliedFilters.company_id != null ? { company_id: appliedFilters.company_id } : {}),
+        ...(appliedFilters.from_date != null && appliedFilters.from_date !== "" ? { from_date: appliedFilters.from_date } : {}),
+        ...(appliedFilters.to_date != null && appliedFilters.to_date !== "" ? { to_date: appliedFilters.to_date } : {}),
         ...(status != null ? { status } : {}),
         ...(search.length >= 1 ? { search } : {}),
       };
@@ -163,14 +194,20 @@ export function useDocumentListWithFilters(
     () =>
       draftFilters.department_id === appliedFilters.department_id &&
       draftFilters.document_type_id === appliedFilters.document_type_id &&
-      draftFilters.company_id === appliedFilters.company_id,
+      draftFilters.company_id === appliedFilters.company_id &&
+      draftFilters.from_date === appliedFilters.from_date &&
+      draftFilters.to_date === appliedFilters.to_date,
     [
       draftFilters.department_id,
       draftFilters.document_type_id,
       draftFilters.company_id,
+      draftFilters.from_date,
+      draftFilters.to_date,
       appliedFilters.department_id,
       appliedFilters.document_type_id,
       appliedFilters.company_id,
+      appliedFilters.from_date,
+      appliedFilters.to_date,
     ]
   );
 
@@ -196,7 +233,7 @@ export function useDocumentListWithFilters(
   );
 
   const handleOpenFilter = useCallback(() => {
-    setDraftFilters(appliedFilters);
+    setDraftFilters({ ...appliedFilters, date_mode: deriveDateMode(appliedFilters) });
     setIsFilterOpen(true);
   }, [appliedFilters]);
 
@@ -238,31 +275,55 @@ export function useDocumentListWithFilters(
     []
   );
 
+  /** Updates draft date range mode (After/Upto/Between) for the date picker tabs. */
+  const handleDateRangeModeChange = useCallback((mode: DateRangeMode) => {
+    setDraftFilters((prev) => ({ ...prev, date_mode: mode }));
+  }, []);
+
+  /** Updates draft from_date/to_date from date picker; only stores YYYY-MM-DD, never "-". */
+  const handleDateRangeChange = useCallback(
+    (args: { fromDate: Date | null; toDate: Date | null }) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        from_date: args.fromDate != null ? toDateOnlyString(args.fromDate) : undefined,
+        to_date: args.toDate != null ? toDateOnlyString(args.toDate) : undefined,
+      }));
+    },
+    []
+  );
+
+  const buildApiParams = useCallback(
+    (filters: DocumentListFilterState) => {
+      const params: Record<string, unknown> = {
+        ...(filters.department_id != null ? { department_id: filters.department_id } : {}),
+        ...(filters.document_type_id != null ? { document_type_id: filters.document_type_id } : {}),
+        ...(filters.company_id != null ? { company_id: filters.company_id } : {}),
+        ...(filters.from_date != null && filters.from_date !== "" ? { from_date: filters.from_date } : {}),
+        ...(filters.to_date != null && filters.to_date !== "" ? { to_date: filters.to_date } : {}),
+        ...(status != null ? { status } : {}),
+        ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
+      };
+      if (paginated) {
+        params.page = 1;
+        params.per_page = DEFAULT_PAGE_SIZE;
+      }
+      return params;
+    },
+    [status, paginated]
+  );
+
   const handleApplyFilter = useCallback(() => {
     setAppliedFilters(draftFilters);
-    const params: Record<string, unknown> = {
-      ...draftFilters,
-      ...(status != null ? { status } : {}),
-      ...(lastSearchRef.current.length >= 1
-        ? { search: lastSearchRef.current }
-        : {}),
-    };
-    if (paginated) {
-      params.page = 1;
-      params.per_page = DEFAULT_PAGE_SIZE;
-    }
-    fetchDocuments(params);
+    fetchDocuments(buildApiParams(draftFilters));
     setIsFilterOpen(false);
-  }, [draftFilters, fetchDocuments, status, paginated]);
+  }, [draftFilters, fetchDocuments, buildApiParams]);
 
   const handleClearFilter = useCallback(() => {
     setDraftFilters({});
     setAppliedFilters({});
     const params: Record<string, unknown> = {
       ...(status != null ? { status } : {}),
-      ...(lastSearchRef.current.length >= 1
-        ? { search: lastSearchRef.current }
-        : {}),
+      ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
     };
     if (paginated) {
       params.page = 1;
@@ -271,6 +332,24 @@ export function useDocumentListWithFilters(
     fetchDocuments(params);
     setIsFilterOpen(false);
   }, [fetchDocuments, status, paginated]);
+
+  /** Cancel: clear all filters and refetch only if a date filter was previously applied; then caller closes panel. */
+  const handleCancelFilter = useCallback(() => {
+    const hadDate = !!(appliedFilters.from_date || appliedFilters.to_date);
+    if (!hadDate) return;
+    setDraftFilters({});
+    setAppliedFilters({});
+    const params: Record<string, unknown> = {
+      ...(status != null ? { status } : {}),
+      ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
+    };
+    if (paginated) {
+      params.page = 1;
+      params.per_page = DEFAULT_PAGE_SIZE;
+    }
+    fetchDocuments(params);
+    setIsFilterOpen(false);
+  }, [appliedFilters.from_date, appliedFilters.to_date, fetchDocuments, status, paginated]);
 
   const handleRetry = useCallback(() => {
     clearError();
@@ -305,6 +384,17 @@ export function useDocumentListWithFilters(
     [baseSelectionConfig, t]
   );
 
+  const dateRangeFromDate = useMemo(
+    () => parseDateOnly(draftFilters.from_date),
+    [draftFilters.from_date]
+  );
+  const dateRangeToDate = useMemo(
+    () => parseDateOnly(draftFilters.to_date),
+    [draftFilters.to_date]
+  );
+  const dateRangeMode = draftFilters.date_mode ?? deriveDateMode(draftFilters);
+  const hasAppliedDateFilter = !!(appliedFilters.from_date || appliedFilters.to_date);
+
   return {
     documents,
     isLoading,
@@ -326,8 +416,11 @@ export function useDocumentListWithFilters(
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
     handleTertiaryFilterChange,
+    handleDateRangeModeChange,
+    handleDateRangeChange,
     handleApplyFilter,
     handleClearFilter,
+    handleCancelFilter,
     handleRetry,
     handleRefresh,
     handlePageChange,
@@ -336,5 +429,9 @@ export function useDocumentListWithFilters(
     clearSelection,
     deselectDocumentIds,
     isSomeSelected,
+    dateRangeFromDate,
+    dateRangeToDate,
+    dateRangeMode,
+    hasAppliedDateFilter,
   };
 }

@@ -7,7 +7,7 @@ import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import { useDraftAppliedFilters, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
-import type { SelectOption } from "@/shared/components/ui";
+import type { DateRangeMode, SelectOption } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
 import { deleteFolder } from "@/features/folders/services/folders.api";
 import { useFolders } from "@/features/folders/hooks/useFolders";
@@ -18,10 +18,33 @@ import { getFolderStatusBadgeVariant } from "@/features/folders/utils/getFolderS
 const VIEW_MODE = { grid: "grid", list: "list" } as const;
 type ViewMode = (typeof VIEW_MODE)[keyof typeof VIEW_MODE];
 
+function toDateOnlyString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function parseDateOnly(s: string | undefined): Date | null {
+  if (!s || s.trim() === "") return null;
+  const d = new Date(s + "T00:00:00");
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function deriveDateMode(f: FoldersFilterState): DateRangeMode {
+  if (f.from_date && f.to_date) return "between";
+  if (f.from_date) return "after";
+  if (f.to_date) return "upto";
+  return "after";
+}
+
 export interface FoldersFilterState {
   department_id?: number;
   folder_type?: string;
   company_id?: number;
+  from_date?: string;
+  to_date?: string;
+  date_mode?: DateRangeMode;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -43,19 +66,39 @@ export function useFoldersPageContainer() {
   const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
 
   const filterState = useDraftAppliedFilters<FoldersFilterState>();
-  const { appliedFilters, draftFilters, setDraftFilters, isFilterOpen, filterApplyDisabled, handleOpenFilter, handleCloseFilter, handleApplyFilter: baseHandleApplyFilter, handleClearFilter: baseHandleClearFilter } = filterState;
+  const {
+    appliedFilters,
+    draftFilters,
+    setDraftFilters,
+    isFilterOpen,
+    filterApplyDisabled,
+    handleOpenFilter: baseHandleOpenFilter,
+    handleCloseFilter,
+    handleApplyFilter: baseHandleApplyFilter,
+    handleClearFilter: baseHandleClearFilter,
+  } = filterState;
 
-  /** API params for useFolders: active state + applied filters + current page/perPage. */
+  /** API params for useFolders: active state + applied filters + date range when set + pagination. */
   const listParams = useMemo(
     () => ({
       state: "active" as const,
       department_id: appliedFilters.department_id,
       folder_type: appliedFilters.folder_type,
       company_id: appliedFilters.company_id,
+      ...(appliedFilters.from_date != null && appliedFilters.from_date !== "" && { from_date: appliedFilters.from_date }),
+      ...(appliedFilters.to_date != null && appliedFilters.to_date !== "" && { to_date: appliedFilters.to_date }),
       page,
       per_page: perPage,
     }),
-    [appliedFilters.department_id, appliedFilters.folder_type, appliedFilters.company_id, page, perPage]
+    [
+      appliedFilters.department_id,
+      appliedFilters.folder_type,
+      appliedFilters.company_id,
+      appliedFilters.from_date,
+      appliedFilters.to_date,
+      page,
+      perPage,
+    ]
   );
 
   const { folders, loading, error, pagination, fetchFolders } = useFolders({
@@ -94,22 +137,65 @@ export function useFoldersPageContainer() {
     [companies]
   );
 
+  const handleOpenFilter = useCallback(() => {
+    baseHandleOpenFilter();
+    setDraftFilters({ ...appliedFilters, date_mode: deriveDateMode(appliedFilters) });
+  }, [baseHandleOpenFilter, setDraftFilters, appliedFilters]);
+
   const handleApplyFilter = useCallback(() => {
     resetPage();
     baseHandleApplyFilter();
-    fetchFolders({
+    const params: Parameters<typeof fetchFolders>[0] = {
       department_id: draftFilters.department_id,
       folder_type: draftFilters.folder_type,
       company_id: draftFilters.company_id,
+      ...(draftFilters.from_date != null && draftFilters.from_date !== "" && { from_date: draftFilters.from_date }),
+      ...(draftFilters.to_date != null && draftFilters.to_date !== "" && { to_date: draftFilters.to_date }),
       page: 1,
-    });
-  }, [resetPage, baseHandleApplyFilter, draftFilters.department_id, draftFilters.folder_type, draftFilters.company_id, fetchFolders]);
+    };
+    fetchFolders(params);
+  }, [
+    resetPage,
+    baseHandleApplyFilter,
+    draftFilters.department_id,
+    draftFilters.folder_type,
+    draftFilters.company_id,
+    draftFilters.from_date,
+    draftFilters.to_date,
+    fetchFolders,
+  ]);
 
   const handleClearFilter = useCallback(() => {
     resetPage();
     baseHandleClearFilter();
     fetchFolders({ page: 1 });
   }, [resetPage, baseHandleClearFilter, fetchFolders]);
+
+  const handleDateRangeModeChange = useCallback(
+    (mode: DateRangeMode) => {
+      setDraftFilters((prev) => ({ ...prev, date_mode: mode }));
+    },
+    [setDraftFilters]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (args: { fromDate: Date | null; toDate: Date | null }) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        from_date: args.fromDate != null ? toDateOnlyString(args.fromDate) : undefined,
+        to_date: args.toDate != null ? toDateOnlyString(args.toDate) : undefined,
+      }));
+    },
+    [setDraftFilters]
+  );
+
+  /** Cancel: clear all filters and refetch only if a date filter was previously applied. */
+  const handleCancelFilter = useCallback(() => {
+    const hadDate = !!(appliedFilters.from_date || appliedFilters.to_date);
+    if (!hadDate) return;
+    baseHandleClearFilter();
+    fetchFolders({ page: 1 });
+  }, [appliedFilters.from_date, appliedFilters.to_date, baseHandleClearFilter, fetchFolders]);
 
   // ─── Edit panel state ──────────────────────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -261,8 +347,15 @@ export function useFoldersPageContainer() {
       handlePrimaryFilterChange,
       handleSecondaryFilterChange,
       handleTertiaryFilterChange,
+      handleDateRangeModeChange,
+      handleDateRangeChange,
       handleApplyFilter,
       handleClearFilter,
+      handleCancelFilter,
+      dateRangeFromDate: parseDateOnly(draftFilters.from_date),
+      dateRangeToDate: parseDateOnly(draftFilters.to_date),
+      dateRangeMode: draftFilters.date_mode ?? deriveDateMode(draftFilters),
+      hasAppliedDateFilter: !!(appliedFilters.from_date || appliedFilters.to_date),
     },
     actions: {
       handleSearchDebounced,

@@ -16,17 +16,30 @@ export interface DocumentsToolbarProps {
     handleSearchDebounced: (value: string) => void;
     handleOpenFilter: () => void;
     handleCloseFilter: () => void;
-    draftFilters: { department_id?: number; document_type_id?: number; company_id?: number };
+    draftFilters: {
+      department_id?: number;
+      document_type_id?: number;
+      company_id?: number;
+      from_date?: string;
+      to_date?: string;
+    };
     departmentOptions: Array<{ value: number; label: string }>;
     documentTypeOptions: Array<{ value: number; label: string }>;
     companyOptions: Array<{ value: number; label: string }>;
     handlePrimaryFilterChange: (id: number | null) => void;
     handleSecondaryFilterChange: (id: number | null) => void;
     handleTertiaryFilterChange: (id: number | null) => void;
+    handleDateRangeModeChange: (mode: "after" | "upto" | "between") => void;
+    handleDateRangeChange: (args: { fromDate: Date | null; toDate: Date | null }) => void;
     handleApplyFilter: () => void;
     handleClearFilter: () => void;
+    handleCancelFilter: () => void;
     filterApplyDisabled: boolean;
     isFilterOpen: boolean;
+    dateRangeFromDate: Date | null;
+    dateRangeToDate: Date | null;
+    dateRangeMode: "after" | "upto" | "between";
+    hasAppliedDateFilter: boolean;
   };
   actions: {
     handleOpenBatchMoveConfirm: () => void;
@@ -193,6 +206,16 @@ export function DocumentsToolbar({
             value: filter.draftFilters.company_id ?? null,
             options: filter.companyOptions,
             onChange: (value) => filter.handleTertiaryFilterChange(value != null ? Number(value) : null),
+          }}
+          dateRange={{
+            label: t("filter.byDate", { defaultValue: "By Date" }),
+            mode: filter.dateRangeMode,
+            fromDate: filter.dateRangeFromDate,
+            toDate: filter.dateRangeToDate,
+            onModeChange: filter.handleDateRangeModeChange,
+            onDatesChange: filter.handleDateRangeChange,
+            onCancel: filter.hasAppliedDateFilter ? filter.handleCancelFilter : undefined,
+            cancelLabel: t("common.cancel", { defaultValue: "Cancel" }),
           }}
           onApply={filter.handleApplyFilter}
           onClear={filter.handleClearFilter}
