@@ -48,11 +48,9 @@ const DocumentsPage = () => {
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
   }, [registerHandler, actions.handleRefresh]);
 
-  const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
   const restoreDialog = useConfirmDialog<number>({ onConfirm: actions.confirmRestore });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
-  const batchTrashDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchTrash });
   const batchArchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchArchive });
   const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
   const batchRestoreDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchRestore });
@@ -128,21 +126,6 @@ const DocumentsPage = () => {
           onClick: (row) => unarchiveDialog.open(row.id),
         },
         {
-          id: "trash",
-          labelKey: "documents.moveToTrash",
-          defaultValue: "Move to trash",
-          icon: "trash-2",
-          variant: "outline",
-          className: "btn-outline-danger",
-          /** Hide move-to-trash for main documents on /documents (main docs are managed via folder). Show only when not in trash. */
-          visible: (row) => {
-            if (row.is_main_document === true) return false;
-            const s = (row.status ?? "").toLowerCase();
-            return !s.includes("trash") && !s.includes("deleted");
-          },
-          onClick: (row) => trashDialog.open(row.id),
-        },
-        {
           id: "restore",
           labelKey: "documents.restore",
           defaultValue: "Restore",
@@ -165,7 +148,6 @@ const DocumentsPage = () => {
       actions.handleOpenSingleMoveConfirm,
       archiveDialog.open,
       unarchiveDialog.open,
-      trashDialog.open,
       restoreDialog.open,
     ]
   );
@@ -197,8 +179,6 @@ const DocumentsPage = () => {
           batchArchiveDialog={batchArchiveDialog}
           batchRestoreDialog={batchRestoreDialog}
           batchUnarchiveDialog={batchUnarchiveDialog}
-          onMoveSelectedToTrashClick={() => actions.handleBatchTrashClick(() => batchTrashDialog.open())}
-          routes={routes}
         />
         <DocumentsTableCard
           t={t}
@@ -235,13 +215,11 @@ const DocumentsPage = () => {
             handleCloseMainFilesBlockModal: actions.handleCloseMainFilesBlockModal,
           } satisfies DocumentsModalsProps["actions"]
         }
-        trashDialog={trashDialog}
         restoreDialog={restoreDialog}
         archiveDialog={archiveDialog}
         unarchiveDialog={unarchiveDialog}
         batchArchiveDialog={batchArchiveDialog}
         batchUnarchiveDialog={batchUnarchiveDialog}
-        batchTrashDialog={batchTrashDialog}
         batchRestoreDialog={batchRestoreDialog}
         selectedDocumentIds={selectedDocumentIds}
       />

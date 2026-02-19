@@ -452,6 +452,7 @@
     "dashboard": "Dashboard",
     "documents": "Documents",
     "trash": "Trash",
+    "deletedFiles": "Deleted files",
     "folders": "Folders",
     "companies": "Companies",
     "editRequests": "Edit Requests",

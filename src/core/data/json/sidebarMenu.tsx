@@ -32,16 +32,6 @@ export const SidebarDataTest = [
         base4: routes.documentAttachmentView,
         base5: routes.documentsTrash,
       },
-      /* Direct link to trashed documents (same route as Documents → Trash). */
-      {
-        label: "Trash",
-        translationKey: "trash",
-        link: routes.documentsTrash,
-        submenu: false,
-        showSubRoute: false,
-        icon: "Trash2", // lucide-react icon name
-        base: routes.documentsTrash,
-      },
       {
         label: "Folders",
         translationKey: "folders",
@@ -115,6 +105,16 @@ export const SidebarDataTest = [
         icon: "Shield", // lucide-react icon name
         base: routes.permissions,
         adminOnly: true, // Admin-only item
+      },
+      /* Deleted files (trash) at bottom of main menu. */
+      {
+        label: "Deleted files",
+        translationKey: "deletedFiles",
+        link: routes.documentsTrash,
+        submenu: false,
+        showSubRoute: false,
+        icon: "Trash2", // lucide-react icon name
+        base: routes.documentsTrash,
       },
     ],
   },

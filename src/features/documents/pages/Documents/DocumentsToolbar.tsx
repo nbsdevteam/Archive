@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
 import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
 
-/** Props for the documents list toolbar (count, selection actions, search, filter, upload, trash link, refresh). */
+/** Props for the documents list toolbar (count, selection actions, search, filter, upload, refresh). */
 export interface DocumentsToolbarProps {
   t: TFunction;
   loading: boolean;
@@ -44,12 +43,9 @@ export interface DocumentsToolbarProps {
   batchArchiveDialog: { open: () => void };
   batchRestoreDialog: { open: () => void };
   batchUnarchiveDialog: { open: () => void };
-  /** Called when user clicks "Move selected to trash"; may open batch trash confirm or show main-files block modal. */
-  onMoveSelectedToTrashClick: () => void;
-  routes: Record<string, string>;
 }
 
-/** Toolbar for documents list: count, bulk actions, search, filter, upload, trash link, refresh. */
+/** Toolbar for documents list: count, bulk actions, search, filter, upload, refresh. */
 export function DocumentsToolbar({
   t,
   loading,
@@ -63,8 +59,6 @@ export function DocumentsToolbar({
   batchArchiveDialog,
   batchRestoreDialog,
   batchUnarchiveDialog,
-  onMoveSelectedToTrashClick,
-  routes,
 }: DocumentsToolbarProps) {
   const countSlot =
     loading
@@ -154,23 +148,6 @@ export function DocumentsToolbar({
               )}
             </Button>
           )}
-          {/* Move to trash: when all selected can be trashed (no main docs in selection, common-only). */}
-          {batchActions.canBatchTrash && (
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-danger d-inline-flex align-items-center me-2"
-              onClick={onMoveSelectedToTrashClick}
-              disabled={modals.isTrashing}
-              aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-            >
-              <Icon name="trash-2" className="me-1" />
-              {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-              {selectedDocumentIds.length > 0 && (
-                <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
-              )}
-            </Button>
-          )}
         </>
       )}
       <SearchInput
@@ -237,15 +214,6 @@ export function DocumentsToolbar({
         <Icon name="file-up" className="me-2" />
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
       </Button>
-      {/* Trash link uses control-height-md to match toolbar Button height. */}
-      <Link
-        to={routes.documentsTrash}
-        className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
-        aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
-      >
-        <Icon name="trash" className="me-2" />
-        {t("documents.trashView", { defaultValue: "Trash" })}
-      </Link>
       <Button
         variant="outline"
         size="md"

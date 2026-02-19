@@ -24,13 +24,11 @@ export interface DocumentsModalsProps {
     handleConfirmBatchMove: (targetFolderId: number) => void | Promise<void>;
     handleCloseMainFilesBlockModal: () => void;
   };
-  trashDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   restoreDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   archiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   unarchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchArchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchUnarchiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
-  batchTrashDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   batchRestoreDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   selectedDocumentIds: number[];
 }
@@ -40,13 +38,11 @@ export function DocumentsModals({
   t,
   modals,
   actions,
-  trashDialog,
   restoreDialog,
   archiveDialog,
   unarchiveDialog,
   batchArchiveDialog,
   batchUnarchiveDialog,
-  batchTrashDialog,
   batchRestoreDialog,
   selectedDocumentIds,
 }: DocumentsModalsProps) {
@@ -56,16 +52,6 @@ export function DocumentsModals({
         isOpen={modals.isUploadOpen}
         onClose={actions.handleCloseUpload}
         onSuccess={actions.handleUploadSuccess}
-      />
-      <ConfirmModal
-        {...trashDialog.modalProps}
-        title={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        message={t("documents.confirmMoveToTrash", {
-          defaultValue: "Are you sure you want to move this document to trash?",
-        })}
-        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
-        confirmVariant="danger"
       />
       <ConfirmModal
         {...restoreDialog.modalProps}
@@ -116,17 +102,6 @@ export function DocumentsModals({
         confirmLabel={t("documents.unarchive", { defaultValue: "Unarchive" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="secondary"
-      />
-      <ConfirmModal
-        {...batchTrashDialog.modalProps}
-        title={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-        message={t("documents.confirmBatchMoveToTrash", {
-          defaultValue: "Move {{count}} document(s) to trash?",
-          count: selectedDocumentIds.length,
-        })}
-        confirmLabel={t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
-        confirmVariant="danger"
       />
       <ConfirmModal
         {...batchRestoreDialog.modalProps}
