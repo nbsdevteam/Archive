@@ -104,18 +104,18 @@ export const useDocumentsPageContainer = () => {
   );
 
   const handleApplyFilter = useCallback(() => {
-    resetPage();
     listHandleApplyFilter();
+    resetPage();
   }, [resetPage, listHandleApplyFilter]);
 
   const handleClearFilter = useCallback(() => {
-    resetPage();
     listHandleClearFilter();
+    resetPage();
   }, [resetPage, listHandleClearFilter]);
 
   const handleCancelFilter = useCallback(() => {
-    resetPage();
     listHandleCancelFilter();
+    resetPage();
   }, [resetPage, listHandleCancelFilter]);
 
   const handlePageChange = useCallback(

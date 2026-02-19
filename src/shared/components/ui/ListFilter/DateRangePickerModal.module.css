@@ -17,7 +17,7 @@
   border-radius: 0.625rem;
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 340px;
+  max-width: 520px;
   overflow: hidden;
   animation: modalSlideIn 0.15s ease-out;
 }
@@ -122,6 +122,7 @@
 .calendarWrap {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 /* Strip border/shadow from the inline datepicker — it lives inside our styled modal */
@@ -129,6 +130,29 @@
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
+}
+
+/* Make the inline calendar consume the modal width and remove awkward inner spacing */
+.calendarWrap :global(.react-datepicker) {
+  width: 100%;
+}
+
+.calendarWrap :global(.react-datepicker__month-container) {
+  width: 100%;
+  float: none;
+}
+
+.calendarWrap :global(.react-datepicker__month) {
+  margin: 0;
+}
+
+.calendarWrap :global(.react-datepicker__header) {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.calendarWrap :global(.react-datepicker__month) {
+  padding: 0 0.75rem 0.75rem;
 }
 
 /* ── Custom calendar header (CalendarNav) ────────────────────────────── */

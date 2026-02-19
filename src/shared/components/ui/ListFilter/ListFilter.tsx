@@ -70,9 +70,10 @@ function getDateRangeDisplayValue(
   const afterLabel = t("filter.dateAfter", { defaultValue: "after" });
   const uptoLabel = t("filter.dateUpto", { defaultValue: "upto" });
   const betweenLabel = t("filter.dateBetween", { defaultValue: "between" });
-  if (hasFrom && !hasTo) return `${afterLabel} ${formatDate(fromDate)}`;
-  if (!hasFrom && hasTo) return `${uptoLabel} ${formatDate(toDate)}`;
-  return `${betweenLabel} ${formatDate(fromDate!)} – ${formatDate(toDate!)}`;
+  // UI display format must be DD/MM/YYYY (payload stays YYYY-MM-DD in hooks).
+  if (hasFrom && !hasTo) return `${afterLabel} ${formatDate(fromDate, "DD/MM/YYYY")}`;
+  if (!hasFrom && hasTo) return `${uptoLabel} ${formatDate(toDate, "DD/MM/YYYY")}`;
+  return `${betweenLabel} ${formatDate(fromDate!, "DD/MM/YYYY")} – ${formatDate(toDate!, "DD/MM/YYYY")}`;
 }
 
 export function ListFilter({

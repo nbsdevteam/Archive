@@ -101,11 +101,26 @@ export function DateRangePickerModal({
 
   const handleModeChange = useCallback((mode: DateRangeMode) => {
     setPendingMode(mode);
+    // Ensure the saved value reflects the selected mode:
+    // - "after": only fromDate is used
+    // - "upto": only toDate is used
+    // - "between": both can be used
+    if (mode === "after") {
+      setPendingToDate(null);
+    } else if (mode === "upto") {
+      setPendingFromDate(null);
+    }
   }, []);
 
   /** Save: commit pending state to parent then close. */
   const handleSave = useCallback(() => {
-    onSave({ fromDate: pendingFromDate, toDate: pendingToDate, mode: pendingMode });
+    const coerced =
+      pendingMode === "after"
+        ? { fromDate: pendingFromDate, toDate: null, mode: pendingMode }
+        : pendingMode === "upto"
+          ? { fromDate: null, toDate: pendingToDate, mode: pendingMode }
+          : { fromDate: pendingFromDate, toDate: pendingToDate, mode: pendingMode };
+    onSave(coerced);
     onClose();
   }, [onSave, onClose, pendingFromDate, pendingToDate, pendingMode]);
 

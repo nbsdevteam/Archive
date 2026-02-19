@@ -31,6 +31,14 @@ function deriveDateMode(f: DocumentListFilterState): DateRangeMode {
   return "after";
 }
 
+/** Stable stringify for fetch params so we can de-dupe URL-sync fetches vs manual fetches. */
+function buildFetchKey(params: Record<string, unknown>): string {
+  const keys = Object.keys(params).sort();
+  const normalized: Record<string, unknown> = {};
+  for (const k of keys) normalized[k] = params[k];
+  return JSON.stringify(normalized);
+}
+
 export interface DocumentListFilterState {
   department_id?: number;
   document_type_id?: number;
@@ -63,6 +71,7 @@ export function useDocumentListWithFilters(
   options: UseDocumentListWithFiltersOptions = {}
 ) {
   const { status, paginated = false, pageOverride, perPageOverride } = options;
+  const isUrlDrivenPagination = paginated && (pageOverride != null || perPageOverride != null);
 
   const [appliedFilters, setAppliedFilters] = useState<DocumentListFilterState>({});
   const [draftFilters, setDraftFilters] = useState<DocumentListFilterState>({});
@@ -90,6 +99,22 @@ export function useDocumentListWithFilters(
   const { companies, fetchCompanies } = useCompaniesStore();
   /** Holds current search term so getFetchParams can read it without causing fetch dependency churn. */
   const lastSearchRef = useRef<string>("");
+  /**
+   * Tracks the most recent fetch signature. This prevents double-fetch when:
+   * - a handler manually fetches, then
+   * - the URL-sync effect runs (page/per_page change or callback identity change).
+   */
+  const lastFetchKeyRef = useRef<string | null>(null);
+  /** When true, next URL-driven fetch forces page=1 (used on Apply/Clear/Cancel). */
+  const forcePageOneOnNextUrlFetchRef = useRef(false);
+
+  const runFetch = useCallback(
+    (params: Record<string, unknown>) => {
+      lastFetchKeyRef.current = buildFetchKey(params);
+      fetchDocuments(params);
+    },
+    [fetchDocuments]
+  );
 
   const {
     selectedIds: selectedDocumentIdsRaw,
@@ -127,8 +152,8 @@ export function useDocumentListWithFilters(
   );
 
   const initialFetch = useCallback(() => {
-    fetchDocuments(getFetchParams());
-  }, [fetchDocuments, getFetchParams]);
+    runFetch(getFetchParams());
+  }, [runFetch, getFetchParams]);
 
   useRunOnceOnMount(() => {
     fetchDepartments();
@@ -146,14 +171,20 @@ export function useDocumentListWithFilters(
   useEffect(() => {
     if (!paginated) return;
     if (pageOverride != null || perPageOverride != null) {
-      fetchDocuments(
-        getFetchParams({
-          page: pageOverride ?? 1,
-          per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
-        })
-      );
+      const forcedPage = forcePageOneOnNextUrlFetchRef.current ? 1 : (pageOverride ?? 1);
+      const params = getFetchParams({
+        page: forcedPage,
+        per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
+      });
+      const key = buildFetchKey(params);
+      if (lastFetchKeyRef.current === key) {
+        forcePageOneOnNextUrlFetchRef.current = false;
+        return;
+      }
+      runFetch(params);
+      forcePageOneOnNextUrlFetchRef.current = false;
     }
-  }, [paginated, pageOverride, perPageOverride, fetchDocuments, getFetchParams]);
+  }, [paginated, pageOverride, perPageOverride, getFetchParams, runFetch]);
 
   const departmentIdForTypes = draftFilters.department_id;
 
@@ -217,19 +248,19 @@ export function useDocumentListWithFilters(
       lastSearchRef.current = value;
       if (paginated) {
         if (value.length >= 1) {
-          fetchDocuments({ ...getFetchParams(), search: value, page: 1 });
+          runFetch({ ...getFetchParams(), search: value, page: 1 });
         } else if (hadSearch) {
-          fetchDocuments(getFetchParams());
+          runFetch(getFetchParams());
         }
       } else {
         if (value.length >= 1) {
-          fetchDocuments({ ...getFetchParams(), search: value });
+          runFetch({ ...getFetchParams(), search: value });
         } else if (hadSearch) {
-          fetchDocuments(getFetchParams());
+          runFetch(getFetchParams());
         }
       }
     },
-    [fetchDocuments, getFetchParams, paginated]
+    [getFetchParams, paginated, runFetch]
   );
 
   const handleOpenFilter = useCallback(() => {
@@ -305,18 +336,19 @@ export function useDocumentListWithFilters(
       };
       if (paginated) {
         params.page = 1;
-        params.per_page = DEFAULT_PAGE_SIZE;
+        params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
       }
       return params;
     },
-    [status, paginated]
+    [status, paginated, perPageOverride]
   );
 
   const handleApplyFilter = useCallback(() => {
     setAppliedFilters(draftFilters);
-    fetchDocuments(buildApiParams(draftFilters));
+    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
+    if (!isUrlDrivenPagination) runFetch(buildApiParams(draftFilters));
     setIsFilterOpen(false);
-  }, [draftFilters, fetchDocuments, buildApiParams]);
+  }, [draftFilters, paginated, isUrlDrivenPagination, runFetch, buildApiParams]);
 
   const handleClearFilter = useCallback(() => {
     setDraftFilters({});
@@ -327,11 +359,12 @@ export function useDocumentListWithFilters(
     };
     if (paginated) {
       params.page = 1;
-      params.per_page = DEFAULT_PAGE_SIZE;
+      params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
     }
-    fetchDocuments(params);
+    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
+    if (!isUrlDrivenPagination) runFetch(params);
     setIsFilterOpen(false);
-  }, [fetchDocuments, status, paginated]);
+  }, [status, paginated, perPageOverride, isUrlDrivenPagination, runFetch]);
 
   /** Cancel: clear all filters and refetch only if a date filter was previously applied; then caller closes panel. */
   const handleCancelFilter = useCallback(() => {
@@ -345,30 +378,39 @@ export function useDocumentListWithFilters(
     };
     if (paginated) {
       params.page = 1;
-      params.per_page = DEFAULT_PAGE_SIZE;
+      params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
     }
-    fetchDocuments(params);
+    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
+    if (!isUrlDrivenPagination) runFetch(params);
     setIsFilterOpen(false);
-  }, [appliedFilters.from_date, appliedFilters.to_date, fetchDocuments, status, paginated]);
+  }, [
+    appliedFilters.from_date,
+    appliedFilters.to_date,
+    status,
+    paginated,
+    perPageOverride,
+    isUrlDrivenPagination,
+    runFetch,
+  ]);
 
   const handleRetry = useCallback(() => {
     clearError();
-    fetchDocuments(getFetchParams());
-  }, [clearError, fetchDocuments, getFetchParams]);
+    runFetch(getFetchParams());
+  }, [clearError, runFetch, getFetchParams]);
 
   const handleRefresh = useCallback(() => {
-    fetchDocuments(getFetchParams());
-  }, [fetchDocuments, getFetchParams]);
+    runFetch(getFetchParams());
+  }, [runFetch, getFetchParams]);
 
   const handlePageChange = useCallback(
     (page: number) => {
-      fetchDocuments({
+      runFetch({
         ...getFetchParams(),
         page,
         per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
       });
     },
-    [fetchDocuments, getFetchParams, perPageOverride]
+    [getFetchParams, perPageOverride, runFetch]
   );
 
   const isSomeSelected = selectedDocumentIds.length > 0;
