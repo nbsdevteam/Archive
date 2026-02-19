@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAuditLogs } from "../services/auditLogs.service";
-import type { AuditLogEntry, AuditLogsQueryParams, AuditPagination } from "../types/auditLogs.types";
+import type {
+  AuditLogEntry,
+  AuditLogsQueryParams,
+  AuditPagination,
+} from "../types/auditLogs.types";
 
 interface UseAuditLogsOptions {
   enabled?: boolean;
@@ -15,7 +19,9 @@ export const useAuditLogs = (options: UseAuditLogsOptions = {}) => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<AuditPagination | undefined>(undefined);
+  const [pagination, setPagination] = useState<AuditPagination | undefined>(
+    undefined,
+  );
   const [params, setParams] = useState<AuditLogsQueryParams>(initialParams);
   const initialParamsKey = JSON.stringify(initialParams);
 
@@ -46,13 +52,12 @@ export const useAuditLogs = (options: UseAuditLogsOptions = {}) => {
         setLoading(false);
       }
     },
-    [enabled, params]
+    [enabled, params],
   );
 
   useEffect(() => {
     if (!enabled) return;
     fetchLogs().catch(() => undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, initialParamsKey]);
 
   const refresh = useMemo(() => {

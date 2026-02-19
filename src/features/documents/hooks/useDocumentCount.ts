@@ -56,7 +56,6 @@ export const useDocumentCount = (options: UseDocumentCountOptions = {}) => {
   useEffect(() => {
     fetchCount();
     // Serialize initialParams to prevent re-runs when object reference changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialParams)]);
 
   /** Imperatively re-fetches the document count (e.g. after creating a folder/document). */

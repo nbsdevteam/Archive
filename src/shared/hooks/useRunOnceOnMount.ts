@@ -8,14 +8,13 @@ import { useEffect, useRef } from "react";
 export function useRunOnceOnMount(fn: () => void): void {
   const didRun = useRef(false);
   const fnRef = useRef(fn);
-  
+
   // Keep fnRef updated without triggering effect
   fnRef.current = fn;
-  
+
   useEffect(() => {
     if (didRun.current) return;
     didRun.current = true;
     fnRef.current();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - truly run once
 }

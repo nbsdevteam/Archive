@@ -5,7 +5,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import * as notificationsService from "../services/notifications.service";
-import type { Notification, NotificationListParams } from "../types/notifications.types";
+import type {
+  Notification,
+  NotificationListParams,
+} from "../types/notifications.types";
 
 const EMPTY_PARAMS: NotificationListParams = {};
 
@@ -29,18 +32,19 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         setError(null);
         const response = await notificationsService.getNotifications(
           { ...initialParams, ...params },
-          useApi
+          useApi,
         );
         setNotifications(response.notifications || []);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to load notifications";
+        const message =
+          err instanceof Error ? err.message : "Failed to load notifications";
         setError(String(message));
         setNotifications([]);
       } finally {
         setLoading(false);
       }
     },
-    [useApi, initialParams]
+    [useApi, initialParams],
   );
 
   const fetchUnreadCount = useCallback(async () => {
@@ -57,7 +61,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       try {
         const response = await notificationsService.markNotificationAsRead(
           notificationId,
-          useApi
+          useApi,
         );
         if (response.success) {
           await fetchNotifications();
@@ -68,12 +72,13 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         throw err;
       }
     },
-    [useApi, fetchNotifications, fetchUnreadCount]
+    [useApi, fetchNotifications, fetchUnreadCount],
   );
 
   const markAllAsRead = useCallback(async () => {
     try {
-      const response = await notificationsService.markAllNotificationsAsRead(useApi);
+      const response =
+        await notificationsService.markAllNotificationsAsRead(useApi);
       if (response.success) {
         await fetchNotifications();
         await fetchUnreadCount();
@@ -88,7 +93,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useApi, JSON.stringify(initialParams)]);
 
   return {

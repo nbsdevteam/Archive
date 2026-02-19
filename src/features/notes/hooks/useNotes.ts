@@ -3,24 +3,24 @@
  * Supports three contexts: document notes, folder notes, or standalone notes
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
-import { handleApiError } from '../../../app/adapter/api/client';
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
+import { handleApiError } from "../../../app/adapter/api/client";
 import {
   listNotes,
   getNote,
   createNote,
   updateNote,
   deleteNote,
-} from '../services/notes.api';
+} from "../services/notes.api";
 import type {
   NoteListItem,
   NoteDetail,
   ListNotesParams,
   CreateNotePayload,
   UpdateNotePayload,
-} from '../types/notes.types';
+} from "../types/notes.types";
 
 /** Hook options for context-specific notes */
 export interface UseNotesOptions {
@@ -97,7 +97,7 @@ export const useNotes = (options: UseNotesOptions = {}) => {
         setLoading(false);
       }
     },
-    [documentId, folderId, includePrivate, perPage]
+    [documentId, folderId, includePrivate, perPage],
   );
 
   /**
@@ -114,7 +114,7 @@ export const useNotes = (options: UseNotesOptions = {}) => {
     (page: number) => {
       loadNotes(page);
     },
-    [loadNotes]
+    [loadNotes],
   );
 
   /**
@@ -124,7 +124,6 @@ export const useNotes = (options: UseNotesOptions = {}) => {
     if (autoLoad) {
       loadNotes(initialPage ?? 1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoad, documentId, folderId, includePrivate, perPage, initialPage]);
 
   return {
@@ -157,25 +156,27 @@ export const useNoteMutations = () => {
         const response = await createNote(payload);
         if (response.success) {
           toast.success(
-            t('notes.createSuccess', { defaultValue: 'Note created successfully.' })
+            t("notes.createSuccess", {
+              defaultValue: "Note created successfully.",
+            }),
           );
           return response.data?.id ?? null;
         }
-        throw new Error(response.error ?? 'Create failed');
+        throw new Error(response.error ?? "Create failed");
       } catch (err) {
         const msg = handleApiError(err);
         toast.error(
-          t('notes.createFailed', {
-            defaultValue: 'Failed to create note: {{error}}',
+          t("notes.createFailed", {
+            defaultValue: "Failed to create note: {{error}}",
             error: msg,
-          })
+          }),
         );
         return null;
       } finally {
         setIsCreating(false);
       }
     },
-    [t]
+    [t],
   );
 
   /**
@@ -188,25 +189,27 @@ export const useNoteMutations = () => {
         const response = await updateNote(noteId, payload);
         if (response.success) {
           toast.success(
-            t('notes.updateSuccess', { defaultValue: 'Note updated successfully.' })
+            t("notes.updateSuccess", {
+              defaultValue: "Note updated successfully.",
+            }),
           );
           return true;
         }
-        throw new Error(response.error ?? 'Update failed');
+        throw new Error(response.error ?? "Update failed");
       } catch (err) {
         const msg = handleApiError(err);
         toast.error(
-          t('notes.updateFailed', {
-            defaultValue: 'Failed to update note: {{error}}',
+          t("notes.updateFailed", {
+            defaultValue: "Failed to update note: {{error}}",
             error: msg,
-          })
+          }),
         );
         return false;
       } finally {
         setIsUpdating(false);
       }
     },
-    [t]
+    [t],
   );
 
   /**
@@ -218,23 +221,25 @@ export const useNoteMutations = () => {
       try {
         await deleteNote(noteId);
         toast.success(
-          t('notes.deleteSuccess', { defaultValue: 'Note deleted successfully.' })
+          t("notes.deleteSuccess", {
+            defaultValue: "Note deleted successfully.",
+          }),
         );
         return true;
       } catch (err) {
         const msg = handleApiError(err);
         toast.error(
-          t('notes.deleteFailed', {
-            defaultValue: 'Failed to delete note: {{error}}',
+          t("notes.deleteFailed", {
+            defaultValue: "Failed to delete note: {{error}}",
             error: msg,
-          })
+          }),
         );
         return false;
       } finally {
         setIsDeleting(false);
       }
     },
-    [t]
+    [t],
   );
 
   return {
@@ -266,7 +271,7 @@ export const useNoteDetail = () => {
       if (response.success && response.data) {
         setNoteDetail(response.data);
       } else {
-        throw new Error('Failed to fetch note');
+        throw new Error("Failed to fetch note");
       }
     } catch (err) {
       const msg = handleApiError(err);
