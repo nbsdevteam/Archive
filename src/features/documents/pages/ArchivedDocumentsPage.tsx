@@ -10,6 +10,7 @@ import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import { useArchivedDocumentsPageContainer } from "@/features/documents/containers/useArchivedDocumentsPageContainer";
+import { useDocumentsTableSort } from "@/features/documents/hooks/useDocumentsTableSort";
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import "@/features/documents/styles/documents.css";
 
@@ -24,6 +25,7 @@ const ArchivedDocumentsPage = () => {
   const { documents, routes, pagination } = data;
   const { handlePageChange, handlePerPageChange } = paging;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
+  const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
 
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.handleUnarchive });
   const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
@@ -35,8 +37,9 @@ const ArchivedDocumentsPage = () => {
       getDocumentTableColumns({
         t,
         getDocumentStatusBadgeVariant: actions.getDocumentStatusBadgeVariant,
+        sort: { onSortClick, getSortIconForColumn },
       }),
-    [t, actions.getDocumentStatusBadgeVariant]
+    [t, actions.getDocumentStatusBadgeVariant, onSortClick, getSortIconForColumn]
   );
 
   const rowActions = useMemo(
@@ -197,7 +200,7 @@ const ArchivedDocumentsPage = () => {
             </Alert>
           )}
           <DataTable<Document>
-            data={documents}
+            data={sortedDocuments}
             getRowId={(row) => row.id}
             columns={columns}
             loading={loading}

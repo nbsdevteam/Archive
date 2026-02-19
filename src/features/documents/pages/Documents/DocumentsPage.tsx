@@ -8,6 +8,7 @@ import type { Document } from "@/app/adapter/api/documents.api";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 import { useDocumentsPageContainer } from "@/features/documents/containers/useDocumentsPageContainer";
+import { useDocumentsTableSort } from "@/features/documents/hooks/useDocumentsTableSort";
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
@@ -30,6 +31,7 @@ const DocumentsPage = () => {
   const { documents, routes, pagination } = data;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { handlePageChange, handlePerPageChange } = paging;
+  const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
 
   useEffect(() => {
     registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => actions.handleOpenUpload());
@@ -60,8 +62,9 @@ const DocumentsPage = () => {
       getDocumentTableColumns({
         t,
         getDocumentStatusBadgeVariant: actions.getDocumentStatusBadgeVariant,
+        sort: { onSortClick, getSortIconForColumn },
       }),
-    [t, actions.getDocumentStatusBadgeVariant]
+    [t, actions.getDocumentStatusBadgeVariant, onSortClick, getSortIconForColumn]
   );
 
   const rowActions = useMemo(
@@ -199,7 +202,7 @@ const DocumentsPage = () => {
         />
         <DocumentsTableCard
           t={t}
-          documents={documents}
+          documents={sortedDocuments}
           loading={loading}
           error={error}
           columns={columns}

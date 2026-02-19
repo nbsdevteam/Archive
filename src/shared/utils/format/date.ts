@@ -119,3 +119,30 @@ export const formatDateAndTimeIraqi = (
   const timePart = `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
   return `${day} ${monthNames[month]} ${year}, ${timePart}`;
 };
+
+const DISPLAY_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * Parses the display format produced by convertToArabianStandardTime (e.g. "12 Feb 2026, 5:30 PM").
+ * Returns a timestamp for client-side sort by upload date; null for invalid or placeholder ("–") values.
+ */
+export function parseDisplayUploadDate(value: string | null | undefined): number | null {
+  if (value == null || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed === "–") return null;
+  const match = trimmed.match(
+    /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4}),\s+(\d{1,2}):(\d{2})\s+(AM|PM)$/i
+  );
+  if (!match) return null;
+  const [, dayStr, monthStr, yearStr, hourStr, minStr, ampm] = match;
+  const monthIndex = DISPLAY_MONTH_NAMES.findIndex((m) => m.toLowerCase() === monthStr!.toLowerCase());
+  if (monthIndex < 0) return null;
+  const day = parseInt(dayStr!, 10);
+  const year = parseInt(yearStr!, 10);
+  let hour = parseInt(hourStr!, 10);
+  const minute = parseInt(minStr!, 10);
+  if (ampm!.toUpperCase() === "PM" && hour !== 12) hour += 12;
+  if (ampm!.toUpperCase() === "AM" && hour === 12) hour = 0;
+  const d = new Date(year, monthIndex, day, hour, minute, 0, 0);
+  return isNaN(d.getTime()) ? null : d.getTime();
+}

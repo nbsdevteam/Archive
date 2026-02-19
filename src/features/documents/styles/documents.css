@@ -11,3 +11,25 @@
     margin-bottom: 24px;
   }
 }
+
+/* Sort header: label + arrow button; arrow is the only clickable control */
+.documents-table-sort-header {
+  white-space: nowrap;
+}
+
+.documents-table-sort-btn {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.documents-table-sort-btn:hover {
+  opacity: 0.85;
+}
+
+.documents-table-sort-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

@@ -1,62 +1,191 @@
 import type { TFunction } from "i18next";
 import type { ColumnDef } from "../../../shared/components/ui/DataTable/DataTable.types";
 import type { Document } from "../../../app/adapter/api/documents.api";
+import { Icon } from "@/shared/components/ui/Icon";
 import { getDocumentStatusBadgeVariant } from "./getDocumentStatusBadgeVariant";
 
 /** Badge variant helper type for status column */
 export type DocumentStatusBadgeVariantFn = (status?: string) => string;
+
+/** Optional sort UI: when provided, column headers show an arrow control for sorting. */
+export interface DocumentTableSortOptions {
+  onSortClick: (columnId: string) => void;
+  getSortIconForColumn: (columnId: string) => { type: "asc" | "desc" | "group"; groupLabel?: string } | null;
+}
 
 export interface DocumentColumnsOptions {
   /** i18n translate function */
   t: TFunction;
   /** Optional override for status badge variant (defaults to getDocumentStatusBadgeVariant) */
   getDocumentStatusBadgeVariant?: DocumentStatusBadgeVariantFn;
+  /** When set, sortable columns render header label + arrow button; arrow click triggers onSortClick. */
+  sort?: DocumentTableSortOptions;
+}
+
+const SORTABLE_COLUMN_IDS = ["name", "barcode", "type", "department", "company", "uploadDate", "status"] as const;
+
+/**
+ * Renders a sortable column header: label plus up/down arrow button (arrow is the clickable control).
+ * Used when sort options are provided; provides aria-label for accessibility.
+ */
+function SortableHeader({
+  label,
+  columnId,
+  sort,
+  t,
+}: {
+  label: string;
+  columnId: string;
+  sort: DocumentTableSortOptions;
+  t: TFunction;
+}) {
+  const iconState = sort.getSortIconForColumn(columnId);
+  const iconName =
+    iconState?.type === "asc"
+      ? "chevron-up"
+      : iconState?.type === "desc"
+        ? "chevron-down"
+        : "chevrons-up-down";
+  const ariaLabel =
+    iconState?.type === "asc"
+      ? t("documents.sortAsc", { defaultValue: "Sort by {{label}} (ascending)", label })
+      : iconState?.type === "desc"
+        ? t("documents.sortDesc", { defaultValue: "Sort by {{label}} (descending)", label })
+        : iconState?.type === "group" && iconState.groupLabel
+          ? t("documents.groupByLabel", {
+              defaultValue: "Group by {{label}} (show {{value}} first)",
+              label,
+              value: iconState.groupLabel,
+            })
+          : t("documents.sortByLabel", { defaultValue: "Sort by {{label}}", label });
+
+  return (
+    <span className="d-inline-flex align-items-center gap-1 documents-table-sort-header">
+      <span>{label}</span>
+      <button
+        type="button"
+        className="btn btn-link btn-sm p-0 border-0 documents-table-sort-btn text-body-secondary"
+        onClick={(e) => {
+          e.stopPropagation();
+          sort.onSortClick(columnId);
+        }}
+        aria-label={ariaLabel}
+        title={ariaLabel}
+      >
+        <Icon name={iconName} style={{ width: "1rem", height: "1rem" }} title={ariaLabel} />
+      </button>
+    </span>
+  );
 }
 
 /**
  * Returns shared DataTable column definitions for main documents list and archived list.
  * Single source of truth for: name, barcode, type, department, upload date, status.
+ * When options.sort is provided, sortable columns show a header with an arrow control.
  */
 export function getDocumentTableColumns(
   options: DocumentColumnsOptions
 ): ColumnDef<Document>[] {
-  const { t, getDocumentStatusBadgeVariant: getBadge = getDocumentStatusBadgeVariant } = options;
-  return [
+  const { t, getDocumentStatusBadgeVariant: getBadge = getDocumentStatusBadgeVariant, sort } = options;
+  const baseColumns: ColumnDef<Document>[] = [
     {
       id: "name",
-      header: t("documents.name", { defaultValue: "Name" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("name") ? (
+        <SortableHeader
+          label={t("documents.name", { defaultValue: "Name" })}
+          columnId="name"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.name", { defaultValue: "Name" })
+      ),
       render: (row: Document) => row.name || row.title || "-",
     },
     {
       id: "barcode",
-      header: t("documents.barcode", { defaultValue: "Barcode" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("barcode") ? (
+        <SortableHeader
+          label={t("documents.barcode", { defaultValue: "Barcode" })}
+          columnId="barcode"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.barcode", { defaultValue: "Barcode" })
+      ),
       render: (row: Document) => <span className="Num">{row.barcode || "-"}</span>,
     },
     {
       id: "type",
-      header: t("documents.type", { defaultValue: "Type" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("type") ? (
+        <SortableHeader
+          label={t("documents.type", { defaultValue: "Type" })}
+          columnId="type"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.type", { defaultValue: "Type" })
+      ),
       render: (row: Document) =>
         row.document_type_name || row.document_type?.name || "-",
     },
     {
       id: "department",
-      header: t("documents.department", { defaultValue: "Department" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("department") ? (
+        <SortableHeader
+          label={t("documents.department", { defaultValue: "Department" })}
+          columnId="department"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.department", { defaultValue: "Department" })
+      ),
       render: (row: Document) =>
         row.department_name || row.department?.name || "-",
     },
     {
       id: "company",
-      header: t("documents.companyBrand", { defaultValue: "Company/Brand" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("company") ? (
+        <SortableHeader
+          label={t("documents.companyBrand", { defaultValue: "Company/Brand" })}
+          columnId="company"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.companyBrand", { defaultValue: "Company/Brand" })
+      ),
       render: (row: Document) => row.company_name ?? "-",
     },
     {
       id: "uploadDate",
-      header: t("documents.uploadDate", { defaultValue: "Upload Date" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("uploadDate") ? (
+        <SortableHeader
+          label={t("documents.uploadDate", { defaultValue: "Upload Date" })}
+          columnId="uploadDate"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.uploadDate", { defaultValue: "Upload Date" })
+      ),
       render: (row: Document) => row.upload_date || "-",
     },
     {
       id: "status",
-      header: t("documents.status", { defaultValue: "Status" }),
+      header: sort && SORTABLE_COLUMN_IDS.includes("status") ? (
+        <SortableHeader
+          label={t("documents.status", { defaultValue: "Status" })}
+          columnId="status"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.status", { defaultValue: "Status" })
+      ),
       render: (row: Document) => (
         <span className={`badge bg-${getBadge(row.status)}`}>
           {row.status || "unknown"}
@@ -64,6 +193,7 @@ export function getDocumentTableColumns(
       ),
     },
   ];
+  return baseColumns;
 }
 
 /** Trash list row type: document with deleted_at and restore_deadline */
