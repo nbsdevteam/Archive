@@ -140,7 +140,7 @@ describe("useFoldersPageContainer", () => {
       result.current.filter.handleClearFilter();
     });
 
-    expect(mockFetchFolders).toHaveBeenCalledWith({});
+    expect(mockFetchFolders).toHaveBeenCalledWith({ page: 1 });
     expect(result.current.filter.isFilterOpen).toBe(false);
   });
 
