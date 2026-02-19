@@ -25,8 +25,9 @@ export interface DocumentColumnsOptions {
 const SORTABLE_COLUMN_IDS = ["name", "barcode", "type", "department", "company", "uploadDate", "status"] as const;
 
 /**
- * Renders a sortable column header: label plus up/down arrow button (arrow is the clickable control).
- * Used when sort options are provided; provides aria-label for accessibility.
+ * Renders a sortable column header: label plus a stacked up/down arrow pair button.
+ * Both arrows are always visible; the active sort direction is fully opaque,
+ * the inactive direction is dimmed. This prevents either arrow from ever disappearing.
  */
 function SortableHeader({
   label,
@@ -40,18 +41,20 @@ function SortableHeader({
   t: TFunction;
 }) {
   const iconState = sort.getSortIconForColumn(columnId);
-  const iconName =
-    iconState?.type === "asc"
-      ? "chevron-up"
-      : iconState?.type === "desc"
-        ? "chevron-down"
-        : "chevrons-up-down";
+
+  const isAsc   = iconState?.type === "asc";
+  const isDesc  = iconState?.type === "desc";
+  const isGroup = iconState?.type === "group";
+
+  /** CSS modifier class added to the button to drive up/down opacity via CSS. */
+  const sortModifier = isAsc ? "sort-dir--asc" : isDesc ? "sort-dir--desc" : isGroup ? "sort-dir--group" : "";
+
   const ariaLabel =
-    iconState?.type === "asc"
+    isAsc
       ? t("documents.sortAsc", { defaultValue: "Sort by {{label}} (ascending)", label })
-      : iconState?.type === "desc"
+      : isDesc
         ? t("documents.sortDesc", { defaultValue: "Sort by {{label}} (descending)", label })
-        : iconState?.type === "group" && iconState.groupLabel
+        : isGroup && iconState.groupLabel
           ? t("documents.groupByLabel", {
               defaultValue: "Group by {{label}} (show {{value}} first)",
               label,
@@ -64,7 +67,7 @@ function SortableHeader({
       <span>{label}</span>
       <button
         type="button"
-        className="btn btn-link btn-sm p-0 border-0 documents-table-sort-btn text-body-secondary"
+        className={`btn btn-link btn-sm p-0 border-0 documents-table-sort-btn text-body-secondary${sortModifier ? ` ${sortModifier}` : ""}`}
         onClick={(e) => {
           e.stopPropagation();
           sort.onSortClick(columnId);
@@ -72,7 +75,11 @@ function SortableHeader({
         aria-label={ariaLabel}
         title={ariaLabel}
       >
-        <Icon name={iconName} style={{ width: "1rem", height: "1rem" }} title={ariaLabel} />
+        {/* Stacked pair: both arrows always rendered; CSS drives active/inactive opacity */}
+        <span className="documents-sort-arrow-pair" aria-hidden="true">
+          <Icon name="chevron-up"   className="sort-arrow-up"   style={{ width: "0.7rem", height: "0.7rem", display: "block" }} />
+          <Icon name="chevron-down" className="sort-arrow-down" style={{ width: "0.7rem", height: "0.7rem", display: "block" }} />
+        </span>
       </button>
     </span>
   );

@@ -33,3 +33,31 @@
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* Stacked up/down arrow pair — both arrows are always rendered */
+.documents-sort-arrow-pair {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  line-height: 1;
+}
+
+/* Unsorted: both arrows dimmed equally to hint the column is sortable */
+.documents-sort-arrow-pair .sort-arrow-up,
+.documents-sort-arrow-pair .sort-arrow-down {
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+
+/* Ascending: up arrow active, down arrow dimmed */
+.sort-dir--asc .sort-arrow-up   { opacity: 1; }
+.sort-dir--asc .sort-arrow-down { opacity: 0.25; }
+
+/* Descending: down arrow active, up arrow dimmed */
+.sort-dir--desc .sort-arrow-up   { opacity: 0.25; }
+.sort-dir--desc .sort-arrow-down { opacity: 1; }
+
+/* Group cycling active: both arrows highlighted */
+.sort-dir--group .sort-arrow-up,
+.sort-dir--group .sort-arrow-down { opacity: 1; }
