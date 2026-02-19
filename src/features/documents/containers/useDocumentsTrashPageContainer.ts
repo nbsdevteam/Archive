@@ -10,6 +10,12 @@ import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/d
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
 export const useDocumentsTrashPageContainer = () => {
+  const [documents, setDocuments] = useState<TrashDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<TrashDocumentsResponse["pagination"] | undefined>(undefined);
+  const [restoreLoadingId, setRestoreLoadingId] = useState<number | null>(null);
+
   const { t } = useTranslation();
   const routes = all_routes;
   const { user } = useAuth();
@@ -17,32 +23,6 @@ export const useDocumentsTrashPageContainer = () => {
   const { isRestoring, isPermanentDeleting, restoreDocument, permanentDeleteSingle, permanentDeleteBatch } =
     useDocumentOperations();
   const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
-
-  const [documents, setDocuments] = useState<TrashDoc[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<TrashDocumentsResponse["pagination"] | undefined>(undefined);
-
-  const [restoreLoadingId, setRestoreLoadingId] = useState<number | null>(null);
-
-  const fetchTrash = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await documentsApi.listTrashDocuments({ page, per_page: perPage });
-      setDocuments((response?.data ?? []) as TrashDoc[]);
-      setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
-    } catch (e: unknown) {
-      setError(handleApiError(e));
-      setDocuments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, perPage]);
-
-  useEffect(() => {
-    fetchTrash();
-  }, [fetchTrash]);
 
   /** Client-side pagination: slices documents when backend doesn't paginate. */
   const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
@@ -75,6 +55,25 @@ export const useDocumentsTrashPageContainer = () => {
     }),
     [baseSelectionConfig, t]
   );
+
+  const fetchTrash = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await documentsApi.listTrashDocuments({ page, per_page: perPage });
+      setDocuments((response?.data ?? []) as TrashDoc[]);
+      setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
+    } catch (e: unknown) {
+      setError(handleApiError(e));
+      setDocuments([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, perPage]);
+
+  useEffect(() => {
+    fetchTrash();
+  }, [fetchTrash]);
 
   const handleRestore = useCallback(async (documentId: number) => {
     setRestoreLoadingId(documentId);

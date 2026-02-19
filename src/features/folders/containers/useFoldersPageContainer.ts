@@ -31,12 +31,11 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 export function useFoldersPageContainer() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-
-  // ─── View & list state ─────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
 
   const filterState = useDraftAppliedFilters<FoldersFilterState>();

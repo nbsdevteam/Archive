@@ -32,14 +32,20 @@ import type { FolderDetailPageState, FolderDetailModals } from "@/features/folde
  * Single source of truth for folder detail page state shape.
  */
 export const useFolderDetailPageContainer = (): FolderDetailPageState => {
+  const [attachmentsDocId, setAttachmentsDocId] = useState<number | "">("");
+  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
+  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
+  const [isEditFolderOpen, setIsEditFolderOpen] = useState(false);
+  const [isAttachmentPanelOpen, setIsAttachmentPanelOpen] = useState(false);
+  const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
+  const [editAttachmentName, setEditAttachmentName] = useState("");
+  const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
+
   const { t } = useTranslation();
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
-
   const { folderId } = useFolderDetailIds();
-  const [attachmentsDocId, setAttachmentsDocId] = useState<number | "">("");
-  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
 
   const {
     folder,
@@ -61,7 +67,6 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
 
   const { managers } = useFolderManagers(folder?.department_id);
 
-  const [activityViewMode, setActivityViewMode] = useState<ActivityViewMode>("timeline");
   const {
     logs: activityLogs,
     loading: activityLoading,
@@ -190,7 +195,6 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     editRequests: routes.editRequests,
   });
 
-  const [isEditFolderOpen, setIsEditFolderOpen] = useState(false);
   const { currentDocument } = useDocumentStore();
   const {
     isArchiving,
@@ -211,11 +215,6 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     typeof attachmentsDocId === "number" ? attachmentsDocId : null,
     { onSuccess: refreshAttachmentsForCurrentDocument }
   );
-
-  const [isAttachmentPanelOpen, setIsAttachmentPanelOpen] = useState(false);
-  const [editAttachmentId, setEditAttachmentId] = useState<number | null>(null);
-  const [editAttachmentName, setEditAttachmentName] = useState("");
-  const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
 
   // Use currentDocument directly - it's already DocumentDetail with versions array
   const previewDoc = currentDocument;

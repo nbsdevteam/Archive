@@ -24,6 +24,20 @@ export interface DocumentsFilterState {
  * and adds page-specific behavior: upload panel, archive/trash/move actions.
  */
 export const useDocumentsPageContainer = () => {
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
+  const [moveDepartmentId, setMoveDepartmentId] = useState(0);
+  /** Folder IDs to exclude from destination list (current folder(s) of documents being moved). */
+  const [moveExcludeFolderIds, setMoveExcludeFolderIds] = useState<number[]>([]);
+  const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
+  /** When batch trash is clicked, main files in selection are blocked and listed here; user must close modal and retry with remaining selection. */
+  const [mainFilesBlockModal, setMainFilesBlockModal] = useState<{ isOpen: boolean; mainFileNames: string[] }>({
+    isOpen: false,
+    mainFileNames: [],
+  });
+
   const { t } = useTranslation();
   const announce = useAnnounce();
   const routes = all_routes;
@@ -76,6 +90,12 @@ export const useDocumentsPageContainer = () => {
     isSomeSelected,
   } = list;
 
+  /** Batch action visibility: common-only rules via shared service (no Transfer/Trash when any main doc selected). */
+  const batchActions = useMemo(
+    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
+    [documents, selectedDocumentIds]
+  );
+
   const handleApplyFilter = useCallback(() => {
     resetPage();
     listHandleApplyFilter();
@@ -101,20 +121,6 @@ export const useDocumentsPageContainer = () => {
     },
     [setPerPage, listHandlePageChange]
   );
-
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [editDocumentId, setEditDocumentId] = useState<number | null>(null);
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
-  const [moveDepartmentId, setMoveDepartmentId] = useState(0);
-  /** Folder IDs to exclude from destination list (current folder(s) of documents being moved). */
-  const [moveExcludeFolderIds, setMoveExcludeFolderIds] = useState<number[]>([]);
-  const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
-  /** When batch trash is clicked, main files in selection are blocked and listed here; user must close modal and retry with remaining selection. */
-  const [mainFilesBlockModal, setMainFilesBlockModal] = useState<{ isOpen: boolean; mainFileNames: string[] }>({
-    isOpen: false,
-    mainFileNames: [],
-  });
 
   const handleOpenEdit = useCallback((documentId: number) => setEditDocumentId(documentId), []);
   const handleCloseEdit = useCallback(() => setEditDocumentId(null), []);
@@ -366,12 +372,6 @@ export const useDocumentsPageContainer = () => {
       }
     },
     [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
-  );
-
-  /** Batch action visibility: common-only rules via shared service (no Transfer/Trash when any main doc selected). */
-  const batchActions = useMemo(
-    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
-    [documents, selectedDocumentIds]
   );
 
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */

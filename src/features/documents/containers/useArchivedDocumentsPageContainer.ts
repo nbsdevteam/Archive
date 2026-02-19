@@ -27,6 +27,11 @@ const ARCHIVED_STATUS = "archived" as const;
  * Adds unarchive/trash and move actions.
  */
 export const useArchivedDocumentsPageContainer = () => {
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
+  const [moveDepartmentId, setMoveDepartmentId] = useState(0);
+  const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
+
   const { t } = useTranslation();
   const announce = useAnnounce();
   const routes = all_routes;
@@ -84,11 +89,6 @@ export const useArchivedDocumentsPageContainer = () => {
     () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
     [documents, selectedDocumentIds]
   );
-
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [moveDocumentIds, setMoveDocumentIds] = useState<number[]>([]);
-  const [moveDepartmentId, setMoveDepartmentId] = useState(0);
-  const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
 
   const refetch = useCallback(() => {
     fetchDocuments(getFetchParams());

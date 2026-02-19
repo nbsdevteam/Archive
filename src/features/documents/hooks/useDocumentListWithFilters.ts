@@ -36,19 +36,6 @@ export function useDocumentListWithFilters(
   options: UseDocumentListWithFiltersOptions = {}
 ) {
   const { status, paginated = false, pageOverride, perPageOverride } = options;
-  const { t } = useTranslation();
-
-  const {
-    documents,
-    isLoading,
-    fetchDocuments,
-    error,
-    clearError,
-    pagination,
-  } = useDocumentStore();
-
-  const { departments, fetchDepartments } = useDepartmentsStore();
-  const { companies, fetchCompanies } = useCompaniesStore();
 
   const [appliedFilters, setAppliedFilters] = useState<DocumentListFilterState>({});
   const [draftFilters, setDraftFilters] = useState<DocumentListFilterState>({});
@@ -62,6 +49,18 @@ export function useDocumentListWithFilters(
       department_name: string;
     }>
   >([]);
+
+  const { t } = useTranslation();
+  const {
+    documents,
+    isLoading,
+    fetchDocuments,
+    error,
+    clearError,
+    pagination,
+  } = useDocumentStore();
+  const { departments, fetchDepartments } = useDepartmentsStore();
+  const { companies, fetchCompanies } = useCompaniesStore();
   const lastSearchRef = useRef<string>("");
 
   const {
