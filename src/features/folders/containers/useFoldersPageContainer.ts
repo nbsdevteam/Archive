@@ -30,6 +30,10 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return apiMessage !== "An unexpected error occurred" ? apiMessage : fallback;
 }
 
+/**
+ * Container for the Folders list page: filter state, view mode, search, pagination, and folder CRUD.
+ * Composes useDraftAppliedFilters, useFolders, useClientPagination; returns data, filter, actions, and edit panel state.
+ */
 export function useFoldersPageContainer() {
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +45,7 @@ export function useFoldersPageContainer() {
   const filterState = useDraftAppliedFilters<FoldersFilterState>();
   const { appliedFilters, draftFilters, setDraftFilters, isFilterOpen, filterApplyDisabled, handleOpenFilter, handleCloseFilter, handleApplyFilter: baseHandleApplyFilter, handleClearFilter: baseHandleClearFilter } = filterState;
 
+  /** API params for useFolders: active state + applied filters + current page/perPage. */
   const listParams = useMemo(
     () => ({
       state: "active" as const,
