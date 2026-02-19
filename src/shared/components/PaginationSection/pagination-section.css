@@ -73,9 +73,7 @@
 
 /* Individual page number button */
 .pagination-section__page-btn {
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
+  padding: 1.5px 11px;
   border: 1px solid var(--bs-border-color);
   border-radius: 0.25rem;
   background-color: var(--bs-body-bg);
