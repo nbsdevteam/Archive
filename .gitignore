@@ -26,4 +26,17 @@ coverage
 *.sln
 *.sw?
 
-# dist
+# Internal / non-development docs (architecture, audits, troubleshooting, old API refs)
+Architecture.md
+howWeCodin.md
+UNUSED_CODE_AND_DEPS_AUDIT.md
+NBS_ARCHIVE_API_REFERENCE_FRONTEND.md
+PREVIEW_CACHE_INVALIDATION.md
+RESTART_TS_SERVER.md
+REFACTOR_SMOKE_TESTS.md
+PROXY_TROUBLESHOOTING.md
+DUPLICATE_API_CALLS_FIX.md
+CYPRESS_E2E_IMPROVEMENTS.md
+HowToConsumeStoryBook.md
+NOTES_SYSTEM_API_DOCUMENTATION.md
+API_DOCUMENTATION.md
