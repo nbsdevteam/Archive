@@ -30,6 +30,7 @@ export function useDraftAppliedFilters<T extends object>(
   const [draftFilters, setDraftFilters] = useState<T>(initialApplied);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  /** True when draft equals applied so the Apply button can be disabled. */
   const filterApplyDisabled = useMemo(
     () =>
       shallowEqualFilter(

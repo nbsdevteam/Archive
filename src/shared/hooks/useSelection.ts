@@ -24,6 +24,7 @@ export function useSelection<T>(
 } {
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
 
+  /** All row ids from current data; used for toggle-all and selection-config. */
   const rowIds = useMemo(() => rows.map(getId), [rows, getId]);
   const isAllSelected = rowIds.length > 0 && selectedIds.length === rowIds.length;
   const isIndeterminate = selectedIds.length > 0 && selectedIds.length < rowIds.length;

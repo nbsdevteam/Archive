@@ -8,7 +8,10 @@ export interface HeaderSearchProps {
   t: (key: string) => string;
 }
 
-/** Header global search: input, debounced API, dropdown results; navigates on result click. */
+/**
+ * Header global search: controlled input, debounced API call, dropdown results.
+ * Navigates to document/folder/note on result click; closes on outside click or Escape.
+ */
 export function HeaderSearch({ routes, t }: HeaderSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
