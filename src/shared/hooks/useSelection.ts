@@ -28,16 +28,24 @@ export function useSelection<T>(
   const isAllSelected = rowIds.length > 0 && selectedIds.length === rowIds.length;
   const isIndeterminate = selectedIds.length > 0 && selectedIds.length < rowIds.length;
 
-  const onToggle = useCallback((id: string | number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  }, []);
-
-  const onToggleAll = useCallback(() => {
-    if (rowIds.length === 0) return;
-    setSelectedIds(isAllSelected ? [] : [...rowIds]);
-  }, [rowIds, isAllSelected]);
+  const selectionConfig = useMemo(
+    () => ({
+      selectedIds,
+      onToggle: (id: string | number) => {
+        setSelectedIds((prev) =>
+          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+      },
+      onToggleAll: () => {
+        if (rowIds.length === 0) return;
+        setSelectedIds(isAllSelected ? [] : [...rowIds]);
+      },
+      isAllSelected,
+      isIndeterminate,
+      getRowAriaLabel: (row: T) => `Select row ${getId(row)}`,
+    }),
+    [selectedIds, rowIds, isAllSelected, isIndeterminate, getId]
+  );
 
   const clear = useCallback(() => setSelectedIds([]), []);
   const setAll = useCallback(() => setSelectedIds([...rowIds]), [rowIds]);
@@ -45,18 +53,6 @@ export function useSelection<T>(
     const set = new Set(idsToDeselect);
     setSelectedIds((prev) => prev.filter((id) => !set.has(id)));
   }, []);
-
-  const selectionConfig = useMemo(
-    () => ({
-      selectedIds,
-      onToggle,
-      onToggleAll,
-      isAllSelected,
-      isIndeterminate,
-      getRowAriaLabel: (row: T) => `Select row ${getId(row)}`,
-    }),
-    [selectedIds, onToggle, onToggleAll, isAllSelected, isIndeterminate, getId]
-  );
 
   return { selectedIds, selectionConfig, clear, setAll, deselectIds };
 }

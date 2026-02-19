@@ -10,14 +10,55 @@ export interface HeaderSearchProps {
 
 /** Header global search: input, debounced API, dropdown results; navigates on result click. */
 export function HeaderSearch({ routes, t }: HeaderSearchProps) {
-  const navigate = useNavigate();
-  const headerSearchRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+
+  const navigate = useNavigate();
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const headerSearchRef = useRef<HTMLDivElement>(null);
+
+  const normalizeType = useCallback((type: string | undefined): "document" | "folder" | "note" => {
+    const lowerType = type?.toLowerCase();
+    if (lowerType === "folder") return "folder";
+    if (lowerType === "note") return "note";
+    return "document";
+  }, []);
+
+  const getEffectiveType = useCallback(
+    (item: SearchResult): "document" | "folder" | "note" => normalizeType(item.type ?? item.entity_type),
+    [normalizeType]
+  );
+
+  const getDisplayName = useCallback(
+    (item: SearchResult) => {
+      const type = getEffectiveType(item);
+      if (type === "document") return item.title || item.name || "-";
+      if (type === "note") return item.title || "-";
+      return item.name || item.title || "-";
+    },
+    [getEffectiveType]
+  );
+
+  /** Dates are already in Arabia Standard Time from the API. */
+  const formatDateCompact = useCallback((value: string | undefined): string => {
+    return value?.trim() ? value : "-";
+  }, []);
+
+  const getMeta = useCallback(
+    (item: SearchResult): string => {
+      const type = getEffectiveType(item);
+      if (type === "document") {
+        if (item.barcode?.trim()) return item.barcode.trim();
+        return formatDateCompact(item.upload_date ?? item.created_at);
+      }
+      if (type === "note") return formatDateCompact(item.updated_at ?? item.created_at);
+      return formatDateCompact(item.create_date ?? item.created_at);
+    },
+    [formatDateCompact, getEffectiveType]
+  );
 
   useEffect(() => {
     if (debouncedSearchTerm.trim().length < 2) {
@@ -64,46 +105,6 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
-
-  const normalizeType = useCallback((type: string | undefined): "document" | "folder" | "note" => {
-    const lowerType = type?.toLowerCase();
-    if (lowerType === "folder") return "folder";
-    if (lowerType === "note") return "note";
-    return "document";
-  }, []);
-
-  const getEffectiveType = useCallback(
-    (item: SearchResult): "document" | "folder" | "note" => normalizeType(item.type ?? item.entity_type),
-    [normalizeType]
-  );
-
-  const getDisplayName = useCallback(
-    (item: SearchResult) => {
-      const type = getEffectiveType(item);
-      if (type === "document") return item.title || item.name || "-";
-      if (type === "note") return item.title || "-";
-      return item.name || item.title || "-";
-    },
-    [getEffectiveType]
-  );
-
-  /** Dates are already in Arabia Standard Time from the API. */
-  const formatDateCompact = useCallback((value: string | undefined): string => {
-    return value?.trim() ? value : "-";
-  }, []);
-
-  const getMeta = useCallback(
-    (item: SearchResult): string => {
-      const type = getEffectiveType(item);
-      if (type === "document") {
-        if (item.barcode?.trim()) return item.barcode.trim();
-        return formatDateCompact(item.upload_date ?? item.created_at);
-      }
-      if (type === "note") return formatDateCompact(item.updated_at ?? item.created_at);
-      return formatDateCompact(item.create_date ?? item.created_at);
-    },
-    [getEffectiveType, formatDateCompact]
-  );
 
   const handleSearchResultClick = useCallback(
     (item: SearchResult) => {
