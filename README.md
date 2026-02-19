@@ -288,6 +288,72 @@ const MyComponent = () => {
 </ErrorBoundary>
 ```
 
+## 📖 Developer Documentation
+
+This section describes how the application is structured, how data flows, and how key features (documents, folders, selection, batch actions) work. Use it when adding or changing behavior in documents/folders or shared services.
+
+### High-level architecture
+
+- **Feature modules** (`src/features/*`): Each feature owns its pages, containers (hooks that compose state and handlers), hooks, stores, and UI. Examples: `documents`, `folders`, `activity`, `notes`, `search`.
+- **Shared** (`src/shared/`): Reusable hooks (selection, confirm dialog, pagination, debounce), UI components, layout, utils, and **shared services** (e.g. document batch-action visibility). No feature-specific logic.
+- **Core** (`src/core/`): App-wide components and providers (header, sidebar, theme, performance). The header search lives here.
+- **App** (`src/app/`): API adapters (clients that call the backend), router, and top-level providers.
+
+### State management (Zustand)
+
+Feature state is held in **Zustand** stores under `src/features/*/stores/`:
+
+- **documentStore**: Document list, fetch, loading, error, pagination. Used by document list pages and folder detail (load folder documents).
+- **searchStore**: Search results, global/barcode search, clear. Used by the search page and header search.
+- **departmentsStore** / **companiesStore** (shared): Department and company lists for filters and dropdowns.
+
+Containers read from stores and from URL (e.g. `usePaginationFromUrl`), then expose a single object (data, loading, actions, modals) to the page component.
+
+### Data flow
+
+1. **Page** → uses a **container** hook (e.g. `useDocumentsPageContainer`).
+2. **Container** → uses **stores**, **shared hooks** (selection, pagination, confirm dialog), and **feature hooks** (e.g. `useDocumentListWithFilters`, `useDocumentOperations`).
+3. **Feature hooks** → call **API adapters** (`documentsApi`, `adminApi`, etc.) and update store or local state.
+4. **UI** → receives from container: data, loading, error, selection, batch action flags, and action handlers (e.g. `confirmTrash`, `handleConfirmBatchMove`).
+
+### Selection and batch actions
+
+- **Selection**: Table row selection is managed by the shared hook **useSelection** (in `src/shared/hooks/useSelection.ts`). It takes the current list of rows and a `getId` function, and returns `selectedIds`, `selectionConfig` (for DataTable), `clear`, `setAll`, and `deselectIds`. Containers pass the current page's documents (or sub-docs/attachments) into useSelection and use `selectedIds` for batch APIs and for batch-action visibility.
+- **Batch action visibility**: The shared service **documentBatchActionsService** (`src/shared/services/documentBatchActionsService.ts`) computes which batch actions are allowed for the current selection:
+  - **Rule**: "Common-only" — an action is shown only if it is valid for **every** selected document (intersection). So we never show "Transfer" if any selected document is a main document (main docs cannot be transferred).
+  - **Status**: Documents are classified as active, archived, trashed, or unknown. Allowed actions depend on status and on whether the document is a main document (main docs cannot be trashed or transferred in batch).
+- **Trigger**: Containers call `getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds)` (often inside a `useMemo`) and pass the result to the page as `batchActions`. The toolbar shows batch buttons (Transfer, Archive, Trash, Restore, Unarchive) based on these booleans. When the user confirms, the container's batch handler (e.g. `confirmBatchTrash`, `handleConfirmBatchMove`) calls the API and then clears selection and refetches.
+
+### Document lifecycle and constraints
+
+- **Active** → can be archived or (if sub-document) trashed or transferred.
+- **Archived** → can be unarchived or (if sub-document) trashed.
+- **Trashed** → can be restored or permanently deleted (subject to permissions).
+- **Main documents** cannot be transferred or batch-trashed; the UI blocks batch trash when main files are selected (e.g. "main files block modal" on the documents page) and deselects them so the user can retry with sub-docs only.
+
+### Folder detail composition
+
+The folder detail page is orchestrated by **useFolderDetailPageContainer**, which composes several sub-hooks:
+
+- **useFolderDetailIds**: Reads `folderId` from the URL.
+- **useFolderDetailData**: Loads folder metadata and documents (main + sub-docs), sorted; exposes `loadFolderDocuments`.
+- **useFolderAttachments**: Loads attachments for the selected document (by `attachmentsDocId`); exposes `loadAttachmentsForDocument`, `handleAttachmentsDocIdChange`.
+- **useFolderManagers**: Loads managers for the folder's department.
+- **useFolderAuditLogs**: Activity logs for the folder.
+- **useSelection** (x2): One for sub-documents table, one for attachments list; both feed into batch-action visibility and transfer.
+- **useNotes** / **useNoteMutations** / **useNoteEditorHandlers**: Notes CRUD and editor state.
+- **useFolderTransfer**: Transfer modal state and confirm handler (move docs/attachments to another folder).
+- **useFolderUploadPanel**: Upload-in-folder and add-attachment panel state.
+- **useFolderSignaturesAndEditRequests**: Signature and edit-request modals and submit handlers.
+- **useDocumentOperations** / **useAttachmentOperations**: Archive, trash, restore, download, delete attachment.
+
+The container returns a single typed state object (data, loading, errors, selection, actions, modals) so the page component stays thin.
+
+### Testing
+
+- **Unit tests**: Vitest; test files sit next to source (`*.test.ts`, `*.test.tsx`). Run with `npm run test -- --run`. Key areas: `src/features/*/containers/*.test.tsx`, `src/features/*/hooks/*.test.tsx`, `src/shared/utils/**/*.test.ts`, `src/shared/services/documentBatchActionsService.test.ts`.
+- **E2E**: Cypress; see the "Testing" section above for commands (e2e:slow, e2e:headed, e2e:ci, e2e:open). Use UI login (admin/admin) for real flows; production-test rules restrict deletes to data created in the same test.
+
 ## 🚀 Deployment
 
 ### Build for Production
