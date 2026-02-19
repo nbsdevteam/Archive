@@ -61,6 +61,7 @@ export function useDocumentListWithFilters(
   } = useDocumentStore();
   const { departments, fetchDepartments } = useDepartmentsStore();
   const { companies, fetchCompanies } = useCompaniesStore();
+  /** Holds current search term so getFetchParams can read it without causing fetch dependency churn. */
   const lastSearchRef = useRef<string>("");
 
   const {
@@ -70,6 +71,7 @@ export function useDocumentListWithFilters(
     deselectIds: deselectDocumentIds,
   } = useSelection<Document>(documents, (d) => d.id);
 
+  /** Selected document ids as numbers for batch APIs and batch-action service. */
   const selectedDocumentIds = useMemo(
     () => selectedDocumentIdsRaw.map((id) => Number(id)),
     [selectedDocumentIdsRaw]
