@@ -227,4 +227,130 @@ describe("useDocumentsPageContainer", () => {
     await waitFor(() => expect(result.current.modals.isUploadOpen).toBe(false));
     await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
   });
+
+  it("calls archiveDocument for selected ids and refetches on confirmBatchArchive", async () => {
+    const doc1 = makeDocument({ id: 1, department_id: 10, status: "active" });
+    const doc2 = makeDocument({ id: 2, department_id: 10, status: "active" });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [doc1, doc2],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+    mockGetDocuments.mockClear();
+
+    await result.current.actions.confirmBatchArchive();
+
+    expect(mockArchiveDocument).toHaveBeenCalledWith(expect.arrayContaining([1, 2]));
+    await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(0));
+  });
+
+  it("batchActions for all-active sub-docs: canBatchTransfer, canBatchArchive, canBatchTrash true", async () => {
+    const doc1 = makeDocument({ id: 1, status: "active", is_main_document: false });
+    const doc2 = makeDocument({ id: 2, status: "active", is_main_document: false });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [doc1, doc2],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    expect(result.current.selection.batchActions.canBatchTransfer).toBe(true);
+    expect(result.current.selection.batchActions.canBatchArchive).toBe(true);
+    expect(result.current.selection.batchActions.canBatchTrash).toBe(true);
+    expect(result.current.selection.batchActions.canBatchRestore).toBe(false);
+    expect(result.current.selection.batchActions.canBatchUnarchive).toBe(false);
+  });
+
+  it("batchActions for mixed status (active + archived): only canBatchTrash true", async () => {
+    const doc1 = makeDocument({ id: 1, status: "active", is_main_document: false });
+    const doc2 = makeDocument({ id: 2, status: "archived", is_main_document: false });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [doc1, doc2],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    expect(result.current.selection.batchActions.canBatchTransfer).toBe(false);
+    expect(result.current.selection.batchActions.canBatchArchive).toBe(false);
+    expect(result.current.selection.batchActions.canBatchTrash).toBe(true);
+    expect(result.current.selection.batchActions.canBatchRestore).toBe(false);
+    expect(result.current.selection.batchActions.canBatchUnarchive).toBe(false);
+  });
+
+  it("batchActions for mixed main + sub (active): only canBatchArchive true", async () => {
+    const mainDoc = makeDocument({ id: 1, status: "active", is_main_document: true });
+    const subDoc = makeDocument({ id: 2, status: "active", is_main_document: false });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [mainDoc, subDoc],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    expect(result.current.selection.batchActions.canBatchArchive).toBe(true);
+    expect(result.current.selection.batchActions.canBatchTransfer).toBe(false);
+    expect(result.current.selection.batchActions.canBatchTrash).toBe(false);
+  });
+
+  it("handleBatchTrashClick with main doc in selection opens main-files block modal and does not open trash dialog", async () => {
+    const mainDoc = makeDocument({ id: 1, status: "active", is_main_document: true, title: "Main File" });
+    const subDoc = makeDocument({ id: 2, status: "active", is_main_document: false });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [mainDoc, subDoc],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    const mockOpenBatchTrashDialog = vi.fn();
+    result.current.actions.handleBatchTrashClick(mockOpenBatchTrashDialog);
+
+    await waitFor(() => expect(result.current.modals.mainFilesBlockModal.isOpen).toBe(true));
+    expect(result.current.modals.mainFilesBlockModal.mainFileNames).toContain("Main File");
+    expect(mockOpenBatchTrashDialog).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds).not.toContain(1));
+  });
+
+  it("handleBatchTrashClick with only sub-docs selected opens trash dialog", async () => {
+    const mainDoc = makeDocument({ id: 1, status: "active", is_main_document: true });
+    const subDoc = makeDocument({ id: 2, status: "active", is_main_document: false });
+    mockGetDocuments.mockResolvedValue({
+      success: true,
+      data: [mainDoc, subDoc],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggle(2);
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds).toContain(2));
+
+    const mockOpenBatchTrashDialog = vi.fn();
+    result.current.actions.handleBatchTrashClick(mockOpenBatchTrashDialog);
+
+    expect(mockOpenBatchTrashDialog).toHaveBeenCalled();
+  });
 });

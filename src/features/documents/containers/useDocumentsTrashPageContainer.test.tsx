@@ -139,6 +139,38 @@ describe("useDocumentsTrashPageContainer", () => {
     await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
   });
 
+  it("batchActions when two trashed docs selected: canBatchRestore true, others false", async () => {
+    const doc1 = makeDocument({ id: 1, status: "trashed" });
+    const doc2 = makeDocument({ id: 2, status: "trashed" });
+    mockListTrashDocuments.mockResolvedValue({
+      data: [doc1, doc2],
+      pagination: { total: 2, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(2));
+    result.current.selection.selectionConfig.onToggleAll();
+    await waitFor(() => expect(result.current.selection.selectedDocumentIds.length).toBe(2));
+
+    expect(result.current.selection.batchActions.canBatchRestore).toBe(true);
+    expect(result.current.selection.batchActions.canBatchArchive).toBe(false);
+    expect(result.current.selection.batchActions.canBatchUnarchive).toBe(false);
+    expect(result.current.selection.batchActions.canBatchTransfer).toBe(false);
+    expect(result.current.selection.batchActions.canBatchTrash).toBe(false);
+  });
+
+  it("batchActions when no selection: canBatchRestore false", async () => {
+    mockListTrashDocuments.mockResolvedValue({
+      data: [makeDocument({ id: 1, status: "trashed" })],
+      pagination: { total: 1, page: 1, per_page: 20, total_pages: 1 },
+    });
+
+    const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
+    await waitFor(() => expect(result.current.data.documents.length).toBe(1));
+
+    expect(result.current.selection.batchActions.canBatchRestore).toBe(false);
+  });
+
   it("sets error when listTrashDocuments fails", async () => {
     mockListTrashDocuments.mockRejectedValue(new Error("Network error"));
 

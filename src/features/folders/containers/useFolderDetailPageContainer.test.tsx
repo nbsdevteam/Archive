@@ -167,6 +167,23 @@ describe("useFolderDetailPageContainer", () => {
     await waitFor(() => expect(mockGetFolderDocuments).toHaveBeenCalledTimes(2));
   });
 
+  it("subDocsBatchActions when sub-doc selected: canBatchTransfer, canBatchArchive, canBatchTrash true", async () => {
+    const { result } = renderHookWithProviders(() => useFolderDetailPageContainer(), {
+      initialEntries,
+      routePath,
+    });
+
+    await waitFor(() => expect(result.current.data.subDocs.length).toBe(1));
+    result.current.selection.subDocsSelectionConfig.onToggle(2);
+    await waitFor(() => expect(result.current.selection.subDocSelectedIds).toContain(2));
+
+    expect(result.current.selection.subDocsBatchActions.canBatchTransfer).toBe(true);
+    expect(result.current.selection.subDocsBatchActions.canBatchArchive).toBe(true);
+    expect(result.current.selection.subDocsBatchActions.canBatchTrash).toBe(true);
+    expect(result.current.selection.subDocsBatchActions.canBatchRestore).toBe(false);
+    expect(result.current.selection.subDocsBatchActions.canBatchUnarchive).toBe(false);
+  });
+
   it("calls batchMoveDocumentsToFolder and refreshes when transferring attachments", async () => {
     mockListAttachments.mockResolvedValue({
       success: true,
