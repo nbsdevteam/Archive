@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { all_routes } from "@/router/all_routes";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
 import { FilePreview } from "@/shared/components/FilePreview";
-import { Alert, Icon, Spinner } from "@/shared/components/ui";
+import { Alert, Icon } from "@/shared/components/ui";
+import { LoadingSpinner } from "@/core/common/LoadingSpinner";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import type { AttachmentViewRouteState } from "@/shared/utils/navigation/navigateWithState";
@@ -102,15 +103,7 @@ const DocumentAttachmentViewPage = () => {
   }, [docId, attachmentIdNum, location.pathname, location.state, t]);
 
   if (loading) {
-    return (
-      <div className="page-wrapper">
-        <div className="content">
-          <div className="d-flex align-items-center justify-content-center min-vh-50">
-            <Spinner />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner text={t("common.loading", { defaultValue: "Loading..." })} />;
   }
 
   if (error || !docId || !attachmentIdNum || !attachment) {

@@ -1,4 +1,4 @@
-/* Full-viewport route loading: centered horizontally and vertically, no blue Bootstrap spinner */
+/* Full-viewport route loading: centered horizontally and vertically, transparent background */
 .loading-spinner-container {
   position: fixed;
   inset: 0;
@@ -12,7 +12,7 @@
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  background: rgba(255, 255, 255, 0.85);
+  background: transparent;
 
   &.loading-spinner-small {
     position: relative;

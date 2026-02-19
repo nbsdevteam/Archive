@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/core/common/collapse-header/collapse-header";
-import { Alert, Button, Spinner, Icon } from "@/shared/components/ui";
+import { Alert, Button, Icon } from "@/shared/components/ui";
+import { LoadingSpinner } from "@/core/common/LoadingSpinner";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { AttachmentSidePanel } from "@/features/documents/components";
 import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";
@@ -42,15 +43,7 @@ const DocumentDetailPage = () => {
   }, [registerHandler, actions.handleDownloadCurrent]);
 
   if (loading.isLoading && !data.doc) {
-    return (
-      <div className="page-wrapper">
-        <div className="content">
-          <div className="d-flex align-items-center justify-content-center min-vh-50">
-            <Spinner />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner text={t("common.loading", { defaultValue: "Loading..." })} />;
   }
 
   if (!data.docId || !data.doc) {
