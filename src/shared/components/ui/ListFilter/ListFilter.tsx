@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Select, { type SingleValue } from "react-select";
-import DatePicker from "react-datepicker";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import type { SelectOption } from "../Select";
 import { formatDate } from "@/shared/utils/format/date";
+import { DateRangePickerModal } from "./DateRangePickerModal";
 import styles from "./ListFilter.module.css";
 
 export interface ListFilterFilterConfig {
@@ -93,7 +93,8 @@ export function ListFilter({
 }: ListFilterProps) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  /** Controls visibility of the date-range modal (separate from the filter panel). */
+  const [dateModalOpen, setDateModalOpen] = useState(false);
   const resolvedApplyLabel = applyLabel ?? t("common.apply", { defaultValue: "Apply" });
   const resolvedClearLabel = clearLabel ?? t("common.clear", { defaultValue: "Clear" });
   const resolvedCloseAriaLabel = closeAriaLabel ?? t("common.close", { defaultValue: "Close filter" });
@@ -211,6 +212,7 @@ export function ListFilter({
         aria-label={resolvedAriaLabel}
         aria-modal="true"
       >
+
       <div className={styles.header}>
         <span className={styles.headerTitle}>{resolvedAriaLabel}</span>
         <button
@@ -279,67 +281,19 @@ export function ListFilter({
           <div className={styles.row}>
             <span className={styles.label}>{dateRange.label}</span>
             <div className={styles.dateWrap}>
-              <div className={styles.dateTriggerWrap}>
-                <button
-                  type="button"
-                  className={styles.dateTrigger}
-                  onClick={() => setDatePickerOpen((o) => !o)}
-                  disabled={disabled}
-                  aria-expanded={datePickerOpen}
-                  aria-haspopup="dialog"
-                >
-                  <Icon name="calendar" style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
-                  <span className={styles.dateTriggerText}>
-                    {getDateRangeDisplayValue(dateRange.fromDate, dateRange.toDate, t)}
-                  </span>
-                </button>
-                {datePickerOpen && (
-                  <div className={styles.datePickerDropdown}>
-                    <div className={styles.dateModeTabs}>
-                      {(["after", "upto", "between"] as const).map((mode) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          className={dateRange.mode === mode ? styles.dateModeTabActive : styles.dateModeTab}
-                          onClick={() => dateRange.onModeChange(mode)}
-                        >
-                          {t(`filter.dateMode.${mode}`, {
-                            defaultValue: mode === "after" ? "After" : mode === "upto" ? "Upto" : "Between",
-                          })}
-                        </button>
-                      ))}
-                    </div>
-                    {dateRange.mode === "between" ? (
-                      <DatePicker
-                        selectsRange
-                        startDate={dateRange.fromDate}
-                        endDate={dateRange.toDate}
-                        onChange={(dates) => {
-                          const [start, end] = dates ?? [null, null];
-                          dateRange.onDatesChange({ fromDate: start ?? null, toDate: end ?? null });
-                        }}
-                        shouldCloseOnSelect={false}
-                        inline
-                        calendarClassName={styles.reactDatepicker}
-                      />
-                    ) : (
-                      <DatePicker
-                        selected={dateRange.mode === "after" ? dateRange.fromDate : dateRange.toDate}
-                        onChange={(date) => {
-                          if (dateRange.mode === "after") {
-                            dateRange.onDatesChange({ fromDate: date ?? null, toDate: dateRange.toDate });
-                          } else {
-                            dateRange.onDatesChange({ fromDate: dateRange.fromDate, toDate: date ?? null });
-                          }
-                        }}
-                        shouldCloseOnSelect={false}
-                        inline
-                        calendarClassName={styles.reactDatepicker}
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Trigger button — clicking opens the date-range modal */}
+              <button
+                type="button"
+                className={styles.dateTrigger}
+                onClick={() => setDateModalOpen(true)}
+                disabled={disabled}
+                aria-haspopup="dialog"
+              >
+                <Icon name="calendar" style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
+                <span className={styles.dateTriggerText}>
+                  {getDateRangeDisplayValue(dateRange.fromDate, dateRange.toDate, t)}
+                </span>
+              </button>
             </div>
           </div>
         )}
@@ -377,6 +331,19 @@ export function ListFilter({
         </Button>
       </div>
     </div>
+    {/* Date-range modal — rendered via portal to document.body, above filter panel */}
+    {dateRange != null && dateModalOpen && (
+      <DateRangePickerModal
+        mode={dateRange.mode}
+        fromDate={dateRange.fromDate}
+        toDate={dateRange.toDate}
+        onSave={({ fromDate, toDate, mode }) => {
+          dateRange.onModeChange(mode);
+          dateRange.onDatesChange({ fromDate, toDate });
+        }}
+        onClose={() => setDateModalOpen(false)}
+      />
+    )}
     </>
   );
 }
