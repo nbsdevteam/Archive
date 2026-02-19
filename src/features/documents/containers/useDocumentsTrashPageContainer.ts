@@ -58,11 +58,12 @@ export const useDocumentsTrashPageContainer = () => {
     [selectedDocumentIdsRaw]
   );
   const isSomeSelected = selectedDocumentIds.length > 0;
-  /** Batch action visibility from shared service (trash page: all items trashed, so canBatchRestore when selection exists). */
-  const batchActions = useMemo(
-    () => getAllowedBatchActionsForDocumentsSelection(paginatedDocuments, selectedDocumentIds),
-    [paginatedDocuments, selectedDocumentIds]
-  );
+  /** Batch action visibility: on trash page every row is trashed, so allow batch restore whenever there is a selection
+   * (API may not set status=trashed on list items). Other actions from shared service for consistency. */
+  const batchActions = useMemo(() => {
+    const base = getAllowedBatchActionsForDocumentsSelection(paginatedDocuments, selectedDocumentIds);
+    return { ...base, canBatchRestore: isSomeSelected };
+  }, [paginatedDocuments, selectedDocumentIds, isSomeSelected]);
   const selectionConfig = useMemo(
     () => ({
       ...baseSelectionConfig,
