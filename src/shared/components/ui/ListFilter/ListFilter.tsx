@@ -134,6 +134,7 @@ export function ListFilter({
 
   const handlePrimarySelectChange = useCallback(
     (newValue: SingleValue<SelectOption>) => {
+      if (!primaryFilter) return;
       const v = newValue?.value;
       primaryFilter.onChange(
         v !== undefined && v !== null
@@ -146,6 +147,7 @@ export function ListFilter({
 
   const handleSecondarySelectChange = useCallback(
     (newValue: SingleValue<SelectOption>) => {
+      if (!secondaryFilter) return;
       const v = newValue?.value;
       secondaryFilter.onChange(
         v !== undefined && v !== null

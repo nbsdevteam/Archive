@@ -210,7 +210,7 @@ export function DateRangePickerModal({
             ) : (
               <DatePicker
                 selected={pendingMode === "after" ? pendingFromDate : pendingToDate}
-                onChange={(date) => {
+                onChange={(date: Date | null) => {
                   if (pendingMode === "after") {
                     setPendingFromDate(date ?? null);
                   } else {
