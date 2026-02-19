@@ -11,7 +11,7 @@ This document describes our coding style, project conventions, and rules so new 
 - **Forms**: react-hook-form + @hookform/resolvers
 - **i18n**: react-i18next (en + ar); keys in `src/i18n/en.json` and `ar.json`
 - **UI**: MUI (@mui/material), custom shared components under `src/shared/components`
-- **Tests**: Vitest + React Testing Library (unit/integration), Cypress (E2E)
+- **Tests**: Vitest + React Testing Library (unit/integration)
 - **Lint**: ESLint 9 (flat config) with TypeScript, React, React Hooks, jsx-a11y, import order, and a **local hook-order rule**
 - **Format**: Prettier as default formatter; format on save (see `.vscode/settings.json`)
 
@@ -163,15 +163,13 @@ This pattern is implemented in many places and significantly reduces redundant A
 ## 12. Testing
 
 - **Unit / integration**: Vitest + React Testing Library. Test files **colocated** with source: `*.test.ts` or `*.test.tsx`.
-- **E2E**: Cypress; specs in `cypress/e2e/`. Use `npm run e2e:slow:ui` when you want to “run that shit” (slow mode + Cypress UI to pick specs).
 
-**Production test rules (unit + Cypress):**
+**Production test rules:**
 
 1. Tests must **only delete or modify** folders/files **that the test itself created**.
-2. Do **not** add: delete folder, permanent delete, batch delete from `/documents`, or delete/trash of **existing** attachments/documents.
+2. Do **not** add: delete folder, permanent delete, batch delete from list pages, or delete/trash of **existing** attachments/documents.
 3. The **only** deletion allowed is of file(s) that the **same test** created.
 4. When a test includes deletion, the **deletion flow must come last** — after every other operation in that test.
-5. Do **not** visit or add E2E steps for: edit-requests, signatures, notifications, permissions (to be implemented later). **Allowed**: read-only flows and stubbed data.
 
 ---
 
@@ -197,7 +195,7 @@ This pattern is implemented in many places and significantly reduces redundant A
 - [ ] Brief comments on functions and complex hooks; HOW IT WORKS on non-trivial services
 - [ ] No `any`; strict TypeScript; optional chaining / nullish coalescing
 - [ ] All copy via `t(...)`; keys in en.json / ar.json
-- [ ] Tests only touch data they create; deletion last; no E2E for edit-requests/signatures/notifications/permissions
+- [ ] Tests only touch data they create; deletion last
 - [ ] Commit after AI completion with a proper message
 
 Use this as the single reference for “how we code” when starting or onboarding to another project.
