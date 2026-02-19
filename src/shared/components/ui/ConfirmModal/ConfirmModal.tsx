@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { memo, useRef, useEffect, type ReactNode } from "react";
 import { Modal } from "../Modal";
 import { ModalFooter } from "../Modal/ModalFooter";
 import { Button } from "../Button";
@@ -19,6 +19,7 @@ export interface ConfirmModalProps {
 /**
  * Generic confirmation modal with title, message, and Cancel/Confirm buttons.
  * Use for delete, discard, or other confirmations. Pass stable callbacks (e.g. useCallback) from parent.
+ * Focus is set to the cancel button when opened so Enter does not accidentally confirm.
  */
 export const ConfirmModal = memo(function ConfirmModal({
   isOpen,
@@ -32,11 +33,21 @@ export const ConfirmModal = memo(function ConfirmModal({
   isLoading = false,
   size = "md",
 }: ConfirmModalProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  /** Focus cancel button when modal opens so it's preselected and Enter won't accidentally confirm. */
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = setTimeout(() => cancelButtonRef.current?.focus(), 0);
+    return () => clearTimeout(id);
+  }, [isOpen]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size={size}>
       <div className="mb-0">{message}</div>
       <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
         <Button
+          ref={cancelButtonRef}
           variant="outline"
           className="btn-outline-secondary"
           onClick={onClose}

@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "light" | "outline";
@@ -10,19 +10,22 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /**
  * Button - Shared generic button with consistent height for toolbar alignment.
- * Extends native button props; passes through ...rest (e.g. aria-label).
+ * Extends native button props; passes through ...rest (e.g. aria-label, ref).
  * When using only an icon with no visible text, pass aria-label so screen readers and read-aloud tools announce the action.
  */
-export const Button = ({
-  variant = "secondary",
-  size = "md",
-  type = "button",
-  isLoading = false,
-  children,
-  className = "",
-  disabled,
-  ...props
-}: ButtonProps) => {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    variant = "secondary",
+    size = "md",
+    type = "button",
+    isLoading = false,
+    children,
+    className = "",
+    disabled,
+    ...props
+  },
+  ref
+) {
   const variantClass = `btn-${variant}`;
   const sizeClass = size !== "md" ? `btn-${size}` : "";
   const heightClass =
@@ -35,6 +38,7 @@ export const Button = ({
 
   return (
     <button
+      ref={ref}
       type={type}
       className={classes}
       disabled={disabled ?? isLoading}
@@ -54,4 +58,4 @@ export const Button = ({
       )}
     </button>
   );
-};
+});
