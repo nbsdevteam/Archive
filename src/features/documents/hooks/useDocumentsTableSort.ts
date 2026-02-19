@@ -1,140 +1,179 @@
+/**
+ * Client-side table sort for documents: directional (asc/desc) and group-to-top cycling.
+ */
+
 import {useCallback, useMemo, useState} from 'react';
 
 import type {Document} from '@/app/adapter/api/documents.api';
 import {parseDisplayUploadDate} from '@/shared/utils/format/date';
 
 /** Column ids that support ascending/descending sort. */
-const DIRECTIONAL_COLUMNS = ['name', 'barcode', 'uploadDate'] as const;
+const DIRECTIONAL_COLUMN_IDS = ['name', 'barcode', 'uploadDate'] as const;
 
 /** Column ids that support group-to-top cycling (alphabetical groups). */
-const GROUP_COLUMNS = ['type', 'department', 'company', 'status'] as const;
+const GROUP_COLUMN_IDS = ['type', 'department', 'company', 'status'] as const;
 
 export type SortableColumnId =
-  | (typeof DIRECTIONAL_COLUMNS)[number]
-  | (typeof GROUP_COLUMNS)[number];
+  | (typeof DIRECTIONAL_COLUMN_IDS)[number]
+  | (typeof GROUP_COLUMN_IDS)[number];
 
 export type DocumentsTableSortState =
-  | {kind: 'directional'; column: (typeof DIRECTIONAL_COLUMNS)[number]; direction: 'asc' | 'desc'}
-  | {kind: 'group'; column: (typeof GROUP_COLUMNS)[number]; pivotIndex: number}
+  | {kind: 'directional'; column: (typeof DIRECTIONAL_COLUMN_IDS)[number]; direction: 'asc' | 'desc'}
+  | {kind: 'group'; column: (typeof GROUP_COLUMN_IDS)[number]; pivotIndex: number}
   | null;
 
-const GROUP_VALUE_GETTERS: Record<(typeof GROUP_COLUMNS)[number], (d: Document) => string> = {
-  type: (d) => (d.document_type_name || d.document_type?.name) ?? '',
-  department: (d) => (d.department_name || d.department?.name) ?? '',
-  company: (d) => d.company_name ?? '',
-  status: (d) => d.status ?? '',
+/** Map from group column id to getter that returns the document’s display value for that column. */
+type GroupColumnId = (typeof GROUP_COLUMN_IDS)[number];
+const GROUP_COLUMN_VALUE_GETTERS: Record<GroupColumnId, (doc: Document) => string> = {
+  type: (doc) => (doc.document_type_name || doc.document_type?.name) ?? '',
+  department: (doc) => (doc.department_name || doc.department?.name) ?? '',
+  company: (doc) => doc.company_name ?? '',
+  status: (doc) => doc.status ?? '',
 };
 
-/** Returns the sortable value for a document used in group cycling (alphabetical order). */
-function getGroupValue(doc: Document, column: (typeof GROUP_COLUMNS)[number]): string {
-  const raw = GROUP_VALUE_GETTERS[column](doc);
-  return String(raw).trim() || '–';
+/** Returns sortable string for a document for a group column (used in group cycling). */
+function getDocumentGroupValue(document: Document, groupColumnId: GroupColumnId): string {
+  const rawValue = GROUP_COLUMN_VALUE_GETTERS[groupColumnId](document);
+  const trimmed = String(rawValue).trim();
+  return trimmed || '–';
 }
 
-/** Returns a comparable value for directional sort (name). */
-function getNameValue(doc: Document): string {
-  const raw = doc.name ?? doc.title ?? '';
-  return String(raw)
+/**
+ * Returns a normalized string for name-based comparison (title or name, lowercased).
+ */
+function getDocumentNameForSort(document: Document): string {
+  const rawName = document.name ?? document.title ?? '';
+  return String(rawName)
     .toLowerCase()
     .trim();
 }
 
-/** Numeric-aware string compare for barcode. */
-function compareBarcode(a: string, b: string): number {
-  const na = a.trim();
-  const nb = b.trim();
-  const numA = (/^\d+$/).test(na) ? parseInt(na, 10) : NaN;
-  const numB = (/^\d+$/).test(nb) ? parseInt(nb, 10) : NaN;
-  if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
-    return numA - numB;
+/**
+ * Compares two barcode strings; numeric-only strings are compared as numbers for natural order.
+ */
+function compareBarcodeStrings(barcodeA: string, barcodeB: string): number {
+  const trimmedA = barcodeA.trim();
+  const trimmedB = barcodeB.trim();
+  const numericA = (/^\d+$/).test(trimmedA) ? parseInt(trimmedA, 10) : NaN;
+  const numericB = (/^\d+$/).test(trimmedB) ? parseInt(trimmedB, 10) : NaN;
+  if (!Number.isNaN(numericA) && !Number.isNaN(numericB)) {
+    return numericA - numericB;
   }
-  return na.localeCompare(nb, undefined, {numeric: true});
+  return trimmedA.localeCompare(trimmedB, undefined, {numeric: true});
 }
 
 type NonNullSortState = NonNullable<DocumentsTableSortState>;
 
+/** Item used during sort: document plus its original index for stable sort. */
+type DocumentWithIndex = {document: Document; originalIndex: number};
+
+/**
+ * Sorts documents by a directional column (name, barcode, or uploadDate) asc/desc.
+ */
 function applyDirectionalSort(
-  indexed: Array<{doc: Document; i: number}>,
+  documentsWithIndex: DocumentWithIndex[],
   sortState: Extract<NonNullSortState, {kind: 'directional'}>,
 ): Document[] {
   const {column, direction} = sortState;
-  const mult = direction === 'asc' ? 1 : -1;
+  const directionMultiplier = direction === 'asc' ? 1 : -1;
 
   if (column === 'name') {
-    indexed.sort((a, b) => {
-      const va = getNameValue(a.doc);
-      const vb = getNameValue(b.doc);
-      const c = va.localeCompare(vb, undefined, {sensitivity: 'base'});
-      return c !== 0 ? mult * c : a.i - b.i;
+    documentsWithIndex.sort((itemA, itemB) => {
+      const nameA = getDocumentNameForSort(itemA.document);
+      const nameB = getDocumentNameForSort(itemB.document);
+      const comparison = nameA.localeCompare(nameB, undefined, {sensitivity: 'base'});
+      const byIndex = itemA.originalIndex - itemB.originalIndex;
+      return comparison !== 0 ? directionMultiplier * comparison : byIndex;
     });
   } else if (column === 'barcode') {
-    const ba = (doc: Document) => String(doc.barcode ?? '').trim();
-    indexed.sort((a, b) => {
-      const c = compareBarcode(ba(a.doc), ba(b.doc));
-      return c !== 0 ? mult * c : a.i - b.i;
+    const getBarcodeString = (document: Document) => String(document.barcode ?? '').trim();
+    documentsWithIndex.sort((itemA, itemB) => {
+      const comparison = compareBarcodeStrings(
+        getBarcodeString(itemA.document),
+        getBarcodeString(itemB.document),
+      );
+      const byIndex = itemA.originalIndex - itemB.originalIndex;
+      return comparison !== 0 ? directionMultiplier * comparison : byIndex;
     });
   } else {
-    indexed.sort((a, b) => {
-      const ta = parseDisplayUploadDate(a.doc.upload_date);
-      const tb = parseDisplayUploadDate(b.doc.upload_date);
-      const aVal = ta ?? -Infinity;
-      const bVal = tb ?? -Infinity;
-      const c = aVal - bVal;
-      return c !== 0 ? mult * c : a.i - b.i;
+    // uploadDate: parseDisplayUploadDate (number | null)
+    documentsWithIndex.sort((itemA, itemB) => {
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-call */
+      const uploadTimeA = parseDisplayUploadDate(itemA.document.upload_date) as number | null;
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-call */
+      const uploadTimeB = parseDisplayUploadDate(itemB.document.upload_date) as number | null;
+      const timestampA = uploadTimeA ?? -Infinity;
+      const timestampB = uploadTimeB ?? -Infinity;
+      const comparison = timestampA - timestampB;
+      const byIndex = itemA.originalIndex - itemB.originalIndex;
+      return comparison !== 0 ? directionMultiplier * comparison : byIndex;
     });
   }
-  return indexed.map(({doc}) => doc);
+  return documentsWithIndex.map(({document}) => document);
 }
 
+/**
+ * Sorts by group column: one value at top, rest in alphabetical order.
+ */
 function applyGroupSort(
   documents: Document[],
-  indexed: Array<{doc: Document; i: number}>,
+  documentsWithIndex: DocumentWithIndex[],
   sortState: Extract<NonNullSortState, {kind: 'group'}>,
 ): Document[] {
-  const {column, pivotIndex} = sortState;
-  const values = [...new Set(documents.map((d) => getGroupValue(d, column)))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-  if (values.length === 0) {
+  const {column: groupColumnId, pivotIndex} = sortState;
+  const groupValues = documents.map((document) => getDocumentGroupValue(document, groupColumnId));
+  const baseCompare = (a: string, b: string) => a.localeCompare(b, undefined, {sensitivity: 'base'});
+  const uniqueGroupValuesSorted = [...new Set(groupValues)].sort(baseCompare);
+  if (uniqueGroupValuesSorted.length === 0) {
     return documents;
   }
-  const pivotValue = values[pivotIndex % values.length];
-  const rank = (v: string) => (v === pivotValue ? 0 : 1);
-  const order = (v: string) => {
-    if (v === pivotValue) {
+  const sortedLength = uniqueGroupValuesSorted.length;
+  const pivotGroupValue = uniqueGroupValuesSorted[pivotIndex % sortedLength];
+  /** 0 if value is the pivot (first), else 1. */
+  const getPivotRank = (groupValue: string) => (groupValue === pivotGroupValue ? 0 : 1);
+  /** Order after pivot: 0 for pivot, then 1-based index in sorted list. */
+  const getGroupOrder = (groupValue: string) => {
+    if (groupValue === pivotGroupValue) {
       return 0;
     }
-    const idx = values.indexOf(v);
-    return idx < 0 ? values.length : idx + 1;
+    const valueIndex = uniqueGroupValuesSorted.indexOf(groupValue);
+    return valueIndex < 0 ? uniqueGroupValuesSorted.length : valueIndex + 1;
   };
 
-  indexed.sort((a, b) => {
-    const va = getGroupValue(a.doc, column);
-    const vb = getGroupValue(b.doc, column);
-    const ra = rank(va);
-    const rb = rank(vb);
-    if (ra !== rb) {
-      return ra - rb;
+  documentsWithIndex.sort((itemA, itemB) => {
+    const groupValueA = getDocumentGroupValue(itemA.document, groupColumnId);
+    const groupValueB = getDocumentGroupValue(itemB.document, groupColumnId);
+    const rankA = getPivotRank(groupValueA);
+    const rankB = getPivotRank(groupValueB);
+    if (rankA !== rankB) {
+      return rankA - rankB;
     }
-    const oa = order(va);
-    const ob = order(vb);
-    if (oa !== ob) {
-      return oa - ob;
+    const orderA = getGroupOrder(groupValueA);
+    const orderB = getGroupOrder(groupValueB);
+    if (orderA !== orderB) {
+      return orderA - orderB;
     }
-    return a.i - b.i;
+    return itemA.originalIndex - itemB.originalIndex;
   });
-  return indexed.map(({doc}) => doc);
+  return documentsWithIndex.map(({document}) => document);
 }
 
-/** Applies current sort state to a document list; used by useDocumentsTableSort. */
+/**
+ * Applies the current sort state to the document list (directional or group).
+ */
 function applySort(documents: Document[], sortState: NonNullSortState): Document[] {
   if (documents.length === 0) {
     return documents;
   }
-  const indexed = documents.map((doc, i) => ({doc, i}));
+  const documentsWithIndex: DocumentWithIndex[] = documents.map((document, originalIndex) => ({
+    document,
+    originalIndex,
+  }));
 
   if (sortState.kind === 'directional') {
-    return applyDirectionalSort(indexed, sortState);
+    return applyDirectionalSort(documentsWithIndex, sortState);
   }
-  return applyGroupSort(documents, indexed, sortState);
+  return applyGroupSort(documents, documentsWithIndex, sortState);
 }
 
 /**
@@ -152,48 +191,57 @@ export function useDocumentsTableSort(documents: Document[]) {
     [documents, sortState],
   );
 
-  /** Handles column header sort click: toggles asc/desc for directional columns,
-   * cycles pivot for group columns. */
+  /**
+   * Handles column header sort click: toggles asc/desc for directional columns,
+   * cycles pivot for group columns.
+   */
   const onSortClick = useCallback((columnId: string) => {
-    const dir = columnId as (typeof DIRECTIONAL_COLUMNS)[number];
-    const grp = columnId as (typeof GROUP_COLUMNS)[number];
+    const clickedAsDirectional = columnId as (typeof DIRECTIONAL_COLUMN_IDS)[number];
+    const clickedAsGroup = columnId as (typeof GROUP_COLUMN_IDS)[number];
 
-    if (DIRECTIONAL_COLUMNS.includes(dir)) {
-      setSortState((prev) => {
-        if (prev?.kind === 'directional' && prev.column === dir) {
-          return {kind: 'directional' as const, column: dir, direction: prev.direction === 'asc' ? 'desc' : 'asc'};
+    if (DIRECTIONAL_COLUMN_IDS.includes(clickedAsDirectional)) {
+      setSortState((previousSortState) => {
+        if (previousSortState?.kind === 'directional' && previousSortState.column === clickedAsDirectional) {
+          return {
+            kind: 'directional' as const,
+            column: clickedAsDirectional,
+            direction: previousSortState.direction === 'asc' ? 'desc' : 'asc',
+          };
         }
-        return {kind: 'directional' as const, column: dir, direction: 'asc' as const};
+        return {kind: 'directional' as const, column: clickedAsDirectional, direction: 'asc' as const};
       });
       return;
     }
 
-    if (GROUP_COLUMNS.includes(grp)) {
-      setSortState((prev) => {
-        if (prev?.kind === 'group' && prev.column === grp) {
-          return {kind: 'group' as const, column: grp, pivotIndex: prev.pivotIndex + 1};
+    if (GROUP_COLUMN_IDS.includes(clickedAsGroup)) {
+      setSortState((previousSortState) => {
+        if (previousSortState?.kind === 'group' && previousSortState.column === clickedAsGroup) {
+          return {kind: 'group' as const, column: clickedAsGroup, pivotIndex: previousSortState.pivotIndex + 1};
         }
-        return {kind: 'group' as const, column: grp, pivotIndex: 0};
+        return {kind: 'group' as const, column: clickedAsGroup, pivotIndex: 0};
       });
     }
   }, []);
 
   type SortIconResult = {type: 'asc' | 'desc' | 'group'; groupLabel?: string} | null;
-  /** For header UI: current direction for directional column, or "group" and pivot label. */
+  /** Returns sort icon state for a column: type (asc/desc/group) and optional group label. */
   const getSortIconForColumn = useCallback(
     (columnId: string): SortIconResult => {
       if (!sortState) {
         return null;
       }
-      const dir = columnId as (typeof DIRECTIONAL_COLUMNS)[number];
-      const grp = columnId as (typeof GROUP_COLUMNS)[number];
-      if (sortState.kind === 'directional' && sortState.column === dir) {
+      const columnAsDirectional = columnId as (typeof DIRECTIONAL_COLUMN_IDS)[number];
+      const columnAsGroup = columnId as (typeof GROUP_COLUMN_IDS)[number];
+      if (sortState.kind === 'directional' && sortState.column === columnAsDirectional) {
         return {type: sortState.direction};
       }
-      if (sortState.kind === 'group' && sortState.column === grp) {
-        const values = [...new Set(documents.map((d) => getGroupValue(d, grp)))].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-        const label = values.length > 0 ? values[sortState.pivotIndex % values.length] : undefined;
-        return {type: 'group', groupLabel: label};
+      if (sortState.kind === 'group' && sortState.column === columnAsGroup) {
+        const groupVals = documents.map((doc) => getDocumentGroupValue(doc, columnAsGroup));
+        const uniqueValuesSorted = [...new Set(groupVals)].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
+        const groupLabel = uniqueValuesSorted.length > 0
+          ? uniqueValuesSorted[sortState.pivotIndex % uniqueValuesSorted.length]
+          : undefined;
+        return {type: 'group', groupLabel};
       }
       return null;
     },
