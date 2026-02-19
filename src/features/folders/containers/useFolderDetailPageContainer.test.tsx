@@ -174,7 +174,7 @@ describe("useFolderDetailPageContainer", () => {
     });
 
     await waitFor(() => expect(result.current.data.subDocs.length).toBe(1));
-    result.current.selection.subDocsSelectionConfig.onToggle(2);
+    result.current.selection.subDocsSelectionConfig!.onToggle(2);
     await waitFor(() => expect(result.current.selection.subDocSelectedIds).toContain(2));
 
     expect(result.current.selection.subDocsBatchActions.canBatchTransfer).toBe(true);
