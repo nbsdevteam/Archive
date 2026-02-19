@@ -110,7 +110,32 @@ Custom hooks that follow this order are also checked. The rule is in `eslint-rul
 
 ---
 
-## 8. Comments & documentation
+## 8. Navigate with state to reduce API calls
+
+When the **parent** already has data from its API and the **child** route would otherwise refetch the same (or related) data, pass that data in **navigation state** so the child can use it and skip duplicate API calls.
+
+**Pattern:**
+
+1. **Parent** (e.g. documents list, folder detail): when navigating to a child (e.g. document detail, attachment view), call a shared navigation helper and pass the data you already have.
+2. **Navigation helper** (e.g. in `src/shared/utils/navigation/navigateWithState.ts`): builds the path and calls `navigate(path, { state: { prefetchedDocument, ... } })` only when the prefetched payload matches the target (e.g. same document id).
+3. **Child** (e.g. document detail page): in the data hook, read `useLocation().state`. If state contains prefetched data and the id matches the route param, use it and **do not** call the API. If state is missing (direct URL, refresh, back from elsewhere), **fall back to fetch** as normal.
+
+**Conventions:**
+
+- Define **typed route state** interfaces (e.g. `DocumentDetailRouteState`, `AttachmentViewRouteState`) and use `satisfies` in the navigate call so state is type-safe.
+- Include a **prefetchedAt** (and optional **prefetchedFrom**) in state if you need to reason about staleness or debugging.
+- Child must **validate** that the state applies to the current route (e.g. `routeState?.prefetchedDocument?.id === docId`) before using it; never trust state blindly (user can open a direct link or refresh).
+
+**Where we use it:**
+
+- **Document detail**: Parent (list or folder detail) passes `prefetchedDocument`; `useDocumentDetailData` uses it when ids match, else fetches.
+- **Attachment view**: Parent passes `prefetchedDocTitle` and/or `prefetchedAttachments`; attachment view uses them to avoid extra `getDocument` / listAttachments calls.
+
+This pattern is implemented in many places and significantly reduces redundant API calls when moving from list/detail parent views into child views.
+
+---
+
+## 9. Comments & documentation
 
 - Add a **brief comment** on each function and on **complex hook usage** (e.g. non-obvious state or effect logic).
 - For **services or pure modules** that encode non-trivial rules, add a short “HOW IT WORKS” or “CONSUMERS” block at the top (see e.g. `documentBatchActionsService.ts`).
@@ -118,7 +143,7 @@ Custom hooks that follow this order are also checked. The rule is in `eslint-rul
 
 ---
 
-## 9. TypeScript
+## 10. TypeScript
 
 - **Strict** mode on; no `any` (ESLint error); avoid non-null assertion when possible (warn).
 - Prefer **optional chaining** and **nullish coalescing**.
@@ -127,7 +152,7 @@ Custom hooks that follow this order are also checked. The rule is in `eslint-rul
 
 ---
 
-## 10. Services & pure logic
+## 11. Services & pure logic
 
 - Keep **business rules** in pure, framework-agnostic modules under `shared/services` or feature `utils` when they don’t need React.
 - Document the contract (inputs, outputs, main rules) at the top of the file.
@@ -135,7 +160,7 @@ Custom hooks that follow this order are also checked. The rule is in `eslint-rul
 
 ---
 
-## 11. Testing
+## 12. Testing
 
 - **Unit / integration**: Vitest + React Testing Library. Test files **colocated** with source: `*.test.ts` or `*.test.tsx`.
 - **E2E**: Cypress; specs in `cypress/e2e/`. Use `npm run e2e:slow:ui` when you want to “run that shit” (slow mode + Cypress UI to pick specs).
@@ -150,23 +175,24 @@ Custom hooks that follow this order are also checked. The rule is in `eslint-rul
 
 ---
 
-## 12. Git & workflow
+## 13. Git & workflow
 
 - After every **AI-assisted code completion**, make a **git commit** with a **clear, proper commit message** (e.g. “feat(documents): add table sort by group column”, “fix(toolbar): disable batch trash when main docs selected”).
 
 ---
 
-## 13. i18n
+## 14. i18n
 
 - All user-visible strings go through **react-i18next**: `const { t } = useTranslation();` then `t('common.save')`, `t('documents.uploadSuccess')`, etc.
 - Keys are structured in JSON by namespace (e.g. `common`, `documents`, `folders`). Keep `en.json` and `ar.json` in sync.
 
 ---
 
-## 14. Summary checklist
+## 15. Summary checklist
 
 - [ ] Feature-based folders; path aliases for imports
 - [ ] Containers own state and return grouped object; pages stay thin
+- [ ] When navigating parent → child, pass already-fetched data in navigate state to avoid duplicate API calls; child validates and falls back to fetch when state missing
 - [ ] Hooks in order: state → router/i18n → ref → memo → callback → effect
 - [ ] Brief comments on functions and complex hooks; HOW IT WORKS on non-trivial services
 - [ ] No `any`; strict TypeScript; optional chaining / nullish coalescing
