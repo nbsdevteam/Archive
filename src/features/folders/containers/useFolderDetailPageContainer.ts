@@ -28,8 +28,9 @@ import {
 import type { FolderDetailPageState, FolderDetailModals } from "@/features/folders/types/folderDetailState";
 
 /**
- * Composes folder-detail hooks and returns typed state contract.
- * Single source of truth for folder detail page state shape.
+ * Orchestrator for the Folder detail page: composes data (folder, documents, attachments, notes, activity),
+ * selection (sub-docs + attachments), transfer/upload/signatures/edit-requests, and all action handlers.
+ * Single source of truth for FolderDetailPageState; each concern is delegated to a dedicated sub-hook.
  */
 export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const [attachmentsDocId, setAttachmentsDocId] = useState<number | "">("");
@@ -77,19 +78,21 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     perPage: 50,
   });
 
+  /** Selection state for sub-documents table (ids, config for DataTable, clear). */
   const {
     selectedIds: subDocSelectedIds,
     selectionConfig: subDocsSelectionConfig,
     clear: clearSubDocsSelection,
   } = useSelection<Document>(subDocs, (d) => d.id);
 
+  /** Selection state for attachments list (ids, config, clear). */
   const {
     selectedIds: attachmentSelectedIds,
     selectionConfig: attachmentsSelectionConfig,
     clear: clearAttachmentsSelection,
   } = useSelection<Attachment>(attachments, (a) => a.id);
 
-  /** Batch action visibility for sub-docs from shared service (Transfer/Trash only when allowed for all selected). */
+  /** Batch action visibility for sub-docs: shared service intersection; drives sub-docs toolbar batch buttons. */
   const subDocsBatchActions = useMemo(
     () =>
       getAllowedBatchActionsForDocumentsSelection(

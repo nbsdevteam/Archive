@@ -90,7 +90,7 @@ export const useDocumentsPageContainer = () => {
     isSomeSelected,
   } = list;
 
-  /** Batch action visibility: common-only rules via shared service (no Transfer/Trash when any main doc selected). */
+  /** Batch action visibility: shared service intersection; drives toolbar batch buttons (Transfer/Archive/Trash etc.). */
   const batchActions = useMemo(
     () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
     [documents, selectedDocumentIds]
@@ -198,6 +198,7 @@ export const useDocumentsPageContainer = () => {
     [restoreDocument, t, fetchDocuments, getFetchParams]
   );
 
+  /** Batch trash: moves all selected documents to trash; clears selection and refetches on success. */
   const confirmBatchTrash = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didTrash = await trashDocument(selectedDocumentIds, {
@@ -255,6 +256,7 @@ export const useDocumentsPageContainer = () => {
     if (didRestore) clearSelection();
   }, [clearSelection, fetchDocuments, getFetchParams, restoreDocument, selectedDocumentIds, t]);
 
+  /** Batch archive: archives all selected active documents; clears selection and refetches on success. */
   const confirmBatchArchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
     const didArchive = await archiveDocument(selectedDocumentIds, {
@@ -350,6 +352,7 @@ export const useDocumentsPageContainer = () => {
       setMoveExcludeFolderIds([]);
     }
   }, [isMoveSubmitting]);
+  /** Batch move: calls API to move selected docs to target folder; resets modal state and refetches on success. */
   const handleConfirmBatchMove = useCallback(
     async (targetFolderId: number) => {
       if (moveDocumentIds.length === 0) return;

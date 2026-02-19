@@ -84,7 +84,7 @@ export const useArchivedDocumentsPageContainer = () => {
   const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
     useClientPagination(documents, page, perPage, pagination);
 
-  /** Batch action visibility from shared service (common-only; all listed docs are archived). */
+  /** Batch action visibility from shared service; on archived page only Unarchive/Trash can be offered. */
   const batchActions = useMemo(
     () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
     [documents, selectedDocumentIds]

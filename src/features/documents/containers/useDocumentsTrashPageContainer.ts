@@ -9,6 +9,10 @@ import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/d
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
 
+/**
+ * Container for the Trash page: loads trashed documents, selection, batch restore/permanent-delete.
+ * Returns grouped state (data, loading, selection, actions, modals) for DocumentsTrashPage.
+ */
 export const useDocumentsTrashPageContainer = () => {
   const [documents, setDocuments] = useState<TrashDoc[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,17 +37,18 @@ export const useDocumentsTrashPageContainer = () => {
     selectionConfig: baseSelectionConfig,
     clear: clearSelection,
   } = useSelection<TrashDoc>(paginatedDocuments, (d) => d.id);
+  /** Selected row ids as numbers for batch APIs and batch-action visibility. */
   const selectedDocumentIds = useMemo(
     () => selectedDocumentIdsRaw.map((id) => Number(id)),
     [selectedDocumentIdsRaw]
   );
   const isSomeSelected = selectedDocumentIds.length > 0;
-  /** Batch action visibility: on trash page every row is trashed, so allow batch restore whenever there is a selection
-   * (API may not set status=trashed on list items). Other actions from shared service for consistency. */
+  /** Batch action visibility: shared service + canBatchRestore when any selected (trash page always shows restore). */
   const batchActions = useMemo(() => {
     const base = getAllowedBatchActionsForDocumentsSelection(paginatedDocuments, selectedDocumentIds);
     return { ...base, canBatchRestore: isSomeSelected };
   }, [paginatedDocuments, selectedDocumentIds, isSomeSelected]);
+  /** Selection config with localized row aria-label for trash table. */
   const selectionConfig = useMemo(
     () => ({
       ...baseSelectionConfig,

@@ -1,7 +1,18 @@
 /**
- * Shared service for document batch-action visibility rules.
- * Pure, framework-agnostic: computes which bulk actions are allowed for a selection
- * using "common-only" logic (action shown only if valid for ALL selected documents).
+ * Document batch-action visibility service (pure, framework-agnostic).
+ *
+ * HOW IT WORKS:
+ * - "Common-only" rule: a batch action is shown only if it is valid for EVERY selected document.
+ *   We take the intersection of per-document allowed actions so the toolbar never offers an action
+ *   that would fail or be invalid for some selected items.
+ * - Status normalization: API status strings are mapped to four kinds (active | archived | trashed | unknown)
+ *   so action rules are consistent across list, archived, and trash pages.
+ * - Main-document constraints: Transfer and Trash are allowed only for sub-documents (is_main_document !== true).
+ *   Main documents cannot be moved or trashed in batch to avoid orphaned folders.
+ *
+ * CONSUMERS: Documents list, Archived list, Trash list, and Folder detail (sub-docs/attachments) call
+ * getAllowedBatchActionsForDocumentsSelection(documents, selectedIds) and use the returned booleans
+ * to show/hide batch buttons and wire confirm handlers.
  */
 
 export type DocumentStatusKind = "active" | "archived" | "trashed" | "unknown";
@@ -23,7 +34,7 @@ export interface DocumentBatchActionsResult {
 }
 
 /**
- * Normalizes document status into one of four kinds for action rules.
+ * Normalizes API status into one of four kinds for action rules.
  * Trashed: status contains "trash" or "deleted"; Archived: "archived"; Active: "active"; else unknown.
  */
 export function getDocumentStatusKind(status?: string | null): DocumentStatusKind {
@@ -35,8 +46,9 @@ export function getDocumentStatusKind(status?: string | null): DocumentStatusKin
 }
 
 /**
- * Returns the set of batch actions allowed for a single document (by status and main-doc flag).
- * Used internally to compute intersection across selection.
+ * Returns the set of batch actions allowed for a single document.
+ * Trigger: used once per selected doc when computing intersection.
+ * Safety: main docs never get Transfer/Trash; trashed only Restore; archived get Unarchive (+ Trash if subdoc).
  */
 function getAllowedActionsForDocument(doc: DocumentForBatchActions): Set<keyof DocumentBatchActionsResult> {
   const kind = getDocumentStatusKind(doc.status);
@@ -63,12 +75,9 @@ function getAllowedActionsForDocument(doc: DocumentForBatchActions): Set<keyof D
 }
 
 /**
- * Computes which batch actions are allowed for the current selection using common-only logic.
- * An action is allowed only if every selected document can perform it.
- *
- * @param documents - Full list of documents (or map) to resolve selected ids
- * @param selectedIds - Ids of currently selected documents
- * @returns Object with booleans for each batch action
+ * Computes which batch actions are allowed for the current selection (common-only intersection).
+ * Trigger: called from containers when selection or document list changes; result drives toolbar visibility.
+ * Success: returns an object with true only for actions that every selected document supports.
  */
 export function getAllowedBatchActionsForDocumentsSelection(
   documents: DocumentForBatchActions[],
