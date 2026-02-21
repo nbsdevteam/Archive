@@ -12,7 +12,7 @@ import {
   type SidebarConfig,
   type SidebarNavLinkItem,
   type SidebarProps,
-} from "@nbs/component-library";
+} from "@nbs/component-library/Sidebar";
 
 /** Typed alias so the IDE shows prop suggestions for inline props */
 const NbsSidebar = NbsSidebarImport as React.ComponentType<SidebarProps>;
@@ -111,7 +111,10 @@ const Sidebar = memo(() => {
 
   const onMouseEnter = useCallback(() => {
     setExpandMenu(true);
-    if (document.body.classList.contains("mini-sidebar") || document.documentElement.getAttribute("data-size") === "hoverview") {
+    if (
+      document.body.classList.contains("mini-sidebar") ||
+      document.documentElement.getAttribute("data-size") === "hoverview"
+    ) {
       document.body.classList.add("expand-menu");
     }
   }, [setExpandMenu]);
@@ -126,11 +129,13 @@ const Sidebar = memo(() => {
       setActiveHref(href);
       navigate(href);
     },
-    [navigate]
+    [navigate],
   );
 
   const sidebarConfig = useMemo<SidebarConfig>(() => {
-    function flattenToLinks(menuItems: SidebarMenuItem[]): SidebarNavLinkItem[] {
+    function flattenToLinks(
+      menuItems: SidebarMenuItem[],
+    ): SidebarNavLinkItem[] {
       const out: SidebarNavLinkItem[] = [];
       for (const item of menuItems) {
         if (item.adminOnly && !isAdmin) continue;
@@ -140,9 +145,12 @@ const Sidebar = memo(() => {
         }
         out.push({
           type: "link",
-          name: item.translationKey ? t(`sidebar.${item.translationKey}`) : item.label,
+          name: item.translationKey
+            ? t(`sidebar.${item.translationKey}`)
+            : item.label,
           href: item.link,
-          icon: item.icon && iconMap[item.icon] ? iconMap[item.icon] : undefined,
+          icon:
+            item.icon && iconMap[item.icon] ? iconMap[item.icon] : undefined,
           onClick: handleItemClick,
         });
       }
@@ -227,21 +235,40 @@ const Sidebar = memo(() => {
             <kbd>CTRL + /</kbd>
           </span>
         </div>
-        <div className="d-flex align-items-center justify-content-between menu-item mb-3" role="group" aria-label={t("app.upload", { defaultValue: "Upload" })}>
+        <div
+          className="d-flex align-items-center justify-content-between menu-item mb-3"
+          role="group"
+          aria-label={t("app.upload", { defaultValue: "Upload" })}
+        >
           <div className="me-3">
-            <Link to={all_routes.documentsUpload} className="btn btn-menubar" aria-label={t("app.upload", { defaultValue: "Upload" })}>
+            <Link
+              to={all_routes.documentsUpload}
+              className="btn btn-menubar"
+              aria-label={t("app.upload", { defaultValue: "Upload" })}
+            >
               <i className="ti ti-upload" aria-hidden />
             </Link>
           </div>
           <div className="me-0">
-            <Link to={all_routes.activity} className="btn btn-menubar" aria-label={t("app.archiveActivity", { defaultValue: "Activity" })}>
+            <Link
+              to={all_routes.activity}
+              className="btn btn-menubar"
+              aria-label={t("app.archiveActivity", {
+                defaultValue: "Activity",
+              })}
+            >
               <i className="ti ti-activity" aria-hidden />
             </Link>
           </div>
         </div>
       </div>
 
-      <NbsSidebar config={sidebarConfig} activeHref={activeHref} width="100%" glassEffect={useGlassEffect} />
+      <NbsSidebar
+        config={sidebarConfig}
+        activeHref={activeHref}
+        width="100%"
+        glassEffect={useGlassEffect}
+      />
     </div>
   );
 });

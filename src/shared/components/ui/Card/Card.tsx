@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { Card as NbsCard } from "@nbs/component-library";
+import { Card as NbsCard } from "@nbs/component-library/Card";
 
 interface CardProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ interface CardProps {
   shadow?: boolean;
   glassVariant?: "shine" | "perfume";
   glassRandomHue?: boolean;
- }
+}
 
 export const Card = ({
   children,
@@ -29,8 +29,7 @@ export const Card = ({
   shadow: _shadow = true,
   glassVariant: _glassVariant = "shine",
   glassRandomHue: _glassRandomHue = false,
- }: CardProps) => {
-  
+}: CardProps) => {
   const header =
     title || headerActions ? (
       <div className="d-flex align-items-center justify-content-between">
@@ -40,7 +39,7 @@ export const Card = ({
     ) : undefined;
 
   return (
-    <NbsCard  className={className} header={header} glassEffect={glassEffect}>
+    <NbsCard className={className} header={header} glassEffect={glassEffect}>
       {children}
     </NbsCard>
   );
