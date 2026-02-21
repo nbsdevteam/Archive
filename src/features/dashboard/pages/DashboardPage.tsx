@@ -48,7 +48,7 @@ const DashboardPage = () => {
     return () => registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, undefined);
   }, [registerHandler, handleOpenUploadPanel]);
 
-  const pageTitle = t("dashboard.title");
+  const pageTitle = t("dashboard.title", { defaultValue: "Dashboard" });
 
   const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
@@ -69,7 +69,7 @@ const DashboardPage = () => {
         <div className="card border-0 mb-3">
           <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
             <div>
-              <h3 className="mb-2">{t("dashboard.welcomeBackAdmin")}</h3>
+              <h3 className="mb-2">{t("dashboard.welcomeBackAdmin", { defaultValue: "Welcome back Admin" })}</h3>
               <p className="mb-0">
                 You have{" "}
                 <Link to={routes.notifications} className="text-primary text-decoration-underline">

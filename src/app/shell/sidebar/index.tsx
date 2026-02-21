@@ -184,11 +184,11 @@ const Sidebar = memo(() => {
     >
       <div className="sidebar-logo">
         <Link to={all_routes.adminDashboard} className="logo logo-normal">
-          <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
+          <span className="logo-text">{t("app.nbsArchiveSystem", { defaultValue: "NBS Archive System" })}</span>
         </Link>
         <Link to={all_routes.adminDashboard} className="logo-small" />
         <Link to={all_routes.adminDashboard} className="dark-logo">
-          <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
+          <span className="logo-text">{t("app.nbsArchiveSystem", { defaultValue: "NBS Archive System" })}</span>
         </Link>
       </div>
 

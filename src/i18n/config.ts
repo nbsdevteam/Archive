@@ -10,6 +10,8 @@ void i18n
   .init({
     fallbackLng: "en",
     supportedLngs: ["en", "ar"],
+    /** Synchronous init so first render has translations (no key flash). */
+    initImmediate: false,
     /** Normalize en-US / ar-SA etc. to en / ar so translations and RTL checks work. */
     load: "languageOnly",
     nonExplicitSupportedLngs: true,

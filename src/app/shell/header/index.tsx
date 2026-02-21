@@ -54,7 +54,7 @@ const Header = React.memo(() => {
         <div className="main-header">
           <div className="header-left">
             <Link to={routes.dashboard} className="logo" aria-label={t("app.homeNbsArchive")}>
-              <span className="logo-text">{t("app.nbsArchiveSystem")}</span>
+              <span className="logo-text">{t("app.nbsArchiveSystem", { defaultValue: "NBS Archive System" })}</span>
             </Link>
           </div>
 

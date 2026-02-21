@@ -19,8 +19,8 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        /** Ensures a single React instance so MUI and app share the same hooks (avoids Invalid hook call). */
-        dedupe: ["react", "react-dom"],
+        /** Single React instance (avoids Invalid hook call); single i18n instance (avoids t() returning keys). */
+        dedupe: ["react", "react-dom", "i18next", "react-i18next", "i18next-browser-languagedetector"],
         alias: {
             global: "globalthis", // 👈 critical for "global is not defined"
             "@": path.resolve(__dirname, "src"),
@@ -28,8 +28,8 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        /** Pre-bundle React so MUI and other deps resolve to this copy (single React instance). */
-        include: ["react", "react-dom"],
+        /** Pre-bundle React and i18n so a single instance is used across chunks. */
+        include: ["react", "react-dom", "i18next", "react-i18next", "i18next-browser-languagedetector"],
         esbuildOptions: {
             define: {
                 global: "globalThis",
