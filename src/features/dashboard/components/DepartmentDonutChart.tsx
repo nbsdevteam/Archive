@@ -1,6 +1,8 @@
-import { useMemo } from "react";
-import ReactApexChart from "react-apexcharts";
+import { lazy, Suspense, useMemo } from "react";
 import type { ApexOptions } from "apexcharts";
+
+/** Lazy-loaded to avoid blocking dashboard render; ApexCharts is ~750KB. */
+const ReactApexChart = lazy(() => import("react-apexcharts"));
 
 export interface DepartmentDonutItem {
   department: string;
@@ -105,12 +107,28 @@ export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
 
   return (
     <div className="tw-p-4 tw-box-border">
-      <ReactApexChart
-        type="donut"
-        height={280}
-        options={options}
-        series={series}
-      />
+      <Suspense
+        fallback={
+          <div
+            style={{
+              height: 350,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#888",
+            }}
+          >
+            Loading chart...
+          </div>
+        }
+      >
+        <ReactApexChart
+          type="donut"
+          height={280}
+          options={options}
+          series={series}
+        />
+      </Suspense>
     </div>
   );
 }

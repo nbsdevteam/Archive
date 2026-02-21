@@ -22,9 +22,9 @@ const ForgotPasswordPage = () => {
             <div className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}>
               <div className="authentication-card w-100">
                 <div className={`authen-overlay-item border w-100 ${styles.leftCard}`}>
-                  <h1 className={`text-white display-1 ${styles.leftTitle}`}>
+                  <h2 className={`text-white display-1 ${styles.leftTitle}`}>
                     NBS Archive
-                  </h1>
+                  </h2>
                   <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
                     Recover access to your archive workspace. We'll send reset instructions to your email.
                   </p>
@@ -53,7 +53,7 @@ const ForgotPasswordPage = () => {
                     </div>
                     <div>
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">{t("auth.forgotPassword")}</h2>
+                        <h1 className="mb-2">{t("auth.forgotPassword")}</h1>
                         <p className="mb-0">
                           {t("auth.forgotPasswordSubtitle")}
                         </p>
@@ -80,12 +80,12 @@ const ForgotPasswordPage = () => {
                         </button>
                       </div>
                       <div className="text-center">
-                        <h6 className="fw-normal text-dark mb-0">
+                        <h3 className="fw-normal text-dark mb-0 fs-6">
                           {t("auth.returnTo")}{" "}
                           <Link to={all_routes.login} className="hover-a ms-1">
                             {t("auth.signIn")}
                           </Link>
-                        </h6>
+                        </h3>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">

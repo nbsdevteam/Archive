@@ -7,18 +7,13 @@ import "./i18n/config";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Global CSS: Bootstrap LTR/RTL loaded from head link (pre-paint + BootstrapDirectionSync); app SCSS, icon fonts
-import "../src/assets/css/feather.css";
+// Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; icon fonts (Font Awesome + Tabler only — others removed for performance)
 import "../src/assets/scss/custom.scss";
 import "react-datepicker/dist/react-datepicker.css";
 import "../src/shared/styles/arabic-font.scss";
 import "../src/shared/styles/rtl-overrides.scss";
-import "../src/assets/icon/boxicons/boxicons/css/boxicons.min.css";
-import "../src/assets/icon/weather/weathericons.css";
-import "../src/assets/icon/typicons/typicons.css";
 import "../src/assets/css/fontawesome/css/fontawesome.min.css";
 import "../src/assets/css/fontawesome/css/all.min.css";
-import "../src/assets/icon/ionic/ionicons.css";
 import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
 import "@nbs/component-library/dist/styles.css";
 import "../src/shared/styles/nbs-sidebar-overrides.css";
@@ -45,5 +40,5 @@ createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <App />
     </StrictMode>
-  )
+  ),
 );

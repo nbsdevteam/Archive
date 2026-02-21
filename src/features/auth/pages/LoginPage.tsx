@@ -73,9 +73,9 @@ export default function LoginPage() {
                 <div className={`authen-overlay-item border w-100 ${styles.leftCard}`}>
                   <div className={styles.leftCarousel} data-role={loginAs}>
                     <section className={styles.leftSlide} aria-hidden={loginAs !== "admin"}>
-                      <h1 className={`text-white display-1 ${styles.leftTitle}`}>
+                      <h2 className={`text-white display-1 ${styles.leftTitle}`}>
                         NBS Archive Admin
-                      </h1>
+                      </h2>
                       <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
                         Govern records, manage approvals, and monitor system-wide
                         archive activity with confidence.
@@ -89,9 +89,9 @@ export default function LoginPage() {
                       </div>
                     </section>
                     <section className={styles.leftSlide} aria-hidden={loginAs !== "user"}>
-                      <h1 className={`text-white display-1 ${styles.leftTitle}`}>
+                      <h2 className={`text-white display-1 ${styles.leftTitle}`}>
                         NBS Archive Workspace
-                      </h1>
+                      </h2>
                       <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
                         Upload, organize, and retrieve documents fast with
                         secure access to your archive folders.
@@ -123,7 +123,7 @@ export default function LoginPage() {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">{t("auth.signIn")}</h2>
+                        <h1 className="mb-2">{t("auth.signIn")}</h1>
                         <p className="mb-0">{t("auth.accessWorkspace")}</p>
                       </div>
 
@@ -207,12 +207,12 @@ export default function LoginPage() {
                         </Button>
                       </div>
                       <div className="text-center">
-                        <h6 className="fw-normal text-dark mb-0">
+                        <h3 className="fw-normal text-dark mb-0 fs-6">
                           Don’t have an account?
                           <Link to={all_routes.register} className="hover-a ms-1">
                             {t("auth.createAccount")}
                           </Link>
-                        </h6>
+                        </h3>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">

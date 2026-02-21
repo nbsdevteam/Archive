@@ -31,6 +31,16 @@ const NOTE_COLOR_HEX_MAP: Record<number, string> = {
   9: '#6c757d',
 };
 
+/** Returns black or white for readable text on the given hex background (accessibility contrast). */
+function getContrastColor(hexColor: string): string {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+}
+
 /** Convert HEX color to rgba for note card tint/background usage. */
 function hexToRgba(hexColor: string, alpha: number): string {
   const hex = hexColor.replace('#', '');
@@ -96,7 +106,7 @@ export const NoteCard = ({
         <div className="d-flex justify-content-between align-items-start mb-2">
           <div className="flex-grow-1">
             {note.title && (
-              <h6 className="card-title mb-1" style={{ color: noteColor }}>
+              <h6 className="card-title mb-1" style={{ color: getContrastColor(noteColor) }}>
                 {note.title}
               </h6>
             )}
@@ -105,7 +115,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: noteColor,
+                    color: getContrastColor(noteColor),
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -118,7 +128,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: noteColor,
+                    color: getContrastColor(noteColor),
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -130,7 +140,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: noteColor,
+                    color: getContrastColor(noteColor),
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -143,7 +153,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: noteColor,
+                    color: getContrastColor(noteColor),
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -156,7 +166,7 @@ export const NoteCard = ({
                   type="button"
                   className="badge border-0"
                   style={{
-                    color: noteColor,
+                    color: getContrastColor(noteColor),
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                     cursor: onViewImage ? 'pointer' : 'default',
@@ -227,7 +237,7 @@ export const NoteCard = ({
         >
           {contentPreview}
         </p>
-        <div className="d-flex flex-wrap gap-2 align-items-center small" style={{ color: noteColor }}>
+        <div className="d-flex flex-wrap gap-2 align-items-center small" style={{ color: getContrastColor(noteColor) }}>
           <span>
             <Icon name="user" size={12} className="me-1" />
             {note.user_name}

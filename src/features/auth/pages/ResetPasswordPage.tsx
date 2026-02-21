@@ -103,9 +103,9 @@ const ResetPasswordPage = () => {
               </div>
               <div className="authentication-card w-100">
                 <div className="authen-overlay-item border w-100">
-                  <h1 className="text-white display-1">
+                  <h2 className="text-white display-1">
                     Empowering people <br /> through seamless HR <br /> management.
-                  </h1>
+                  </h2>
                   <div className="my-4 mx-auto authen-overlay-img">
                     <ImageWithBasePath src="assets/img/bg/authentication-bg-01.png" alt="Authentication illustration" />
                   </div>
@@ -132,7 +132,7 @@ const ResetPasswordPage = () => {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h2 className="mb-2">{t("auth.resetPassword")}</h2>
+                        <h1 className="mb-2">{t("auth.resetPassword")}</h1>
                         <p className="mb-0">
                           {t("auth.resetPasswordSubtitle")}
                         </p>

@@ -116,3 +116,29 @@ Adjust `proxy_pass` port and paths to match your actual backend.
 | 4 | Ensure **`/api`** (and **`/websocket`** if used) reach your Python/Odoo backend (reverse proxy or CORS + `VITE_API_BASE_URL`). |
 
 No Python or Odoo is needed to build or serve the frontend; only to run the API that the frontend calls.
+
+---
+
+## Serving Compressed Assets
+
+After running `vite build`, the `/dist/assets/` folder will contain `.gz` and `.br` compressed versions of all JS/CSS files. Configure your web server to serve these pre-compressed files instead of compressing on the fly.
+
+### Nginx
+```nginx
+gzip_static on;
+brotli_static on;
+```
+
+### Apache
+```apache
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css)\.gz$">
+    Header set Content-Encoding gzip
+    Header append Vary Accept-Encoding
+  </FilesMatch>
+  <FilesMatch "\.(js|css)\.br$">
+    Header set Content-Encoding br
+    Header append Vary Accept-Encoding
+  </FilesMatch>
+</IfModule>
+```

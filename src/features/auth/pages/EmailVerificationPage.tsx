@@ -25,10 +25,10 @@ const EmailVerificationPage = () => {
                 />
               </div>
               <div className="authen-overlay-item w-100 p-4">
-                <h4 className="text-white mb-3">{t("auth.whatsNewNbsArchive")}</h4>
+                <h2 className="text-white mb-3 fs-4">{t("auth.whatsNewNbsArchive")}</h2>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
                   <div>
-                    <h6>Summer Vacation Holiday Homework</h6>
+                    <h3 className="fs-6">Summer Vacation Holiday Homework</h3>
                     <p className="mb-0 text-truncate">
                       The school will remain closed from April 20th to June...
                     </p>
@@ -39,7 +39,7 @@ const EmailVerificationPage = () => {
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
                   <div>
-                    <h6>New Academic Session Admission Start(2024-25)</h6>
+                    <h3 className="fs-6">New Academic Session Admission Start(2024-25)</h3>
                     <p className="mb-0 text-truncate">
                       An academic term is a portion of an academic year, the
                       time ....
@@ -51,7 +51,7 @@ const EmailVerificationPage = () => {
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
                   <div>
-                    <h6>Date sheet Final Exam Nursery to Sr.Kg</h6>
+                    <h3 className="fs-6">Date sheet Final Exam Nursery to Sr.Kg</h3>
                     <p className="mb-0 text-truncate">
                       Dear Parents, As the final examination for the session
                       2024-25 is ...
@@ -63,7 +63,7 @@ const EmailVerificationPage = () => {
                 </div>
                 <div className="d-flex align-items-center flex-row mb-3 justify-content-between p-3 br-5 gap-3 card">
                   <div>
-                    <h6>Annual Day Function</h6>
+                    <h3 className="fs-6">Annual Day Function</h3>
                     <p className="mb-0 text-truncate">
                       Annual functions provide a platform for students to
                       showcase their...
@@ -75,7 +75,7 @@ const EmailVerificationPage = () => {
                 </div>
                 <div className="d-flex align-items-center flex-row mb-0 justify-content-between p-3 br-5 gap-3 card">
                   <div>
-                    <h6>Summer Vacation Holiday Homework</h6>
+                    <h3 className="fs-6">Summer Vacation Holiday Homework</h3>
                     <p className="mb-0 text-truncate">
                       The school will remain closed from April 20th to June 15th
                       for summer...
@@ -111,13 +111,13 @@ const EmailVerificationPage = () => {
                           </p>
                         </div>
                         <div className="text-center mb-3">
-                          <h6 className="fw-normal text-dark mb-0">
+                          <h3 className="fw-normal text-dark mb-0 fs-6">
                             Didn’t receive an email?
                             <Link to="#" className="hover-a " aria-label={t("auth.resendVerificationLink")}>
                               {" "}
                               {t("auth.resendLink")}
                             </Link>
-                          </h6>
+                          </h3>
                         </div>
                         <button
                           type="submit"
