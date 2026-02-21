@@ -1731,31 +1731,6 @@ span.p-dropdown-label.p-inputtext span {
     }
   }
 }
-//antd
-.ant-input {
-  font-family: "Roboto", sans-serif;
-}
-.ant-input-outlined:focus-within {
-  box-shadow: none;
-}
-.ant-picker .ant-picker-input > input {
-  color: #0d0d0d;
-}
-.ant-checkbox-checked .ant-checkbox-inner {
-  background-color: rgb(var(--primary-rgb));
-  border-color: rgb(var(--primary-rgb));
-}
-.ant-checkbox:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
-  border-color: rgb(var(--primary-rgb));
-}
-.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover
-  .ant-checkbox-checked:not(.ant-checkbox-disabled)
-  .ant-checkbox-inner {
-  background-color: rgb(var(--primary-rgb));
-}
-.ant-checkbox-indeterminate .ant-checkbox-inner::after {
-  background-color: rgb(var(--primary-rgb));
-}
 //Custom Select
 [data-theme="dark"] {
   .react-select__control {
@@ -1854,12 +1829,18 @@ b {
 }
 
 // Headings default to 400 (page title will opt-in to 500)
-h1, .h1,
-h2, .h2,
-h3, .h3,
-h4, .h4,
-h5, .h5,
-h6, .h6 {
+h1,
+.h1,
+h2,
+.h2,
+h3,
+.h3,
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
   font-weight: 400;
 }
 

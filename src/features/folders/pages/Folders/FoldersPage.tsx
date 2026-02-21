@@ -16,7 +16,8 @@ import { FoldersModals } from "./FoldersModals";
 const FoldersPage = () => {
   const { t } = useTranslation();
   const { registerHandler } = useShortcuts();
-  const { data, loading, error, filter, paging, actions, modals } = useFoldersPageContainer();
+  const { data, loading, error, filter, paging, actions, modals } =
+    useFoldersPageContainer();
 
   useEffect(() => {
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
@@ -27,11 +28,25 @@ const FoldersPage = () => {
     registerHandler(SHORTCUT_KEYS.OPEN_FILTER, () => filter.handleOpenFilter());
     return () => registerHandler(SHORTCUT_KEYS.OPEN_FILTER, undefined);
   }, [registerHandler, filter.handleOpenFilter]);
-  const { routes, viewMode, setViewMode, filteredFolders, foldersCountLabel, formatDate } = data;
-  const deleteFolderDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDeleteFolder });
+  const {
+    routes,
+    viewMode,
+    setViewMode,
+    filteredFolders,
+    foldersCountLabel,
+    formatDate,
+  } = data;
+  const deleteFolderDialog = useConfirmDialog<number>({
+    onConfirm: actions.confirmDeleteFolder,
+  });
 
   return (
-    <PageLayout title={t("folders.title", { defaultValue: "Folders" })} breadcrumbItems={[]} homeTo={routes.adminDashboard} rightContent={<CollapseHeader />}>
+    <PageLayout
+      title={t("folders.title", { defaultValue: "Folders" })}
+      breadcrumbItems={[]}
+      homeTo={routes.adminDashboard}
+      rightContent={<CollapseHeader />}
+    >
       <div className="card folders__table-card">
         <FoldersToolbar
           t={t}
@@ -49,11 +64,21 @@ const FoldersPage = () => {
             handlePrimaryFilterChange: filter.handlePrimaryFilterChange,
             handleSecondaryFilterChange: filter.handleSecondaryFilterChange,
             handleTertiaryFilterChange: filter.handleTertiaryFilterChange,
+            handleDateRangeModeChange: filter.handleDateRangeModeChange,
+            handleDateRangeChange: filter.handleDateRangeChange,
             handleApplyFilter: filter.handleApplyFilter,
             handleClearFilter: filter.handleClearFilter,
+            handleCancelFilter: filter.handleCancelFilter,
             filterApplyDisabled: filter.filterApplyDisabled,
+            dateRangeFromDate: filter.dateRangeFromDate,
+            dateRangeToDate: filter.dateRangeToDate,
+            dateRangeMode: filter.dateRangeMode,
+            hasAppliedDateFilter: filter.hasAppliedDateFilter,
           }}
-          actions={{ handleSearchDebounced: actions.handleSearchDebounced, handleRefresh: actions.handleRefresh }}
+          actions={{
+            handleSearchDebounced: actions.handleSearchDebounced,
+            handleRefresh: actions.handleRefresh,
+          }}
           loading={loading}
         />
         <FoldersContent
@@ -67,23 +92,29 @@ const FoldersPage = () => {
           actions={{
             handleRefresh: actions.handleRefresh,
             handleNavigateToFolder: actions.handleNavigateToFolder,
-            handleGridKeyDown: (id, e) => actions.handleGridKeyDown(id, e as React.KeyboardEvent<HTMLDivElement>),
+            handleGridKeyDown: (id, e) =>
+              actions.handleGridKeyDown(
+                id,
+                e as React.KeyboardEvent<HTMLDivElement>,
+              ),
             handleOpenEditFolder: actions.handleOpenEditFolder,
             getFolderStatusBadgeVariant: actions.getFolderStatusBadgeVariant,
           }}
           onDeleteClick={(id) => deleteFolderDialog.open(id)}
         />
-        {paging.pagination && (paging.pagination.total_pages > 0 || (paging.pagination.total ?? 0) > 0) && (
-          <PaginationSection
-            page={paging.pagination.page ?? 1}
-            perPage={paging.pagination.per_page ?? 20}
-            total={paging.pagination.total}
-            totalPages={paging.pagination.total_pages}
-            onPageChange={paging.handlePageChange}
-            onPerPageChange={paging.handlePerPageChange}
-            disabled={loading}
-          />
-        )}
+        {paging.pagination &&
+          (paging.pagination.total_pages > 0 ||
+            (paging.pagination.total ?? 0) > 0) && (
+            <PaginationSection
+              page={paging.pagination.page ?? 1}
+              perPage={paging.pagination.per_page ?? 20}
+              total={paging.pagination.total}
+              totalPages={paging.pagination.total_pages}
+              onPageChange={paging.handlePageChange}
+              onPerPageChange={paging.handlePerPageChange}
+              disabled={loading}
+            />
+          )}
       </div>
       <FoldersModals
         t={t}

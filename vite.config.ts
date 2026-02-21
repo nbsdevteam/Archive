@@ -12,7 +12,7 @@ export default defineConfig({
     alias: {
       global: "globalthis", // 👈 critical for "global is not defined"
       "@": path.resolve(__dirname, "src"),
-       moment: 'moment/moment.js'
+      moment: "moment/moment.js",
     },
   },
   optimizeDeps: {
@@ -52,8 +52,8 @@ export default defineConfig({
        * - Your frontend code can call `/api/...`
        * - Vite forwards that request to the backend target below
        */
-      '/api': {
-        target: 'http://192.168.116.15:8070',
+      "/api": {
+        target: "http://192.168.116.15:8070",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
@@ -64,8 +64,8 @@ export default defineConfig({
        *   ws://localhost:3003/websocket
        * and Vite will forward it to the backend WS server.
        */
-      '/websocket': {
-        target: 'ws://192.168.116.15:8070',
+      "/websocket": {
+        target: "ws://192.168.116.15:8070",
         /**
          * Enables WebSocket proxying. Without this, WS upgrade requests won't be forwarded.
          */
@@ -104,7 +104,6 @@ export default defineConfig({
               return "mui-vendor";
             }
             if (
-              normalizedId.includes("antd") ||
               normalizedId.includes("react-bootstrap") ||
               normalizedId.includes("react-feather") ||
               normalizedId.includes("apexcharts")

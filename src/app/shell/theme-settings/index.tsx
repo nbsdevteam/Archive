@@ -1,35 +1,17 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ColorPicker } from "antd";
-import type { ColorPickerProps, GetProp } from "antd";
 import { Link } from "react-router-dom";
+import { ColorPicker, type ColorPickerChangeMeta } from "../../../shared/components/ui";
 import { useLayoutStore } from "../../../shared/stores/layoutStore";
 import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
-
-type Color = Extract<GetProp<ColorPickerProps, "value">, string | { cleared: any }>;
 
 const ThemeSettings = () => {
   const { t } = useTranslation();
   const { layout, setLayout } = useLayoutStore();
   const { color, customColor, setColor, setCustomColor } = useThemeColorStore();
-  const [pickerValue, setPickerValue] = useState<Color>(
-    customColor ? `rgb(${customColor})` : ""
-  );
 
-  useEffect(() => {
-    setPickerValue(customColor ? `rgb(${customColor})` : "");
-  }, [customColor]);
-
-  const handlePickerChange = (value: Color) => {
-    setPickerValue(value);
-    const rgbString =
-      typeof value === "string" ? value : value?.toRgbString?.();
-    if (!rgbString) return;
-    const normalized = rgbString.replace(/rgb\(|\)/g, "").trim();
-    if (normalized) {
-      setCustomColor(normalized);
-      setColor("all");
-    }
+  const handlePickerChange = (_rgbCss: string, meta: ColorPickerChangeMeta) => {
+    setCustomColor(meta.rgbTriplet);
+    setColor("all");
   };
 
   const handleSetLayoutDefault = () => setLayout("default");
@@ -96,7 +78,10 @@ const ThemeSettings = () => {
                   {t("app.chooseLayout")}
                 </button>
               </h2>
-              <div id="layoutsetting" className="accordion-collapse collapse show">
+              <div
+                id="layoutsetting"
+                className="accordion-collapse collapse show"
+              >
                 <div className="accordion-body">
                   <div className="row gx-3">
                     <div className="col-6">
@@ -109,7 +94,9 @@ const ThemeSettings = () => {
                           onChange={handleSetLayoutDefault}
                         />
                         <label htmlFor="defaultLayout">
-                          <span className="layout-type">{t("app.layoutDefault")}</span>
+                          <span className="layout-type">
+                            {t("app.layoutDefault")}
+                          </span>
                         </label>
                       </div>
                     </div>
@@ -123,7 +110,9 @@ const ThemeSettings = () => {
                           onChange={handleSetLayoutModern}
                         />
                         <label htmlFor="modernLayout">
-                          <span className="layout-type">{t("app.layoutModern")}</span>
+                          <span className="layout-type">
+                            {t("app.layoutModern")}
+                          </span>
                         </label>
                       </div>
                     </div>
@@ -144,7 +133,10 @@ const ThemeSettings = () => {
                   Theme Colors
                 </button>
               </h2>
-              <div id="colorsetting" className="accordion-collapse collapse show">
+              <div
+                id="colorsetting"
+                className="accordion-collapse collapse show"
+              >
                 <div className="accordion-body pb-2">
                   <div className="d-flex align-items-center flex-wrap">
                     <div className="theme-colorsset me-2 mb-2">
@@ -178,7 +170,10 @@ const ThemeSettings = () => {
                         checked={color === "brightblue"}
                         onChange={handleSetColorBrightblue}
                       />
-                      <label htmlFor="brightblueColor" className="brightblue-clr" />
+                      <label
+                        htmlFor="brightblueColor"
+                        className="brightblue-clr"
+                      />
                     </div>
                     <div className="theme-colorsset me-2 mb-2">
                       <input
@@ -189,7 +184,10 @@ const ThemeSettings = () => {
                         checked={color === "lunargreen"}
                         onChange={handleSetColorLunargreen}
                       />
-                      <label htmlFor="lunargreenColor" className="lunargreen-clr" />
+                      <label
+                        htmlFor="lunargreenColor"
+                        className="lunargreen-clr"
+                      />
                     </div>
                     <div className="theme-colorsset me-2 mb-2">
                       <input
@@ -222,7 +220,10 @@ const ThemeSettings = () => {
                         checked={color === "chromeyellow"}
                         onChange={handleSetColorChromeyellow}
                       />
-                      <label htmlFor="chromeyellowColor" className="chromeyellow-clr" />
+                      <label
+                        htmlFor="chromeyellowColor"
+                        className="chromeyellow-clr"
+                      />
                     </div>
                     <div className="theme-colorsset me-2 mb-2">
                       <input
@@ -244,7 +245,14 @@ const ThemeSettings = () => {
                       <div className="select-color position-absolute">
                         <i className="ti ti-palette" />
                       </div>
-                      <ColorPicker value={pickerValue} onChange={handlePickerChange} />
+                      <ColorPicker
+                        value={customColor || undefined}
+                        onChange={handlePickerChange}
+                        ariaLabel={t("app.chooseThemeColor", {
+                          defaultValue: "Choose theme color",
+                        })}
+                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                      />
                     </div>
                   </div>
                 </div>
