@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
@@ -9,11 +9,43 @@ import { PageLayout } from "../../../shared/layout/PageLayout";
 const UploadDocumentSidePanel = lazy(() =>
   import("../../documents/components/UploadDocument/UploadDocumentSidePanel").then((m) => ({ default: m.UploadDocumentSidePanel }))
 );
-/** Lazy-loaded so charts-vendor (ApexCharts) only loads when dashboard charts are visible. */
-const DepartmentDonutChart = lazy(() =>
+import type { DepartmentDonutItem } from "../components/DepartmentDonutChart";
+import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
+
+/** Lazy-loaded so charts-vendor (ApexCharts) only loads when chart section is in view. */
+const DepartmentDonutChartLazy = lazy(() =>
   import("../components/DepartmentDonutChart").then((m) => ({ default: m.DepartmentDonutChart }))
 );
-import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
+
+/** Wraps donut chart in IntersectionObserver so charts-vendor loads only when section scrolls into view. */
+function LazyDonutChart(props: { items: DepartmentDonutItem[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div ref={ref}>
+      {visible && (
+        <Suspense fallback={<div style={{ height: 300 }} aria-hidden />}>
+          <DepartmentDonutChartLazy {...props} />
+        </Suspense>
+      )}
+    </div>
+  );
+}
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "../styles/dashboard.css";
@@ -214,9 +246,7 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <>
-                        <Suspense fallback={<div style={{ height: 300 }} aria-hidden />}>
-                          <DepartmentDonutChart items={documentsByDepartment} />
-                        </Suspense>
+                        <LazyDonutChart items={documentsByDepartment} />
                         <div className="dashboard-donut-info mt-3 px-2">
                           <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">
@@ -240,9 +270,7 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <>
-                        <Suspense fallback={<div style={{ height: 300 }} aria-hidden />}>
-                          <DepartmentDonutChart items={foldersByDepartmentItems} />
-                        </Suspense>
+                        <LazyDonutChart items={foldersByDepartmentItems} />
                         <div className="dashboard-donut-info mt-3 px-2">
                           <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">

@@ -34,8 +34,6 @@ export const preloadOnInteraction = (componentPath: string): void => {
 
 // Initialize preloading on app startup
 export const initializePreloading = (): (() => void) | void => {
-  preloadCriticalComponents();
-
   if (typeof window !== "undefined") {
     const handleRouteChange = (): void => {
       preloadRouteComponents(window.location.pathname);
