@@ -9,6 +9,7 @@ type State = {
   hasError: boolean;
 };
 
+/** App-level error boundary: catches render errors in child tree and shows fallback. */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 
@@ -17,7 +18,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // You can log error to an error reporting service here
     console.error("ErrorBoundary caught an error", error, errorInfo);
   }
 

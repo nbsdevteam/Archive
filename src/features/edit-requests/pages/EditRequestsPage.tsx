@@ -1,4 +1,4 @@
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import "../styles/edit-requests.css";
 import { Spinner, Alert } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";

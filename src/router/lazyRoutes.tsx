@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { LoadingSpinner } from "../core/common/LoadingSpinner";
+import { LoadingSpinner } from "../app/shell/LoadingSpinner";
 
 class LazyErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },

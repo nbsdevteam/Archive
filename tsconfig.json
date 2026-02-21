@@ -47,10 +47,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/hooks/*": ["src/core/hooks/*"],
-      "@/utils/*": ["src/core/utils/*"],
-      "@/types/*": ["src/core/data/types/*"],
       "@/assets/*": ["src/assets/*"],
       "@/styles/*": ["src/assets/scss/*"]
     },

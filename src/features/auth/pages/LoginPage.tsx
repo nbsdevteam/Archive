@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import ImageWithBasePath from "@/app/shell/imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
 import { useLogin } from "../hooks/useLogin";
 import { LoginRoleToggle, type LoginRole } from "../components/LoginRoleToggle";

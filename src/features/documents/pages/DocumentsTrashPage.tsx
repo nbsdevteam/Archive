@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, ListFilter } from "@/shared/components/ui";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { PageLayout } from "@/shared/layout/PageLayout";

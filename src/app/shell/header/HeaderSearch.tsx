@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { searchApi } from "../../../app/adapter/api/search.api";
-import type { SearchResult } from "../../../app/adapter/api/search.api";
+import { searchApi } from "../../adapter/api/search.api";
+import type { SearchResult } from "../../adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
 export interface HeaderSearchProps {
   routes: Record<string, string>;

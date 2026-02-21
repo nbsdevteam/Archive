@@ -1,5 +1,4 @@
-
-import { img_path} from '../../../environment';
+import { img_path } from "../../../environment";
 
 /** Props for the image component (avoids conflict with global Image type). */
 export interface ImageWithBasePathProps {
@@ -13,7 +12,6 @@ export interface ImageWithBasePathProps {
 }
 
 const ImageWithBasePath = (props: ImageWithBasePathProps) => {
-  // Combine the base path and the provided src to create the full image source URL
   const fullSrc = `${img_path}${props.src}`;
   return (
     <img

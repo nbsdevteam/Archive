@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState,memo } from "react";
+import { useCallback, useEffect, useMemo, useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../imageWithBasePath";
 import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
-import { SidebarDataTest } from "../../data/json/sidebarMenu";
+import { SidebarDataTest } from "../../config/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
 import { IS_ADMIN } from "../../../shared/constants/access";
 import {

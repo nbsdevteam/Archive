@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import Header from "../../core/common/header";
-import Sidebar from "../../core/common/sidebar";
-import ThemeSettings from "../../core/common/theme-settings";
+import Header from "../../app/shell/header";
+import Sidebar from "../../app/shell/sidebar";
+import ThemeSettings from "../../app/shell/theme-settings";
 import { useSidebarUiStore } from "../stores/sidebarUiStore";
 import { ShortcutsProvider } from "../shortcuts/ShortcutsContext";
 import { ShortcutsOverlay } from "../components/ShortcutsOverlay";

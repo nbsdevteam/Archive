@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import type { Document } from "@/app/adapter/api/documents.api";

@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Alert, Button, Icon } from "@/shared/components/ui";
-import { LoadingSpinner } from "@/core/common/LoadingSpinner";
+import { LoadingSpinner } from "@/app/shell/LoadingSpinner";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { AttachmentSidePanel } from "@/features/documents/components";
 import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocumentDetailDialogs";

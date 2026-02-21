@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Spinner, Alert, Input } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";

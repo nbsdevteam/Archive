@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { useNavigate } from "react-router-dom";
-import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import ImageWithBasePath from "@/app/shell/imageWithBasePath";
 import { Link } from "react-router-dom";
 import { InputOtp } from "primereact/inputotp";
 

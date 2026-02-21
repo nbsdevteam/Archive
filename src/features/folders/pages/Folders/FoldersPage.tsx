@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { useConfirmDialog } from "@/shared/hooks";

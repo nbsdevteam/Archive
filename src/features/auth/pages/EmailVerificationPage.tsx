@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { all_routes } from "../../../router/all_routes";
 import { Link, useNavigate } from "react-router-dom";
-import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import ImageWithBasePath from "@/app/shell/imageWithBasePath";
 
 const EmailVerificationPage = () => {
   const { t } = useTranslation();

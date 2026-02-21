@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { ThemeProvider } from "./ThemeProvider";
-import { PerformanceProvider } from "../../core/providers/PerformanceProvider";
-import ErrorBoundary from "../../components/ErrorBoundary/ErrorBoundary";
+import { PerformanceProvider } from "./PerformanceProvider";
+import ErrorBoundary from "../components/ErrorBoundary/ErrorBoundary";
 
 type AppProvidersProps = {
   children: ReactNode;

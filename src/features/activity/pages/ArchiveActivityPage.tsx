@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button } from "../../../shared/components/ui";
 import { PaginationSection } from "../../../shared/components/PaginationSection";

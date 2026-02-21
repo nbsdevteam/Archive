@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog } from "@/shared/hooks";
 import { Alert, Button, DataTable, Icon, SearchInput } from "@/shared/components/ui";

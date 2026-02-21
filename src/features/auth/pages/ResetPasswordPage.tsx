@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
-import ImageWithBasePath from "../../../core/common/imageWithBasePath";
+import ImageWithBasePath from "@/app/shell/imageWithBasePath";
 
 type PasswordField = "password" | "confirmPassword";
 
