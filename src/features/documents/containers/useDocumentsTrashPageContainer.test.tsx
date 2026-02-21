@@ -15,7 +15,7 @@ const mockRestoreDocument = vi.fn();
 const mockPermanentDeleteSingle = vi.fn();
 const mockPermanentDeleteBatch = vi.fn();
 
-vi.mock("../../../app/adapter/api/documents.api", () => ({
+vi.mock("@/app/adapter/api/documents.api", () => ({
   documentsApi: {
     listTrashDocuments: (...args: unknown[]) => mockListTrashDocuments(...args),
   },
@@ -30,7 +30,7 @@ const wrapWithOnSuccess =
     if (ok && options?.onSuccess) await options.onSuccess();
     return ok;
   };
-vi.mock("../../../hooks/useDocumentOperations", () => ({
+vi.mock("@/features/documents/hooks/useDocumentOperations", () => ({
   useDocumentOperations: () => ({
     isRestoring: false,
     isPermanentDeleting: false,
@@ -40,7 +40,7 @@ vi.mock("../../../hooks/useDocumentOperations", () => ({
   }),
 }));
 
-vi.mock("../../auth/hooks/useAuth", () => ({
+vi.mock("@/features/auth/hooks/useAuth", () => ({
   useAuth: () => ({
     user: { role: "admin", is_admin: true },
   }),

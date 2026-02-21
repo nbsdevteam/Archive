@@ -19,8 +19,8 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        /** Single React instance (avoids Invalid hook call); single i18n instance (avoids t() returning keys). */
-        dedupe: ["react", "react-dom", "i18next", "react-i18next", "i18next-browser-languagedetector"],
+        /** Ensures a single React instance so MUI and app share the same hooks (avoids Invalid hook call). */
+        dedupe: ["react", "react-dom"],
         alias: {
             global: "globalthis", // 👈 critical for "global is not defined"
             "@": path.resolve(__dirname, "src"),
@@ -28,8 +28,8 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        /** Pre-bundle React and i18n so a single instance is used across chunks. */
-        include: ["react", "react-dom", "i18next", "react-i18next", "i18next-browser-languagedetector"],
+        /** Pre-bundle React so MUI and other deps resolve to this copy (single React instance). */
+        include: ["react", "react-dom"],
         esbuildOptions: {
             define: {
                 global: "globalThis",
@@ -88,28 +88,24 @@ export default defineConfig({
     build: {
         /** Target modern browsers for smaller output; tree shaking works best with ESM. */
         target: "es2020",
+        /** Single predictable CSS bundle so we can safely preload `/assets/index.css` in index.html. */
+        cssCodeSplit: false,
         /** Enable Rollup tree shaking: remove unused exports and dead code. */
         rollupOptions: {
             treeshake: {
-                /**
-                 * Preserve side effects in our own src files (i18n init, theme stores, bootstrap)
-                 * while still tree-shaking external node_modules.
-                 * Using a function avoids the bug where "no-external" strips internal side-effect
-                 * imports like `void i18n.init(...)` in src/i18n/config.ts.
-                 */
-                moduleSideEffects: (id) => {
-                    const norm = id.replace(/\\/g, "/");
-                    if (norm.includes("/src/")) return true;
-                    if (norm.includes("node_modules")) return false;
-                    return true;
-                },
+                moduleSideEffects: "no-external",
                 propertyReadSideEffects: false,
             },
             output: {
                 /** Named chunks improve caching and allow better tree-shaken vendor splits. */
                 chunkFileNames: "assets/[name]-[hash].js",
                 entryFileNames: "assets/[name]-[hash].js",
-                assetFileNames: "assets/[name]-[hash][extname]",
+                assetFileNames: (assetInfo) => {
+                    const name = assetInfo.name ?? "";
+                    if (name.endsWith(".css"))
+                        return "assets/index.css";
+                    return "assets/[name]-[hash][extname]";
+                },
                 manualChunks(id) {
                     const normalizedId = id.split("\\").join("/");
                     // React core — must load first

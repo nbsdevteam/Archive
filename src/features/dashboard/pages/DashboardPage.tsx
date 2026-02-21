@@ -176,10 +176,10 @@ const DashboardPage = () => {
                                 <li key={n.id} className="mb-2 pb-2 border-bottom">
                                   <div className="d-flex align-items-start justify-content-between">
                                     <div className="flex-grow-1 min-w-0">
-                                      <h6 className="mb-0 fs-13 text-truncate">
+                                      <h4 className="mb-0 fs-13 text-truncate">
                                         {!n.is_read && <span className="badge bg-primary rounded-pill me-1">{t("app.new")}</span>}
                                         {n.title}
-                                      </h6>
+                                      </h4>
                                       <p className="mb-0 small text-muted text-truncate">{n.message}</p>
                                       <small className="text-muted">
                                         {n.created_at ?? ""}
@@ -208,7 +208,7 @@ const DashboardPage = () => {
                       <>
                         <DepartmentDonutChart items={documentsByDepartment} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
+                          <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">
                             This visualization displays the distribution of documents across all departments in your organization. 
                             Use this data to identify departments with the highest document volume, track content growth patterns, 
@@ -232,7 +232,7 @@ const DashboardPage = () => {
                       <>
                         <DepartmentDonutChart items={foldersByDepartmentItems} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
+                          <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">
                             This chart shows how folders are organized across your departments, providing insights into content 
                             structure and storage patterns. Monitor which departments maintain the most folders, identify areas 

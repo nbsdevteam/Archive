@@ -89,6 +89,8 @@ export default defineConfig({
   build: {
     /** Target modern browsers for smaller output; tree shaking works best with ESM. */
     target: "es2020",
+    /** Single predictable CSS bundle so we can safely preload `/assets/index.css` in index.html. */
+    cssCodeSplit: false,
     /** Enable Rollup tree shaking: remove unused exports and dead code. */
     rollupOptions: {
       treeshake: {
@@ -99,7 +101,11 @@ export default defineConfig({
         /** Named chunks improve caching and allow better tree-shaken vendor splits. */
         chunkFileNames: "assets/[name]-[hash].js",
         entryFileNames: "assets/[name]-[hash].js",
-        assetFileNames: "assets/[name]-[hash][extname]",
+        assetFileNames: (assetInfo) => {
+          const name = assetInfo.name ?? "";
+          if (name.endsWith(".css")) return "assets/index.css";
+          return "assets/[name]-[hash][extname]";
+        },
         manualChunks(id) {
           const normalizedId = id.split("\\").join("/");
           // React core — must load first
