@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { Button, Spinner, Alert, Icon, Card, InfoWrapper } from "@/shared/components/ui";
+import { Button, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
 import type { Folder } from "../../types/folders.types";
 
 export interface FoldersContentProps {
@@ -100,7 +100,7 @@ export function FoldersContent(props: FoldersContentProps) {
             filteredFolders.map((folder) => (
               <div className="col-xl-3 col-md-6" key={folder.id}>
                 <div className="folders__grid-card-wrapper" role="button" tabIndex={0} data-folder-id={folder.id} onClick={handleGridCardClick} onKeyDown={handleGridCardKeyDown} aria-label={t("folders.openFolder", { defaultValue: "Open folder" }) + ` ${folder.name}`}>
-                  <Card className="folders__grid-card" bordered={false}>
+                  <div className="card folders__grid-card">
                     <div className="card-body folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">
                         <span className="folders__folder-icon p-2 br-10 d-flex align-items-center justify-content-center">
@@ -141,7 +141,7 @@ export function FoldersContent(props: FoldersContentProps) {
                         </button>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 </div>
               </div>
             ))

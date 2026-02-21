@@ -2,12 +2,6 @@
   margin-bottom: 1rem;
 }
 
-/* Remove NBS Card body padding only on folders page (grid and table use Bootstrap .card-body inside). */
-.folders__table-card [class*="Card-module__body"],
-.folders__grid-card [class*="Card-module__body"] {
-  padding: 0;
-}
-
 .folders__view-toggle {
   display: inline-flex;
   flex-direction: row;
