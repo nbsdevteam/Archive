@@ -8,7 +8,8 @@ const FOLDER_ID = 100;
 
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
-const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
+/** App fetches companies via jsonRpcRequest; stub must return JSON-RPC envelope with result. */
+const adminCompanies = { jsonrpc: '2.0', result: { success: true, data: [{ id: 1, name: 'E2E Company' }] }, id: 1 };
 const foldersList = { result: { folders: [{ id: FOLDER_ID, name: 'Test Folder', code: 'TF', department_id: 1 }] } };
 
 describe('Create document and add secondary', () => {

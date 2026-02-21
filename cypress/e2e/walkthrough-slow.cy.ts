@@ -15,8 +15,8 @@ function waitStep() {
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
 const adminTags = { result: { success: true, data: [] } };
-/** Folder Company/Brand is required for main-document upload; stub so submit button enables. */
-const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
+/** Folder Company/Brand is required for main-document upload. App uses jsonRpcRequest so response must be JSON-RPC envelope with result. */
+const adminCompanies = { jsonrpc: '2.0', result: { success: true, data: [{ id: 1, name: 'E2E Company' }] }, id: 1 };
 
 describe('Walkthrough: login and upload (slow)', () => {
   beforeEach(() => {

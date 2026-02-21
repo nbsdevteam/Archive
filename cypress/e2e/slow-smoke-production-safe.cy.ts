@@ -23,7 +23,8 @@ function waitStep() {
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
 const adminTags = { result: { success: true, data: [] } };
-const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
+/** Companies fetched via jsonRpcRequest; response must be JSON-RPC envelope with result. */
+const adminCompanies = { jsonrpc: '2.0', result: { success: true, data: [{ id: 1, name: 'E2E Company' }] }, id: 1 };
 const foldersListBulk = { result: { folders: [{ id: FOLDER_ID_BULK, name: 'Test Folder', code: 'TF', department_id: 1 }] } };
 const foldersListEmpty = { result: { folders: [] } };
 

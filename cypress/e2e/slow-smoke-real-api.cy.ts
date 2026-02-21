@@ -213,8 +213,8 @@ describe('Slow smoke (real API) — flow options', () => {
       if (err.name === 'ZodError' || (err.message && err.message.includes('ZodError'))) return false;
       return true;
     });
-    // Stub companies so Folder Company/Brand dropdown has options (required for main-doc upload).
-    cy.intercept('POST', '**/api/companies', { success: true, data: [{ id: 1, name: 'E2E Company' }] });
+    // Stub companies so Folder Company/Brand dropdown has options. App uses jsonRpcRequest so response must be JSON-RPC envelope.
+    cy.intercept('POST', '**/api/companies', { jsonrpc: '2.0', result: { success: true, data: [{ id: 1, name: 'E2E Company' }] }, id: 1 });
     // Allow all mutations; tests must only delete/trash data they created.
     cy.intercept('POST', '**/api/documents/upload', (req) => req.continue()).as('uploadDocument');
     cy.intercept('POST', '**/api/folders/create', (req) => req.continue());
