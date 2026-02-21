@@ -15,6 +15,8 @@ function waitStep() {
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
 const adminTags = { result: { success: true, data: [] } };
+/** Folder Company/Brand is required for main-document upload; stub so submit button enables. */
+const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
 
 describe('Walkthrough: login and upload (slow)', () => {
   beforeEach(() => {
@@ -36,6 +38,7 @@ describe('Walkthrough: login and upload (slow)', () => {
     cy.intercept('POST', '**/api/departments', adminDepartments);
     cy.intercept('POST', '**/api/document-types', adminDocumentTypes);
     cy.intercept('POST', '**/api/tags', adminTags);
+    cy.intercept('POST', '**/api/companies', adminCompanies);
     cy.intercept('POST', '**/api/folders/create', {
       statusCode: 200,
       body: { result: { success: true, data: { id: 1, name: folderName, code: folderCode } } },
@@ -73,6 +76,10 @@ describe('Walkthrough: login and upload (slow)', () => {
     waitStep();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
     waitStep();
+    cy.get('[data-testid="folder-company-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('E2E Company').click();
+    waitStep();
     cy.get('input[name="title"]').clear().type(title);
     waitStep();
     cy.get('input[name="folder_name"]').clear().type(folderName);
@@ -90,6 +97,10 @@ describe('Walkthrough: login and upload (slow)', () => {
   });
 
   it('logs in as admin then opens Upload Documents from documents page', () => {
+    cy.intercept('POST', '**/api/departments', adminDepartments);
+    cy.intercept('POST', '**/api/document-types', adminDocumentTypes);
+    cy.intercept('POST', '**/api/tags', adminTags);
+    cy.intercept('POST', '**/api/companies', adminCompanies);
     cy.visit('/login');
     cy.get('#login-role-admin').check({ force: true });
     cy.get('#login-username').clear().type('admin');

@@ -23,6 +23,7 @@ function waitStep() {
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
 const adminTags = { result: { success: true, data: [] } };
+const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
 const foldersListBulk = { result: { folders: [{ id: FOLDER_ID_BULK, name: 'Test Folder', code: 'TF', department_id: 1 }] } };
 const foldersListEmpty = { result: { folders: [] } };
 
@@ -124,6 +125,7 @@ describe('Slow smoke (production-safe, no delete)', () => {
     cy.intercept('POST', '**/api/departments', adminDepartments);
     cy.intercept('POST', '**/api/document-types', adminDocumentTypes);
     cy.intercept('POST', '**/api/tags', adminTags);
+    cy.intercept('POST', '**/api/companies', adminCompanies);
     cy.intercept('POST', '**/api/documents/upload', { statusCode: 200, body: { success: true, data: { id: 1 } } });
     cy.intercept('POST', '**/api/folders/create', (req) => {
       req.reply({ statusCode: 200, body: { result: { success: true, data: { id: 1, name: 'Folder', code: 'FLD' } } } });
@@ -215,6 +217,10 @@ describe('Slow smoke (production-safe, no delete)', () => {
     cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
     waitStep();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
+    waitStep();
+    cy.get('[data-testid="folder-company-select"]').find('.react-select__control').click();
+    waitStep();
+    cy.get('.react-select__option').contains('E2E Company').click();
     waitStep();
     cy.get('input[name="title"]').clear().type(titleMain);
     waitStep();

@@ -82,6 +82,19 @@ function selectDepartmentAndType() {
   });
 }
 
+/** Select Folder Company/Brand for main-document upload (required before submit is enabled). */
+function selectFolderCompany() {
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="folder-company-select"]').length === 0) return;
+    cy.get('[data-testid="folder-company-select"]').find('.react-select__control').click({ force: true });
+    waitStep();
+    cy.get('.react-select__menu').should('be.visible').last().within(() => {
+      cy.get('.react-select__option').first().click();
+    });
+    waitStep();
+  });
+}
+
 /** Capture last upload response: alias createdDocId and createdFolderId (if backend returns folder_id). */
 function captureUploadDocId() {
   cy.wait('@uploadDocument', { timeout: 30000 })
@@ -200,6 +213,8 @@ describe('Slow smoke (real API) — flow options', () => {
       if (err.name === 'ZodError' || (err.message && err.message.includes('ZodError'))) return false;
       return true;
     });
+    // Stub companies so Folder Company/Brand dropdown has options (required for main-doc upload).
+    cy.intercept('POST', '**/api/companies', { success: true, data: [{ id: 1, name: 'E2E Company' }] });
     // Allow all mutations; tests must only delete/trash data they created.
     cy.intercept('POST', '**/api/documents/upload', (req) => req.continue()).as('uploadDocument');
     cy.intercept('POST', '**/api/folders/create', (req) => req.continue());
@@ -223,6 +238,7 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
     selectDepartmentAndType();
+    selectFolderCompany();
     cy.get('input[name="title"]').clear().type(mainBaseFile);
     waitStep();
     cy.get('input[name="folder_name"]').clear().type(mainBaseFolder);
@@ -283,6 +299,7 @@ describe('Slow smoke (real API) — flow options', () => {
     cy.get('[data-testid="upload-document-btn"]').click();
     waitStep();
     selectDepartmentAndType();
+    selectFolderCompany();
     cy.get('input[name="title"]').clear().type(mainTargetFile);
     waitStep();
     cy.get('input[name="folder_name"]').clear().type(mainTargetFolder);
@@ -460,6 +477,7 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
     selectDepartmentAndType();
+    selectFolderCompany();
     cy.get('input[name="title"]').clear().type(mainTitle);
     waitStep();
     cy.get('input[name="folder_name"]').clear().type(folderName);
@@ -610,6 +628,7 @@ describe('Slow smoke (real API) — flow options', () => {
     waitStep();
     cy.get('[data-testid="upload-document-submit"]').should('be.visible');
     selectDepartmentAndType();
+    selectFolderCompany();
     cy.get('input[name="title"]').clear().type(title);
     waitStep();
     cy.get('input[name="folder_name"]').clear().type(folderName);

@@ -8,6 +8,7 @@ const FOLDER_ID = 100;
 
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
+const adminCompanies = { success: true, data: [{ id: 1, name: 'E2E Company' }] };
 const foldersList = { result: { folders: [{ id: FOLDER_ID, name: 'Test Folder', code: 'TF', department_id: 1 }] } };
 
 describe('Create document and add secondary', () => {
@@ -19,6 +20,7 @@ describe('Create document and add secondary', () => {
     cy.intercept('POST', '**/api/departments', adminDepartments);
     cy.intercept('POST', '**/api/tags', { result: { success: true, data: [] } });
     cy.intercept('POST', '**/api/document-types', adminDocumentTypes);
+    cy.intercept('POST', '**/api/companies', adminCompanies);
     cy.intercept('POST', (req) => {
       const u = req.url;
       if (!u.includes('/api/folders')) return;
@@ -49,6 +51,8 @@ describe('Create document and add secondary', () => {
     cy.get('.react-select__option').contains('Finance (FIN)').click();
     cy.get('[data-testid="document-type-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Invoice (INV)').click();
+    cy.get('[data-testid="folder-company-select"]').find('.react-select__control').click();
+    cy.get('.react-select__option').contains('E2E Company').click();
     cy.get('input[name="title"]').clear().type(title);
     cy.get('input[name="folder_name"]').clear().type(folderName);
     cy.get('input[name="folder_code"]').clear().type(folderCode);

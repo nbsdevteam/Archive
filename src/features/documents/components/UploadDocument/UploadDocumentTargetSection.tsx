@@ -175,6 +175,7 @@ export function UploadDocumentTargetSection({
               required
               isDisabled={lockFolderContext}
               error={errors.folder_company_id?.message as string | undefined}
+              data-testid="folder-company-select"
             />
           )}
         </>
