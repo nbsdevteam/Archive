@@ -91,7 +91,18 @@ export default defineConfig({
         /** Enable Rollup tree shaking: remove unused exports and dead code. */
         rollupOptions: {
             treeshake: {
-                moduleSideEffects: "no-external",
+                /**
+                 * Preserve side effects in our own src files (i18n init, theme stores, bootstrap)
+                 * while still tree-shaking external node_modules.
+                 * Using a function avoids the bug where "no-external" strips internal side-effect
+                 * imports like `void i18n.init(...)` in src/i18n/config.ts.
+                 */
+                moduleSideEffects: (id) => {
+                    const norm = id.replace(/\\/g, "/");
+                    if (norm.includes("/src/")) return true;
+                    if (norm.includes("node_modules")) return false;
+                    return true;
+                },
                 propertyReadSideEffects: false,
             },
             output: {
