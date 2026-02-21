@@ -1,8 +1,12 @@
 import type { ChangeEvent } from "react";
+import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
 import type { Attachment } from "@/app/adapter/api/documents.api";
-import { Button, Icon, Spinner } from "@/shared/components/ui";
+import { Button, DataTable, Icon, Spinner } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
 
 export interface AttachmentsSelectionConfig {
   selectedIds: (string | number)[];
@@ -30,7 +34,7 @@ export interface FolderDetailAttachmentsSectionProps {
   isAttachmentTrashing: boolean;
 }
 
-/** Attachments card: document selector, attachments table with selection and row actions. */
+/** Attachments card: document selector, attachments DataTable with selection and row actions. Responsive card view on mobile. */
 export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSectionProps) {
   const {
     t,
@@ -51,41 +55,44 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
   } = props;
   const hasSelection = (selectionConfig?.selectedIds.length ?? 0) > 0;
 
-  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
-  const handleAttachmentSelectionToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const id = e.currentTarget.dataset.attachmentId;
-    if (id != null && selectionConfig) selectionConfig.onToggle(id);
-  };
-  const handleViewAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.attachmentId;
-    if (id != null) onViewAttachment(Number(id));
-  };
-  const handleDownloadAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const id = e.currentTarget.dataset.attachmentId;
-    const fileName = e.currentTarget.dataset.fileName ?? "";
-    if (id != null) onDownloadAttachment(Number(id), fileName);
-  };
-  const handleEditAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.attachmentId;
-    if (id != null && onEditAttachment) onEditAttachment(Number(id));
-  };
-  const handleTrashAttachmentClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.attachmentId;
-    if (id != null) onTrashAttachment(Number(id));
-  };
+  const columns: ColumnDef<Attachment>[] = useMemo(
+    () => [
+      { id: "name", header: t("folders.name", { defaultValue: "Name" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.name}>{row.name}</span> },
+      { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.file_name}>{row.file_name}</span> },
+      { id: "description", header: t("documents.description", { defaultValue: "Description" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.description != null ? String(row.description) : undefined}>{String(row.description ?? "").trim() || "–"}</span> },
+    ],
+    [t]
+  );
+
+  const rowActions: RowAction<Attachment>[] = useMemo(
+    () => [
+      { id: "view", label: t("documents.view", { defaultValue: "View" }), icon: "eye", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onViewAttachment(row.id); } },
+      { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onDownloadAttachment(row.id, row.file_name); } },
+      ...(onEditAttachment ? [{ id: "edit" as const, label: t("common.edit", { defaultValue: "Edit" }), icon: "pencil" as const, onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onEditAttachment!(row.id); } }] : []),
+      { id: "delete", label: t("documents.deleteAttachment", { defaultValue: "Delete" }), icon: "trash", variant: "danger", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onTrashAttachment(row.id); } },
+    ].filter(Boolean) as RowAction<Attachment>[],
+    [t, onViewAttachment, onDownloadAttachment, onEditAttachment, onTrashAttachment]
+  );
+
+  const selection: SelectionConfig<Attachment> | undefined = selectionConfig
+    ? {
+        selectedIds: selectionConfig.selectedIds,
+        onToggle: selectionConfig.onToggle,
+        onToggleAll: selectionConfig.onToggleAll,
+        isAllSelected: selectionConfig.isAllSelected,
+        isIndeterminate: selectionConfig.isIndeterminate,
+        getRowAriaLabel: (row) => `Select attachment ${row.name}`,
+      }
+    : undefined;
 
   return (
     <div className="card mb-3" data-testid="folder-detail-attachments-section">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h4 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h4>
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex flex-wrap align-items-center gap-2">
           {documents.length > 0 && (
             <select
-              className="form-select form-select-sm"
-              style={{ width: "auto", minWidth: 200 }}
+              className="form-select form-select-sm folder-detail-attachments-doc-select"
               value={attachmentsDocId}
               onChange={onAttachmentsDocIdChange}
               data-testid="folder-detail-attachments-doc-select"
@@ -120,69 +127,19 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
             <Spinner size="md" />
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-sm mb-0 folders-detail-attachments-table">
-              <thead>
-                <tr>
-                  {selectionConfig && (
-                    <th style={{ width: "3%" }} className="text-center">
-                      {attachments.length > 0 && (
-                        <div className="form-check d-inline-flex justify-content-center mb-0">
-                          <input type="checkbox" className="form-check-input" checked={selectionConfig.isAllSelected} onChange={selectionConfig.onToggleAll} aria-label={selectionConfig.isIndeterminate ? t("common.uncheckAll") : t("common.checkAll")} />
-                        </div>
-                      )}
-                    </th>
-                  )}
-                  <th style={{ width: selectionConfig ? "17%" : "20%" }}>{t("folders.name", { defaultValue: "Name" })}</th>
-                  <th style={{ width: selectionConfig ? "17%" : "20%" }}>{t("documents.fileName", { defaultValue: "File name" })}</th>
-                  <th style={{ width: selectionConfig ? "27%" : "28%" }}>{t("documents.description", { defaultValue: "Description" })}</th>
-                  <th style={{ width: selectionConfig ? "36%" : "32%" }} className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attachments.length === 0 ? (
-                  <tr>
-                    <td colSpan={selectionConfig ? 5 : 4} className="text-center py-4 text-muted">{t("common.noData", { defaultValue: "No data" })}</td>
-                  </tr>
-                ) : (
-                  attachments.map((attachment) => {
-                    const isSelected = selectionConfig && selectionConfig.selectedIds.includes(attachment.id);
-                    return (
-                      <tr key={attachment.id}>
-                        {selectionConfig && (
-                          <td onClick={stopPropagation}>
-                            <div className="form-check mb-0">
-                              <input type="checkbox" className="form-check-input" checked={Boolean(isSelected)} data-attachment-id={attachment.id} onChange={handleAttachmentSelectionToggle} onClick={stopPropagation} aria-label={`Select attachment ${attachment.name}`} />
-                            </div>
-                          </td>
-                        )}
-                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.name}>{attachment.name}</td>
-                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.file_name}>{attachment.file_name}</td>
-                        <td className="folders-detail-attachments-cell-ellipsis" title={attachment.description != null ? String(attachment.description) : undefined}>{String(attachment.description ?? "").trim() || "–"}</td>
-                        <td className="text-end">
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} onClick={handleViewAttachmentClick}>
-                            <Icon name="eye" className="me-1" />{t("documents.view", { defaultValue: "View" })}
-                          </Button>
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} data-file-name={attachment.file_name} onClick={handleDownloadAttachmentClick}>
-                            {t("documents.download", { defaultValue: "Download" })}
-                          </Button>
-                          {onEditAttachment && (
-                            <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-attachment-id={attachment.id} onClick={handleEditAttachmentClick} data-testid="folder-detail-attachment-edit-btn">
-                              <Icon name="pencil" className="me-1" />
-                              {t("common.edit", { defaultValue: "Edit" })}
-                            </Button>
-                          )}
-                          <Button variant="outline" size="sm" className="btn-outline-danger" data-attachment-id={attachment.id} onClick={handleTrashAttachmentClick}>
-                            <Icon name="trash" className="me-1" />{t("documents.deleteAttachment", { defaultValue: "Delete" })}
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Attachment>
+            data={attachments}
+            getRowId={(row) => row.id}
+            columns={columns}
+            loading={false}
+            emptyMessage={t("common.noData", { defaultValue: "No data" })}
+            rowActions={rowActions}
+            selection={selection}
+            actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+            tableClassName="table table-sm mb-0 folders-detail-attachments-table"
+            responsive="auto"
+            cardsBelow="lg"
+          />
         )}
       </div>
     </div>

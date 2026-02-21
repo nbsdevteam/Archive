@@ -1,7 +1,11 @@
+import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
 import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
-import { Button, Icon } from "@/shared/components/ui";
+import { Button, DataTable, Icon } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
 
 export interface SubDocsSelectionConfig {
   selectedIds: (string | number)[];
@@ -15,7 +19,6 @@ export interface FolderDetailSubDocsSectionProps {
   t: TFunction;
   subDocs: Document[];
   selectionConfig: SubDocsSelectionConfig | null;
-  /** Batch action visibility from shared service (common-only). */
   subDocsBatchActions: DocumentBatchActionsResult;
   formatDate: (date?: string | null) => string;
   onNavigate: (documentId: number) => void;
@@ -33,7 +36,7 @@ export interface FolderDetailSubDocsSectionProps {
   isSubDocUnarchiving: boolean;
 }
 
-/** Secondary documents table with selection, transfer, trash, per-row actions. */
+/** Secondary documents table with selection, transfer, trash, per-row actions. Uses DataTable for responsive card view. */
 export function FolderDetailSubDocsSection({
   t,
   subDocs,
@@ -57,51 +60,42 @@ export function FolderDetailSubDocsSection({
   const selectedIds = selectionConfig?.selectedIds ?? [];
   const hasSelection = selectedIds.length > 0;
 
-  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
   const handleTransferSelectedClick = () => onTransfer(selectedIds.map((id) => Number(id)));
-  const handleSubDocRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onNavigate(Number(id));
-  };
-  const handleSubDocSelectionToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const id = e.currentTarget.dataset.docId;
-    if (id != null && selectionConfig) selectionConfig.onToggle(id);
-  };
-  const handleViewDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onNavigate(Number(id));
-  };
-  const handleEditDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null && onEdit) onEdit(Number(id));
-  };
-  const handleDownloadDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onDownload(Number(id));
-  };
-  const handleTransferOneClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onTransfer([Number(id)]);
-  };
-  const handleUnarchiveDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onUnarchive(Number(id));
-  };
-  const handleArchiveDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onArchive(Number(id));
-  };
-  const handleTrashDocClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) onTrash(Number(id));
-  };
+
+  const columns: ColumnDef<Document>[] = useMemo(
+    () => [
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.title ?? row.name ?? "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (row) => formatDate(row.upload_date) },
+      { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => row.status ?? "–" },
+    ],
+    [t, formatDate]
+  );
+
+  const rowActions: RowAction<Document>[] = useMemo(
+    () => [
+      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onNavigate(row.id); } },
+      ...(onEdit ? [{ id: "edit" as const, label: t("common.edit", { defaultValue: "Edit" }), icon: "pencil" as const, onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onEdit(row.id); } }] : []),
+      { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onDownload(row.id); } },
+      { id: "transfer", label: t("documents.transfer", { defaultValue: "Transfer" }), icon: "arrow-right-left", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onTransfer([row.id]); }, disabled: () => transferSubmitting },
+      { id: "unarchive", label: t("documents.unarchive", { defaultValue: "Unarchive" }), icon: "refresh-cw", visible: (row: Document) => (row.status ?? "").toLowerCase() === "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onUnarchive(row.id); }, disabled: () => isSubDocUnarchiving },
+      { id: "archive", label: t("documents.archive", { defaultValue: "Archive" }), icon: "archive", visible: (row: Document) => (row.status ?? "").toLowerCase() !== "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onArchive(row.id); }, disabled: () => isSubDocArchiving },
+      { id: "trash", label: t("documents.moveToTrash", { defaultValue: "Move to trash" }), icon: "trash-2", variant: "danger", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onTrash(row.id); } },
+    ].filter(Boolean) as RowAction<Document>[],
+    [t, onNavigate, onEdit, onDownload, onTransfer, onUnarchive, onArchive, onTrash, transferSubmitting, isSubDocUnarchiving, isSubDocArchiving]
+  );
+
+  const selection: SelectionConfig<Document> | undefined = selectionConfig
+    ? {
+        selectedIds: selectionConfig.selectedIds,
+        onToggle: selectionConfig.onToggle,
+        onToggleAll: selectionConfig.onToggleAll,
+        isAllSelected: selectionConfig.isAllSelected,
+        isIndeterminate: selectionConfig.isIndeterminate,
+        getRowAriaLabel: (row) => `Select document ${row.barcode || row.id}`,
+      }
+    : undefined;
 
   return (
     <div className="card mb-3">
@@ -140,111 +134,20 @@ export function FolderDetailSubDocsSection({
         )}
       </div>
       <div className="card-body">
-        <div className="table-responsive">
-          <table className="table table-sm mb-0">
-            <thead>
-              <tr>
-                {selectionConfig && (
-                  <th style={{ width: "2.5rem" }} className="text-center">
-                    {subDocs.length > 0 && (
-                      <div className="form-check d-inline-flex justify-content-center mb-0">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          checked={selectionConfig.isAllSelected}
-                          onChange={selectionConfig.onToggleAll}
-                          aria-label={selectionConfig.isIndeterminate ? t("common.uncheckAll") : t("common.checkAll")}
-                        />
-                      </div>
-                    )}
-                  </th>
-                )}
-                <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
-                <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
-                <th>{t("documents.status", { defaultValue: "Status" })}</th>
-                <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subDocs.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-4 text-muted">
-                    {t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
-                  </td>
-                </tr>
-              ) : (
-                subDocs.map((doc) => {
-                  const isSelected = selectionConfig?.selectedIds.includes(doc.id);
-                  const isArchived = (doc.status ?? "").toLowerCase() === "archived";
-                  return (
-                    <tr
-                      key={doc.id}
-                      style={{ cursor: "pointer" }}
-                      data-doc-id={doc.id}
-                      onClick={handleSubDocRowClick}
-                    >
-                      {selectionConfig && (
-                        <td onClick={stopPropagation}>
-                          <div className="form-check mb-0">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              checked={isSelected}
-                              data-doc-id={doc.id}
-                              onChange={handleSubDocSelectionToggle}
-                              onClick={stopPropagation}
-                              aria-label={`Select document ${doc.barcode || doc.id}`}
-                            />
-                          </div>
-                        </td>
-                      )}
-                      <td>{doc.barcode ?? "–"}</td>
-                      <td>{doc.title ?? doc.name ?? "–"}</td>
-                      <td>{doc.document_type_name ?? (doc.document_type as { name?: string })?.name ?? "–"}</td>
-                      <td>{formatDate(doc.upload_date)}</td>
-                      <td>{doc.status ?? "–"}</td>
-                      <td className="text-end" onClick={stopPropagation}>
-                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleViewDocClick}>
-                          {t("common.view", { defaultValue: "View" })}
-                        </Button>
-                        {onEdit && (
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleEditDocClick}>
-                            <Icon name="pencil" className="me-1" />
-                            {t("common.edit", { defaultValue: "Edit" })}
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleDownloadDocClick}>
-                          {t("documents.download", { defaultValue: "Download" })}
-                        </Button>
-                        <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleTransferOneClick} disabled={transferSubmitting}>
-                          <Icon name="arrow-right-left" className="me-1" />
-                          {t("documents.transfer", { defaultValue: "Transfer" })}
-                        </Button>
-                        {isArchived ? (
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleUnarchiveDocClick} disabled={isSubDocUnarchiving}>
-                            <Icon name="archive" className="me-1" />
-                            {t("documents.unarchive", { defaultValue: "Unarchive" })}
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-doc-id={doc.id} onClick={handleArchiveDocClick} disabled={isSubDocArchiving}>
-                            <Icon name="archive" className="me-1" />
-                            {t("documents.archive", { defaultValue: "Archive" })}
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" className="btn-outline-danger" data-doc-id={doc.id} onClick={handleTrashDocClick}>
-                          <Icon name="trash-2" className="me-1" />
-                          {t("documents.moveToTrash", { defaultValue: "Move to trash" })}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<Document>
+          data={subDocs}
+          getRowId={(row) => row.id}
+          columns={columns}
+          loading={false}
+          emptyMessage={t("folders.noSecondaryDocuments", { defaultValue: "No secondary documents." })}
+          onRowClick={(row) => onNavigate(row.id)}
+          rowActions={rowActions}
+          selection={selection}
+          actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+          tableClassName="table table-sm mb-0"
+          responsive="auto"
+          cardsBelow="lg"
+        />
       </div>
     </div>
   );

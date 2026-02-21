@@ -109,3 +109,62 @@
   overflow-y: visible;
   min-height: inherit;
 }
+
+/* DataTable card view (mobile/tablet): stacked card rows with label/value pairs. */
+.datatable-wrapper {
+  min-width: 0;
+}
+
+.datatable-cards-list {
+  padding: 0;
+}
+
+.datatable-card {
+  background-color: var(--bs-body-bg, #fff);
+  border-color: var(--bs-border-color, rgba(0, 0, 0, 0.175)) !important;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--primary-rgb), 0.5);
+    outline-offset: 2px;
+  }
+}
+
+.datatable-card:hover {
+  background-color: rgba(var(--primary-rgb), 0.06);
+}
+
+[data-theme="dark"] .datatable-card:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.datatable-card-header {
+  background-color: rgba(var(--primary-rgb), 0.04);
+  border-color: var(--bs-border-color, rgba(0, 0, 0, 0.175)) !important;
+  min-height: 2.5rem;
+}
+
+[data-theme="dark"] .datatable-card-header {
+  background-color: rgba(var(--primary-rgb), 0.08);
+}
+
+.datatable-card-row {
+  font-size: 0.875rem;
+}
+
+.datatable-card-label {
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.datatable-card-value {
+  word-break: break-word;
+  min-width: 0;
+}
+
+.datatable-cards-loading,
+.datatable-cards-empty {
+  background-color: var(--bs-body-bg, #fff);
+  border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.175));
+  border-radius: var(--bs-border-radius, 0.375rem);
+}

@@ -1,8 +1,9 @@
 @use "../utils/variables";
 
 .notification-dropdown {
-    max-width: 100%;
-    min-width: 450px !important;
+    max-width: min(450px, calc(100vw - 2rem));
+    width: min(450px, calc(100vw - 2rem));
+    min-width: 0;
     .topnav-dropdown-header {
         border-bottom: 1px solid variables.$light-900
     }

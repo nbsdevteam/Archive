@@ -367,11 +367,16 @@
 }
 .dropdown-md {
     min-width: 320px !important;
+    @include mixins.respond-below(sm) {
+      min-width: 0 !important;
+      max-width: calc(100vw - 2rem);
+    }
 }
 .dropdown-lg {
     min-width: 380px !important;
     @include mixins.respond-below(sm) {
-      min-width: 300px !important;
+      min-width: 0 !important;
+      max-width: calc(100vw - 2rem);
     }
 }
 .dropdown-menu {

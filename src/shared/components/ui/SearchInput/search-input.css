@@ -42,6 +42,11 @@
   min-width: 320px;
   flex: 1;
 }
+@media (max-width: 576px) {
+  .search-input--wide {
+    min-width: 0;
+  }
+}
 
 .search-input--highlight .search-input__field {
   background-color: var(--bs-tertiary-bg, #f8f9fa);

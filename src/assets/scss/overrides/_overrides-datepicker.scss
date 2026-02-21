@@ -1,7 +1,8 @@
 /* React-datepicker theme overrides — uses CSS variables so calendar matches the active theme. */
 
 .deals-details.react-datepicker__input-container {
-  width: 450px !important;
+  width: 100% !important;
+  max-width: min(450px, calc(100vw - 2rem));
 }
 
 div.react-datepicker-wrapper {

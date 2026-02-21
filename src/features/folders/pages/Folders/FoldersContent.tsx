@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
-import { Button, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
+import { Button, DataTable, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { Folder } from "../../types/folders.types";
 
 export interface FoldersContentProps {
@@ -47,26 +50,28 @@ export function FoldersContent(props: FoldersContentProps) {
     const id = e.currentTarget.dataset.folderId;
     if (id != null) onDeleteClick(Number(id));
   };
-  const handleListRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    const id = e.currentTarget.dataset.folderId;
-    if (id != null) actions.handleNavigateToFolder(Number(id));
-  };
-  const handleListViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.folderId;
-    if (id != null) actions.handleNavigateToFolder(Number(id));
-  };
-  const handleListEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.folderId;
-    const folder = id != null ? filteredFolders.find((f) => f.id === Number(id)) : undefined;
-    if (folder) actions.handleOpenEditFolder(folder);
-  };
-  const handleListDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.folderId;
-    if (id != null) onDeleteClick(Number(id));
-  };
+  const listColumns: ColumnDef<Folder>[] = useMemo(
+    () => [
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name || "–" },
+      { id: "code", header: t("folders.code", { defaultValue: "Code" }), render: (row) => row.code || "–" },
+      { id: "folder_type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.folder_type || "–" },
+      { id: "department_name", header: t("documents.department", { defaultValue: "Department" }), render: (row) => row.department_name || "–" },
+      { id: "company_name", header: t("folders.companyBrand", { defaultValue: "Company/Brand" }), render: (row) => row.company_name ?? "–" },
+      { id: "document_count", header: t("documents.documents", { defaultValue: "Documents" }), render: (row) => row.document_count ?? row.docs ?? 0 },
+      { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => <span className={`badge bg-${actions.getFolderStatusBadgeVariant(row.state)}`}>{row.state || "unknown"}</span> },
+      { id: "updated", header: t("folders.updated", { defaultValue: "Updated" }), render: (row) => formatDate(row.last_modified ?? row.updated_at ?? row.write_date ?? row.create_date ?? row.updated) },
+    ],
+    [t, formatDate, actions.getFolderStatusBadgeVariant]
+  );
+
+  const listRowActions: RowAction<Folder>[] = useMemo(
+    () => [
+      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row, e) => { e.stopPropagation(); actions.handleNavigateToFolder(row.id); } },
+      { id: "edit", label: t("folders.edit", { defaultValue: "Edit" }), icon: "pencil", onClick: (row, e) => { e.stopPropagation(); actions.handleOpenEditFolder(row); } },
+      { id: "delete", label: t("folders.delete", { defaultValue: "Delete" }), icon: "trash-2", variant: "danger", onClick: (row, e) => { e.stopPropagation(); onDeleteClick(row.id); } },
+    ],
+    [t, actions, onDeleteClick]
+  );
 
   if (error) {
     return (
@@ -153,57 +158,18 @@ export function FoldersContent(props: FoldersContentProps) {
 
   return (
     <div className="card-body h-min-50vh">
-      {filteredFolders.length === 0 ? (
-        <div className="text-center py-4 text-muted">{t("folders.noFoldersFound", { defaultValue: "No folders found" })}</div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-striped mb-0">
-            <thead>
-              <tr>
-                <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                <th>{t("folders.code", { defaultValue: "Code" })}</th>
-                <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                <th>{t("documents.department", { defaultValue: "Department" })}</th>
-                <th>{t("folders.companyBrand", { defaultValue: "Company/Brand" })}</th>
-                <th>{t("documents.documents", { defaultValue: "Documents" })}</th>
-                <th>{t("documents.status", { defaultValue: "Status" })}</th>
-                <th>{t("folders.updated", { defaultValue: "Updated" })}</th>
-                <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFolders.map((folder) => (
-                <tr key={folder.id} style={{ cursor: "pointer" }} data-folder-id={folder.id} onClick={handleListRowClick}>
-                  <td>{folder.name || "-"}</td>
-                  <td>{folder.code || "-"}</td>
-                  <td>{folder.folder_type || "-"}</td>
-                  <td>{folder.department_name || "-"}</td>
-                  <td>{folder.company_name ?? "-"}</td>
-                  <td>{folder.document_count ?? folder.docs ?? 0}</td>
-                  <td>
-                    <span className={`badge bg-${actions.getFolderStatusBadgeVariant(folder.state)}`}>
-                      {folder.state || "unknown"}
-                    </span>
-                  </td>
-                  <td>{formatDate(folder.last_modified ?? folder.updated_at ?? folder.write_date ?? folder.create_date ?? folder.updated)}</td>
-                  <td className="text-end">
-                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-folder-id={folder.id} onClick={handleListViewClick}>
-                      {t("common.view", { defaultValue: "View" })}
-                    </Button>
-                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" data-folder-id={folder.id} onClick={handleListEditClick}>
-                      {t("folders.edit", { defaultValue: "Edit" })}
-                    </Button>
-                    <Button variant="outline" size="sm" className="btn-outline-danger" data-folder-id={folder.id} onClick={handleListDeleteClick} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
-                      <Icon name="trash" className="me-1" />
-                      {t("folders.delete", { defaultValue: "Delete" })}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable<Folder>
+        data={filteredFolders}
+        getRowId={(row) => row.id}
+        columns={listColumns}
+        loading={loading}
+        emptyMessage={t("folders.noFoldersFound", { defaultValue: "No folders found" })}
+        onRowClick={(row) => actions.handleNavigateToFolder(row.id)}
+        rowActions={listRowActions}
+        actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+        responsive="auto"
+        cardsBelow="lg"
+      />
     </div>
   );
 }

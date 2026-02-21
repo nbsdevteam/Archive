@@ -139,3 +139,49 @@
   white-space: nowrap;
   max-width: 0;
 }
+
+/* Folder detail attachments: document selector full width on small screens */
+.folder-detail-attachments-doc-select {
+  min-width: 200px;
+}
+@media (max-width: 767.98px) {
+  .folder-detail-attachments-doc-select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Main document key/value layout: rows of label+value, stacked on mobile */
+.folder-detail-maindoc-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.folder-detail-maindoc-kv-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 1.5rem;
+  align-items: baseline;
+}
+.folder-detail-maindoc-kv .folder-detail-maindoc-kv-label {
+  color: var(--bs-secondary, #6c757d);
+  font-size: 0.875rem;
+}
+.folder-detail-maindoc-kv .folder-detail-maindoc-kv-value {
+  min-width: 0;
+  word-break: break-word;
+}
+@media (max-width: 767.98px) {
+  .folder-detail-maindoc-kv-row {
+    grid-template-columns: 1fr;
+  }
+  .folder-detail-maindoc-kv .folder-detail-maindoc-kv-label {
+    font-weight: 600;
+  }
+}
+.folder-detail-maindoc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}

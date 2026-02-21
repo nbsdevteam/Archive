@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Spinner, Alert, Input } from "../../../shared/components/ui";
+import { Alert, DataTable, Input } from "../../../shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";
 import type { SearchResult } from "../types/search.types";
@@ -8,6 +11,7 @@ import "../styles/search.css";
 
 /**
  * SearchPage - Search page with API integration. Uses i18n for all user-facing strings.
+ * Results use DataTable with responsive card view on mobile/tablet.
  */
 const SearchPage = () => {
   const { t } = useTranslation();
@@ -28,15 +32,24 @@ const SearchPage = () => {
   const handleSetSearchTypeStandard = () => setSearchType("standard");
   const handleSetSearchTypeGlobal = () => setSearchType("global");
   const handleSetSearchTypeBarcode = () => setSearchType("barcode");
-  const handleResultRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) handleNavigateToDocument(Number(id));
-  };
-  const handleResultViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const id = e.currentTarget.dataset.docId;
-    if (id != null) handleNavigateToDocument(Number(id));
-  };
+
+  const searchColumns: ColumnDef<SearchResult>[] = useMemo(
+    () => [
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name || row.title || "–" },
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode || "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name || (row.document_type as { name?: string })?.name || "–" },
+      { id: "department", header: t("documents.department", { defaultValue: "Department" }), render: (row) => row.department_name || (row.department as { name?: string })?.name || "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload Date" }), render: (row) => row.upload_date ?? row.created_at ?? "–" },
+    ],
+    [t]
+  );
+
+  const searchRowActions: RowAction<SearchResult>[] = useMemo(
+    () => [
+      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row, e) => { e.stopPropagation(); handleNavigateToDocument(row.id); } },
+    ],
+    [t, handleNavigateToDocument]
+  );
 
   return (
     <PageLayout
@@ -114,54 +127,22 @@ const SearchPage = () => {
                 </button>
               </Alert>
             )}
-            {isLoading ? (
-              <div className="text-center py-4">
-                <Spinner size="md" />
-              </div>
-            ) : results.length === 0 ? (
-              <div className="text-center py-4 text-muted">
-                {searchQuery.trim()
+            <DataTable<SearchResult>
+              data={results}
+              getRowId={(row) => row.id}
+              columns={searchColumns}
+              loading={isLoading}
+              emptyMessage={
+                searchQuery.trim()
                   ? t("search.noResultsFound", { defaultValue: "No results found" })
-                  : t("search.enterQueryToBegin", { defaultValue: "Enter a search query to begin" })}
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-striped mb-0">
-                  <thead>
-                    <tr>
-                      <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                      <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
-                      <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                      <th>{t("documents.department", { defaultValue: "Department" })}</th>
-                      <th>{t("documents.uploadDate", { defaultValue: "Upload Date" })}</th>
-                      <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((doc: SearchResult) => (
-                      <tr key={doc.id} style={{ cursor: "pointer" }} data-doc-id={doc.id} onClick={handleResultRowClick}>
-                        <td>{doc.name || doc.title || "-"}</td>
-                        <td>{doc.barcode || "-"}</td>
-                        <td>{doc.document_type_name || doc.document_type?.name || "-"}</td>
-                        <td>{doc.department_name || doc.department?.name || "-"}</td>
-                        <td>
-                          {doc.upload_date ?? doc.created_at ?? "-"}
-                        </td>
-                        <td className="text-end">
-                          <button
-                            className="btn btn-sm btn-light"
-                            data-doc-id={doc.id}
-                            onClick={handleResultViewClick}
-                          >
-                            {t("common.view", { defaultValue: "View" })}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  : t("search.enterQueryToBegin", { defaultValue: "Enter a search query to begin" })
+              }
+              onRowClick={(row) => handleNavigateToDocument(row.id)}
+              rowActions={searchRowActions}
+              actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+              responsive="auto"
+              cardsBelow="lg"
+            />
           </div>
         </div>
     </PageLayout>

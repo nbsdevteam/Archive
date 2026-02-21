@@ -10,8 +10,8 @@
   top: 100%;
   right: 0;
   margin-top: 0.25rem;
-  min-width: 440px;
-  width: 450px;
+  min-width: 0;
+  width: min(450px, calc(100vw - 2rem));
   max-width: calc(100vw - 2rem);
   z-index: 1050;
   background: var(--bs-body-bg, #fff);

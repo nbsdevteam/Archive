@@ -10,6 +10,8 @@ export interface ColumnDef<T> {
   width?: string;
   className?: string;
   headerClassName?: string;
+  /** Label for card view on small screens; falls back to string header or id. */
+  mobileLabel?: string;
 }
 
 export interface RowAction<T> {
@@ -34,6 +36,9 @@ export interface SelectionConfig<T> {
   getRowAriaLabel?: (row: T) => string;
 }
 
+/** When to show card rows: "lg" = below 992px, "md" = below 768px. */
+export type DataTableCardsBreakpoint = "md" | "lg";
+
 export interface DataTableProps<T> {
   data: T[];
   getRowId: (row: T) => string | number;
@@ -46,4 +51,8 @@ export interface DataTableProps<T> {
   actionsColumnHeader?: ReactNode;
   tableClassName?: string;
   tbodyClassName?: string;
+  /** "auto" = cards below breakpoint, "table" = always table, "cards" = always cards. Default "auto". */
+  responsive?: "auto" | "table" | "cards";
+  /** Breakpoint below which card rows are shown when responsive is "auto". Default "lg". */
+  cardsBelow?: DataTableCardsBreakpoint;
 }
