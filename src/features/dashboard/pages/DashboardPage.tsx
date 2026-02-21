@@ -5,7 +5,10 @@ import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { UploadDocumentSidePanel } from "../../documents/components";
+/** Lazy-loaded so documents feature chunk loads only when upload panel is used. */
+const UploadDocumentSidePanel = lazy(() =>
+  import("../../documents/components/UploadDocument/UploadDocumentSidePanel").then((m) => ({ default: m.UploadDocumentSidePanel }))
+);
 /** Lazy-loaded so charts-vendor (ApexCharts) only loads when dashboard charts are visible. */
 const DepartmentDonutChart = lazy(() =>
   import("../components/DepartmentDonutChart").then((m) => ({ default: m.DepartmentDonutChart }))
@@ -93,11 +96,13 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <UploadDocumentSidePanel
-          isOpen={uploadPanelOpen}
-          onClose={handleCloseUploadPanel}
-          onSuccess={refreshDashboardCounts}
-        />
+        <Suspense fallback={null}>
+          <UploadDocumentSidePanel
+            isOpen={uploadPanelOpen}
+            onClose={handleCloseUploadPanel}
+            onSuccess={refreshDashboardCounts}
+          />
+        </Suspense>
 
         {/* Cards + Chart on same row (compact cards) */}
         {loading ? (

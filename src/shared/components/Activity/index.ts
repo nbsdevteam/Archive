@@ -9,6 +9,5 @@ export * from "./AuditActionIcon";
 export * from "./ActivityViewSwitcher";
 export * from "./AuditLogsTable";
 export * from "./AuditLogsTimeline";
-export * from "./AuditLogsTreeView";
 export * from "./AuditActivityPanel";
 export { useActivityTimelineFilterStore } from "./useActivityTimelineFilterStore";

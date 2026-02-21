@@ -62,8 +62,7 @@ const createLazyComponent = (
 // Auth
 export const Login = createLazyComponent(
   () => import("../features/auth/pages/LoginPage"),
-  <LoadingSpinner text="Loading login..." />,
-  true
+  <LoadingSpinner text="Loading login..." />
 );
 export const Register = createLazyComponent(
   () => import("../features/auth/pages/RegisterPage"),
