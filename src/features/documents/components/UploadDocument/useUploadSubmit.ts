@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
-import { createFolder } from "@/features/folders/services/folders.api";
+import { createFolder } from "@/app/adapter/api/folders.api";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import { getBaseName } from "@/shared/utils/files/filename";
 import type { UploadFormValues } from "./types";

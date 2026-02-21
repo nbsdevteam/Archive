@@ -4,7 +4,8 @@ import { all_routes } from "@/router/all_routes";
 import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useDocumentOperations, useSelection, usePaginationFromUrl, useClientPagination, useDraftAppliedFilters } from "@/shared/hooks";
+import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
+import { useSelection, usePaginationFromUrl, useClientPagination, useDraftAppliedFilters } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import type { DateRangeMode } from "@/shared/components/ui";
 

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { handleApiError } from "../../app/adapter/api/client";
-import { useDocumentStore } from "../../features/documents/stores/documentStore";
+import { handleApiError } from "@/app/adapter/api/client";
+import { useDocumentStore } from "../stores/documentStore";
 import { toast } from "react-toastify";
 
 interface OperationOptions {
@@ -15,7 +15,8 @@ interface TrashOptions extends OperationOptions {
 
 /**
  * Centralized document actions (archive/trash/restore/permanent delete)
- * with shared error handling and loading flags.
+ * with shared error handling and loading flags. Lives in documents feature
+ * to avoid pulling document store into shared barrel (circular chunk).
  */
 export const useDocumentOperations = () => {
   const {

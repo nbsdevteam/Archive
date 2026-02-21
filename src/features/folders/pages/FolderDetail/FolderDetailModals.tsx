@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 import { Modal, ModalFooter, Button, ConfirmModal } from "@/shared/components/ui";
-import { EditFolderSidePanel, TransferToFolderModal } from "@/features/folders/components";
+import { TransferToFolderModal } from "@/shared/components/modals";
+import { EditFolderSidePanel } from "@/features/folders/components";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
 import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
 import type { FolderDetail } from "@/features/folders/types/folders.types";

@@ -6,12 +6,12 @@ import { createUploadDocumentResolver } from "../../utils/UploadDocumentSidePane
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { adminApi } from "@/app/adapter/api/admin.api";
-import { listFolders } from "@/features/folders/services/folders.api";
+import { listFolders } from "@/app/adapter/api/folders.api";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Tag } from "@/app/adapter/api/admin.api";
-import type { Folder } from "@/features/folders/types/folders.types";
+import type { Folder } from "@/app/adapter/api/folders.types";
 import type { UploadFormValues, UploadDocumentSidePanelProps } from "./types";
 import { getDefaultUploadFormValues } from "./types";
 import { UploadDocumentFormContent } from "./UploadDocumentFormContent";

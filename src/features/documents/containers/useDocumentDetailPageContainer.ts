@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { all_routes } from "@/router/all_routes";
 import { navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
-import { useDocumentOperations } from "@/shared/hooks";
+import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
 import {

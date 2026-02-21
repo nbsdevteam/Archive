@@ -1,10 +1,23 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import viteCompression from "vite-plugin-compression";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        viteCompression({
+            algorithm: "gzip",
+            ext: ".gz",
+            threshold: 10240,
+        }),
+        viteCompression({
+            algorithm: "brotliCompress",
+            ext: ".br",
+            threshold: 10240,
+        }),
+    ],
     resolve: {
         /** Ensures a single React instance so MUI and app share the same hooks (avoids Invalid hook call). */
         dedupe: ["react", "react-dom"],
@@ -88,31 +101,60 @@ export default defineConfig({
                 assetFileNames: "assets/[name]-[hash][extname]",
                 manualChunks(id) {
                     const normalizedId = id.split("\\").join("/");
-                    if (normalizedId.includes("node_modules")) {
-                        if (normalizedId.includes("react") ||
-                            normalizedId.includes("react-dom") ||
-                            normalizedId.includes("react-router-dom")) {
-                            return "react-vendor";
-                        }
-                        if (normalizedId.includes("@mui") ||
-                            normalizedId.includes("@emotion")) {
-                            return "mui-vendor";
-                        }
-                        if (normalizedId.includes("react-bootstrap") ||
-                            normalizedId.includes("react-feather") ||
-                            normalizedId.includes("apexcharts")) {
-                            return "ui-vendor";
-                        }
+                    // React core — must load first
+                    if (normalizedId.includes("node_modules/react/") ||
+                        normalizedId.includes("node_modules/react-dom/")) {
+                        return "react-vendor";
                     }
-                    const featureMatch = normalizedId.match(/\/src\/features\/([^/]+)\//);
-                    if (featureMatch) {
-                        return `feature-${featureMatch[1]}`;
+                    // React Router — separate from react core
+                    if (normalizedId.includes("node_modules/react-router")) {
+                        return "router-vendor";
+                    }
+                    // MUI + Emotion — large, only needed after login
+                    if (normalizedId.includes("node_modules/@mui/") ||
+                        normalizedId.includes("node_modules/@emotion/")) {
+                        return "mui-vendor";
+                    }
+                    // ApexCharts — very large, only used on Dashboard page
+                    if (normalizedId.includes("node_modules/apexcharts") ||
+                        normalizedId.includes("node_modules/react-apexcharts")) {
+                        return "charts-vendor";
+                    }
+                    // Form libraries
+                    if (normalizedId.includes("node_modules/react-hook-form") ||
+                        normalizedId.includes("node_modules/@hookform")) {
+                        return "forms-vendor";
+                    }
+                    // i18n
+                    if (normalizedId.includes("node_modules/i18next") ||
+                        normalizedId.includes("node_modules/react-i18next")) {
+                        return "i18n-vendor";
+                    }
+                    // XYFlow
+                    if (normalizedId.includes("node_modules/@xyflow")) {
+                        return "xyflow-vendor";
+                    }
+                    // NBS component library
+                    if (normalizedId.includes("node_modules/@nbs")) {
+                        return "nbs-vendor";
+                    }
+                    // Lucide icons — consolidate into one chunk so icons aren't duplicated
+                    // across feature chunks (tree-shaking already eliminates unused icons,
+                    // but without this they get inlined separately into each chunk that uses them).
+                    if (normalizedId.includes("node_modules/lucide-react")) {
+                        return "lucide-vendor";
+                    }
+                    // Feature-level chunks — each feature loads independently
+                    if (normalizedId.includes("/src/features/")) {
+                        const match = normalizedId.match(/\/src\/features\/([^/]+)\//);
+                        if (match)
+                            return `feature-${match[1]}`;
                     }
                     return undefined;
                 },
             },
         },
-        chunkSizeWarningLimit: 1000,
+        chunkSizeWarningLimit: 1500,
         sourcemap: false,
         minify: "terser",
         terserOptions: {

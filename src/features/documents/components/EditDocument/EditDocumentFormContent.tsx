@@ -5,7 +5,7 @@ import type { EditDocumentFormValues } from "./types";
 import type { SelectOption } from "@/shared/components/ui";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
-import type { Folder } from "@/features/folders/types/folders.types";
+import type { Folder } from "@/app/adapter/api/folders.types";
 import { Input, SelectField, MultiSelectField, Icon, Button } from "@/shared/components/ui";
 
 const CONFIDENTIALITY_OPTIONS = (t: TFunction): SelectOption<string>[] => [

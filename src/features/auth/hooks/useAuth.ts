@@ -7,12 +7,12 @@ import {
   getStoredUser,
   clearStoredUser,
 } from "../../../shared/utils/storage";
-import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
 import type { User } from "../types/auth.types";
 
 /**
  * useAuth - Authentication state and user from localStorage (no /api/auth/me calls).
  * User is set once on login and cleared on logout.
+ * Departments store is cleared on logout via dynamic import to avoid circular deps in production chunk.
  */
 export const useAuth = () => {
   const authenticated = isAuthenticated();
@@ -22,7 +22,6 @@ export const useAuth = () => {
   }, [authenticated]);
 
   const [error, _setError] = useState<string | null>(null);
-  const { clearDepartments } = useDepartmentsStore();
 
   const logout = async () => {
     try {
@@ -32,8 +31,9 @@ export const useAuth = () => {
     } finally {
       clearStoredUser();
       clearTokens();
-      // Clear cached departments on logout
-      clearDepartments();
+      // Clear cached departments on logout (dynamic import avoids circular chunk init in prod)
+      const { useDepartmentsStore } = await import("../../../shared/stores/departmentsStore");
+      useDepartmentsStore.getState().clearDepartments();
     }
   };
 

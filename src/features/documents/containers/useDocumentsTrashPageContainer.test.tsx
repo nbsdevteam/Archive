@@ -30,7 +30,7 @@ const wrapWithOnSuccess =
     if (ok && options?.onSuccess) await options.onSuccess();
     return ok;
   };
-vi.mock("../../../shared/hooks/useDocumentOperations", () => ({
+vi.mock("../../../hooks/useDocumentOperations", () => ({
   useDocumentOperations: () => ({
     isRestoring: false,
     isPermanentDeleting: false,

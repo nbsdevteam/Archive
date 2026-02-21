@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft } from "lucide-react";
-import { Button, Modal, ModalFooter, Spinner } from "../../../shared/components/ui";
-import { listFolders } from "../services/folders.api";
-import type { Folder } from "../types/folders.types";
+import { Button, Modal, ModalFooter, Spinner } from "@/shared/components/ui";
+import { listFolders } from "@/app/adapter/api/folders.api";
+import type { Folder } from "@/app/adapter/api/folders.types";
 
 export interface TransferToFolderModalProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ export interface TransferToFolderModalProps {
 /**
  * Modal to pick a destination folder for transfer. Lists folders for the given department
  * and excludes the current folder. Same-department enforcement is done by the caller.
+ * Lives in shared so documents and folders features can use it without feature-to-feature imports.
  */
 export function TransferToFolderModal({
   isOpen,
@@ -112,7 +113,6 @@ export function TransferToFolderModal({
           )}
         </div>
       )}
-      {/* Use shared modal footer spacing (align with ConfirmModal). */}
       <ModalFooter className="d-flex gap-3 justify-content-end flex-wrap pt-3">
         <Button variant="outline" className="btn-outline-secondary" onClick={onClose}>
           {t("common.cancel", { defaultValue: "Cancel" })}

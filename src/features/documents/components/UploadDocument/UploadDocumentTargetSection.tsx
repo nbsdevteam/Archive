@@ -7,7 +7,7 @@ import { Input, SelectField, InfoWrapper } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
-import type { Folder } from "@/features/folders/types/folders.types";
+import type { Folder } from "@/app/adapter/api/folders.types";
 import { UploadDocumentFileSection } from "./UploadDocumentFileSection";
 
 export interface UploadDocumentTargetSectionProps {
