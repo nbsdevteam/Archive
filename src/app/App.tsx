@@ -15,10 +15,16 @@ const RTL_BODY_CLASS = "layout-mode-rtl";
 /**
  * Syncs html dir/lang and body class for RTL when Arabic is active; leaves EN unchanged.
  */
+/** True when current language is Arabic (handles ar, ar-SA, etc.). */
+function isArabic(i18n: { language: string; resolvedLanguage?: string }): boolean {
+  const lng = i18n.resolvedLanguage ?? i18n.language;
+  return typeof lng === "string" && lng.startsWith("ar");
+}
+
 function RtlSync() {
   const { i18n } = useTranslation();
   useEffect(() => {
-    const isAr = i18n.language === "ar";
+    const isAr = isArabic(i18n);
     const root = document.documentElement;
     root.dir = isAr ? "rtl" : "ltr";
     root.lang = isAr ? "ar" : "en";
@@ -32,7 +38,7 @@ function RtlSync() {
       root.lang = "en";
       document.body.classList.remove(RTL_BODY_CLASS);
     };
-  }, [i18n.language]);
+  }, [i18n.language, i18n.resolvedLanguage]);
   return null;
 }
 
@@ -43,7 +49,7 @@ const ThemedToastContainer = () => {
   const { i18n } = useTranslation();
   const { prefersDark } = usePrefersColorScheme();
   const resolvedTheme = prefersDark ? "dark" : "light";
-  const isRtl = i18n.language === "ar";
+  const isRtl = isArabic(i18n);
 
   return (
     <ToastContainer

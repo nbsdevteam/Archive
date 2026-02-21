@@ -10,10 +10,16 @@ import { HeaderArchiveActions } from "./HeaderArchiveActions";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { HeaderMobileMenu } from "./HeaderMobileMenu";
 
+/** True when current language is Arabic (handles ar, ar-SA, etc.). */
+function isArabic(i18n: { language: string; resolvedLanguage?: string }): boolean {
+  const lng = i18n.resolvedLanguage ?? i18n.language;
+  return typeof lng === "string" && lng.startsWith("ar");
+}
+
 const Header = React.memo(() => {
   const { t, i18n } = useTranslation();
   const routes = all_routes;
-  const isAr = i18n.language === "ar";
+  const isAr = isArabic(i18n);
   const setLanguage = useCallback(
     (lng: "en" | "ar") => () => {
       i18n.changeLanguage(lng);

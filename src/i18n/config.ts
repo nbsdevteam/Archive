@@ -10,6 +10,9 @@ void i18n
   .init({
     fallbackLng: "en",
     supportedLngs: ["en", "ar"],
+    /** Normalize en-US / ar-SA etc. to en / ar so translations and RTL checks work. */
+    load: "languageOnly",
+    nonExplicitSupportedLngs: true,
     resources: {
       en: { translation: en },
       ar: { translation: ar },

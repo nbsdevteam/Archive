@@ -146,7 +146,7 @@ const Sidebar = memo(() => {
         out.push({
           type: "link",
           name: item.translationKey
-            ? t(`sidebar.${item.translationKey}`)
+            ? t(`sidebar.${item.translationKey}`, { defaultValue: item.label })
             : item.label,
           href: item.link,
           icon:
@@ -165,7 +165,7 @@ const Sidebar = memo(() => {
       sections: [
         {
           id: "main",
-          label: t("sidebar.mainMenu"),
+          label: t("sidebar.mainMenu", { defaultValue: "Main Menu" }),
           collapsible: true,
           defaultOpen: true,
           items: sectionItems,
@@ -228,8 +228,8 @@ const Sidebar = memo(() => {
           <input
             type="text"
             className="form-control"
-            placeholder={t("sidebar.search")}
-            aria-label={t("sidebar.search")}
+            placeholder={t("sidebar.search", { defaultValue: "Search" })}
+            aria-label={t("sidebar.search", { defaultValue: "Search" })}
           />
           <span className="input-group-text">
             <kbd>CTRL + /</kbd>

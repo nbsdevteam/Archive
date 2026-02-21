@@ -83,7 +83,8 @@ export function useCompaniesPageContainer() {
         fetchList();
       } catch (e: unknown) {
         const resData = (e as { response?: { data?: { code?: string; message_ar?: string } } })?.response?.data;
-        const isAr = i18n.language === "ar";
+        const lng = i18n.resolvedLanguage ?? i18n.language;
+        const isAr = typeof lng === "string" && lng.startsWith("ar");
         const message =
           isAr && resData?.message_ar
             ? resData.message_ar
