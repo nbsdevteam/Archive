@@ -152,3 +152,22 @@
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+
+/**
+ * Mobile: switch to fixed positioning so the panel is always anchored to the
+ * viewport — preventing it from clipping off-screen when the filter button
+ * wraps to the left side of the toolbar.
+ */
+@media (max-width: 767.98px) {
+  .panel {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    top: 4.5rem;
+    width: auto;
+    max-height: calc(100vh - 5.5rem);
+    overflow-y: auto;
+    /* Ensure it sits above the fixed backdrop */
+    z-index: 1060;
+  }
+}

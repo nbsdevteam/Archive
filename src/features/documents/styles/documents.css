@@ -12,6 +12,30 @@
   }
 }
 
+/**
+ * Mobile / tablet (< 992px): search input moves to its own dedicated full-width
+ * row below the action buttons so it never competes for horizontal space.
+ */
+@media (max-width: 991.98px) {
+  /* Expand the right-side actions container so it fills the toolbar width,
+     then allow its children to wrap onto multiple lines. */
+  .documents__header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* Push the search to a new row at the bottom of the actions block. */
+  .documents__search-wrap {
+    flex: 0 0 100%;
+    order: 10;
+    min-width: 0;
+  }
+
+  .documents__search-input {
+    width: 100%;
+  }
+}
+
 /* Sort header: label + arrow button; arrow is the only clickable control */
 .documents-table-sort-header {
   white-space: nowrap;
