@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Dropdown from "react-bootstrap/Dropdown";
 import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
 import type { IconName } from "../Icon";
@@ -42,6 +41,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
   const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +55,18 @@ export function DataTable<T>({
     const stillExists = data.some((row) => String(getRowId(row)) === openActionsRowId);
     if (!stillExists) setOpenActionsRowId(null);
   }, [data, getRowId, openActionsRowId]);
+
+  // Close the open actions menu when the user clicks anywhere outside the table.
+  useEffect(() => {
+    if (!openActionsRowId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
+        setOpenActionsRowId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [openActionsRowId]);
 
   const hasSelection = Boolean(selection);
   const hasActions = Boolean(rowActions && rowActions.length > 0);
@@ -97,7 +109,7 @@ export function DataTable<T>({
   );
 
   return (
-    <div className="table-responsive datatable-responsive-wrap">
+    <div ref={tableRef} className="table-responsive datatable-responsive-wrap">
       <table className={tableClassName}>
         <thead>
           <tr>
@@ -187,51 +199,57 @@ export function DataTable<T>({
                       className="text-end align-middle"
                       onClick={stopPropagation}
                     >
-                      <Dropdown
-                        align="end"
-                        className="datatable-row-actions-dropdown"
-                        show={openActionsRowId === rowIdStr}
-                        onToggle={(isOpen) => setOpenActionsRowId(isOpen ? rowIdStr : null)}
-                      >
-                        <Dropdown.Toggle
-                          variant="link"
-                          size="sm"
-                          className="datatable-row-actions-toggle p-0 text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
+                      {/* Custom Bootstrap dropdown — no react-bootstrap dependency. */}
+                      <div className="datatable-row-actions-dropdown position-relative d-inline-flex">
+                        <button
+                          type="button"
+                          className="datatable-row-actions-toggle p-0 btn btn-link btn-sm text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
                           aria-label={`${t("common.actionsForRow")} ${rowId}`}
+                          aria-expanded={openActionsRowId === rowIdStr}
+                          aria-haspopup="true"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenActionsRowId(openActionsRowId === rowIdStr ? null : rowIdStr);
+                          }}
                         >
                           <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu className="dropdown-menu-end">
-                          {rowActions!
-                            .filter((action) => action.visible?.(row) !== false)
-                            .map((action) => {
-                              const disabled = action.disabled?.(row);
-                              const label = action.renderLabel
-                                ? action.renderLabel(row)
-                                : action.label;
-                              const iconName = resolveActionIcon(action.id, action.icon);
-                              const isDanger =
-                                action.variant === "danger" ||
-                                (action.className ?? "").toLowerCase().includes("danger");
-                              return (
-                                <Dropdown.Item
-                                  key={action.id}
-                                  as="button"
-                                  type="button"
-                                  disabled={disabled}
-                                  className={`d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
-                                  data-testid={action.id ? `row-action-${action.id}` : undefined}
-                                  data-action-id={action.id}
-                                  data-row-id={rowIdStr}
-                                  onClick={handleRowActionClick}
-                                >
-                                  <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
-                                  <span>{label}</span>
-                                </Dropdown.Item>
-                              );
-                            })}
-                        </Dropdown.Menu>
-                      </Dropdown>
+                        </button>
+                        {openActionsRowId === rowIdStr && (
+                          <ul
+                            className="dropdown-menu dropdown-menu-end show"
+                            style={{ position: "absolute", top: "100%", right: 0, zIndex: 1050 }}
+                          >
+                            {rowActions!
+                              .filter((action) => action.visible?.(row) !== false)
+                              .map((action) => {
+                                const disabled = action.disabled?.(row);
+                                const label = action.renderLabel
+                                  ? action.renderLabel(row)
+                                  : action.label;
+                                const iconName = resolveActionIcon(action.id, action.icon);
+                                const isDanger =
+                                  action.variant === "danger" ||
+                                  (action.className ?? "").toLowerCase().includes("danger");
+                                return (
+                                  <li key={action.id}>
+                                    <button
+                                      type="button"
+                                      disabled={disabled}
+                                      className={`dropdown-item d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
+                                      data-testid={action.id ? `row-action-${action.id}` : undefined}
+                                      data-action-id={action.id}
+                                      data-row-id={rowIdStr}
+                                      onClick={handleRowActionClick}
+                                    >
+                                      <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
+                                      <span>{label}</span>
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                          </ul>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>

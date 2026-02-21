@@ -9,7 +9,6 @@ import "./shared/stores/layoutStore";
 
 // Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; icon fonts (Font Awesome + Tabler only — others removed for performance)
 import "../src/assets/scss/custom.scss";
-import "react-datepicker/dist/react-datepicker.css";
 import "../src/shared/styles/arabic-font.scss";
 import "../src/shared/styles/rtl-overrides.scss";
 import "../src/assets/css/fontawesome/css/fontawesome.min.css";

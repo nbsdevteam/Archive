@@ -149,6 +149,12 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/@nbs")) {
             return "nbs-vendor";
           }
+          // Lucide icons — consolidate into one chunk so icons aren't duplicated
+          // across feature chunks (tree-shaking already eliminates unused icons,
+          // but without this they get inlined separately into each chunk that uses them).
+          if (normalizedId.includes("node_modules/lucide-react")) {
+            return "lucide-vendor";
+          }
           // Feature-level chunks — each feature loads independently
           if (normalizedId.includes("/src/features/")) {
             const match = normalizedId.match(/\/src\/features\/([^/]+)\//);

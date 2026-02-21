@@ -1,5 +1,4 @@
-import { useId } from "react";
-import { OverlayTrigger, Popover } from "react-bootstrap";
+import { useId, useRef, useState, useCallback, useEffect } from "react";
 import { Icon } from "../Icon";
 
 export type InfoWrapperPosition = "top" | "bottom" | "left" | "right";
@@ -22,9 +21,21 @@ export interface InfoWrapperProps {
 
 const POPOVER_CLASS = "info-wrapper-popover";
 
+/** Translates position prop to Bootstrap positioning utility classes. */
+function getPositionClasses(position: InfoWrapperPosition): string {
+  switch (position) {
+    case "top":    return "bottom-100 mb-1 start-50 translate-middle-x";
+    case "left":   return "end-100 me-1 top-50 translate-middle-y";
+    case "right":  return "start-100 ms-1 top-50 translate-middle-y";
+    case "bottom":
+    default:       return "top-100 mt-1 start-50 translate-middle-x";
+  }
+}
+
 /**
- * Generic info popover with theme-styled content and arrow.
- * Uses react-bootstrap OverlayTrigger + Popover; styling via .info-wrapper-popover in SCSS.
+ * Generic info popover with theme-styled content.
+ * Custom implementation — no react-bootstrap dependency.
+ * Styling via .info-wrapper-popover in SCSS.
  */
 export function InfoWrapper({
   content,
@@ -36,12 +47,24 @@ export function InfoWrapper({
 }: InfoWrapperProps) {
   const id = useId().replace(/:/g, "-");
   const isClick = showOn === "click";
+  const [visible, setVisible] = useState(false);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
 
-  const overlay = (
-    <Popover id={id} className={POPOVER_CLASS}>
-      <Popover.Body>{content}</Popover.Body>
-    </Popover>
-  );
+  /** Close popover when user clicks outside the wrapper (click mode only). */
+  useEffect(() => {
+    if (!isClick || !visible) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setVisible(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isClick, visible]);
+
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  const toggle = useCallback(() => setVisible((v) => !v), []);
 
   const defaultTrigger = (
     <span
@@ -56,17 +79,30 @@ export function InfoWrapper({
   const triggerElement = trigger ?? defaultTrigger;
 
   return (
-    <span className={`d-inline-flex align-items-center ${className}`}>
-      <OverlayTrigger
-        trigger={isClick ? ["click"] : ["hover", "focus"]}
-        placement={position}
-        overlay={overlay}
-        delay={{ show: 200, hide: 100 }}
+    <span
+      ref={wrapperRef}
+      className={`d-inline-flex align-items-center position-relative ${className}`}
+      onMouseEnter={!isClick ? show : undefined}
+      onMouseLeave={!isClick ? hide : undefined}
+    >
+      <span
+        className="d-inline-flex align-items-center cursor-pointer"
+        onClick={isClick ? toggle : undefined}
+        aria-expanded={isClick ? visible : undefined}
+        aria-controls={isClick ? id : undefined}
       >
-        <span className="d-inline-flex align-items-center cursor-pointer">
-          {triggerElement}
-        </span>
-      </OverlayTrigger>
+        {triggerElement}
+      </span>
+      {visible && (
+        <div
+          id={id}
+          role="tooltip"
+          className={`${POPOVER_CLASS} position-absolute ${getPositionClasses(position)}`}
+          style={{ zIndex: 1070, whiteSpace: "nowrap" }}
+        >
+          {content}
+        </div>
+      )}
     </span>
   );
 }

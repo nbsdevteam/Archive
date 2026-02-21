@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-datepicker";
+// CSS is scoped here — only loaded when DateRangePickerModal is first rendered, not in the global bundle.
+import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import type { DateRangeMode } from "./ListFilter";

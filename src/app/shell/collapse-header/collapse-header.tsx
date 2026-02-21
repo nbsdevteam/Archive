@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 
+/** Collapse/expand the top header bar. Native title replaces react-bootstrap Tooltip. */
 const CollapseHeader = () => {
   const { headerCollapse, setHeaderCollapse } = useSidebarUiStore();
 
@@ -10,16 +10,16 @@ const CollapseHeader = () => {
   };
 
   return (
-    <>
-      <OverlayTrigger
-        placement="bottom"
-        overlay={<Tooltip id="collapse-tooltip">Collapse</Tooltip>}
-      >
-        <Link to="#" id="collapse-header" className={headerCollapse ? "active" : ""} onClick={toggleHeaderCollapse} aria-label="Collapse header">
-          <i className="ti ti-chevrons-up" aria-hidden />
-        </Link>
-      </OverlayTrigger>
-    </>
+    <Link
+      to="#"
+      id="collapse-header"
+      className={headerCollapse ? "active" : ""}
+      onClick={toggleHeaderCollapse}
+      aria-label="Collapse header"
+      title="Collapse"
+    >
+      <i className="ti ti-chevrons-up" aria-hidden />
+    </Link>
   );
 };
 
