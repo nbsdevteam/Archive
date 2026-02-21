@@ -80,12 +80,12 @@ const ForgotPasswordPage = () => {
                         </button>
                       </div>
                       <div className="text-center">
-                        <h3 className="fw-normal text-dark mb-0 fs-6">
+                        <h2 className="fw-normal text-dark mb-0 fs-6">
                           {t("auth.returnTo")}{" "}
                           <Link to={all_routes.login} className="hover-a ms-1">
                             {t("auth.signIn")}
                           </Link>
-                        </h3>
+                        </h2>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">

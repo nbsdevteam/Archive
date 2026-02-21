@@ -99,7 +99,7 @@ export function FoldersContent(props: FoldersContentProps) {
           ) : (
             filteredFolders.map((folder) => (
               <div className="col-xl-3 col-md-6" key={folder.id}>
-                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} data-folder-id={folder.id} onClick={handleGridCardClick} onKeyDown={handleGridCardKeyDown} aria-label={t("folders.openFolder", { defaultValue: "Open folder" }) + ` ${folder.name}`}>
+                <div className="folders__grid-card-wrapper" role="button" tabIndex={0} data-folder-id={folder.id} onClick={handleGridCardClick} onKeyDown={handleGridCardKeyDown} aria-label={folder.name}>
                   <div className="card folders__grid-card">
                     <div className="card-body folders__grid-card-body">
                       <div className="d-flex align-items-center justify-content-between mb-3">

@@ -63,3 +63,24 @@ div[class*="react-select"] [class*="option--is-selected"] {
   background: rgb(var(--primary-rgb)) !important;
   border-color: rgb(var(--primary-rgb)) !important;
 }
+
+/* Accessibility: text/link primary foreground contrast on white (4.5:1+) */
+.text-primary {
+  color: #a07840 !important;
+}
+.link-primary {
+  color: #a07840 !important;
+}
+.link-primary:hover,
+.link-primary:focus,
+.link-primary:active {
+  color: #805c2f !important;
+}
+
+/* Accessibility: kbd contrast on light grey background */
+kbd {
+  color: #4b5563 !important;
+}
+html[data-theme="dark"] kbd {
+  color: #cbd5e1 !important;
+}

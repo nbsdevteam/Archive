@@ -207,12 +207,12 @@ export default function LoginPage() {
                         </Button>
                       </div>
                       <div className="text-center">
-                        <h3 className="fw-normal text-dark mb-0 fs-6">
+                        <h2 className="fw-normal text-dark mb-0 fs-6">
                           Don’t have an account?
                           <Link to={all_routes.register} className="hover-a ms-1">
                             {t("auth.createAccount")}
                           </Link>
-                        </h3>
+                        </h2>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">

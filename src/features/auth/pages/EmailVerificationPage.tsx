@@ -111,13 +111,13 @@ const EmailVerificationPage = () => {
                           </p>
                         </div>
                         <div className="text-center mb-3">
-                          <h3 className="fw-normal text-dark mb-0 fs-6">
+                          <h2 className="fw-normal text-dark mb-0 fs-6">
                             Didn’t receive an email?
                             <Link to="#" className="hover-a " aria-label={t("auth.resendVerificationLink")}>
                               {" "}
                               {t("auth.resendLink")}
                             </Link>
-                          </h3>
+                          </h2>
                         </div>
                         <button
                           type="submit"
