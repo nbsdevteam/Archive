@@ -37,7 +37,7 @@ export function FolderDetailPreviewSection({
   return (
     <div className="card mb-3">
       <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h6 className="mb-0">📄 {t("documents.preview", { defaultValue: "Preview" })}</h6>
+        <h4 className="mb-0">📄 {t("documents.preview", { defaultValue: "Preview" })}</h4>
         {hasPreview && (
           <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onDownload}>
             <Icon name="download" className="me-1" />

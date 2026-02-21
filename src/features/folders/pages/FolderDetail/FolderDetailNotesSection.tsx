@@ -30,10 +30,10 @@ export function FolderDetailNotesSection({
   return (
     <div className="card mb-3" style={{ borderTop: 0 }}>
       <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h6 className="mb-0">
+        <h4 className="mb-0">
           <Icon name="file-text" className="me-2" />
           {t("notes.folderNotes", { defaultValue: "Folder Notes" })}
-        </h6>
+        </h4>
         <div className="d-flex gap-2">
           <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onLoadNotes}>
             <Icon name="refresh-cw" className="me-1" />

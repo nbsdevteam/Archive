@@ -80,7 +80,7 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
   return (
     <div className="card mb-3" data-testid="folder-detail-attachments-section">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
+        <h4 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h4>
         <div className="d-flex align-items-center gap-2">
           {documents.length > 0 && (
             <select

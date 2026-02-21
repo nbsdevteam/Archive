@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
@@ -8,7 +8,11 @@ import { PageLayout } from "../../../shared/layout/PageLayout";
 import { usePaginationFromUrl } from "../../../shared/hooks";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
-import { ActivityViewSwitcher, AuditLogsTimeline, AuditLogsTreeView } from "../../../shared/components/Activity";
+import { ActivityViewSwitcher, AuditLogsTimeline } from "../../../shared/components/Activity";
+/** Lazy so xyflow-vendor loads only when user switches to tree view. */
+const AuditLogsTreeView = lazy(() =>
+  import("../../../shared/components/Activity/AuditLogsTreeView").then((m) => ({ default: m.AuditLogsTreeView }))
+);
 import { formatDateForAuditApi } from "../utils/activity.utils";
 import "../styles/activity.css";
 
@@ -230,13 +234,15 @@ const ArchiveActivityPage = () => {
               />
             )}
             {viewMode === "tree" && (
-              <AuditLogsTreeView
-                t={t}
-                logs={logs}
-                loading={loading}
-                error={error}
-                groupBy={treeGroupBy}
-              />
+              <Suspense fallback={<div className="py-3 text-center text-muted">Loading tree view…</div>}>
+                <AuditLogsTreeView
+                  t={t}
+                  logs={logs}
+                  loading={loading}
+                  error={error}
+                  groupBy={treeGroupBy}
+                />
+              </Suspense>
             )}
 
             {!loading && (pagination?.total ?? 0) > 0 && (

@@ -1,0 +1,31 @@
+/**
+ * Self-hosted Inter (Latin) — avoids Google Fonts critical path delay.
+ * font-display: swap so text renders immediately with fallback, then swaps when loaded.
+ * Run scripts/download-inter-fonts.ps1 once to populate public/assets/fonts/.
+ */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/assets/fonts/inter-latin-300-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/inter-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/inter-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}

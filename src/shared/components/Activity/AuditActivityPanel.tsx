@@ -1,10 +1,13 @@
-import { memo } from "react";
+import { memo, lazy, Suspense } from "react";
 import { Button } from "../ui";
 import type { ActivityViewMode } from "./types";
 import type { AuditLogEntry } from "./types";
 import { ActivityViewSwitcher } from "./ActivityViewSwitcher";
 import { AuditLogsTimeline } from "./AuditLogsTimeline";
-import { AuditLogsTreeView } from "./AuditLogsTreeView";
+/** Lazy so xyflow-vendor (~49KB) only loads when user switches to tree view. */
+const AuditLogsTreeView = lazy(() =>
+  import("./AuditLogsTreeView").then((m) => ({ default: m.AuditLogsTreeView }))
+);
 
 export interface AuditActivityPanelTranslator {
   (key: string, options?: { defaultValue?: string; [key: string]: unknown }): string;
@@ -89,7 +92,9 @@ const AuditActivityPanelComponent = ({
           />
         )}
         {viewMode === "tree" && (
-          <AuditLogsTreeView t={t} logs={logs} loading={loading} error={error} groupBy={treeGroupBy} />
+          <Suspense fallback={<div className="py-3 text-center text-muted">Loading tree view…</div>}>
+            <AuditLogsTreeView t={t} logs={logs} loading={loading} error={error} groupBy={treeGroupBy} />
+          </Suspense>
         )}
       </div>
     </div>

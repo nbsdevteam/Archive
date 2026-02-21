@@ -66,7 +66,7 @@ export function FoldersToolbar({
 
   return (
     <TablePageToolbar
-      title={<h5 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h5>}
+      title={<h2 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h2>}
       countSlot={foldersCountLabel}
       rightClassName="folders__header-actions"
     >

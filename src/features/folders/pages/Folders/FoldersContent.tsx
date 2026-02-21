@@ -115,9 +115,9 @@ export function FoldersContent(props: FoldersContentProps) {
                           content={folder.name}
                           position="top"
                           trigger={
-                            <h5 className="folders__folder-name-ellipsis mb-0">
+                            <h3 className="folders__folder-name-ellipsis mb-0">
                               {folder.name}
-                            </h5>
+                            </h3>
                           }
                         />
                       </div>

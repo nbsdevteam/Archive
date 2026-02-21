@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
@@ -6,7 +6,10 @@ import { all_routes } from "../../../router/all_routes";
 import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { UploadDocumentSidePanel } from "../../documents/components";
-import { DepartmentDonutChart } from "../components/DepartmentDonutChart";
+/** Lazy-loaded so charts-vendor (ApexCharts) only loads when dashboard charts are visible. */
+const DepartmentDonutChart = lazy(() =>
+  import("../components/DepartmentDonutChart").then((m) => ({ default: m.DepartmentDonutChart }))
+);
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
@@ -206,7 +209,9 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <>
-                        <DepartmentDonutChart items={documentsByDepartment} />
+                        <Suspense fallback={<div style={{ height: 300 }} aria-hidden />}>
+                          <DepartmentDonutChart items={documentsByDepartment} />
+                        </Suspense>
                         <div className="dashboard-donut-info mt-3 px-2">
                           <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">
@@ -230,7 +235,9 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <>
-                        <DepartmentDonutChart items={foldersByDepartmentItems} />
+                        <Suspense fallback={<div style={{ height: 300 }} aria-hidden />}>
+                          <DepartmentDonutChart items={foldersByDepartmentItems} />
+                        </Suspense>
                         <div className="dashboard-donut-info mt-3 px-2">
                           <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
                           <p className="dashboard-donut-info__text mb-0">

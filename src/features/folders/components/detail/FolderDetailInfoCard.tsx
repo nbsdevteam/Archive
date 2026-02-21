@@ -23,7 +23,7 @@ export function FolderDetailInfoCard({
   return (
     <div className="card mb-3">
       <div className="card-header d-flex align-items-center justify-content-between">
-        <h5 className="card-title mb-0">{folder.name || `Folder #${folderId}`}</h5>
+        <h3 className="card-title mb-0">{folder.name || `Folder #${folderId}`}</h3>
         <span className="text-muted small">
           {documentCount}{" "}
           {documentCount === 1

@@ -106,7 +106,7 @@ export function FolderDetailSubDocsSection({
   return (
     <div className="card mb-3">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <h6 className="mb-0">🧩 {t("folders.secondaryDocuments", { defaultValue: "Secondary documents" })}</h6>
+        <h4 className="mb-0">🧩 {t("folders.secondaryDocuments", { defaultValue: "Secondary documents" })}</h4>
         {subDocs.length > 0 && hasSelection && (
           <div className="d-flex align-items-center gap-2">
             {subDocsBatchActions.canBatchTransfer && (

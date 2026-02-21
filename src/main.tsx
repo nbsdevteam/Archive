@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 
 import "./i18n/config";
 
+// Self-hosted Inter (font-display: swap) — first so FCP isn’t blocked by Google Fonts
+import "./shared/styles/fonts.css";
+
 // Run theme and layout stores at bootstrap so CSS vars and data-* are set before first paint
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
