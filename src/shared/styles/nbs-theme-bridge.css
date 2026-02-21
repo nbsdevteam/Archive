@@ -28,15 +28,6 @@ html[data-theme="dark"] .sidebar .bg-light p {
   color: inherit;
 }
 
-/*
- * NbsCard renders its own body wrapper with padding:1rem.
- * Our app already wraps all card content in Bootstrap .card-body divs,
- * which also add padding — zeroing out the NBS body padding prevents double-spacing.
- */
-[class*="Card-module__body"] {
-  padding: 0 !important;
-}
-
 html[data-theme="dark"] [class*="Card-module__card"] {
   background-color: var(--app-surface-bg);
   border-color: var(--app-border-color);
