@@ -88,7 +88,7 @@
 }
 
 .folders__grid-card-wrapper:hover {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-3px) scale(1.01);
 }
 
 .folders__grid-card-wrapper:focus-visible {

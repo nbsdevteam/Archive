@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
 import { Button, DataTable, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
@@ -26,6 +26,36 @@ export interface FoldersContentProps {
 
 function stopPropagation(e: React.SyntheticEvent) {
   e.stopPropagation();
+}
+
+/**
+ * Renders the folder name with truncation (ellipsis). The InfoWrapper tooltip is shown
+ * only when the text is actually clipped — detected by comparing scrollWidth to clientWidth
+ * after mount. Uses portal mode so the tooltip escapes the card's overflow:hidden container.
+ */
+function FolderNameWithTooltip({ name }: { name: string }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  /** Check after mount (and whenever name changes) whether the heading text is clipped. */
+  useEffect(() => {
+    const el = headingRef.current;
+    if (el) setIsTruncated(el.scrollWidth > el.clientWidth);
+  }, [name]);
+
+  return (
+    <InfoWrapper
+      content={name}
+      position="top"
+      portal
+      disabled={!isTruncated}
+      trigger={
+        <h3 ref={headingRef} className="folders__folder-name-ellipsis mb-0">
+          {name}
+        </h3>
+      }
+    />
+  );
 }
 
 export function FoldersContent(props: FoldersContentProps) {
@@ -116,15 +146,7 @@ export function FoldersContent(props: FoldersContentProps) {
                         </span>
                       </div>
                       <div className="folders__folder-name-wrapper mb-1">
-                        <InfoWrapper
-                          content={folder.name}
-                          position="top"
-                          trigger={
-                            <h3 className="folders__folder-name-ellipsis mb-0">
-                              {folder.name}
-                            </h3>
-                          }
-                        />
+                        <FolderNameWithTooltip name={folder.name} />
                       </div>
                       <p className="text-muted mb-2">
                         <small>{t("folders.code", { defaultValue: "Code" })}: {folder.code}</small>

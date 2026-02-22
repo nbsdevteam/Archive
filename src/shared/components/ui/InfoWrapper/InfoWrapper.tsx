@@ -1,4 +1,5 @@
 import { useId, useRef, useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "../Icon";
 
 export type InfoWrapperPosition = "top" | "bottom" | "left" | "right";
@@ -17,11 +18,19 @@ export interface InfoWrapperProps {
   triggerClassName?: string;
   /** Whether to show on hover or click. Default "hover". */
   showOn?: InfoWrapperShowOn;
+  /** When true the tooltip never shows, regardless of hover/click. */
+  disabled?: boolean;
+  /**
+   * When true the tooltip is rendered via ReactDOM.createPortal onto document.body
+   * with fixed positioning. Use inside overflow:hidden containers so the tooltip
+   * is never clipped by a parent.
+   */
+  portal?: boolean;
 }
 
 const POPOVER_CLASS = "info-wrapper-popover";
 
-/** Translates position prop to Bootstrap positioning utility classes. */
+/** Translates position prop to Bootstrap positioning utility classes (non-portal mode). */
 function getPositionClasses(position: InfoWrapperPosition): string {
   switch (position) {
     case "top":    return "bottom-100 mb-1 start-50 translate-middle-x";
@@ -32,10 +41,22 @@ function getPositionClasses(position: InfoWrapperPosition): string {
   }
 }
 
+/** CSS transform used in portal (fixed) mode to centre the tooltip on the anchor point. */
+function getPortalTransform(position: InfoWrapperPosition): string {
+  switch (position) {
+    case "top":    return "translate(-50%, -100%)";
+    case "left":   return "translate(-100%, -50%)";
+    case "right":  return "translate(0, -50%)";
+    case "bottom":
+    default:       return "translate(-50%, 0)";
+  }
+}
+
 /**
  * Generic info popover with theme-styled content.
  * Custom implementation — no react-bootstrap dependency.
  * Styling via .info-wrapper-popover in SCSS.
+ * Supports `portal` mode (createPortal to document.body) for use inside overflow:hidden containers.
  */
 export function InfoWrapper({
   content,
@@ -44,13 +65,17 @@ export function InfoWrapper({
   className = "",
   triggerClassName = "",
   showOn = "hover",
+  disabled = false,
+  portal = false,
 }: InfoWrapperProps) {
   const id = useId().replace(/:/g, "-");
   const isClick = showOn === "click";
   const [visible, setVisible] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
+  /** Fixed-position coordinates used when portal=true. */
+  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null);
 
-  /** Close popover when user clicks outside the wrapper (click mode only; single listener: no AbortController). */
+  /** Close popover when user clicks outside the wrapper (click mode only). */
   useEffect(() => {
     if (!isClick || !visible) return;
     const handleOutsideClick = (e: MouseEvent) => {
@@ -62,9 +87,44 @@ export function InfoWrapper({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [isClick, visible]);
 
-  const show = useCallback(() => setVisible(true), []);
+  /** Calculate the fixed viewport position of the tooltip anchor (portal mode only). */
+  const calculatePortalPos = useCallback(() => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    let top: number, left: number;
+    switch (position) {
+      case "top":
+        top = rect.top - 8;
+        left = rect.left + rect.width / 2;
+        break;
+      case "left":
+        top = rect.top + rect.height / 2;
+        left = rect.left - 8;
+        break;
+      case "right":
+        top = rect.top + rect.height / 2;
+        left = rect.right + 8;
+        break;
+      case "bottom":
+      default:
+        top = rect.bottom + 8;
+        left = rect.left + rect.width / 2;
+    }
+    setPortalPos({ top, left });
+  }, [position]);
+
+  const show = useCallback(() => {
+    if (disabled) return;
+    if (portal) calculatePortalPos();
+    setVisible(true);
+  }, [disabled, portal, calculatePortalPos]);
+
   const hide = useCallback(() => setVisible(false), []);
-  const toggle = useCallback(() => setVisible((v) => !v), []);
+  const toggle = useCallback(() => {
+    if (disabled) return;
+    if (portal) calculatePortalPos();
+    setVisible((v) => !v);
+  }, [disabled, portal, calculatePortalPos]);
 
   const defaultTrigger = (
     <span
@@ -78,31 +138,45 @@ export function InfoWrapper({
 
   const triggerElement = trigger ?? defaultTrigger;
 
+  const tooltipEl = visible ? (
+    <div
+      id={id}
+      role="tooltip"
+      className={`${POPOVER_CLASS}${portal ? "" : ` position-absolute ${getPositionClasses(position)}`}`}
+      style={
+        portal && portalPos
+          ? {
+              position: "fixed",
+              top: portalPos.top,
+              left: portalPos.left,
+              transform: getPortalTransform(position),
+              zIndex: 1070,
+              whiteSpace: "nowrap",
+            }
+          : { zIndex: 1070, whiteSpace: "nowrap" }
+      }
+    >
+      {/* popover-body wrapper ensures the SCSS nested .popover-body styles (padding, color) apply */}
+      <div className="popover-body">{content}</div>
+    </div>
+  ) : null;
+
   return (
     <span
       ref={wrapperRef}
       className={`d-inline-flex align-items-center position-relative ${className}`}
-      onMouseEnter={!isClick ? show : undefined}
-      onMouseLeave={!isClick ? hide : undefined}
+      onMouseEnter={!isClick && !disabled ? show : undefined}
+      onMouseLeave={!isClick && !disabled ? hide : undefined}
     >
       <span
         className="d-inline-flex align-items-center cursor-pointer"
-        onClick={isClick ? toggle : undefined}
+        onClick={isClick && !disabled ? toggle : undefined}
         aria-expanded={isClick ? visible : undefined}
         aria-controls={isClick ? id : undefined}
       >
         {triggerElement}
       </span>
-      {visible && (
-        <div
-          id={id}
-          role="tooltip"
-          className={`${POPOVER_CLASS} position-absolute ${getPositionClasses(position)}`}
-          style={{ zIndex: 1070, whiteSpace: "nowrap" }}
-        >
-          {content}
-        </div>
-      )}
+      {portal ? createPortal(tooltipEl, document.body) : tooltipEl}
     </span>
   );
 }
