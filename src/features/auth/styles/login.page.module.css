@@ -94,6 +94,16 @@
   text-decoration: underline;
 }
 
+/* Return to sign in: explicit readable size (project typography overrides fs-5/fs-6 to 5px/6px). */
+.returnToSignIn {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.returnToSignIn a {
+  font-size: inherit;
+}
+
 .leftPanel {
   background: linear-gradient(160deg, #0f2d3b 0%, #12384a 45%, #0a2230 100%);
   padding: 2rem;

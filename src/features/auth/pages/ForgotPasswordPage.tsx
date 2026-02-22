@@ -19,14 +19,21 @@ const ForgotPasswordPage = () => {
       <div className="w-100 overflow-hidden position-relative flex-wrap d-block vh-100">
         <div className="row">
           <div className="col-lg-5">
-            <div className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}>
+            <div
+              className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}
+            >
               <div className="authentication-card w-100">
-                <div className={`authen-overlay-item border w-100 ${styles.leftCard}`}>
+                <div
+                  className={`authen-overlay-item border w-100 ${styles.leftCard}`}
+                >
                   <h2 className={`text-white display-1 ${styles.leftTitle}`}>
                     NBS Archive
                   </h2>
-                  <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
-                    Recover access to your archive workspace. We'll send reset instructions to your email.
+                  <p
+                    className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}
+                  >
+                    Recover access to your archive workspace. We'll send reset
+                    instructions to your email.
                   </p>
                   <div className={styles.leftVisual}>
                     <ImageWithBasePath
@@ -45,11 +52,11 @@ const ForgotPasswordPage = () => {
                 <form className="vh-100" onSubmit={navigationPath}>
                   <div className="vh-100 d-flex flex-column justify-content-between p-4 pb-0">
                     <div className="mx-auto mb-5 text-center">
-                      <ImageWithBasePath
+                      {/* <ImageWithBasePath
                         src="assets/img/logo.svg"
                         className="img-fluid"
                         alt="NBS Archive System"
-                      />
+                      /> */}
                     </div>
                     <div>
                       <div className="text-center mb-3">
@@ -59,7 +66,9 @@ const ForgotPasswordPage = () => {
                         </p>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="email">{t("auth.emailAddress")}</label>
+                        <label className="form-label" htmlFor="email">
+                          {t("auth.emailAddress")}
+                        </label>
                         <div className="input-group">
                           <input
                             id="email"
@@ -79,8 +88,8 @@ const ForgotPasswordPage = () => {
                           {t("auth.submit")}
                         </button>
                       </div>
-                      <div className="text-center">
-                        <p className="fw-normal text-dark mb-0 fs-5">
+                      <div className={`text-center ${styles.returnToSignIn}`}>
+                        <p className="fw-normal text-dark mb-0">
                           {t("auth.returnTo")}{" "}
                           <Link to={all_routes.login} className="hover-a ms-1">
                             {t("auth.signIn")}
