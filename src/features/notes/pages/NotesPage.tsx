@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ConfirmModal, Icon, SidePanel } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, SidePanel, MobileActionsMenu } from "../../../shared/components/ui";
 import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
@@ -109,14 +109,37 @@ const NotesPage = () => {
       homeTo={routes.dashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={refresh}>
-            <Icon name="refresh-cw" className="me-1" />
-            {t("common.refresh", { defaultValue: "Refresh" })}
-          </Button>
-          <Button variant="secondary" size="sm" onClick={noteEditor.handleCreateNote}>
-            <Icon name="upload" className="me-1" />
-            {t("notes.createNote", { defaultValue: "Create note" })}
-          </Button>
+          {isMobileView ? (
+            <MobileActionsMenu
+              title={t("common.actions", { defaultValue: "Actions" })}
+              items={[
+                {
+                  id: "refresh",
+                  icon: "refresh-cw",
+                  label: t("common.refresh", { defaultValue: "Refresh" }),
+                  onClick: refresh,
+                },
+                {
+                  id: "create",
+                  icon: "upload",
+                  label: t("notes.createNote", { defaultValue: "Create note" }),
+                  onClick: noteEditor.handleCreateNote,
+                },
+              ]}
+              triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+            />
+          ) : (
+            <>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={refresh}>
+                <Icon name="refresh-cw" className="me-1" />
+                {t("common.refresh", { defaultValue: "Refresh" })}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={noteEditor.handleCreateNote}>
+                <Icon name="upload" className="me-1" />
+                {t("notes.createNote", { defaultValue: "Create note" })}
+              </Button>
+            </>
+          )}
           <CollapseHeader />
         </>
       }

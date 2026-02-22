@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Alert, Button, Icon } from "@/shared/components/ui";
+import { Alert, Button, Icon, MobileActionsMenu } from "@/shared/components/ui";
 import { LoadingSpinner } from "@/app/shell/LoadingSpinner";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { AttachmentSidePanel } from "@/features/documents/components";
@@ -9,11 +9,13 @@ import { useDocumentDetailDialogs } from "@/features/documents/hooks/useDocument
 import { DocumentDetailInfoCard, DocumentDetailTabContent, DocumentDetailModals } from "@/features/documents/components/detail";
 import { EditDocumentSidePanel } from "@/features/documents/components/EditDocument";
 import { useDocumentDetailPageContainer } from "@/features/documents/containers/useDocumentDetailPageContainer";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "@/features/documents/styles/documents.css";
 
 const DocumentDetailPage = () => {
+  const { isMobileView } = useViewport();
   const { t, routes, data, loading, error, tabState, selection, actions, modals } = useDocumentDetailPageContainer();
 
   /** Switches active tab when a tab button is clicked; reads tab id from data-tab-id. */
@@ -70,32 +72,67 @@ const DocumentDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={actions.handleOpenEdit} data-testid="document-detail-edit-document-btn">
-            <Icon name="pencil" className="me-1" />
-            {t("common.edit", { defaultValue: "Edit" })}
-          </Button>
-          <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={() => void actions.handleRefreshDocument()} disabled={loading.isLoading} aria-label={t("common.refresh", { defaultValue: "Refresh" })} data-testid="document-detail-refresh-btn">
-            <Icon name="refresh-cw" className="me-1" />
-            {t("common.refresh", { defaultValue: "Refresh" })}
-          </Button>
-          {data.isArchived ? (
-            <Button variant="secondary" size="sm" onClick={actions.handleUnarchive}>
-              <Icon name="archive" className="me-1" />
-              {t("documents.unarchive", { defaultValue: "Unarchive" })}
-            </Button>
+          {isMobileView ? (
+            <MobileActionsMenu
+              title={t("common.actions", { defaultValue: "Actions" })}
+              items={[
+                {
+                  id: "edit",
+                  icon: "pencil",
+                  label: t("common.edit", { defaultValue: "Edit" }),
+                  onClick: actions.handleOpenEdit,
+                },
+                {
+                  id: "refresh",
+                  icon: "refresh-cw",
+                  label: t("common.refresh", { defaultValue: "Refresh" }),
+                  disabled: loading.isLoading,
+                  onClick: () => void actions.handleRefreshDocument(),
+                },
+                ...(data.isArchived
+                  ? [{ id: "unarchive" as const, icon: "archive" as const, label: t("documents.unarchive", { defaultValue: "Unarchive" }), onClick: actions.handleUnarchive }]
+                  : [{ id: "archive" as const, icon: "archive" as const, label: t("documents.archive", { defaultValue: "Archive" }), variant: "danger" as const, onClick: actions.handleArchive }]),
+                ...(data.isTrashed
+                  ? [{
+                      id: "restore" as const,
+                      icon: "refresh-cw" as const,
+                      label: t("documents.restore", { defaultValue: "Restore" }),
+                      disabled: loading.isRestoring,
+                      onClick: actions.handleRestoreDocument,
+                    }]
+                  : []),
+              ]}
+              triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+            />
           ) : (
-            <Button variant="danger" size="sm" onClick={actions.handleArchive}>
-              <Icon name="archive" className="me-1" />
-              {t("documents.archive", { defaultValue: "Archive" })}
-            </Button>
+            <>
+              <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={actions.handleOpenEdit} data-testid="document-detail-edit-document-btn">
+                <Icon name="pencil" className="me-1" />
+                {t("common.edit", { defaultValue: "Edit" })}
+              </Button>
+              <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={() => void actions.handleRefreshDocument()} disabled={loading.isLoading} aria-label={t("common.refresh", { defaultValue: "Refresh" })} data-testid="document-detail-refresh-btn">
+                <Icon name="refresh-cw" className="me-1" />
+                {t("common.refresh", { defaultValue: "Refresh" })}
+              </Button>
+              {data.isArchived ? (
+                <Button variant="secondary" size="sm" onClick={actions.handleUnarchive}>
+                  <Icon name="archive" className="me-1" />
+                  {t("documents.unarchive", { defaultValue: "Unarchive" })}
+                </Button>
+              ) : (
+                <Button variant="danger" size="sm" onClick={actions.handleArchive}>
+                  <Icon name="archive" className="me-1" />
+                  {t("documents.archive", { defaultValue: "Archive" })}
+                </Button>
+              )}
+              {data.isTrashed && (
+                <Button variant="secondary" size="sm" onClick={actions.handleRestoreDocument} disabled={loading.isRestoring}>
+                  <Icon name="refresh-cw" className="me-1" />
+                  {t("documents.restore", { defaultValue: "Restore" })}
+                </Button>
+              )}
+            </>
           )}
-          {data.isTrashed && (
-            <Button variant="secondary" size="sm" onClick={actions.handleRestoreDocument} disabled={loading.isRestoring}>
-              <Icon name="refresh-cw" className="me-1" />
-              {t("documents.restore", { defaultValue: "Restore" })}
-            </Button>
-          )}
-          {/* Main document cannot be moved to trash on this page; only sub-documents (attachments) can be deleted. */}
           <CollapseHeader />
         </>
       }

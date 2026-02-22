@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
-import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
+import { Button, Icon, SearchInput, ListFilter, MobileActionsMenu } from "@/shared/components/ui";
+import type { MobileActionsMenuItem } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { useViewport } from "@/shared/hooks/useViewport";
 import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
@@ -231,11 +232,76 @@ export function DocumentsToolbar({
   );
 
   if (isMobileView) {
+    const mobileMenuItems: MobileActionsMenuItem[] = [
+      {
+        id: "upload",
+        icon: "file-up",
+        label: t("documents.uploadDocuments", { defaultValue: "Upload Documents" }),
+        onClick: actions.handleOpenUpload,
+      },
+      {
+        id: "refresh",
+        icon: "refresh-cw",
+        label: t("common.refresh", { defaultValue: "Refresh" }),
+        disabled: loading,
+        onClick: actions.handleRefresh,
+      },
+    ];
+    if (documents.length > 0 && isSomeSelected) {
+      if (batchActions.canBatchRestore) {
+        mobileMenuItems.push({
+          id: "restore",
+          icon: "refresh-cw",
+          label: t("documents.restoreSelected", { defaultValue: "Restore selected" }),
+          badgeCount: selectedDocumentIds.length,
+          onClick: batchRestoreDialog.open,
+          disabled: modals.isRestoring,
+        });
+      }
+      if (batchActions.canBatchUnarchive) {
+        mobileMenuItems.push({
+          id: "unarchive",
+          icon: "archive",
+          label: t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" }),
+          badgeCount: selectedDocumentIds.length,
+          onClick: batchUnarchiveDialog.open,
+          disabled: modals.isUnarchiving,
+        });
+      }
+      if (batchActions.canBatchTransfer) {
+        mobileMenuItems.push({
+          id: "transfer",
+          icon: "arrow-right-left",
+          label: t("documents.transferSelected", { defaultValue: "Transfer selected" }),
+          badgeCount: selectedDocumentIds.length,
+          onClick: actions.handleOpenBatchMoveConfirm,
+          disabled: modals.isMoveSubmitting || modals.isTrashing || modals.isArchiving,
+        });
+      }
+      if (batchActions.canBatchArchive) {
+        mobileMenuItems.push({
+          id: "archive",
+          icon: "archive",
+          label: t("documents.archiveSelected", { defaultValue: "Archive selected" }),
+          badgeCount: selectedDocumentIds.length,
+          onClick: batchArchiveDialog.open,
+          disabled: modals.isArchiving,
+        });
+      }
+    }
     return (
       <div className="card-header d-flex flex-column gap-2">
         <div className="d-flex align-items-center gap-2">
           <h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>
           {countSlot != null && <span className="text-muted fs-13">{countSlot}</span>}
+        </div>
+        <div className="d-flex flex-wrap gap-2 align-items-center">
+          {filterButtonJsx}
+          <MobileActionsMenu
+            title={t("common.actions", { defaultValue: "Actions" })}
+            items={mobileMenuItems}
+            triggerAriaLabel={t("documents.actionsAria", { defaultValue: "Actions" })}
+          />
         </div>
         <div className="w-100">
           <SearchInput
@@ -249,22 +315,6 @@ export function DocumentsToolbar({
             inputClassName="documents__search-input"
             aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
           />
-        </div>
-        <div className="d-flex flex-wrap gap-2 align-items-center">
-          {batchButtonsJsx}
-          {filterButtonJsx}
-          <Button
-            variant="outline"
-            size="md"
-            className="d-inline-flex align-items-center btn-outline-secondary"
-            onClick={actions.handleOpenUpload}
-            data-testid="upload-documents-btn"
-            aria-label={t("documents.uploadDocumentsAria", { defaultValue: "Upload documents" })}
-          >
-            <Icon name="file-up" className="me-1" />
-            {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
-          </Button>
-          {refreshButtonJsx}
         </div>
       </div>
     );

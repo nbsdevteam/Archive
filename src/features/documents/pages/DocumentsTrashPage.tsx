@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, ListFilter } from "@/shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, ListFilter, MobileActionsMenu } from "@/shared/components/ui";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
@@ -159,44 +159,38 @@ const DocumentsTrashPage = () => {
     </>
   );
 
-  /** Mobile-only: Filter on first row; Restore/Delete selected on second row, with shorter "Delete selected" label and no text wrap. */
-  const mobileBatchActionsJsx = isSomeSelected && (
-    <>
-      {batchActions.canBatchRestore && (
-        <Button
-          variant="outline"
-          size="md"
-          className="btn-outline-secondary d-inline-flex align-items-center text-nowrap"
-          onClick={batchRestoreDialog.open}
-          disabled={isRestoring}
-          aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-          data-testid="trash-restore-selected"
-        >
-          <Icon name="refresh-cw" className="me-1" />
-          {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-          {selectedDocumentIds.length > 0 && (
-            <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-          )}
-        </Button>
-      )}
-      {isAdmin && (
-        <Button
-          variant="outline"
-          size="md"
-          className="btn-outline-danger d-inline-flex align-items-center text-nowrap"
-          onClick={batchPermanentDeleteDialog.open}
-          disabled={isPermanentDeleting}
-          aria-label={t("documents.deleteSelected", { defaultValue: "Delete selected" })}
-        >
-          <Icon name="trash" className="me-1" />
-          {t("documents.deleteSelected", { defaultValue: "Delete selected" })}
-          {selectedDocumentIds.length > 0 && (
-            <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
-          )}
-        </Button>
-      )}
-    </>
-  );
+  /** Mobile-only: "Actions on selected" kebab when there is selection; menu has Restore (description) and Delete selected (danger, description). */
+  const mobileActionsMenuItems = isSomeSelected
+    ? [
+        ...(batchActions.canBatchRestore
+          ? [
+              {
+                id: "restore",
+                icon: "refresh-cw" as const,
+                label: t("documents.restoreSelected", { defaultValue: "Restore selected" }),
+                description: t("documents.restoreSelectedDescription", { defaultValue: "Move back to Documents" }),
+                badgeCount: selectedDocumentIds.length,
+                onClick: batchRestoreDialog.open,
+                disabled: isRestoring,
+              },
+            ]
+          : []),
+        ...(isAdmin
+          ? [
+              {
+                id: "delete",
+                icon: "trash" as const,
+                label: t("documents.deleteSelected", { defaultValue: "Delete selected" }),
+                description: t("documents.permanentDeleteDescription", { defaultValue: "This cannot be undone" }),
+                badgeCount: selectedDocumentIds.length,
+                variant: "danger" as const,
+                onClick: batchPermanentDeleteDialog.open,
+                disabled: isPermanentDeleting,
+              },
+            ]
+          : []),
+      ]
+    : [];
 
   return (
     <PageLayout
@@ -215,9 +209,13 @@ const DocumentsTrashPage = () => {
               <div className="d-flex flex-wrap gap-2 align-items-center">
                 {filterBlock}
               </div>
-              {mobileBatchActionsJsx && (
+              {mobileActionsMenuItems.length > 0 && (
                 <div className="d-flex flex-wrap gap-2 align-items-center">
-                  {mobileBatchActionsJsx}
+                  <MobileActionsMenu
+                    title={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
+                    items={mobileActionsMenuItems}
+                    triggerAriaLabel={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
+                  />
                 </div>
               )}
             </div>

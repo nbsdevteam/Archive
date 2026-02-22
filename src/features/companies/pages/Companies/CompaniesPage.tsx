@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog } from "@/shared/hooks";
-import { Alert, Button, DataTable, Icon, SearchInput } from "@/shared/components/ui";
+import { Alert, Button, DataTable, Icon, SearchInput, MobileActionsMenu } from "@/shared/components/ui";
+import type { MobileActionsMenuItem } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { ConfirmModal } from "@/shared/components/ui";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
@@ -131,6 +132,32 @@ export default function CompaniesPage() {
               <h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>
               {countLabel != null && <span className="text-muted fs-13">{countLabel}</span>}
             </div>
+            <div className="d-flex flex-wrap gap-2 align-items-center">
+              <MobileActionsMenu
+                title={t("common.actions", { defaultValue: "Actions" })}
+                items={(() => {
+                  const items: MobileActionsMenuItem[] = [
+                    {
+                      id: "refresh",
+                      icon: "refresh-cw",
+                      label: t("common.refresh", { defaultValue: "Refresh" }),
+                      disabled: loading,
+                      onClick: actions.handleRefresh,
+                    },
+                  ];
+                  if (isAdmin) {
+                    items.push({
+                      id: "create",
+                      icon: "file-up",
+                      label: t("companies.createCompany", { defaultValue: "Create company" }),
+                      onClick: actions.handleOpenCreate,
+                    });
+                  }
+                  return items;
+                })()}
+                triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+              />
+            </div>
             <div className="w-100">
               <SearchInput
                 placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
@@ -142,31 +169,6 @@ export default function CompaniesPage() {
                 className="w-100"
                 aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
               />
-            </div>
-            <div className="d-flex flex-wrap gap-2 align-items-center">
-              <Button
-                variant="outline"
-                size="md"
-                className="btn-outline-secondary d-inline-flex align-items-center"
-                onClick={actions.handleRefresh}
-                disabled={loading}
-                aria-label={t("common.refresh", { defaultValue: "Refresh" })}
-              >
-                <Icon name="refresh-cw" className="me-1" />
-                {t("common.refresh", { defaultValue: "Refresh" })}
-              </Button>
-              {isAdmin && (
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="d-inline-flex align-items-center"
-                  onClick={actions.handleOpenCreate}
-                  aria-label={t("companies.createCompany", { defaultValue: "Create company" })}
-                >
-                  <Icon name="file-up" className="me-1" />
-                  {t("companies.createCompany", { defaultValue: "Create company" })}
-                </Button>
-              )}
             </div>
           </div>
         ) : (

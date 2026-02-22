@@ -2,7 +2,8 @@ import { useCallback, useMemo, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button } from "../../../shared/components/ui";
+import { Button, MobileActionsMenu } from "../../../shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { usePaginationFromUrl } from "../../../shared/hooks";
@@ -26,6 +27,7 @@ const getDateDaysAgoFormatted = (days: number): string => {
 const ArchiveActivityPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
+  const { isMobileView } = useViewport();
   const { page: urlPage, perPage: urlPerPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(50);
   const [viewMode, setViewMode] = useState<ActivityViewMode>("timeline");
   const [treeGroupBy, setTreeGroupBy] = useState<"document" | "action">("document");
@@ -132,22 +134,45 @@ const ArchiveActivityPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button
-            variant="outline"
-            size="sm"
-            className="btn-outline-secondary"
-            onClick={handleLast7DaysClick}
-          >
-            {t("activity.last7Days", { defaultValue: "Last 7 days" })}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="btn-outline-secondary"
-            onClick={handleLast24HoursClick}
-          >
-            {t("activity.last24Hours", { defaultValue: "Last 24h" })}
-          </Button>
+          {isMobileView ? (
+            <MobileActionsMenu
+              title={t("common.actions", { defaultValue: "Actions" })}
+              items={[
+                {
+                  id: "last7",
+                  icon: "calendar",
+                  label: t("activity.last7Days", { defaultValue: "Last 7 days" }),
+                  onClick: handleLast7DaysClick,
+                },
+                {
+                  id: "last24",
+                  icon: "calendar",
+                  label: t("activity.last24Hours", { defaultValue: "Last 24h" }),
+                  onClick: handleLast24HoursClick,
+                },
+              ]}
+              triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+            />
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-secondary"
+                onClick={handleLast7DaysClick}
+              >
+                {t("activity.last7Days", { defaultValue: "Last 7 days" })}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-secondary"
+                onClick={handleLast24HoursClick}
+              >
+                {t("activity.last24Hours", { defaultValue: "Last 24h" })}
+              </Button>
+            </>
+          )}
           <CollapseHeader />
         </>
       }

@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
-import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
+import { Button, Icon, SearchInput, ListFilter, MobileActionsMenu } from "@/shared/components/ui";
+import type { MobileActionsMenuItem } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { useViewport } from "@/shared/hooks/useViewport";
 
@@ -168,18 +169,42 @@ export function FoldersToolbar({
   );
 
   if (isMobileView) {
+    const mobileMenuItems: MobileActionsMenuItem[] = [
+      {
+        id: "grid",
+        icon: "folder",
+        label: t("folders.gridView", { defaultValue: "Grid view" }),
+        onClick: handleSetViewModeGrid,
+      },
+      {
+        id: "list",
+        icon: "file-text",
+        label: t("folders.listView", { defaultValue: "List view" }),
+        onClick: handleSetViewModeList,
+      },
+      {
+        id: "refresh",
+        icon: "refresh-cw",
+        label: t("common.refresh", { defaultValue: "Refresh" }),
+        disabled: loading,
+        onClick: actions.handleRefresh,
+      },
+    ];
     return (
       <div className="card-header d-flex flex-column gap-2">
         <div className="d-flex align-items-center gap-2">
           <h2 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h2>
           {foldersCountLabel != null && <span className="text-muted fs-13">{foldersCountLabel}</span>}
         </div>
-        <div className="w-100">{searchInputJsx}</div>
         <div className="d-flex flex-wrap gap-2 align-items-center">
           {filterButtonJsx}
-          {viewToggleJsx}
-          {refreshButtonJsx}
+          <MobileActionsMenu
+            title={t("common.actions", { defaultValue: "Actions" })}
+            items={mobileMenuItems}
+            triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+          />
         </div>
+        <div className="w-100">{searchInputJsx}</div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Alert, Button, Icon } from "@/shared/components/ui";
+import { Alert, Button, Icon, MobileActionsMenu } from "@/shared/components/ui";
 import { LoadingSpinner } from "@/app/shell/LoadingSpinner";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import type { ActivityViewMode } from "@/features/activity/types";
@@ -25,7 +25,7 @@ import { EditDocumentSidePanel } from "@/features/documents/components/EditDocum
 
 /** Folder detail page: guards, layout, and composition of info, main doc, sub-docs, attachments, notes, preview, activity, and modals. */
 const FolderDetailPage = () => {
-  const { isDesktopView } = useViewport();
+  const { isDesktopView, isMobileView } = useViewport();
   const { registerHandler } = useShortcuts();
   const announce = useAnnounce();
   const { t, routes, data, loadingState, errors, activity, selection, actions, modals } =
@@ -102,22 +102,58 @@ const FolderDetailPage = () => {
       homeTo={routes.adminDashboard}
       rightContent={
         <>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder} data-testid="upload-in-folder-btn">
-            <Icon name="upload" className="me-1" />
-            {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
-          </Button>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleOpenEditFolder}>
-            <Icon name="edit" className="me-1" />
-            {t("folders.editFolder", { defaultValue: "Edit folder" })}
-          </Button>
-          <Button variant="outline" size="sm" className="btn-outline-danger" onClick={deleteFolderDialog.open} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
-            <Icon name="trash" className="me-1" />
-            {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
-          </Button>
-          <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.loadFolderDocuments}>
-            <Icon name="refresh-cw" className="me-1" />
-            {t("common.refresh", { defaultValue: "Refresh" })}
-          </Button>
+          {isMobileView ? (
+            <MobileActionsMenu
+              title={t("common.actions", { defaultValue: "Actions" })}
+              items={[
+                {
+                  id: "upload",
+                  icon: "upload",
+                  label: t("folders.uploadInFolder", { defaultValue: "Upload in folder" }),
+                  onClick: actions.handleUploadInFolder,
+                },
+                {
+                  id: "edit",
+                  icon: "pencil",
+                  label: t("folders.editFolder", { defaultValue: "Edit folder" }),
+                  onClick: actions.handleOpenEditFolder,
+                },
+                {
+                  id: "delete",
+                  icon: "trash",
+                  label: t("folders.deleteFolder", { defaultValue: "Delete folder" }),
+                  variant: "danger",
+                  onClick: deleteFolderDialog.open,
+                },
+                {
+                  id: "refresh",
+                  icon: "refresh-cw",
+                  label: t("common.refresh", { defaultValue: "Refresh" }),
+                  onClick: actions.loadFolderDocuments,
+                },
+              ]}
+              triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+            />
+          ) : (
+            <>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleUploadInFolder} data-testid="upload-in-folder-btn">
+                <Icon name="upload" className="me-1" />
+                {t("folders.uploadInFolder", { defaultValue: "Upload in folder" })}
+              </Button>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.handleOpenEditFolder}>
+                <Icon name="edit" className="me-1" />
+                {t("folders.editFolder", { defaultValue: "Edit folder" })}
+              </Button>
+              <Button variant="outline" size="sm" className="btn-outline-danger" onClick={deleteFolderDialog.open} aria-label={t("folders.deleteFolder", { defaultValue: "Delete folder" })}>
+                <Icon name="trash" className="me-1" />
+                {t("folders.deleteFolder", { defaultValue: "Delete folder" })}
+              </Button>
+              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={actions.loadFolderDocuments}>
+                <Icon name="refresh-cw" className="me-1" />
+                {t("common.refresh", { defaultValue: "Refresh" })}
+              </Button>
+            </>
+          )}
           <CollapseHeader />
         </>
       }

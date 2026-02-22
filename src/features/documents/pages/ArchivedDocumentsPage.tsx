@@ -1,12 +1,14 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Alert, Button, DataTable, ConfirmModal, Icon, SearchInput } from "@/shared/components/ui";
+import { Alert, Button, DataTable, ConfirmModal, Icon, SearchInput, MobileActionsMenu } from "@/shared/components/ui";
+import type { MobileActionsMenuItem } from "@/shared/components/ui";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
+import { useViewport } from "@/shared/hooks/useViewport";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import { useArchivedDocumentsPageContainer } from "@/features/documents/containers/useArchivedDocumentsPageContainer";
@@ -20,6 +22,8 @@ import "@/features/documents/styles/documents.css";
  */
 const ArchivedDocumentsPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { isMobileView } = useViewport();
   const { data, loading, error, filter, selection, actions, modals, paging } =
     useArchivedDocumentsPageContainer();
   const { documents, routes, pagination } = data;
@@ -104,6 +108,158 @@ const ArchivedDocumentsPage = () => {
           </>
         )) || null;
 
+  const desktopToolbar = (
+    <TablePageToolbar
+      title={
+        <h5 className="card-title mb-0">
+          {t("documents.archivedDocuments", { defaultValue: "Archived documents" })}
+        </h5>
+      }
+      countSlot={countSlot}
+      rightClassName="documents__header-actions"
+    >
+      {documents.length > 0 && isSomeSelected && (
+        <>
+          {batchActions.canBatchUnarchive && (
+            <Button
+              variant="outline"
+              size="md"
+              className="btn-outline-secondary d-inline-flex align-items-center me-2"
+              onClick={batchUnarchiveDialog.open}
+              disabled={modals.isUnarchiving}
+              aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+              data-testid="archived-unarchive-selected"
+            >
+              <Icon name="archive" className="me-1" />
+              {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+              {selectedDocumentIds.length > 0 && (
+                <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+              )}
+            </Button>
+          )}
+          {batchActions.canBatchTrash && (
+            <Button
+              variant="outline"
+              size="md"
+              className="btn-outline-danger d-inline-flex align-items-center me-2"
+              onClick={batchTrashDialog.open}
+              disabled={modals.isTrashing}
+              aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+            >
+              <Icon name="trash-2" className="me-1" />
+              {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
+              {selectedDocumentIds.length > 0 && (
+                <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
+              )}
+            </Button>
+          )}
+        </>
+      )}
+      <div data-testid="archived-documents-search">
+        <SearchInput
+          placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
+          debounceMs={300}
+          onDebouncedChange={filter.handleSearchDebounced}
+          icon="file-search-corner"
+          wide
+          highlight
+          className="documents__search-wrap"
+          inputClassName="documents__search-input"
+          aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
+        />
+      </div>
+      <Link
+        to={routes.documentsTrash}
+        className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
+        aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
+      >
+        <Icon name="trash" className="me-2" />
+        {t("documents.trashView", { defaultValue: "Trash" })}
+      </Link>
+      <Button
+        variant="outline"
+        size="md"
+        className="d-inline-flex align-items-center btn-outline-secondary"
+        onClick={actions.handleRefresh}
+        disabled={loading}
+        aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
+      >
+        <Icon name="refresh-cw" className="me-1" />
+        {t("common.refresh", { defaultValue: "Refresh" })}
+      </Button>
+    </TablePageToolbar>
+  );
+
+  const mobileMenuItems: MobileActionsMenuItem[] = [
+    {
+      id: "trash",
+      icon: "trash",
+      label: t("documents.trashView", { defaultValue: "Trash" }),
+      onClick: () => navigate(routes.documentsTrash),
+    },
+    {
+      id: "refresh",
+      icon: "refresh-cw",
+      label: t("common.refresh", { defaultValue: "Refresh" }),
+      disabled: loading,
+      onClick: actions.handleRefresh,
+    },
+  ];
+  if (documents.length > 0 && isSomeSelected) {
+    if (batchActions.canBatchUnarchive) {
+      mobileMenuItems.push({
+        id: "unarchive",
+        icon: "archive",
+        label: t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" }),
+        badgeCount: selectedDocumentIds.length,
+        onClick: batchUnarchiveDialog.open,
+        disabled: modals.isUnarchiving,
+      });
+    }
+    if (batchActions.canBatchTrash) {
+      mobileMenuItems.push({
+        id: "trash-selected",
+        icon: "trash-2",
+        label: t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" }),
+        badgeCount: selectedDocumentIds.length,
+        variant: "danger",
+        onClick: batchTrashDialog.open,
+        disabled: modals.isTrashing,
+      });
+    }
+  }
+
+  const mobileToolbar = (
+    <div className="card-header d-flex flex-column gap-2">
+      <div className="d-flex align-items-center gap-2">
+        <h5 className="card-title mb-0">
+          {t("documents.archivedDocuments", { defaultValue: "Archived documents" })}
+        </h5>
+        {countSlot != null && <span className="text-muted fs-13">{countSlot}</span>}
+      </div>
+      <div className="d-flex flex-wrap gap-2 align-items-center">
+        <MobileActionsMenu
+          title={t("common.actions", { defaultValue: "Actions" })}
+          items={mobileMenuItems}
+          triggerAriaLabel={t("common.actions", { defaultValue: "Actions" })}
+        />
+      </div>
+      <div className="w-100" data-testid="archived-documents-search">
+        <SearchInput
+          placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
+          debounceMs={300}
+          onDebouncedChange={filter.handleSearchDebounced}
+          icon="file-search-corner"
+          wide
+          highlight
+          className="w-100"
+          inputClassName="documents__search-input"
+          aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <PageLayout
       title={t("documents.archivedDocuments", { defaultValue: "Archived documents" })}
@@ -112,85 +268,7 @@ const ArchivedDocumentsPage = () => {
       rightContent={<CollapseHeader />}
     >
       <div className="card documents__table-card" data-testid="archived-documents-page">
-        <TablePageToolbar
-          title={
-            <h5 className="card-title mb-0">
-              {t("documents.archivedDocuments", { defaultValue: "Archived documents" })}
-            </h5>
-          }
-          countSlot={countSlot}
-          rightClassName="documents__header-actions"
-        >
-          {documents.length > 0 && isSomeSelected && (
-            <>
-              {batchActions.canBatchUnarchive && (
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="btn-outline-secondary d-inline-flex align-items-center me-2"
-                  onClick={batchUnarchiveDialog.open}
-                  disabled={modals.isUnarchiving}
-                  aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-                  data-testid="archived-unarchive-selected"
-                >
-                  <Icon name="archive" className="me-1" />
-                  {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-                  {selectedDocumentIds.length > 0 && (
-                    <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-                  )}
-                </Button>
-              )}
-              {batchActions.canBatchTrash && (
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="btn-outline-danger d-inline-flex align-items-center me-2"
-                  onClick={batchTrashDialog.open}
-                  disabled={modals.isTrashing}
-                  aria-label={t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-                >
-                  <Icon name="trash-2" className="me-1" />
-                  {t("documents.moveSelectedToTrash", { defaultValue: "Move selected to trash" })}
-                  {selectedDocumentIds.length > 0 && (
-                    <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
-                  )}
-                </Button>
-              )}
-            </>
-          )}
-          <div data-testid="archived-documents-search">
-            <SearchInput
-              placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
-              debounceMs={300}
-              onDebouncedChange={filter.handleSearchDebounced}
-              icon="file-search-corner"
-              wide
-              highlight
-              className="documents__search-wrap"
-              inputClassName="documents__search-input"
-              aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
-            />
-          </div>
-          <Link
-            to={routes.documentsTrash}
-            className="btn btn-outline-secondary control-height-md d-inline-flex align-items-center"
-            aria-label={t("documents.trashViewAria", { defaultValue: "View trash" })}
-          >
-            <Icon name="trash" className="me-2" />
-            {t("documents.trashView", { defaultValue: "Trash" })}
-          </Link>
-          <Button
-            variant="outline"
-            size="md"
-            className="d-inline-flex align-items-center btn-outline-secondary"
-            onClick={actions.handleRefresh}
-            disabled={loading}
-            aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
-          >
-            <Icon name="refresh-cw" className="me-1" />
-            {t("common.refresh", { defaultValue: "Refresh" })}
-          </Button>
-        </TablePageToolbar>
+        {isMobileView ? mobileToolbar : desktopToolbar}
         <div className="card-body h-min-50vh">
           {error && (
             <Alert variant="danger" className="mb-3">

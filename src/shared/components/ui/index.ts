@@ -11,6 +11,7 @@ export * from "./Icon";
 export * from "./SearchInput";
 export * from "./ListFilter";
 export * from "./DataTable";
+export * from "./MobileActionsMenu";
 export * from "./InfoWrapper";
 export * from "./Checkbox";
 export * from "./ColorPicker";
