@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Select, { type SingleValue } from "react-select";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import type { SelectOption } from "../Select";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { formatDate } from "@/shared/utils/format/date";
 import { DateRangePickerModal } from "./DateRangePickerModal";
 import styles from "./ListFilter.module.css";
@@ -93,9 +94,20 @@ export function ListFilter({
   ariaLabel,
 }: ListFilterProps) {
   const { t } = useTranslation();
+  const { isMobileView } = useViewport();
   const panelRef = useRef<HTMLDivElement>(null);
   /** Controls visibility of the date-range modal (separate from the filter panel). */
   const [dateModalOpen, setDateModalOpen] = useState(false);
+
+  /** In mobile view only: close filter panel on scroll so it doesn’t stick. */
+  useEffect(() => {
+    if (!isOpen || !isMobileView) return;
+    const close = () => onClose();
+    const abortController = new AbortController();
+    window.addEventListener("scroll", close, { capture: true, signal: abortController.signal });
+    document.addEventListener("scroll", close, { capture: true, signal: abortController.signal });
+    return () => abortController.abort();
+  }, [isOpen, isMobileView, onClose]);
   const resolvedApplyLabel = applyLabel ?? t("common.apply", { defaultValue: "Apply" });
   const resolvedClearLabel = clearLabel ?? t("common.clear", { defaultValue: "Clear" });
   const resolvedCloseAriaLabel = closeAriaLabel ?? t("common.close", { defaultValue: "Close filter" });
@@ -122,11 +134,18 @@ export function ListFilter({
     onClose();
   }, [onClose]);
 
-  /* Do not close on Escape or click outside; only close via cross, Clear, or Apply */
-  const handleOverlayClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
+  /** Desktop: do not close on backdrop click. Mobile: close on backdrop click (outside). */
+  const handleOverlayClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (isMobileView) {
+        onClose();
+      } else {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    [isMobileView, onClose]
+  );
 
   const primaryIsString = primaryFilter ? isStringOption(primaryFilter.options) : false;
   const secondaryIsString = secondaryFilter ? isStringOption(secondaryFilter.options) : false;

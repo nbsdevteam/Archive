@@ -11,3 +11,10 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Full-screen mobile: no border or shadow to avoid double line at viewport edge */
+.side-panel-fixed.side-panel-fullscreen {
+  border: none !important;
+  border-left: none !important;
+  box-shadow: none !important;
+}

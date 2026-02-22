@@ -159,38 +159,36 @@ const DocumentsTrashPage = () => {
     </>
   );
 
-  /** Mobile-only: "Actions on selected" kebab when there is selection; menu has Restore (description) and Delete selected (danger, description). */
-  const mobileActionsMenuItems = isSomeSelected
-    ? [
-        ...(batchActions.canBatchRestore
-          ? [
-              {
-                id: "restore",
-                icon: "refresh-cw" as const,
-                label: t("documents.restoreSelected", { defaultValue: "Restore selected" }),
-                description: t("documents.restoreSelectedDescription", { defaultValue: "Move back to Documents" }),
-                badgeCount: selectedDocumentIds.length,
-                onClick: batchRestoreDialog.open,
-                disabled: isRestoring,
-              },
-            ]
-          : []),
-        ...(isAdmin
-          ? [
-              {
-                id: "delete",
-                icon: "trash" as const,
-                label: t("documents.deleteSelected", { defaultValue: "Delete selected" }),
-                description: t("documents.permanentDeleteDescription", { defaultValue: "This cannot be undone" }),
-                badgeCount: selectedDocumentIds.length,
-                variant: "danger" as const,
-                onClick: batchPermanentDeleteDialog.open,
-                disabled: isPermanentDeleting,
-              },
-            ]
-          : []),
-      ]
-    : [];
+  /** Mobile-only: "Actions on selected" kebab always on same row as Filter; menu shows Restore + Delete with badge (0 when none selected). */
+  const mobileActionsMenuItems = [
+    ...(batchActions.canBatchRestore
+      ? [
+          {
+            id: "restore",
+            icon: "refresh-cw" as const,
+            label: t("documents.restoreSelected", { defaultValue: "Restore selected" }),
+            description: t("documents.restoreSelectedDescription", { defaultValue: "Move back to Documents" }),
+            badgeCount: selectedDocumentIds.length,
+            onClick: batchRestoreDialog.open,
+            disabled: isRestoring || !isSomeSelected,
+          },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
+          {
+            id: "delete",
+            icon: "trash" as const,
+            label: t("documents.deleteSelected", { defaultValue: "Delete selected" }),
+            description: t("documents.permanentDeleteDescription", { defaultValue: "This cannot be undone" }),
+            badgeCount: selectedDocumentIds.length,
+            variant: "danger" as const,
+            onClick: batchPermanentDeleteDialog.open,
+            disabled: isPermanentDeleting || !isSomeSelected,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <PageLayout
@@ -206,18 +204,14 @@ const DocumentsTrashPage = () => {
                 <h5 className="card-title mb-0">{t("documents.trashView", { defaultValue: "Trash" })}</h5>
                 {countEl}
               </div>
-              <div className="d-flex flex-wrap gap-2 align-items-center">
+              <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between w-100">
                 {filterBlock}
+                <MobileActionsMenu
+                  title={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
+                  items={mobileActionsMenuItems}
+                  triggerAriaLabel={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
+                />
               </div>
-              {mobileActionsMenuItems.length > 0 && (
-                <div className="d-flex flex-wrap gap-2 align-items-center">
-                  <MobileActionsMenu
-                    title={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
-                    items={mobileActionsMenuItems}
-                    triggerAriaLabel={t("documents.actionsOnSelected", { defaultValue: "Actions on selected" })}
-                  />
-                </div>
-              )}
             </div>
           ) : (
             <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">

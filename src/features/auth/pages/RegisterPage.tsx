@@ -29,8 +29,10 @@ const RegisterPage = () => {
     }));
   };
 
-  const handleTogglePasswordVisibility = () => togglePasswordVisibility("password");
-  const handleToggleConfirmPasswordVisibility = () => togglePasswordVisibility("confirmPassword");
+  const handleTogglePasswordVisibility = () =>
+    togglePasswordVisibility("password");
+  const handleToggleConfirmPasswordVisibility = () =>
+    togglePasswordVisibility("confirmPassword");
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -44,21 +46,38 @@ const RegisterPage = () => {
           <div className="col-lg-5">
             <div className="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
               <div className="bg-overlay-img">
-                <ImageWithBasePath src="assets/img/bg/bg-01.png" className="bg-1" alt="Background pattern 1" />
-                <ImageWithBasePath src="assets/img/bg/bg-02.png" className="bg-2" alt="Background pattern 2" />
-                <ImageWithBasePath src="assets/img/bg/bg-03.png" className="bg-3" alt="Background pattern 3" />
+                <ImageWithBasePath
+                  src="assets/img/bg/bg-01.png"
+                  className="bg-1"
+                  alt="Background pattern 1"
+                />
+                <ImageWithBasePath
+                  src="assets/img/bg/bg-02.png"
+                  className="bg-2"
+                  alt="Background pattern 2"
+                />
+                <ImageWithBasePath
+                  src="assets/img/bg/bg-03.png"
+                  className="bg-3"
+                  alt="Background pattern 3"
+                />
               </div>
               <div className="authentication-card w-100">
                 <div className="authen-overlay-item border w-100">
                   <h2 className="text-white display-1">
-                    Empowering people <br /> through seamless HR <br /> management.
+                    Empowering people <br /> through seamless HR <br />{" "}
+                    management.
                   </h2>
                   <div className="my-4 mx-auto authen-overlay-img">
-                    <ImageWithBasePath src="assets/img/bg/authentication-bg-01.png" alt="Authentication illustration" />
+                    <ImageWithBasePath
+                      src="assets/img/bg/authentication-bg-01.png"
+                      alt="Authentication illustration"
+                    />
                   </div>
                   <div>
                     <p className="text-white fs-20 fw-semibold text-center">
-                      Efficiently manage your workforce, streamline <br /> operations effortlessly.
+                      Efficiently manage your workforce, streamline <br />{" "}
+                      operations effortlessly.
                     </p>
                   </div>
                 </div>
@@ -71,11 +90,11 @@ const RegisterPage = () => {
                 <form className="vh-100" onSubmit={handleSubmit}>
                   <div className="vh-100 d-flex flex-column justify-content-between p-4 pb-0">
                     <div className="mx-auto mb-5 text-center">
-                      <ImageWithBasePath
+                      {/* <ImageWithBasePath
                         src="assets/img/logo.svg"
                         className="img-fluid"
                         alt="NBS Archive System"
-                      />
+                      /> */}
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
@@ -83,7 +102,9 @@ const RegisterPage = () => {
                         <p className="mb-0">{t("auth.signUpSubtitle")}</p>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="register-name">{t("auth.name")}</label>
+                        <label className="form-label" htmlFor="register-name">
+                          {t("auth.name")}
+                        </label>
                         <div className="input-group">
                           <input
                             id="register-name"
@@ -98,7 +119,9 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="register-email">{t("auth.emailAddress")}</label>
+                        <label className="form-label" htmlFor="register-email">
+                          {t("auth.emailAddress")}
+                        </label>
                         <div className="input-group">
                           <input
                             id="register-email"
@@ -114,11 +137,18 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="register-password">{t("auth.password")}</label>
+                        <label
+                          className="form-label"
+                          htmlFor="register-password"
+                        >
+                          {t("auth.password")}
+                        </label>
                         <div className="pass-group">
                           <input
                             id="register-password"
-                            type={passwordVisibility.password ? "text" : "password"}
+                            type={
+                              passwordVisibility.password ? "text" : "password"
+                            }
                             className="pass-input form-control"
                             required
                             autoComplete="new-password"
@@ -133,11 +163,20 @@ const RegisterPage = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="form-label" htmlFor="register-confirm-password">{t("auth.confirmPassword")}</label>
+                        <label
+                          className="form-label"
+                          htmlFor="register-confirm-password"
+                        >
+                          {t("auth.confirmPassword")}
+                        </label>
                         <div className="pass-group">
                           <input
                             id="register-confirm-password"
-                            type={passwordVisibility.confirmPassword ? "text" : "password"}
+                            type={
+                              passwordVisibility.confirmPassword
+                                ? "text"
+                                : "password"
+                            }
                             className="pass-input form-control"
                             required
                             autoComplete="new-password"
@@ -181,52 +220,6 @@ const RegisterPage = () => {
                             {t("auth.signIn")}
                           </Link>
                         </h2>
-                      </div>
-                      <div className="login-or">
-                        <span className="span-or">{t("auth.or")}</span>
-                      </div>
-                      <div className="mt-2">
-                        <div className="d-flex align-items-center justify-content-center flex-wrap">
-                          <div className="text-center me-2 flex-fill">
-                            <Link
-                              to="#"
-                              className="br-10 p-2 btn btn-info d-flex align-items-center justify-content-center"
-                              aria-label={t("auth.signInWithFacebook")}
-                            >
-                              <span role="presentation"><ImageWithBasePath
-                                className="img-fluid m-1"
-                                src="assets/img/icons/facebook-logo.svg"
-                                alt=""
-                              /></span>
-                            </Link>
-                          </div>
-                          <div className="text-center me-2 flex-fill">
-                            <Link
-                              to="#"
-                              className="br-10 p-2 btn btn-outline-light border d-flex align-items-center justify-content-center"
-                              aria-label={t("auth.signInWithGoogle")}
-                            >
-                              <span role="presentation"><ImageWithBasePath
-                                className="img-fluid m-1"
-                                src="assets/img/icons/google-logo.svg"
-                                alt=""
-                              /></span>
-                            </Link>
-                          </div>
-                          <div className="text-center flex-fill">
-                            <Link
-                              to="#"
-                              className="bg-dark br-10 p-2 btn btn-dark d-flex align-items-center justify-content-center"
-                              aria-label={t("auth.signInWithApple")}
-                            >
-                              <span role="presentation"><ImageWithBasePath
-                                className="img-fluid m-1"
-                                src="assets/img/icons/apple-logo.svg"
-                                alt=""
-                              /></span>
-                            </Link>
-                          </div>
-                        </div>
                       </div>
                     </div>
                     <div className="mt-5 pb-4 text-center">
