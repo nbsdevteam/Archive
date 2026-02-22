@@ -9,7 +9,8 @@
   --info-wrapper-arrow-bg: var(--app-body-bg, #fff);
   --info-wrapper-arrow-border: rgba(var(--primary-rgb), 0.25);
 
-  max-width: 18rem;
+  width: max-content;
+  max-width: min(40rem, 90vw);
   background-color: var(--info-wrapper-bg);
   border: 1px solid var(--info-wrapper-border);
   border-radius: 6px;
