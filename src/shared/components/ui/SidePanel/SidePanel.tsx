@@ -43,6 +43,7 @@ export const SidePanel = ({
         ? `${widthProp}px`
         : widthProp
       : "50vw";
+  const isFullscreen = width === "100vw" || width === "100%";
 
   useEffect(() => {
     if (isOpen) {
@@ -55,14 +56,16 @@ export const SidePanel = ({
     };
   }, [isOpen]);
 
+  /** Close panel on Escape when open; uses AbortController for single cleanup. */
   useEffect(() => {
+    const ac = new AbortController();
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleEscape, { signal: ac.signal });
+    return () => ac.abort();
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -77,7 +80,7 @@ export const SidePanel = ({
       />
       <FocusLock returnFocus>
         <div
-          className={`side-panel-fixed offcanvas offcanvas-end show ${className}`}
+          className={`side-panel-fixed offcanvas offcanvas-end show ${isFullscreen ? "side-panel-fullscreen" : ""} ${className}`}
           tabIndex={-1}
           style={{
             ["--side-panel-width" as string]: width,
@@ -93,7 +96,7 @@ export const SidePanel = ({
             display: "flex",
             flexDirection: "column",
             backgroundColor: "var(--bs-body-bg, #fff)",
-            boxShadow: "-0.125rem 0 0.5rem rgba(0, 0, 0, 0.075)",
+            boxShadow: isFullscreen ? "none" : "-0.125rem 0 0.5rem rgba(0, 0, 0, 0.075)",
           }}
           aria-labelledby={titleId}
           aria-modal="true"

@@ -66,8 +66,11 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     [tick]
   );
 
+  /** Alt toggles overlay; shortcut keys run handlers; Escape closes overlay. Uses AbortController for single cleanup. */
   useEffect(() => {
     if (!isDesktopView) return;
+    const ac = new AbortController();
+    const opts = { capture: true, signal: ac.signal };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Alt" && !e.repeat) {
         e.preventDefault();
@@ -98,15 +101,10 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOverlayOpen(false);
     };
-    const opts = { capture: true };
     window.addEventListener("keydown", handleKeyDown, opts);
     window.addEventListener("keyup", handleKeyUp, opts);
     window.addEventListener("keydown", handleEscape, opts);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown, opts);
-      window.removeEventListener("keyup", handleKeyUp, opts);
-      window.removeEventListener("keydown", handleEscape, opts);
-    };
+    return () => ac.abort();
   }, [isDesktopView, overlayOpen, runHandler]);
 
   // Memoize context value to prevent consumers from re-rendering unnecessarily

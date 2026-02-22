@@ -92,13 +92,14 @@ export function DateRangePickerModal({
   const [pendingFromDate, setPendingFromDate] = useState<Date | null>(initialFromDate);
   const [pendingToDate, setPendingToDate] = useState<Date | null>(initialToDate);
 
-  /* Close on Escape key */
+  /** Close modal on Escape; uses AbortController for single cleanup. */
   useEffect(() => {
+    const ac = new AbortController();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown, { signal: ac.signal });
+    return () => ac.abort();
   }, [onClose]);
 
   const handleModeChange = useCallback((mode: DateRangeMode) => {

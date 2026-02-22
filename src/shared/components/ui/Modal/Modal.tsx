@@ -38,15 +38,16 @@ export const Modal = ({
     };
   }, [isOpen]);
 
+  /** Close modal on Escape when open; uses AbortController for single cleanup. */
   useEffect(() => {
+    const ac = new AbortController();
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleEscape, { signal: ac.signal });
+    return () => ac.abort();
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;

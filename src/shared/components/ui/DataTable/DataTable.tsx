@@ -70,16 +70,17 @@ export function DataTable<T>({
     if (!stillExists) setOpenActionsRowId(null);
   }, [data, getRowId, openActionsRowId]);
 
-  // Close the open actions menu when the user clicks anywhere outside the table.
+  /** Close the open row-actions menu on outside click; uses AbortController for single cleanup. */
   useEffect(() => {
     if (!openActionsRowId) return;
+    const ac = new AbortController();
     const handleOutsideClick = (e: MouseEvent) => {
       if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
         setOpenActionsRowId(null);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick, { signal: ac.signal });
+    return () => ac.abort();
   }, [openActionsRowId]);
 
   const hasSelection = Boolean(selection);
