@@ -1,7 +1,6 @@
-export {
-  UploadDocumentSidePanel,
-  type UploadDocumentSidePanelProps,
-  type UploadDocumentFormValues,
-  type UploadFormValues,
+export type {
+  UploadDocumentSidePanelProps,
+  UploadDocumentFormValues,
+  UploadFormValues,
 } from "./UploadDocument";
 export { AttachmentSidePanel, type AttachmentSidePanelProps } from "./AttachmentSidePanel";

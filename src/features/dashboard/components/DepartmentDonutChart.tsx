@@ -24,7 +24,7 @@ const DEFAULT_COLORS = [
   "#95B2BB",
 ];
 
-export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
+function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
   const { series, options } = useMemo(() => {
     const labels = items.map((i) => i.department);
     const series = items.map((i) => i.count);
@@ -132,3 +132,5 @@ export function DepartmentDonutChart({ items }: DepartmentDonutChartProps) {
     </div>
   );
 }
+
+export default DepartmentDonutChart;

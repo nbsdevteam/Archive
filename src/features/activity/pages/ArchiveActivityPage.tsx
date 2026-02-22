@@ -9,22 +9,15 @@ import { PageLayout } from "../../../shared/layout/PageLayout";
 import { usePaginationFromUrl } from "../../../shared/hooks";
 import { useAuditLogs } from "../hooks/useAuditLogs";
 import type { ActivityViewMode } from "../types/auditLogs.types";
-/** Lazy-loaded view switcher (named export mapped to default for React.lazy). */
 const ActivityViewSwitcher = lazy(() =>
-  import("../../../shared/components/Activity/ActivityViewSwitcher").then(
-    (m) => ({ default: m.ActivityViewSwitcher }),
-  ),
+  import("../../../shared/components/Activity/ActivityViewSwitcher"),
 );
 /** Lazy-loaded timeline; xyflow-vendor loads only when user switches to tree view. */
 const AuditLogsTimeline = lazy(() =>
-  import("../../../shared/components/Activity/AuditLogsTimeline").then(
-    (m) => ({ default: m.AuditLogsTimeline }),
-  ),
+  import("../../../shared/components/Activity/AuditLogsTimeline"),
 );
 const AuditLogsTreeView = lazy(() =>
-  import("../../../shared/components/Activity/AuditLogsTreeView").then((m) => ({
-    default: m.AuditLogsTreeView,
-  })),
+  import("../../../shared/components/Activity/AuditLogsTreeView"),
 );
 import { formatDateForAuditApi } from "../utils/activity.utils";
 import "../styles/activity.css";

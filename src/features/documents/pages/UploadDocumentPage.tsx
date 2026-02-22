@@ -1,5 +1,5 @@
 import { all_routes } from "../../../router/all_routes";
-import { UploadDocumentSidePanel } from "../components";
+import UploadDocumentSidePanel from "../components/UploadDocument/UploadDocumentSidePanel";
 import { Button, Icon } from "../../../shared/components/ui";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useUploadDocumentPageContainer } from "../containers/useUploadDocumentPageContainer";

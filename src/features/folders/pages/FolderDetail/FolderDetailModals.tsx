@@ -3,7 +3,7 @@ import { Modal, ModalFooter, Button, ConfirmModal, SidePanel } from "@/shared/co
 import { useViewport } from "@/shared/hooks/useViewport";
 import { TransferToFolderModal } from "@/shared/components/modals";
 import { EditFolderSidePanel } from "@/features/folders/components";
-import { UploadDocumentSidePanel } from "@/features/documents/components";
+import UploadDocumentSidePanel from "@/features/documents/components/UploadDocument/UploadDocumentSidePanel";
 import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
 import type { FolderDetail } from "@/features/folders/types/folders.types";
 import type { Document } from "@/app/adapter/api/documents.api";

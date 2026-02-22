@@ -2,15 +2,16 @@ import { memo, lazy, Suspense } from "react";
 import { Button } from "../ui";
 import type { ActivityViewMode } from "./types";
 import type { AuditLogEntry } from "./types";
-import { ActivityViewSwitcher } from "./ActivityViewSwitcher";
-import { AuditLogsTimeline } from "./AuditLogsTimeline";
+import ActivityViewSwitcher from "./ActivityViewSwitcher";
 /** Lazy so xyflow-vendor (~49KB) only loads when user switches to tree view. */
-const AuditLogsTreeView = lazy(() =>
-  import("./AuditLogsTreeView").then((m) => ({ default: m.AuditLogsTreeView }))
-);
+const AuditLogsTimeline = lazy(() => import("./AuditLogsTimeline"));
+const AuditLogsTreeView = lazy(() => import("./AuditLogsTreeView"));
 
 export interface AuditActivityPanelTranslator {
-  (key: string, options?: { defaultValue?: string; [key: string]: unknown }): string;
+  (
+    key: string,
+    options?: { defaultValue?: string; [key: string]: unknown },
+  ): string;
 }
 
 export interface AuditActivityPanelProps {
@@ -72,11 +73,20 @@ const AuditActivityPanelComponent = ({
         <div className="d-flex align-items-center gap-2">
           {subtitle != null && <small className="text-muted">{subtitle}</small>}
           {showRefresh && onRefresh && (
-            <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onRefresh}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="btn-outline-secondary"
+              onClick={onRefresh}
+            >
               {t("common.refresh", { defaultValue: "Refresh" })}
             </Button>
           )}
-          <ActivityViewSwitcher t={t} value={viewMode} onChange={onViewModeChange} />
+          <ActivityViewSwitcher
+            t={t}
+            value={viewMode}
+            onChange={onViewModeChange}
+          />
         </div>
       </div>
       <div className="card-body">
@@ -88,12 +98,28 @@ const AuditActivityPanelComponent = ({
             error={error}
             showDocument={showDocument}
             showMetadata={showMetadata}
-            onDocumentClick={onDocumentClick ? (id, log) => onDocumentClick(id, log) : undefined}
+            onDocumentClick={
+              onDocumentClick
+                ? (id, log) => onDocumentClick(id, log)
+                : undefined
+            }
           />
         )}
         {viewMode === "tree" && (
-          <Suspense fallback={<div className="py-3 text-center text-muted">Loading tree view…</div>}>
-            <AuditLogsTreeView t={t} logs={logs} loading={loading} error={error} groupBy={treeGroupBy} />
+          <Suspense
+            fallback={
+              <div className="py-3 text-center text-muted">
+                Loading tree view…
+              </div>
+            }
+          >
+            <AuditLogsTreeView
+              t={t}
+              logs={logs}
+              loading={loading}
+              error={error}
+              groupBy={treeGroupBy}
+            />
           </Suspense>
         )}
       </div>
@@ -101,7 +127,10 @@ const AuditActivityPanelComponent = ({
   );
 };
 
-function arePropsEqual(prev: AuditActivityPanelProps, next: AuditActivityPanelProps): boolean {
+function arePropsEqual(
+  prev: AuditActivityPanelProps,
+  next: AuditActivityPanelProps,
+): boolean {
   if (
     prev.logs !== next.logs ||
     prev.loading !== next.loading ||
@@ -124,4 +153,7 @@ function arePropsEqual(prev: AuditActivityPanelProps, next: AuditActivityPanelPr
   return true;
 }
 
-export const AuditActivityPanel = memo(AuditActivityPanelComponent, arePropsEqual);
+export const AuditActivityPanel = memo(
+  AuditActivityPanelComponent,
+  arePropsEqual,
+);

@@ -358,7 +358,8 @@ const arePropsEqual = (
   prev.onDocumentClick === next.onDocumentClick &&
   prev.className === next.className;
 
-export const AuditLogsTimeline = memo(
+const AuditLogsTimeline = memo(
   AuditLogsTimelineComponent,
   arePropsEqual,
 );
+export default AuditLogsTimeline;

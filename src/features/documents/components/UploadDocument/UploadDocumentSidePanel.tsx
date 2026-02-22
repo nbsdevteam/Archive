@@ -20,7 +20,7 @@ import { useViewport } from "@/shared/hooks/useViewport";
 import { useUploadSubmit } from "./useUploadSubmit";
 
 /** Upload side panel: composes form state, submit logic, and target/file/optional/actions sections. */
-export function UploadDocumentSidePanel({
+function UploadDocumentSidePanel({
   isOpen,
   onClose,
   onSuccess,
@@ -323,3 +323,5 @@ export function UploadDocumentSidePanel({
     </SidePanel>
   );
 }
+
+export default UploadDocumentSidePanel;

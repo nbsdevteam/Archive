@@ -207,4 +207,5 @@ const arePropsEqual = (prev: AuditLogsTreeViewProps, next: AuditLogsTreeViewProp
   prev.t === next.t &&
   prev.groupBy === next.groupBy;
 
-export const AuditLogsTreeView = memo(AuditLogsTreeViewComponent, arePropsEqual);
+const AuditLogsTreeView = memo(AuditLogsTreeViewComponent, arePropsEqual);
+export default AuditLogsTreeView;

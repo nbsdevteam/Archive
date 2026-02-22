@@ -7,14 +7,14 @@ import { Button, Spinner, Alert, Card, Icon } from "../../../shared/components/u
 import { PageLayout } from "../../../shared/layout/PageLayout";
 /** Lazy-loaded so documents feature chunk loads only when upload panel is used. */
 const UploadDocumentSidePanel = lazy(() =>
-  import("../../documents/components/UploadDocument/UploadDocumentSidePanel").then((m) => ({ default: m.UploadDocumentSidePanel }))
+  import("../../documents/components/UploadDocument/UploadDocumentSidePanel"),
 );
 import type { DepartmentDonutItem } from "../components/DepartmentDonutChart";
 import { useDashboardPageContainer } from "../containers/useDashboardPageContainer";
 
 /** Lazy-loaded so charts-vendor (ApexCharts) only loads when chart section is in view. */
 const DepartmentDonutChartLazy = lazy(() =>
-  import("../components/DepartmentDonutChart").then((m) => ({ default: m.DepartmentDonutChart }))
+  import("../components/DepartmentDonutChart"),
 );
 
 /** Wraps donut chart in IntersectionObserver so charts-vendor loads only when section scrolls into view. */

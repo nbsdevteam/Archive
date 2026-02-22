@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { Button, SidePanel, Spinner } from "@/shared/components/ui";
 import { useViewport } from "@/shared/hooks/useViewport";
-import { UploadDocumentSidePanel } from "../UploadDocument";
+import UploadDocumentSidePanel from "../UploadDocument/UploadDocumentSidePanel";
 
 export interface AttachmentSidePanelProps {
   isOpen: boolean;

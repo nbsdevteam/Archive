@@ -39,4 +39,5 @@ const ActivityViewSwitcherComponent = ({ t, value, onChange }: ActivityViewSwitc
 const arePropsEqual = (prev: ActivityViewSwitcherProps, next: ActivityViewSwitcherProps) =>
   prev.t === next.t && prev.value === next.value && prev.onChange === next.onChange;
 
-export const ActivityViewSwitcher = memo(ActivityViewSwitcherComponent, arePropsEqual);
+const ActivityViewSwitcher = memo(ActivityViewSwitcherComponent, arePropsEqual);
+export default ActivityViewSwitcher;
