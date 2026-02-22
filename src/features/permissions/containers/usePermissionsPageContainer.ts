@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { all_routes } from "../../../router/all_routes";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
-import { useAuth } from "../../auth/hooks/useAuth";
+import { useAuth } from "@/shared/auth";
 import { listAdminUsers } from "../services/permissions.api";
 import type { AdminUser } from "../types/permissions.types";
 

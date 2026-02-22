@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import type { ActivityViewMode } from "@/features/activity/types";
-import { AuditActivityPanel } from "@/shared/components/Activity";
+import { AuditActivityPanel } from "@/shared/components/Activity/AuditActivityPanel";
 import type { AuditLogEntry } from "@/shared/components/Activity/types";
 
 export interface FolderDetailActivitySectionProps {

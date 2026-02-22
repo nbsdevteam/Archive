@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button, Spinner, Icon } from "@/shared/components/ui";
-import { AuditActivityPanel } from "@/shared/components/Activity";
+import { AuditActivityPanel } from "@/shared/components/Activity/AuditActivityPanel";
 import { NotesList } from "@/features/notes/components";
 import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
 import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";

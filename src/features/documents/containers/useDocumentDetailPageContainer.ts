@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useAuth } from "@/shared/auth";
 import { all_routes } from "@/router/all_routes";
 import { navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
