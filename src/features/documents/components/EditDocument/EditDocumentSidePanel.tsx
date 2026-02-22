@@ -17,6 +17,7 @@ import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import type { EditDocumentFormValues, EditDocumentSidePanelProps } from "./types";
 import { EditDocumentFormContent } from "./EditDocumentFormContent";
 import { Button } from "@/shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 
 /** Default form values when no document is loaded. */
 function getDefaultEditFormValues(): EditDocumentFormValues {
@@ -103,6 +104,7 @@ function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail,
  */
 export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onClose, onSuccess }: EditDocumentSidePanelProps) {
   const { t } = useTranslation();
+  const { isMobileView } = useViewport();
   const [doc, setDoc] = useState<DocumentDetail | null>(null);
   const [loadingDoc, setLoadingDoc] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -298,7 +300,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         </div>
       }
       loading={loadingDoc || isSubmitting}
-      width="50vw"
+      width={isMobileView ? "100vw" : "50vw"}
     >
       {submitError && (
         <div className="alert alert-danger py-2 mb-3" role="alert">

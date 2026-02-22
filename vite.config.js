@@ -87,7 +87,7 @@ export default defineConfig({
     },
     build: {
         /** Target modern browsers for smaller output; tree shaking works best with ESM. */
-        target: "es2020",
+        target: "es2022",
         /** Single predictable CSS bundle so we can safely preload `/assets/index.css` in index.html. */
         cssCodeSplit: false,
         /** Enable Rollup tree shaking: remove unused exports and dead code. */

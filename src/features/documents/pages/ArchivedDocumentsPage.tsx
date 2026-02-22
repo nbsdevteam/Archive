@@ -187,7 +187,8 @@ const ArchivedDocumentsPage = () => {
             disabled={loading}
             aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
           >
-            <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
+            <Icon name="refresh-cw" className="me-1" />
+            {t("common.refresh", { defaultValue: "Refresh" })}
           </Button>
         </TablePageToolbar>
         <div className="card-body h-min-50vh">

@@ -11,6 +11,7 @@ import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui
 import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useNotes, useNoteMutations } from "../hooks/useNotes";
@@ -22,6 +23,7 @@ const NotesPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
+  const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { page: urlPage, perPage: urlPerPage, setPage, setPerPage } = usePaginationFromUrl(50);
 
@@ -62,9 +64,10 @@ const NotesPage = () => {
   const noteDeleteDialog = useConfirmDialog<number>({ onConfirm: noteEditor.confirmDeleteNote });
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.CREATE_NOTE, () => noteEditor.handleCreateNote());
     return () => registerHandler(SHORTCUT_KEYS.CREATE_NOTE, undefined);
-  }, [registerHandler, noteEditor.handleCreateNote]);
+  }, [isDesktopView, registerHandler, noteEditor.handleCreateNote]);
 
   const handleDeleteNote = useCallback(
     (note: NoteListItem) => {

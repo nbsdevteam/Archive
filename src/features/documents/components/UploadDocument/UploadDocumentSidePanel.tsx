@@ -16,6 +16,7 @@ import type { UploadFormValues, UploadDocumentSidePanelProps } from "./types";
 import { getDefaultUploadFormValues } from "./types";
 import { UploadDocumentFormContent } from "./UploadDocumentFormContent";
 import { UploadDocumentActions } from "./UploadDocumentActions";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useUploadSubmit } from "./useUploadSubmit";
 
 /** Upload side panel: composes form state, submit logic, and target/file/optional/actions sections. */
@@ -27,6 +28,7 @@ export function UploadDocumentSidePanel({
   lockFolderContext = false,
 }: UploadDocumentSidePanelProps) {
   const { t } = useTranslation();
+  const { isMobileView } = useViewport();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -272,7 +274,7 @@ export function UploadDocumentSidePanel({
         />
       }
       loading={isUploading}
-      width="50vw"
+      width={isMobileView ? "100vw" : "50vw"}
     >
       <form onSubmit={handleUploadFormSubmit} className="d-flex flex-column gap-0">
         <UploadDocumentFormContent

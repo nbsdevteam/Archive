@@ -1,4 +1,5 @@
 export { useDebounce } from "./useDebounce";
+export { useViewport } from "./useViewport";
 export { useRunOnceOnMount } from "./useRunOnceOnMount";
 export { usePrefersColorScheme } from "./usePrefersColorScheme";
 export { useSelection } from "./useSelection";

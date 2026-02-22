@@ -8,11 +8,11 @@ import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { ConfirmModal } from "@/shared/components/ui";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import type { Company } from "@/shared/types/company";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useCompaniesPageContainer } from "../../containers/useCompaniesPageContainer";
 import { getCompanyTableColumns } from "../../utils/companyTableColumns";
-import "../../styles/companies.css";
 import { CreateCompanySidePanel } from "../../components/CreateCompanySidePanel";
 import { EditCompanySidePanel } from "../../components/EditCompanySidePanel";
 import { CompanyDetailsSidePanel } from "../../components/CompanyDetailsSidePanel";
@@ -38,24 +38,26 @@ export default function CompaniesPage() {
   const { companies, countLabel, routes } = data;
 
   const deleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDelete });
+  const { isDesktopView, isMobileView } = useViewport();
   const { registerHandler } = useShortcuts();
 
-  /** Register with global shortcut context so Alt overlay shows and Alt+R / Alt+C work. */
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
-  }, [registerHandler, actions.handleRefresh]);
+  }, [isDesktopView, registerHandler, actions.handleRefresh]);
 
   useEffect(() => {
+    if (!isDesktopView) return;
     if (isAdmin) {
       registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, () => actions.handleOpenCreate());
       return () => registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, undefined);
     }
     registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, undefined);
-  }, [isAdmin, registerHandler, actions.handleOpenCreate]);
+  }, [isDesktopView, isAdmin, registerHandler, actions.handleOpenCreate]);
 
-  /** Local keydown: Ctrl+C = create company, R = refresh (ignored when focus is in an input). */
   useEffect(() => {
+    if (!isDesktopView) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       const inInput = isEditableTarget(e.target);
       if (e.ctrlKey && e.key.toLowerCase() === "c") {
@@ -74,7 +76,7 @@ export default function CompaniesPage() {
     };
     window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [isAdmin, actions.handleOpenCreate, actions.handleRefresh]);
+  }, [isDesktopView, isAdmin, actions.handleOpenCreate, actions.handleRefresh]);
 
   const columns = useMemo(
     () => getCompanyTableColumns({ t }),
@@ -123,44 +125,91 @@ export default function CompaniesPage() {
       rightContent={<CollapseHeader />}
     >
       <div className="card companies__table-card">
-        <TablePageToolbar
-          title={<h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>}
-          countSlot={countLabel}
-          rightClassName="companies__header-actions"
-        >
-          <SearchInput
-            placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
-            debounceMs={300}
-            onDebouncedChange={actions.handleSearchDebounced}
-            icon="search"
-            wide
-            highlight
-            className="companies__search-wrap"
-            aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
-          />
-          <Button
-            variant="outline"
-            size="md"
-            className="btn-outline-secondary"
-            onClick={actions.handleRefresh}
-            disabled={loading}
-            aria-label={t("common.refresh", { defaultValue: "Refresh" })}
+        {isMobileView ? (
+          <div className="card-header d-flex flex-column gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>
+              {countLabel != null && <span className="text-muted fs-13">{countLabel}</span>}
+            </div>
+            <div className="w-100">
+              <SearchInput
+                placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
+                debounceMs={300}
+                onDebouncedChange={actions.handleSearchDebounced}
+                icon="search"
+                wide
+                highlight
+                className="w-100"
+                aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
+              />
+            </div>
+            <div className="d-flex flex-wrap gap-2 align-items-center">
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center"
+                onClick={actions.handleRefresh}
+                disabled={loading}
+                aria-label={t("common.refresh", { defaultValue: "Refresh" })}
+              >
+                <Icon name="refresh-cw" className="me-1" />
+                {t("common.refresh", { defaultValue: "Refresh" })}
+              </Button>
+              {isAdmin && (
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="d-inline-flex align-items-center"
+                  onClick={actions.handleOpenCreate}
+                  aria-label={t("companies.createCompany", { defaultValue: "Create company" })}
+                >
+                  <Icon name="file-up" className="me-1" />
+                  {t("companies.createCompany", { defaultValue: "Create company" })}
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <TablePageToolbar
+            title={<h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>}
+            countSlot={countLabel}
+            rightClassName="companies__header-actions"
           >
-            <Icon name="refresh-cw" className="me-1" />
-            {t("common.refresh", { defaultValue: "Refresh" })}
-          </Button>
-          {isAdmin && (
+            <SearchInput
+              placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
+              debounceMs={300}
+              onDebouncedChange={actions.handleSearchDebounced}
+              icon="search"
+              wide
+              highlight
+              className="companies__search-wrap"
+              aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
+            />
             <Button
-              variant="primary"
+              variant="outline"
               size="md"
-              onClick={actions.handleOpenCreate}
-              aria-label={t("companies.createCompany", { defaultValue: "Create company" })}
+              className="btn-outline-secondary d-inline-flex align-items-center"
+              onClick={actions.handleRefresh}
+              disabled={loading}
+              aria-label={t("common.refresh", { defaultValue: "Refresh" })}
             >
-              <Icon name="file-up" className="me-1" />
-              {t("companies.createCompany", { defaultValue: "Create company" })}
+              <Icon name="refresh-cw" className="me-1" />
+              {t("common.refresh", { defaultValue: "Refresh" })}
             </Button>
-          )}
-        </TablePageToolbar>
+            {isAdmin && (
+              <Button
+                variant="primary"
+                size="md"
+                className="d-inline-flex align-items-center"
+                onClick={actions.handleOpenCreate}
+                aria-label={t("companies.createCompany", { defaultValue: "Create company" })}
+              >
+                <Icon name="file-up" className="me-1" />
+                {t("companies.createCompany", { defaultValue: "Create company" })}
+              </Button>
+            )}
+          </TablePageToolbar>
+        )}
         <div className="card-body h-min-50vh">
           {error && (
             <Alert variant="danger" className="mb-3">

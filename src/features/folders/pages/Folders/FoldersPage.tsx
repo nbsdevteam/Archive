@@ -4,6 +4,7 @@ import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { useConfirmDialog } from "@/shared/hooks";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useFoldersPageContainer } from "@/features/folders/containers/useFoldersPageContainer";
@@ -15,19 +16,22 @@ import { FoldersModals } from "./FoldersModals";
 /** Folders list page: layout, toolbar, content, delete/edit modals. Registers refresh (Alt+R) and filter (Alt+F) shortcuts. */
 const FoldersPage = () => {
   const { t } = useTranslation();
+  const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, paging, actions, modals } =
     useFoldersPageContainer();
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
-  }, [registerHandler, actions.handleRefresh]);
+  }, [isDesktopView, registerHandler, actions.handleRefresh]);
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.OPEN_FILTER, () => filter.handleOpenFilter());
     return () => registerHandler(SHORTCUT_KEYS.OPEN_FILTER, undefined);
-  }, [registerHandler, filter.handleOpenFilter]);
+  }, [isDesktopView, registerHandler, filter.handleOpenFilter]);
   const {
     routes,
     viewMode,

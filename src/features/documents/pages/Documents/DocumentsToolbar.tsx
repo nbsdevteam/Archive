@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 import { Button, Icon, SearchInput, ListFilter } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
+import { useViewport } from "@/shared/hooks/useViewport";
 import type { DocumentBatchActionsResult } from "@/shared/services/documentBatchActionsService";
 
 /** Props for the documents list toolbar (count, selection actions, search, filter, upload, refresh). */
@@ -73,6 +74,7 @@ export function DocumentsToolbar({
   batchRestoreDialog,
   batchUnarchiveDialog,
 }: DocumentsToolbarProps) {
+  const { isMobileView } = useViewport();
   const countSlot =
     loading
       ? t("common.loading", { defaultValue: "Loading..." })
@@ -85,84 +87,196 @@ export function DocumentsToolbar({
           </>
         )) || null;
 
+  const listFilterJsx = (
+    <ListFilter
+      isOpen={filter.isFilterOpen}
+      onClose={filter.handleCloseFilter}
+      primaryFilter={{
+        label: t("documents.department", { defaultValue: "Department" }),
+        value: filter.draftFilters.department_id ?? null,
+        options: filter.departmentOptions,
+        onChange: (value) => filter.handlePrimaryFilterChange(value != null ? Number(value) : null),
+      }}
+      secondaryFilter={{
+        label: t("documents.documentType", { defaultValue: "Document type" }),
+        value: filter.draftFilters.document_type_id ?? null,
+        options: filter.documentTypeOptions,
+        onChange: (value) => filter.handleSecondaryFilterChange(value != null ? Number(value) : null),
+      }}
+      tertiaryFilter={{
+        label: t("documents.companyBrand", { defaultValue: "Company/Brand" }),
+        value: filter.draftFilters.company_id ?? null,
+        options: filter.companyOptions,
+        onChange: (value) => filter.handleTertiaryFilterChange(value != null ? Number(value) : null),
+      }}
+      dateRange={{
+        label: t("filter.byDate", { defaultValue: "By Date" }),
+        mode: filter.dateRangeMode,
+        fromDate: filter.dateRangeFromDate,
+        toDate: filter.dateRangeToDate,
+        onModeChange: filter.handleDateRangeModeChange,
+        onDatesChange: filter.handleDateRangeChange,
+        onCancel: filter.hasAppliedDateFilter ? filter.handleCancelFilter : undefined,
+        cancelLabel: t("common.cancel", { defaultValue: "Cancel" }),
+      }}
+      onApply={filter.handleApplyFilter}
+      onClear={filter.handleClearFilter}
+      applyDisabled={filter.filterApplyDisabled}
+      applyLabel={t("common.apply", { defaultValue: "Apply" })}
+      clearLabel={t("common.clear", { defaultValue: "Clear" })}
+      closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
+      ariaLabel={t("documents.filterOptions", { defaultValue: "Filter options" })}
+    />
+  );
+
+  const batchButtonsJsx =
+    documents.length > 0 && isSomeSelected ? (
+      <>
+        {batchActions.canBatchRestore && (
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-success d-inline-flex align-items-center"
+            onClick={batchRestoreDialog.open}
+            disabled={modals.isRestoring}
+            aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+          >
+            <Icon name="refresh-cw" className="me-1" />
+            {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+            {selectedDocumentIds.length > 0 && (
+              <span className="badge bg-success ms-2">{selectedDocumentIds.length}</span>
+            )}
+          </Button>
+        )}
+        {batchActions.canBatchUnarchive && (
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-secondary d-inline-flex align-items-center"
+            onClick={batchUnarchiveDialog.open}
+            disabled={modals.isUnarchiving}
+            aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+          >
+            <Icon name="archive" className="me-1" />
+            {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
+            {selectedDocumentIds.length > 0 && (
+              <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+            )}
+          </Button>
+        )}
+        {batchActions.canBatchTransfer && (
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-secondary d-inline-flex align-items-center"
+            onClick={actions.handleOpenBatchMoveConfirm}
+            disabled={modals.isMoveSubmitting || modals.isTrashing || modals.isArchiving}
+            aria-label={t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+          >
+            <Icon name="arrow-right-left" className="me-1" />
+            {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
+            {selectedDocumentIds.length > 0 && (
+              <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+            )}
+          </Button>
+        )}
+        {batchActions.canBatchArchive && (
+          <Button
+            variant="outline"
+            size="md"
+            className="btn-outline-secondary d-inline-flex align-items-center"
+            onClick={batchArchiveDialog.open}
+            disabled={modals.isArchiving}
+            aria-label={t("documents.archiveSelected", { defaultValue: "Archive selected" })}
+          >
+            <Icon name="archive" className="me-1" />
+            {t("documents.archiveSelected", { defaultValue: "Archive selected" })}
+            {selectedDocumentIds.length > 0 && (
+              <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+            )}
+          </Button>
+        )}
+      </>
+    ) : null;
+
+  const filterButtonJsx = (
+    <div className="position-relative d-inline-block">
+      <Button
+        variant="outline"
+        size="md"
+        className="d-inline-flex align-items-center btn-outline-secondary"
+        onClick={filter.handleOpenFilter}
+        aria-label={t("documents.filter", { defaultValue: "Filter" })}
+        aria-expanded={filter.isFilterOpen}
+      >
+        <Icon name="filter" className="me-1" />
+        {t("documents.filter", { defaultValue: "Filter" })}
+      </Button>
+      {listFilterJsx}
+    </div>
+  );
+
+  const refreshButtonJsx = (
+    <Button
+      variant="outline"
+      size="md"
+      className="d-inline-flex align-items-center btn-outline-secondary"
+      onClick={actions.handleRefresh}
+      disabled={loading}
+      aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
+    >
+      <Icon name="refresh-cw" className="me-1" />
+      {t("common.refresh", { defaultValue: "Refresh" })}
+    </Button>
+  );
+
+  if (isMobileView) {
+    return (
+      <div className="card-header d-flex flex-column gap-2">
+        <div className="d-flex align-items-center gap-2">
+          <h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>
+          {countSlot != null && <span className="text-muted fs-13">{countSlot}</span>}
+        </div>
+        <div className="w-100">
+          <SearchInput
+            placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
+            debounceMs={300}
+            onDebouncedChange={filter.handleSearchDebounced}
+            icon="file-search-corner"
+            wide
+            highlight
+            className="w-100"
+            inputClassName="documents__search-input"
+            aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
+          />
+        </div>
+        <div className="d-flex flex-wrap gap-2 align-items-center">
+          {batchButtonsJsx}
+          {filterButtonJsx}
+          <Button
+            variant="outline"
+            size="md"
+            className="d-inline-flex align-items-center btn-outline-secondary"
+            onClick={actions.handleOpenUpload}
+            data-testid="upload-documents-btn"
+            aria-label={t("documents.uploadDocumentsAria", { defaultValue: "Upload documents" })}
+          >
+            <Icon name="file-up" className="me-1" />
+            {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
+          </Button>
+          {refreshButtonJsx}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TablePageToolbar
       title={<h5 className="card-title mb-0">{t("documents.title", { defaultValue: "Documents" })}</h5>}
       countSlot={countSlot}
       rightClassName="documents__header-actions"
     >
-      {documents.length > 0 && isSomeSelected && (
-        <>
-          {/* Batch Restore: shown when all selected are trashed (common-only). */}
-          {batchActions.canBatchRestore && (
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-success d-inline-flex align-items-center me-2"
-              onClick={batchRestoreDialog.open}
-              disabled={modals.isRestoring}
-              aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-            >
-              <Icon name="refresh-cw" className="me-1" />
-              {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
-              {selectedDocumentIds.length > 0 && (
-                <span className="badge bg-success ms-2">{selectedDocumentIds.length}</span>
-              )}
-            </Button>
-          )}
-          {/* Batch Unarchive: shown when all selected are archived (common-only). */}
-          {batchActions.canBatchUnarchive && (
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-secondary d-inline-flex align-items-center me-2"
-              onClick={batchUnarchiveDialog.open}
-              disabled={modals.isUnarchiving}
-              aria-label={t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-            >
-              <Icon name="archive" className="me-1" />
-              {t("documents.unarchiveSelected", { defaultValue: "Unarchive selected" })}
-              {selectedDocumentIds.length > 0 && (
-                <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-              )}
-            </Button>
-          )}
-          {/* Transfer: only when all selected can transfer (active subdocs, common-only). */}
-          {batchActions.canBatchTransfer && (
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-secondary d-inline-flex align-items-center me-2"
-              onClick={actions.handleOpenBatchMoveConfirm}
-              disabled={modals.isMoveSubmitting || modals.isTrashing || modals.isArchiving}
-              aria-label={t("documents.transferSelected", { defaultValue: "Transfer selected" })}
-            >
-              <Icon name="arrow-right-left" className="me-1" />
-              {t("documents.transferSelected", { defaultValue: "Transfer selected" })}
-              {selectedDocumentIds.length > 0 && (
-                <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-              )}
-            </Button>
-          )}
-          {/* Archive: only when all selected are active (common-only). */}
-          {batchActions.canBatchArchive && (
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-secondary d-inline-flex align-items-center me-2"
-              onClick={batchArchiveDialog.open}
-              disabled={modals.isArchiving}
-              aria-label={t("documents.archiveSelected", { defaultValue: "Archive selected" })}
-            >
-              <Icon name="archive" className="me-1" />
-              {t("documents.archiveSelected", { defaultValue: "Archive selected" })}
-              {selectedDocumentIds.length > 0 && (
-                <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
-              )}
-            </Button>
-          )}
-        </>
-      )}
+      {batchButtonsJsx}
       <SearchInput
         placeholder={t("documents.searchPlaceholder", { defaultValue: "Search documents..." })}
         debounceMs={300}
@@ -174,58 +288,7 @@ export function DocumentsToolbar({
         inputClassName="documents__search-input"
         aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
       />
-      <div className="position-relative d-inline-block">
-        <Button
-          variant="outline"
-          size="md"
-          className="d-inline-flex align-items-center btn-outline-secondary"
-          onClick={filter.handleOpenFilter}
-          aria-label={t("documents.filter", { defaultValue: "Filter" })}
-          aria-expanded={filter.isFilterOpen}
-        >
-          <Icon name="filter" className="me-1" />
-          {t("documents.filter", { defaultValue: "Filter" })}
-        </Button>
-        <ListFilter
-          isOpen={filter.isFilterOpen}
-          onClose={filter.handleCloseFilter}
-          primaryFilter={{
-            label: t("documents.department", { defaultValue: "Department" }),
-            value: filter.draftFilters.department_id ?? null,
-            options: filter.departmentOptions,
-            onChange: (value) => filter.handlePrimaryFilterChange(value != null ? Number(value) : null),
-          }}
-          secondaryFilter={{
-            label: t("documents.documentType", { defaultValue: "Document type" }),
-            value: filter.draftFilters.document_type_id ?? null,
-            options: filter.documentTypeOptions,
-            onChange: (value) => filter.handleSecondaryFilterChange(value != null ? Number(value) : null),
-          }}
-          tertiaryFilter={{
-            label: t("documents.companyBrand", { defaultValue: "Company/Brand" }),
-            value: filter.draftFilters.company_id ?? null,
-            options: filter.companyOptions,
-            onChange: (value) => filter.handleTertiaryFilterChange(value != null ? Number(value) : null),
-          }}
-          dateRange={{
-            label: t("filter.byDate", { defaultValue: "By Date" }),
-            mode: filter.dateRangeMode,
-            fromDate: filter.dateRangeFromDate,
-            toDate: filter.dateRangeToDate,
-            onModeChange: filter.handleDateRangeModeChange,
-            onDatesChange: filter.handleDateRangeChange,
-            onCancel: filter.hasAppliedDateFilter ? filter.handleCancelFilter : undefined,
-            cancelLabel: t("common.cancel", { defaultValue: "Cancel" }),
-          }}
-          onApply={filter.handleApplyFilter}
-          onClear={filter.handleClearFilter}
-          applyDisabled={filter.filterApplyDisabled}
-          applyLabel={t("common.apply", { defaultValue: "Apply" })}
-          clearLabel={t("common.clear", { defaultValue: "Clear" })}
-          closeAriaLabel={t("common.close", { defaultValue: "Close filter" })}
-          ariaLabel={t("documents.filterOptions", { defaultValue: "Filter options" })}
-        />
-      </div>
+      {filterButtonJsx}
       <Button
         variant="outline"
         size="md"
@@ -237,16 +300,7 @@ export function DocumentsToolbar({
         <Icon name="file-up" className="me-2" />
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
       </Button>
-      <Button
-        variant="outline"
-        size="md"
-        className="d-inline-flex align-items-center btn-outline-secondary"
-        onClick={actions.handleRefresh}
-        disabled={loading}
-        aria-label={t("documents.refreshAria", { defaultValue: "Refresh documents" })}
-      >
-        <Icon name="refresh-cw" style={{ width: "1rem", height: "1rem" }} />
-      </Button>
+      {refreshButtonJsx}
     </TablePageToolbar>
   );
 }

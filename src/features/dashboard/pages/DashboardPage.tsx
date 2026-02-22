@@ -46,6 +46,7 @@ function LazyDonutChart(props: { items: DepartmentDonutItem[] }) {
     </div>
   );
 }
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "../styles/dashboard.css";
@@ -56,6 +57,7 @@ import "../styles/dashboard.css";
  */
 const DashboardPage = () => {
   const { t } = useTranslation();
+  const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const routes = all_routes;
   const {
@@ -82,9 +84,10 @@ const DashboardPage = () => {
   } = useDashboardPageContainer();
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => handleOpenUploadPanel());
     return () => registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, undefined);
-  }, [registerHandler, handleOpenUploadPanel]);
+  }, [isDesktopView, registerHandler, handleOpenUploadPanel]);
 
   const pageTitle = t("dashboard.title", { defaultValue: "Dashboard" });
 

@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useViewport } from "../hooks/useViewport";
 import {
   SHORTCUT_KEYS,
   SHORTCUT_LABELS,
@@ -33,9 +34,14 @@ interface ShortcutsContextValue {
 const ShortcutsContext = createContext<ShortcutsContextValue | null>(null);
 
 export function ShortcutsProvider({ children }: { children: ReactNode }) {
+  const { isDesktopView } = useViewport();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const handlersRef = useRef<HandlersMap>({});
   const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!isDesktopView) setOverlayOpen(false);
+  }, [isDesktopView]);
 
   const registerHandler = useCallback((key: ShortcutKeyId, handler: ShortcutHandler | undefined) => {
     handlersRef.current[key] = handler;
@@ -61,6 +67,7 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    if (!isDesktopView) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Alt" && !e.repeat) {
         e.preventDefault();
@@ -91,7 +98,6 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOverlayOpen(false);
     };
-    // Listen on window with capture so Alt is received without requiring a prior click (works even when no element has focus).
     const opts = { capture: true };
     window.addEventListener("keydown", handleKeyDown, opts);
     window.addEventListener("keyup", handleKeyUp, opts);
@@ -101,7 +107,7 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("keyup", handleKeyUp, opts);
       window.removeEventListener("keydown", handleEscape, opts);
     };
-  }, [overlayOpen, runHandler]);
+  }, [isDesktopView, overlayOpen, runHandler]);
 
   // Memoize context value to prevent consumers from re-rendering unnecessarily
   const value: ShortcutsContextValue = useMemo(

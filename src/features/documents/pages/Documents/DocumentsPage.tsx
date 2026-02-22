@@ -15,6 +15,7 @@ import { DocumentsTableCard } from "./DocumentsTableCard";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
 import { PaginationSection } from "@/shared/components/PaginationSection";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import "@/features/documents/styles/documents.css";
@@ -26,6 +27,7 @@ import "@/features/documents/styles/documents.css";
 const DocumentsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
   const { documents, routes, pagination } = data;
@@ -34,19 +36,22 @@ const DocumentsPage = () => {
   const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, () => actions.handleOpenUpload());
     return () => registerHandler(SHORTCUT_KEYS.NEW_DOCUMENT, undefined);
-  }, [registerHandler, actions.handleOpenUpload]);
+  }, [isDesktopView, registerHandler, actions.handleOpenUpload]);
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.VIEW_TRASH, () => navigate(routes.documentsTrash));
     return () => registerHandler(SHORTCUT_KEYS.VIEW_TRASH, undefined);
-  }, [navigate, routes.documentsTrash, registerHandler]);
+  }, [isDesktopView, navigate, routes.documentsTrash, registerHandler]);
 
   useEffect(() => {
+    if (!isDesktopView) return;
     registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, () => actions.handleRefresh());
     return () => registerHandler(SHORTCUT_KEYS.REFRESH_PAGE, undefined);
-  }, [registerHandler, actions.handleRefresh]);
+  }, [isDesktopView, registerHandler, actions.handleRefresh]);
 
   const restoreDialog = useConfirmDialog<number>({ onConfirm: actions.confirmRestore });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });

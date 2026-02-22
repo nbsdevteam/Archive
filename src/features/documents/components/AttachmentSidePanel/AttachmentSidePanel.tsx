@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { Button, SidePanel, Spinner } from "@/shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { UploadDocumentSidePanel } from "../UploadDocument";
 
 export interface AttachmentSidePanelProps {
@@ -39,6 +40,7 @@ export function AttachmentSidePanel({
   onAddSuccess,
   t,
 }: AttachmentSidePanelProps) {
+  const { isMobileView } = useViewport();
   const isEditMode = editAttachmentId != null;
   const [replaceFile, setReplaceFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -69,7 +71,7 @@ export function AttachmentSidePanel({
         isOpen={isOpen}
         onClose={onClose}
         title={t("common.edit", { defaultValue: "Edit" })}
-        width="50vw"
+        width={isMobileView ? "100vw" : "50vw"}
         loading={isSavingEdit}
         footer={
           <div className="d-flex gap-2 justify-content-end">
