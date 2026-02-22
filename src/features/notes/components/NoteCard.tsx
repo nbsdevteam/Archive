@@ -213,19 +213,20 @@ export const NoteCard = ({
         >
           {contentPreview}
         </p>
-        <div className="d-flex flex-wrap gap-2 align-items-center small mobile-margin-block-5 text-body">
-          <span>
+        <div className="d-flex flex-wrap gap-3 align-items-center small mobile-margin-block-5 text-body">
+          <span className="d-flex align-items-center">
             <Icon name="user" size={12} className="me-1" />
             {note.user_name}
           </span>
           {showDocument && note.document_id && note.document_title && (
-            <span>
+            <span className="d-flex align-items-center">
               <Icon name="file-text" size={12} className="me-1" />
               {note.document_title}
             </span>
           )}
           {showFolder && note.folder_id && note.folder_name && (
             <span
+              className="d-flex align-items-center"
               role={onFolderClick ? 'button' : undefined}
               tabIndex={onFolderClick ? 0 : undefined}
               style={onFolderClick ? { cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' } : undefined}
@@ -237,12 +238,12 @@ export const NoteCard = ({
             </span>
           )}
           {note.department_name && (
-            <span>
+            <span className="d-flex align-items-center">
               <Icon name="home" size={12} className="me-1" />
               {note.department_name}
             </span>
           )}
-          <span className="ms-auto">
+          <span className="ms-auto d-flex align-items-center">
             {note.updated_at ?? ""}
           </span>
         </div>
