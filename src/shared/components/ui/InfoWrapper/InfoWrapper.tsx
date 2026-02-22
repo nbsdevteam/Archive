@@ -53,14 +53,14 @@ export function InfoWrapper({
   /** Close popover when user clicks outside the wrapper (click mode only); uses AbortController for single cleanup. */
   useEffect(() => {
     if (!isClick || !visible) return;
-    const ac = new AbortController();
+    const abortController = new AbortController();
     const handleOutsideClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setVisible(false);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick, { signal: ac.signal });
-    return () => ac.abort();
+    document.addEventListener("mousedown", handleOutsideClick, { signal: abortController.signal });
+    return () => abortController.abort();
   }, [isClick, visible]);
 
   const show = useCallback(() => setVisible(true), []);

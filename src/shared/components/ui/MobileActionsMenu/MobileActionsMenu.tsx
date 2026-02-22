@@ -63,7 +63,7 @@ function usePanelPosition(open: boolean, containerRef: React.RefObject<HTMLDivEl
 
 /**
  * Reusable mobile Actions popover: kebab trigger opens a card-style menu with header and list items.
- * Closes on outside click, Escape, and after selecting an item. Use only in mobile layout (<768px).
+ * Closes on outside click, Escape, scroll, and after selecting an item. Use only in mobile layout (<768px).
  * Trigger uses ms-auto so it aligns right in a flex row; panel is positioned to stay inside viewport.
  */
 export function MobileActionsMenu({
@@ -78,7 +78,7 @@ export function MobileActionsMenu({
 
   const close = useCallback(() => setOpen(false), []);
 
-  /** Close menu on outside click or Escape when open; uses AbortController for single cleanup. */
+  /** Close menu on outside click, Escape, or scroll. */
   useEffect(() => {
     if (!open) return;
     const ac = new AbortController();
@@ -90,8 +90,11 @@ export function MobileActionsMenu({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
+    const handleScroll = () => close();
     document.addEventListener("mousedown", handleOutsideClick, { signal: ac.signal });
     document.addEventListener("keydown", handleEscape, { signal: ac.signal });
+    window.addEventListener("scroll", handleScroll, { capture: true, signal: ac.signal });
+    document.addEventListener("scroll", handleScroll, { capture: true, signal: ac.signal });
     return () => ac.abort();
   }, [open, close]);
 
@@ -135,7 +138,7 @@ export function MobileActionsMenu({
                   <span className="mobile-actions-menu__item-desc">{item.description}</span>
                 )}
               </span>
-              {item.badgeCount != null && item.badgeCount > 0 && (
+              {item.badgeCount != null && (
                 <span className="mobile-actions-menu__item-badge">{item.badgeCount}</span>
               )}
             </button>

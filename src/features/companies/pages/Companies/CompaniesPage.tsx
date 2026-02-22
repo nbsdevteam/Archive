@@ -60,8 +60,8 @@ export default function CompaniesPage() {
   /** Page shortcuts (Ctrl+C create, R refresh) when not in an input; uses AbortController for single cleanup. */
   useEffect(() => {
     if (!isDesktopView) return;
-    const ac = new AbortController();
-    const opts = { capture: true, signal: ac.signal };
+    const abortController = new AbortController();
+    const opts = { capture: true, signal: abortController.signal };
     const handleKeyDown = (e: KeyboardEvent) => {
       const inInput = isEditableTarget(e.target);
       if (e.ctrlKey && e.key.toLowerCase() === "c") {
@@ -79,7 +79,7 @@ export default function CompaniesPage() {
       }
     };
     window.addEventListener("keydown", handleKeyDown, opts);
-    return () => ac.abort();
+    return () => abortController.abort();
   }, [isDesktopView, isAdmin, actions.handleOpenCreate, actions.handleRefresh]);
 
   const columns = useMemo(

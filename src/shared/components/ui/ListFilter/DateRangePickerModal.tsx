@@ -94,12 +94,12 @@ export function DateRangePickerModal({
 
   /** Close modal on Escape; uses AbortController for single cleanup. */
   useEffect(() => {
-    const ac = new AbortController();
+    const abortController = new AbortController();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", handleKeyDown, { signal: ac.signal });
-    return () => ac.abort();
+    document.addEventListener("keydown", handleKeyDown, { signal: abortController.signal });
+    return () => abortController.abort();
   }, [onClose]);
 
   const handleModeChange = useCallback((mode: DateRangeMode) => {
