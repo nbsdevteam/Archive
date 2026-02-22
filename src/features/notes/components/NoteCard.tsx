@@ -31,17 +31,7 @@ const NOTE_COLOR_HEX_MAP: Record<number, string> = {
   9: '#6c757d',
 };
 
-/** Returns black or white for readable text on the given hex background (accessibility contrast). */
-function getContrastColor(hexColor: string): string {
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
-}
-
-/** Convert HEX color to rgba for note card tint/background usage. */
+/** Convert HEX color to rgba for note card borders and badge backgrounds. */
 function hexToRgba(hexColor: string, alpha: number): string {
   const hex = hexColor.replace('#', '');
   const value =
@@ -73,7 +63,6 @@ export const NoteCard = ({
 
   const colorName = NOTE_COLOR_NAMES[note.color] ?? NOTE_COLOR_NAMES[0];
   const noteColor = NOTE_COLOR_HEX_MAP[note.color] ?? NOTE_COLOR_HEX_MAP[0];
-  const noteTint = hexToRgba(noteColor, 0.12);
   const noteSoftBorder = hexToRgba(noteColor, 0.35);
   const noteStrongBorder = hexToRgba(noteColor, 0.75);
 
@@ -95,18 +84,17 @@ export const NoteCard = ({
     <div
       className="card mb-2"
       style={{
-        borderTop: '0',
+        borderTop: '1px solid var(--bs-border-color)',
         borderLeft: `4px solid ${noteStrongBorder}`,
         borderRight: `1px solid ${noteSoftBorder}`,
         borderBottom: `1px solid ${noteSoftBorder}`,
-        backgroundColor: noteTint,
       }}
     >
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <div className="flex-grow-1">
             {note.title && (
-              <h6 className="card-title mb-1" style={{ color: getContrastColor(noteColor) }}>
+              <h6 className="card-title mb-1">
                 {note.title}
               </h6>
             )}
@@ -115,7 +103,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: getContrastColor(noteColor),
+                    color: 'var(--bs-body-color)',
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -128,7 +116,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: getContrastColor(noteColor),
+                    color: 'var(--bs-body-color)',
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -140,7 +128,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: getContrastColor(noteColor),
+                    color: 'var(--bs-body-color)',
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -153,7 +141,7 @@ export const NoteCard = ({
                 <span
                   className="badge"
                   style={{
-                    color: getContrastColor(noteColor),
+                    color: 'var(--bs-body-color)',
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                   }}
@@ -166,7 +154,7 @@ export const NoteCard = ({
                   type="button"
                   className="badge border-0"
                   style={{
-                    color: getContrastColor(noteColor),
+                    color: 'var(--bs-body-color)',
                     backgroundColor: hexToRgba(noteColor, 0.16),
                     border: `1px solid ${noteSoftBorder}`,
                     cursor: onViewImage ? 'pointer' : 'default',
@@ -221,11 +209,11 @@ export const NoteCard = ({
         </div>
         <p
           className="card-text small mb-2"
-          style={{ whiteSpace: 'pre-wrap', color: noteColor }}
+          style={{ whiteSpace: 'pre-wrap' }}
         >
           {contentPreview}
         </p>
-        <div className="d-flex flex-wrap gap-2 align-items-center small mobile-margin-block-5" style={{ color: getContrastColor(noteColor) }}>
+        <div className="d-flex flex-wrap gap-2 align-items-center small mobile-margin-block-5 text-body">
           <span>
             <Icon name="user" size={12} className="me-1" />
             {note.user_name}
