@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { SidePanel, Input, Button } from "@/shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { createEditCompanyResolver } from "../utils/EditCompanySidePanel.validations";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { getCompany, updateCompany } from "../services/companies.api";
@@ -40,6 +41,7 @@ export function EditCompanySidePanel({
   onSuccess,
 }: EditCompanySidePanelProps) {
   const { t } = useTranslation();
+  const { isMobileView } = useViewport();
   const nationalNumberRef = useRef<HTMLInputElement | null>(null);
   const { countryOptions, selectOptions, loading: countriesLoading, error: countriesError } = useCountriesFromCache(isOpen, false);
 
@@ -175,7 +177,7 @@ export function EditCompanySidePanel({
       title={t("companies.editCompany", { defaultValue: "Edit company" })}
       footer={footer}
       loading={isSubmitting}
-      width="50vw"
+      width={isMobileView ? "100vw" : "50vw"}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-0">
         {errors.root?.message && (

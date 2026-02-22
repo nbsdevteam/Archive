@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SidePanel } from "@/shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { getCompany, getCompanyStats } from "../services/companies.api";
 import type { CompanyDetail } from "../services/companies.api";
 
@@ -27,6 +28,7 @@ export function CompanyDetailsSidePanel({
   onClose,
 }: CompanyDetailsSidePanelProps) {
   const { t } = useTranslation();
+  const { isMobileView } = useViewport();
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,7 +66,7 @@ export function CompanyDetailsSidePanel({
       onClose={onClose}
       title={t("companies.companyDetails", { defaultValue: "Company details" })}
       loading={loading}
-      width="50vw"
+      width={isMobileView ? "100vw" : "50vw"}
     >
       {error && (
         <div className="alert alert-danger py-2 mb-3" role="alert">
