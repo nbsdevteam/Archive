@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Icon, InfoWrapper } from '../../../shared/components/ui';
+import { Button, Icon } from '../../../shared/components/ui';
 import { NOTE_COLOR_NAMES, type NoteListItem } from '../types/notes.types';
 
 export interface NoteCardProps {
@@ -180,54 +180,42 @@ export const NoteCard = ({
               )}
             </div>
           </div>
-          <div className="d-flex gap-1">
+          <div className="d-flex flex-wrap gap-2 align-items-center">
             {note.has_image && onViewImage && (
-              <InfoWrapper
-                content={t('notes.viewImage', { defaultValue: 'View image' })}
-                position="top"
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-info"
-                    onClick={getViewImageClickHandler(note)}
-                  >
-                    <Icon name="eye" size={14} />
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-info d-inline-flex align-items-center"
+                onClick={getViewImageClickHandler(note)}
+                aria-label={t('notes.viewImage', { defaultValue: 'View image' })}
+              >
+                <Icon name="eye" size={14} className="me-1" />
+                {t('notes.viewImage', { defaultValue: 'View image' })}
+              </Button>
             )}
             {onEdit && (
-              <InfoWrapper
-                content={t('common.edit', { defaultValue: 'Edit' })}
-                position="top"
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-secondary"
-                    onClick={getEditClickHandler(note)}
-                  >
-                    <Icon name="edit" size={14} />
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-secondary d-inline-flex align-items-center"
+                onClick={getEditClickHandler(note)}
+                aria-label={t('common.edit', { defaultValue: 'Edit' })}
+              >
+                <Icon name="pencil" size={14} className="me-1" />
+                {t('common.edit', { defaultValue: 'Edit' })}
+              </Button>
             )}
             {onDelete && (
-              <InfoWrapper
-                content={t('common.delete', { defaultValue: 'Delete' })}
-                position="top"
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline-danger"
-                    onClick={getDeleteClickHandler(note)}
-                  >
-                    <Icon name="trash" size={14} />
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-danger d-inline-flex align-items-center"
+                onClick={getDeleteClickHandler(note)}
+                aria-label={t('common.delete', { defaultValue: 'Delete' })}
+              >
+                <Icon name="trash-2" size={14} className="me-1" />
+                {t('common.delete', { defaultValue: 'Delete' })}
+              </Button>
             )}
           </div>
         </div>
