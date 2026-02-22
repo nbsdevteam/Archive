@@ -1,23 +1,22 @@
 import { memo, useCallback, useMemo, useState } from "react";
-import {
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
-  TimelineOppositeContent,
-} from "@mui/lab";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
- import Tooltip from "@mui/material/Tooltip";
 import { Button, Checkbox, Modal, ModalFooter } from "../ui";
- import { getAuditActionVisual } from "../../utils/auditActionVisuals";
+import { getAuditActionVisual } from "../../utils/auditActionVisuals";
 import type { AuditLogEntry } from "./types";
+import type { AuditActionColor } from "../../utils/auditActionVisuals";
 import { AUDIT_ACTION_OPTIONS } from "./types";
 import { useActivityTimelineFilterStore } from "./useActivityTimelineFilterStore";
 import { formatAuditTimestamp, groupLogsByDay, humanizeAction } from "./utils";
 import "./activity.css";
+
+/** Maps MUI-style color names to hex for the custom timeline dot (no MUI). */
+const ACTION_COLOR_HEX: Record<AuditActionColor, string> = {
+  primary: "#1976d2",
+  secondary: "#9e9e9e",
+  success: "#2e7d32",
+  warning: "#ed6c02",
+  error: "#d32f2f",
+  info: "#0288d1",
+};
 
 /** Returns an onChange handler for the action filter checkbox. */
 function getActionVisibilityChangeHandler(
@@ -47,7 +46,131 @@ export interface AuditLogsTimelineProps {
   className?: string;
 }
 
-/** Timeline view for audit logs; memoized to avoid rerenders when props are unchanged. */
+/** Single timeline item for the custom (no-MUI) timeline. */
+function TimelineItemRow({
+  log,
+  actionLabel,
+  visual,
+  isLast,
+  showDocument,
+  showMetadata,
+  isDocumentClickable,
+  documentClickHandler,
+  t,
+}: {
+  log: AuditLogEntry;
+  actionLabel: string;
+  visual: ReturnType<typeof getAuditActionVisual>;
+  isLast: boolean;
+  showDocument: boolean;
+  showMetadata: boolean;
+  isDocumentClickable: boolean;
+  documentClickHandler: (() => void) | undefined;
+  t: AuditLogsTimelineTranslator;
+}) {
+  const DotIcon = visual.Icon;
+  const viewLabel = t("common.view", { defaultValue: "View" });
+  return (
+    <div className="activity-timeline-item" style={{ display: "flex", gap: 16 }}>
+      <div
+        className="activity-timeline-opposite"
+        style={{
+          fontSize: 12,
+          color: "#666",
+          width: 100,
+          textAlign: "right",
+          paddingTop: 4,
+          flexShrink: 0,
+        }}
+      >
+        {formatAuditTimestamp(log.timestamp)}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            background: ACTION_COLOR_HEX[visual.color] ?? "#1976d2",
+            border: "2px solid currentColor",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <DotIcon size={10} strokeWidth={2} />
+        </div>
+        {!isLast && (
+          <div
+            style={{
+              width: 2,
+              flex: 1,
+              background: "#e0e0e0",
+              minHeight: 24,
+            }}
+          />
+        )}
+      </div>
+      <div style={{ padding: "4px 16px 16px", flex: 1, minWidth: 0 }}>
+        <div
+          className="activity-timeline-label-grid"
+          style={{
+            padding: 12,
+            border: "1px solid #e0e0e0",
+            borderRadius: 8,
+            backgroundColor: "#fafafa",
+          }}
+        >
+          <div className="activity-timeline-label-row small text-secondary">
+            <span className="activity-timeline-label-key">
+              {t("activity.columns.action", { defaultValue: "Action" })}:
+            </span>{" "}
+            <span className="activity-timeline-label-value">{actionLabel}</span>
+          </div>
+          <div className="activity-timeline-label-row small text-secondary">
+            <span className="activity-timeline-label-key">
+              {t("activity.columns.user", { defaultValue: "User" })}:
+            </span>{" "}
+            <span className="activity-timeline-label-value">{log.user_name || "–"}</span>
+          </div>
+          <div className="activity-timeline-label-row small text-secondary">
+            <span className="activity-timeline-label-key">
+              {t("activity.columns.document", { defaultValue: "Document" })}:
+            </span>{" "}
+            {showDocument && isDocumentClickable ? (
+              <span title={viewLabel}>
+                <button
+                  type="button"
+                  className="activity-timeline-doc-button"
+                  onClick={documentClickHandler}
+                >
+                  {log.document_title || `#${log.document_id}`}
+                </button>
+              </span>
+            ) : (
+              <span className="activity-timeline-label-value">
+                {log.document_title ||
+                  t("activity.noDocument", { defaultValue: "No related document" })}
+              </span>
+            )}
+          </div>
+          {showMetadata && log.metadata && (
+            <div className="small text-muted mt-1">{log.metadata}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Timeline view for audit logs; no MUI deps so mui-vendor is not pulled on activity route. */
 const AuditLogsTimelineComponent = ({
   logs,
   loading = false,
@@ -174,119 +297,41 @@ const AuditLogsTimelineComponent = ({
       )}
       {dayKeys.map((dayKey) => (
         <section className="activity-timeline-day" key={dayKey}>
-          <Typography
-            variant="subtitle2"
-            className="activity-timeline-day-title"
+          <h6
+            className="activity-timeline-day-title small fw-semibold text-secondary mb-2"
+            style={{ fontSize: "0.875rem" }}
           >
             {dayKey === "unknown"
               ? t("activity.unknownDay", { defaultValue: "Unknown day" })
               : dayKey}
-          </Typography>
-          <Timeline position="right" sx={{ m: 0, p: 0 }}>
+          </h6>
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {(groups[dayKey] || []).map((log, index) => {
               const actionLabel = t(`activity.actions.${log.action}`, {
                 defaultValue: humanizeAction(String(log.action)),
               });
               const visual = getAuditActionVisual(String(log.action));
-              const DotIcon = visual.Icon;
               const isLast = index === (groups[dayKey]?.length ?? 0) - 1;
               const isDocumentClickable = Boolean(
                 onDocumentClick && typeof log.document_id === "number",
               );
               const documentClickHandler = documentClickHandlers.get(log.id);
-
               return (
-                <TimelineItem key={log.id} className="activity-timeline-item">
-                  <TimelineOppositeContent className="activity-timeline-opposite">
-                    <Typography variant="caption" color="text.secondary">
-                      {formatAuditTimestamp(log.timestamp)}
-                    </Typography>
-                  </TimelineOppositeContent>
-                  <TimelineSeparator>
-                    <TimelineDot color={visual.color} variant="outlined">
-                      <DotIcon size={16} strokeWidth={2} />
-                    </TimelineDot>
-                    {!isLast && <TimelineConnector />}
-                  </TimelineSeparator>
-                  <TimelineContent sx={{ py: 0.5, px: 2, mt: "4px" }}>
-                    <Paper elevation={0} variant="outlined" sx={{ p: 1.5 }}>
-                      <div className="activity-timeline-label-grid">
-                        <Typography
-                          variant="body2"
-                          className="activity-timeline-label-row"
-                        >
-                          <span className="activity-timeline-label-key">
-                            {t("activity.columns.action", {
-                              defaultValue: "Action",
-                            })}
-                            :
-                          </span>{" "}
-                          <span className="activity-timeline-label-value">
-                            {actionLabel}
-                          </span>
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          className="activity-timeline-label-row"
-                        >
-                          <span className="activity-timeline-label-key">
-                            {t("activity.columns.user", {
-                              defaultValue: "User",
-                            })}
-                            :
-                          </span>{" "}
-                          <span className="activity-timeline-label-value">
-                            {log.user_name || "–"}
-                          </span>
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          className="activity-timeline-label-row"
-                        >
-                          <span className="activity-timeline-label-key">
-                            {t("activity.columns.document", {
-                              defaultValue: "Document",
-                            })}
-                            :
-                          </span>{" "}
-                          {showDocument && isDocumentClickable ? (
-                            <Tooltip
-                              title={t("common.view", { defaultValue: "View" })}
-                            >
-                              <button
-                                type="button"
-                                className="activity-timeline-doc-button"
-                                onClick={documentClickHandler}
-                              >
-                                {log.document_title || `#${log.document_id}`}
-                              </button>
-                            </Tooltip>
-                          ) : (
-                            <span className="activity-timeline-label-value">
-                              {log.document_title ||
-                                t("activity.noDocument", {
-                                  defaultValue: "No related document",
-                                })}
-                            </span>
-                          )}
-                        </Typography>
-                      </div>
-                      {showMetadata && log.metadata && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          display="block"
-                          mt={1}
-                        >
-                          {log.metadata}
-                        </Typography>
-                      )}
-                    </Paper>
-                  </TimelineContent>
-                </TimelineItem>
+                <TimelineItemRow
+                  key={log.id}
+                  log={log}
+                  actionLabel={actionLabel}
+                  visual={visual}
+                  isLast={isLast}
+                  showDocument={showDocument}
+                  showMetadata={showMetadata}
+                  isDocumentClickable={isDocumentClickable}
+                  documentClickHandler={documentClickHandler}
+                  t={t}
+                />
               );
             })}
-          </Timeline>
+          </div>
         </section>
       ))}
 

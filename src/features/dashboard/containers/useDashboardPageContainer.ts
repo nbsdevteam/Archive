@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 import { useFolders } from "../../folders/hooks/useFolders";
-import { useDocumentCount, useTrashDocumentCount } from "../../documents/hooks";
+import { useDocumentCount, useTrashDocumentCount } from "../../../shared/hooks";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
 

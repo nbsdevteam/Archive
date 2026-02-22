@@ -119,13 +119,6 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/react-router")) {
             return "router-vendor";
           }
-          // MUI + Emotion — large, only needed after login
-          if (
-            normalizedId.includes("node_modules/@mui/") ||
-            normalizedId.includes("node_modules/@emotion/")
-          ) {
-            return "mui-vendor";
-          }
           // ApexCharts — very large, only used on Dashboard page
           if (
             normalizedId.includes("node_modules/apexcharts") ||

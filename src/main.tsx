@@ -26,10 +26,6 @@ import "../src/shared/styles/skip-link.css";
 import "../src/shared/styles/mobile-view-overrides.css";
 import "../src/assets/js/bootstrap.bundle.min.js";
 
-// Initialize preloading for better performance
-import { initializePreloading } from "./router/preloadUtils";
-initializePreloading();
-
 // Import the new App component (replaces the old provider/router setup)
 import { App } from "./app/App";
 

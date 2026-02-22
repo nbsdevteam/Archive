@@ -11,19 +11,14 @@ import {
   DocumentsTrashPage,
   ArchivedDocumentsPage,
   EditRequestsPage,
-  EmailVerification,
-  ForgotPassword,
   FolderDetailPage,
   FoldersPage,
   Login,
-  Register,
-  ResetPassword,
   NotesPage,
   NotificationsPage,
   PermissionsPage,
   SearchPage,
   SignatureRequestsPage,
-  TwoStepVerification,
   UploadDocumentPage,
 } from "./lazyRoutes";
 
@@ -122,46 +117,7 @@ export const authRoutes = [
       </PublicRoute>
     ),
   },
-  {
-    path: routes.register,
-    element: (
-      <PublicRoute>
-        <Register />
-      </PublicRoute>
-    ),
-  },
-  {
-    path: routes.forgotPassword,
-    element: (
-      <PublicRoute>
-        <ForgotPassword />
-      </PublicRoute>
-    ),
-  },
-  {
-    path: routes.resetPassword,
-    element: (
-      <PublicRoute>
-        <ResetPassword />
-      </PublicRoute>
-    ),
-  },
-  {
-    path: routes.emailVerification,
-    element: (
-      <PublicRoute>
-        <EmailVerification />
-      </PublicRoute>
-    ),
-  },
-  {
-    path: routes.twoStepVerification,
-    element: (
-      <PublicRoute>
-        <TwoStepVerification />
-      </PublicRoute>
-    ),
-  },
 ];
 
-export const layoutRoutes: Array<{ path: string; element: React.ReactNode }> = [];
+export const layoutRoutes: Array<{ path: string; element: React.ReactNode }> =
+  [];
