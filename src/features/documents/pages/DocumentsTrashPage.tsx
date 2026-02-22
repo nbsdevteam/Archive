@@ -159,6 +159,45 @@ const DocumentsTrashPage = () => {
     </>
   );
 
+  /** Mobile-only: Filter on first row; Restore/Delete selected on second row, with shorter "Delete selected" label and no text wrap. */
+  const mobileBatchActionsJsx = isSomeSelected && (
+    <>
+      {batchActions.canBatchRestore && (
+        <Button
+          variant="outline"
+          size="md"
+          className="btn-outline-secondary d-inline-flex align-items-center text-nowrap"
+          onClick={batchRestoreDialog.open}
+          disabled={isRestoring}
+          aria-label={t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+          data-testid="trash-restore-selected"
+        >
+          <Icon name="refresh-cw" className="me-1" />
+          {t("documents.restoreSelected", { defaultValue: "Restore selected" })}
+          {selectedDocumentIds.length > 0 && (
+            <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+          )}
+        </Button>
+      )}
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="md"
+          className="btn-outline-danger d-inline-flex align-items-center text-nowrap"
+          onClick={batchPermanentDeleteDialog.open}
+          disabled={isPermanentDeleting}
+          aria-label={t("documents.deleteSelected", { defaultValue: "Delete selected" })}
+        >
+          <Icon name="trash" className="me-1" />
+          {t("documents.deleteSelected", { defaultValue: "Delete selected" })}
+          {selectedDocumentIds.length > 0 && (
+            <span className="badge bg-danger ms-2">{selectedDocumentIds.length}</span>
+          )}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <PageLayout
       title={pageTitle}
@@ -175,8 +214,12 @@ const DocumentsTrashPage = () => {
               </div>
               <div className="d-flex flex-wrap gap-2 align-items-center">
                 {filterBlock}
-                {batchActionsJsx}
               </div>
+              {mobileBatchActionsJsx && (
+                <div className="d-flex flex-wrap gap-2 align-items-center">
+                  {mobileBatchActionsJsx}
+                </div>
+              )}
             </div>
           ) : (
             <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">

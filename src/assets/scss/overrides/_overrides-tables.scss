@@ -168,3 +168,16 @@
   border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.175));
   border-radius: var(--bs-border-radius, 0.375rem);
 }
+
+/* Mobile only: label left, value right with clear separation (justify-between behavior). */
+@media (max-width: 767.98px) {
+  .datatable-card-row {
+    justify-content: space-between;
+  }
+
+  .datatable-card-value {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+  }
+}
