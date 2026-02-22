@@ -70,6 +70,7 @@ export function AttachmentSidePanel({
       <SidePanel
         isOpen={isOpen}
         onClose={onClose}
+        closeOnBackdropClick={false}
         title={t("common.edit", { defaultValue: "Edit" })}
         width={isMobileView ? "100vw" : "50vw"}
         loading={isSavingEdit}

@@ -15,12 +15,15 @@ export interface SidePanelProps {
   className?: string;
   /** Panel width (default: 50vw for at least half screen). */
   width?: string | number;
+  /** When false, clicking the backdrop does not close the panel (default: true). */
+  closeOnBackdropClick?: boolean;
 }
 
 /**
  * SidePanel - Reusable right-side panel (Bootstrap offcanvas style).
  * Supports title, close button, scrollable body, footer actions, loading state.
  * Uses focus trap and restores focus on close; title id is unique per instance.
+ * When closeOnBackdropClick is false, backdrop clicks do not close the panel (e.g. upload/edit sidebars).
  */
 export const SidePanel = ({
   isOpen,
@@ -31,6 +34,7 @@ export const SidePanel = ({
   loading = false,
   className = "",
   width: widthProp,
+  closeOnBackdropClick = true,
 }: SidePanelProps) => {
   const titleId = useId();
   const width =
@@ -68,7 +72,7 @@ export const SidePanel = ({
       <div
         className={`offcanvas-backdrop fade show ${className}`}
         style={{ position: "fixed", inset: 0, zIndex: 1040 }}
-        onClick={onClose}
+        onClick={closeOnBackdropClick ? onClose : undefined}
         aria-hidden="true"
       />
       <FocusLock returnFocus>

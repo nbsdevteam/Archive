@@ -263,6 +263,7 @@ export function UploadDocumentSidePanel({
     <SidePanel
       isOpen={isOpen}
       onClose={onClose}
+      closeOnBackdropClick={false}
       title={t("documents.uploadNewDocument", { defaultValue: "Upload new document" })}
       footer={
         <UploadDocumentActions
