@@ -24,8 +24,10 @@ export default function LoginPage() {
 
   const displayError = formError ?? apiError;
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value);
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setUsername(e.target.value);
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(e.target.value);
   const handleTogglePasswordVisible = () => setPasswordVisible((v) => !v);
 
   const handleSubmit = useCallback(
@@ -43,7 +45,9 @@ export default function LoginPage() {
           } catch {
             /* ignore */
           }
-          setFormError("Admin access required. Your account is not an administrator.");
+          setFormError(
+            "Admin access required. Your account is not an administrator.",
+          );
           return;
         }
 
@@ -52,7 +56,7 @@ export default function LoginPage() {
         // useLogin already sets apiError
       }
     },
-    [login, username, password, loginAs, navigate]
+    [login, username, password, loginAs, navigate],
   );
 
   const handleSubmitWrapped = useCallback(
@@ -60,7 +64,7 @@ export default function LoginPage() {
       e.preventDefault();
       handleSubmit(e);
     },
-    [handleSubmit]
+    [handleSubmit],
   );
 
   return (
@@ -68,17 +72,28 @@ export default function LoginPage() {
       <div className="w-100 overflow-hidden position-relative flex-wrap d-block vh-100">
         <div className="row">
           <div className="col-lg-5">
-            <div className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}>
+            <div
+              className={`login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100 ${styles.leftPanel}`}
+            >
               <div className="authentication-card w-100">
-                <div className={`authen-overlay-item border w-100 ${styles.leftCard}`}>
+                <div
+                  className={`authen-overlay-item border w-100 ${styles.leftCard}`}
+                >
                   <div className={styles.leftCarousel} data-role={loginAs}>
-                    <section className={styles.leftSlide} aria-hidden={loginAs !== "admin"}>
-                      <h2 className={`text-white display-1 ${styles.leftTitle}`}>
+                    <section
+                      className={styles.leftSlide}
+                      aria-hidden={loginAs !== "admin"}
+                    >
+                      <h2
+                        className={`text-white display-1 ${styles.leftTitle}`}
+                      >
                         NBS Archive Admin
                       </h2>
-                      <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
-                        Govern records, manage approvals, and monitor system-wide
-                        archive activity with confidence.
+                      <p
+                        className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}
+                      >
+                        Govern records, manage approvals, and monitor
+                        system-wide archive activity with confidence.
                       </p>
                       <div className={styles.leftVisual}>
                         <ImageWithBasePath
@@ -88,11 +103,18 @@ export default function LoginPage() {
                         />
                       </div>
                     </section>
-                    <section className={styles.leftSlide} aria-hidden={loginAs !== "user"}>
-                      <h2 className={`text-white display-1 ${styles.leftTitle}`}>
+                    <section
+                      className={styles.leftSlide}
+                      aria-hidden={loginAs !== "user"}
+                    >
+                      <h2
+                        className={`text-white display-1 ${styles.leftTitle}`}
+                      >
                         NBS Archive Workspace
                       </h2>
-                      <p className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}>
+                      <p
+                        className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}
+                      >
                         Upload, organize, and retrieve documents fast with
                         secure access to your archive folders.
                       </p>
@@ -135,7 +157,10 @@ export default function LoginPage() {
                       />
 
                       {displayError && (
-                        <div className={`alert alert-danger ${styles.errorAlert}`} role="alert">
+                        <div
+                          className={`alert alert-danger ${styles.errorAlert}`}
+                          role="alert"
+                        >
                           {displayError}
                         </div>
                       )}
@@ -186,34 +211,49 @@ export default function LoginPage() {
                           </span>
                         </div>
                       </div>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <div className="d-flex align-items-center">
-                          <div className="form-check form-check-md mb-0">
-                            <input className="form-check-input" id="remember_me" type="checkbox" />
-                            <label htmlFor="remember_me" className="form-check-label mt-0">
-                              {t("auth.rememberMe")}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="text-end">
-                          <Link to={all_routes.forgotPassword} className="link-danger">
-                            {t("auth.forgotPasswordLink")}
-                          </Link>
+                      <div className="mb-3">
+                        <div className="form-check form-check-md">
+                          <input
+                            className="form-check-input"
+                            id="remember_me"
+                            type="checkbox"
+                          />
+                          <label
+                            htmlFor="remember_me"
+                            className="form-check-label mt-0"
+                          >
+                            {t("auth.rememberMe")}
+                          </label>
                         </div>
                       </div>
                       <div className="mb-3">
-                        <Button type="submit" variant="secondary" className="w-100" disabled={loading} isLoading={loading} data-testid="login-submit-btn">
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          className="w-100"
+                          disabled={loading}
+                          isLoading={loading}
+                          data-testid="login-submit-btn"
+                        >
                           {loading ? t("auth.signingIn") : t("auth.signIn")}
                         </Button>
                       </div>
-                      <div className="text-center">
+                      <div className="text-end mb-3">
+                        <Link
+                          to={all_routes.forgotPassword}
+                          className={styles.forgotPasswordLink}
+                        >
+                          {t("auth.forgotPasswordLink")}
+                        </Link>
+                      </div>
+                      {/* <div className="text-center">
                         <h2 className="fw-normal text-dark mb-0 fs-6">
                           Don’t have an account?
                           <Link to={all_routes.register} className="hover-a ms-1">
                             {t("auth.createAccount")}
                           </Link>
                         </h2>
-                      </div>
+                      </div> */}
                     </div>
                     <div className="mt-5 pb-4 text-center">
                       <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>

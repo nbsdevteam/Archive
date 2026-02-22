@@ -83,6 +83,17 @@
   margin-bottom: 1rem;
 }
 
+/* Forgot password link below Sign In: same color as secondary button (no red). */
+.forgotPasswordLink {
+  color: var(--bs-secondary, #6c757d);
+  text-decoration: none;
+}
+
+.forgotPasswordLink:hover {
+  color: var(--bs-secondary, #6c757d);
+  text-decoration: underline;
+}
+
 .leftPanel {
   background: linear-gradient(160deg, #0f2d3b 0%, #12384a 45%, #0a2230 100%);
   padding: 2rem;
