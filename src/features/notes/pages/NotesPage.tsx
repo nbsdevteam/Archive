@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
-import { Button, ConfirmModal, Icon, Modal } from "../../../shared/components/ui";
+import { Button, ConfirmModal, Icon, SidePanel } from "../../../shared/components/ui";
 import { PaginationSection } from "../../../shared/components/PaginationSection";
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
@@ -23,7 +23,7 @@ const NotesPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const navigate = useNavigate();
-  const { isDesktopView } = useViewport();
+  const { isDesktopView, isMobileView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { page: urlPage, perPage: urlPerPage, setPage, setPerPage } = usePaginationFromUrl(50);
 
@@ -182,8 +182,8 @@ const NotesPage = () => {
           </div>
         )}
 
-      {/* Note editor modal */}
-      <Modal
+      {/* Note editor sidebar (same pattern as Upload/Edit document sidebars) */}
+      <SidePanel
         isOpen={noteEditor.isNotesEditorOpen}
         onClose={noteEditor.handleCloseNoteEditor}
         title={
@@ -191,7 +191,9 @@ const NotesPage = () => {
             ? t("notes.editNote", { defaultValue: "Edit note" })
             : t("notes.createNote", { defaultValue: "Create note" })
         }
-        size="lg"
+        width={isMobileView ? "100vw" : "50vw"}
+        loading={noteEditor.isCreatingNote || noteEditor.isUpdatingNote}
+        closeOnBackdropClick={false}
       >
         <NoteEditor
           note={noteEditor.editingNote}
@@ -199,7 +201,7 @@ const NotesPage = () => {
           onCancel={noteEditor.handleCloseNoteEditor}
           isSaving={noteEditor.isCreatingNote || noteEditor.isUpdatingNote}
         />
-      </Modal>
+      </SidePanel>
 
       {/* Note image viewer modal */}
       <NoteImageViewerModal

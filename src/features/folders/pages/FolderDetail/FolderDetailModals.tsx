@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
-import { Modal, ModalFooter, Button, ConfirmModal } from "@/shared/components/ui";
+import { Modal, ModalFooter, Button, ConfirmModal, SidePanel } from "@/shared/components/ui";
+import { useViewport } from "@/shared/hooks/useViewport";
 import { TransferToFolderModal } from "@/shared/components/modals";
 import { EditFolderSidePanel } from "@/features/folders/components";
 import { UploadDocumentSidePanel } from "@/features/documents/components";
@@ -90,6 +91,7 @@ export function FolderDetailModals({
   batchAttachmentTrashDialog,
   noteDeleteDialog,
 }: FolderDetailModalsProps) {
+  const { isMobileView } = useViewport();
   const handleCloseSignatureModal = () => actions.setSignatureOpen(false);
   const handleSignatureSignerChange = (e: React.ChangeEvent<HTMLSelectElement>) => actions.setSignatureSignerId(e.target.value ? Number(e.target.value) : "");
   const handleSignatureMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => actions.setSignatureMessage(e.target.value);
@@ -163,9 +165,23 @@ export function FolderDetailModals({
         lockFolderContext={modals.uploadPanelLockFolderContext}
       />
 
-      <Modal isOpen={modals.isNotesEditorOpen} onClose={actions.handleCloseNoteEditor} title={modals.editingNote ? t("notes.editNote", { defaultValue: "Edit note" }) : t("notes.createNote", { defaultValue: "Create note" })} size="lg">
-        <NoteEditor note={modals.editingNote} folderId={data.folderId ?? undefined} departmentId={data.folder?.department_id} onSave={actions.handleSaveNote} onCancel={actions.handleCloseNoteEditor} isSaving={loadingState.isCreatingNote || loadingState.isUpdatingNote} />
-      </Modal>
+      <SidePanel
+        isOpen={modals.isNotesEditorOpen}
+        onClose={actions.handleCloseNoteEditor}
+        title={modals.editingNote ? t("notes.editNote", { defaultValue: "Edit note" }) : t("notes.createNote", { defaultValue: "Create note" })}
+        width={isMobileView ? "100vw" : "50vw"}
+        loading={loadingState.isCreatingNote || loadingState.isUpdatingNote}
+        closeOnBackdropClick={false}
+      >
+        <NoteEditor
+          note={modals.editingNote}
+          folderId={data.folderId ?? undefined}
+          departmentId={data.folder?.department_id}
+          onSave={actions.handleSaveNote}
+          onCancel={actions.handleCloseNoteEditor}
+          isSaving={loadingState.isCreatingNote || loadingState.isUpdatingNote}
+        />
+      </SidePanel>
 
       <NoteImageViewerModal isOpen={modals.noteImageViewerId != null} onClose={actions.handleCloseNoteImageViewer} noteId={modals.noteImageViewerId} noteTitle={modals.noteImageViewerTitle} imageFilename={modals.noteImageViewerFilename} />
 
