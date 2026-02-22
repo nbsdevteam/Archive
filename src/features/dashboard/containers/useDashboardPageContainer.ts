@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
-import { useFolders } from "../../folders/hooks/useFolders";
+// Import from shared so dashboard chunk does not pull in feature-folders (which statically
+// depends on feature-documents via FolderDetail side-panels, loading 171 kB unnecessarily).
+import { useFolders } from "../../../shared/hooks";
 import { useDocumentCount, useTrashDocumentCount } from "../../../shared/hooks";
 import { useNotifications } from "../../notifications/hooks/useNotifications";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";

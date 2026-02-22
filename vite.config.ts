@@ -89,6 +89,24 @@ export default defineConfig({
   build: {
     /** Target modern browsers for smaller output; tree shaking works best with ESM. */
     target: "es2022",
+    /**
+     * Stop Vite from adding <link rel="modulepreload"> for lazy feature/chart chunks.
+     * By default Vite preloads ALL dynamic-import targets, which makes every feature
+     * chunk download on every page — defeating lazy loading entirely.
+     * We keep vendor preloads (react, router, i18n, etc.) for fast initial paint,
+     * but skip feature-* and heavy optional vendors so they only load on demand.
+     */
+    modulePreload: {
+      resolveDependencies(_url: string, deps: string[]) {
+        return deps.filter(
+          (dep) =>
+            !dep.includes("/feature-") &&
+            !dep.includes("/charts-vendor") &&
+            !dep.includes("/xyflow-vendor") &&
+            !dep.includes("/AuditLogs"),
+        );
+      },
+    },
     /** Single predictable CSS bundle so we can safely preload `/assets/index.css` in index.html. */
     cssCodeSplit: false,
     /** Enable Rollup tree shaking: remove unused exports and dead code. */

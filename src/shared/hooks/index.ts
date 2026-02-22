@@ -17,3 +17,5 @@ export type { PaginationMeta } from "./useClientPagination";
 export { useDocumentCount } from "./useDocumentCount";
 export type { UseDocumentCountParams, UseDocumentCountOptions } from "./useDocumentCount";
 export { useTrashDocumentCount } from "./useTrashDocumentCount";
+export { useFolders } from "./useFolders";
+export type { Folder, FolderListParams, FolderListResponse } from "./useFolders";
