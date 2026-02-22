@@ -134,7 +134,7 @@ export function FoldersContent(props: FoldersContentProps) {
                         {folder.department_name && ` • ${folder.department_name}`}
                         {folder.company_name && ` • ${folder.company_name}`}
                       </p>
-                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto" onClick={stopPropagation}>
+                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto mobile-margin-block-5" onClick={stopPropagation}>
                         <Link to={routes.folderDetail.replace(":id", String(folder.id))} className="link-primary fs-13">
                           {t("common.view", { defaultValue: "View" })}
                         </Link>

@@ -91,7 +91,7 @@ const DocumentsTrashPage = () => {
                 )}
               </span>
             </div>
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-2 documents-trash__header-actions">
               <div className="position-relative d-inline-block">
                 <Button
                   variant="outline"

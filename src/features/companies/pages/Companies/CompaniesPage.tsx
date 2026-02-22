@@ -12,6 +12,7 @@ import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { useCompaniesPageContainer } from "../../containers/useCompaniesPageContainer";
 import { getCompanyTableColumns } from "../../utils/companyTableColumns";
+import "../../styles/companies.css";
 import { CreateCompanySidePanel } from "../../components/CreateCompanySidePanel";
 import { EditCompanySidePanel } from "../../components/EditCompanySidePanel";
 import { CompanyDetailsSidePanel } from "../../components/CompanyDetailsSidePanel";
@@ -125,6 +126,7 @@ export default function CompaniesPage() {
         <TablePageToolbar
           title={<h5 className="card-title mb-0">{t("companies.title", { defaultValue: "Companies" })}</h5>}
           countSlot={countLabel}
+          rightClassName="companies__header-actions"
         >
           <SearchInput
             placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
@@ -133,6 +135,7 @@ export default function CompaniesPage() {
             icon="search"
             wide
             highlight
+            className="companies__search-wrap"
             aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
           />
           <Button

@@ -237,7 +237,7 @@ export const NoteCard = ({
         >
           {contentPreview}
         </p>
-        <div className="d-flex flex-wrap gap-2 align-items-center small" style={{ color: getContrastColor(noteColor) }}>
+        <div className="d-flex flex-wrap gap-2 align-items-center small mobile-margin-block-5" style={{ color: getContrastColor(noteColor) }}>
           <span>
             <Icon name="user" size={12} className="me-1" />
             {note.user_name}

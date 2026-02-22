@@ -185,3 +185,19 @@
   gap: 0.35rem;
   align-items: center;
 }
+
+/* Folders list: search on next row on mobile */
+@media (max-width: 767.98px) {
+  .folders__header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .folders__search-wrap {
+    flex: 0 0 100%;
+    order: 10;
+    min-width: 0;
+  }
+  .folder-detail-maindoc-actions {
+    margin-top: 5px;
+  }
+}

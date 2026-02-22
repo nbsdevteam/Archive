@@ -105,7 +105,7 @@ const DashboardPage = () => {
 
         {/* Welcome + quick actions */}
         <div className="card border-0 mb-3">
-          <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
+          <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-0 pb-sm-1">
             <div>
               <h1 className="mb-2">{t("dashboard.welcomeBackAdmin", { defaultValue: "Welcome back Admin" })}</h1>
               <p className="mb-0">
@@ -115,7 +115,7 @@ const DashboardPage = () => {
                 </Link>
               </p>
             </div>
-            <div className="d-flex flex-wrap gap-2 align-items-center">
+            <div className="d-flex flex-wrap gap-2 align-items-center mobile-margin-block-5">
               <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleOpenUploadPanel} data-testid="upload-document-btn">
                 <Icon name="file-up" className="me-1" />
                 {t("dashboard.uploadDocument")}
@@ -239,7 +239,7 @@ const DashboardPage = () => {
               </div>
               <div className="col-12 col-md-6 col-xxl-4">
                 <Card title={t("dashboard.documentsByDepartment")} className="h-100 dashboard-donut-card">
-                  <div className="pb-2">
+                  <div className="pb-2" style={{ minHeight: 350 }}>
                     {stats === null && !statsError ? (
                       <div className="text-center py-3">
                         <Spinner size="sm" />
@@ -263,7 +263,7 @@ const DashboardPage = () => {
               </div>
               <div className="col-12 col-md-6 col-xxl-4">
                 <Card title={t("dashboard.foldersByDepartment")} className="h-100 dashboard-donut-card">
-                  <div className="pb-2">
+                  <div className="pb-2" style={{ minHeight: 350 }}>
                     {foldersLoading ? (
                       <div className="text-center py-3">
                         <Spinner size="sm" />

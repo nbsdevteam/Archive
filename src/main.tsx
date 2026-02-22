@@ -23,6 +23,7 @@ import "../src/shared/styles/nbs-theme-bridge.css";
 import "../src/shared/styles/theme-primary-overrides.css";
 import "../src/shared/styles/control-heights.css";
 import "../src/shared/styles/skip-link.css";
+import "../src/shared/styles/mobile-view-overrides.css";
 import "../src/assets/js/bootstrap.bundle.min.js";
 
 // Initialize preloading for better performance

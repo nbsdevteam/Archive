@@ -28,7 +28,7 @@ export function DocumentDetailInfoCard({
   tags,
 }: DocumentDetailInfoCardProps) {
   return (
-    <div className="card mb-3">
+    <div className="card mb-3 document-detail__info-card">
       <div className="card-header d-flex flex-wrap align-items-center gap-2">
         <h5 className="card-title mb-0">{title}</h5>
         {doc.barcode && (
