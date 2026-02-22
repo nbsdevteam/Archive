@@ -78,10 +78,11 @@ export function MobileActionsMenu({
 
   const close = useCallback(() => setOpen(false), []);
 
-  /** Close menu on outside click, Escape, or scroll. */
+  /** Close menu on outside click, Escape, or scroll; AbortController for multiple listeners. */
   useEffect(() => {
     if (!open) return;
-    const ac = new AbortController();
+    const abortController = new AbortController();
+    const { signal } = abortController;
     const handleOutsideClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node) && panelRef.current && !panelRef.current.contains(e.target as Node)) {
         close();
@@ -91,11 +92,11 @@ export function MobileActionsMenu({
       if (e.key === "Escape") close();
     };
     const handleScroll = () => close();
-    document.addEventListener("mousedown", handleOutsideClick, { signal: ac.signal });
-    document.addEventListener("keydown", handleEscape, { signal: ac.signal });
-    window.addEventListener("scroll", handleScroll, { capture: true, signal: ac.signal });
-    document.addEventListener("scroll", handleScroll, { capture: true, signal: ac.signal });
-    return () => ac.abort();
+    document.addEventListener("mousedown", handleOutsideClick, { signal });
+    document.addEventListener("keydown", handleEscape, { signal });
+    window.addEventListener("scroll", handleScroll, { capture: true, signal });
+    document.addEventListener("scroll", handleScroll, { capture: true, signal });
+    return () => abortController.abort();
   }, [open, close]);
 
   const handleItemClick = useCallback(

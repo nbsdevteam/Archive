@@ -57,11 +57,9 @@ export default function CompaniesPage() {
     registerHandler(SHORTCUT_KEYS.CREATE_COMPANY, undefined);
   }, [isDesktopView, isAdmin, registerHandler, actions.handleOpenCreate]);
 
-  /** Page shortcuts (Ctrl+C create, R refresh) when not in an input; uses AbortController for single cleanup. */
+  /** Page shortcuts (Ctrl+C create, R refresh) when not in an input (single listener: no AbortController). */
   useEffect(() => {
     if (!isDesktopView) return;
-    const abortController = new AbortController();
-    const opts = { capture: true, signal: abortController.signal };
     const handleKeyDown = (e: KeyboardEvent) => {
       const inInput = isEditableTarget(e.target);
       if (e.ctrlKey && e.key.toLowerCase() === "c") {
@@ -78,8 +76,9 @@ export default function CompaniesPage() {
         }
       }
     };
+    const opts = { capture: true };
     window.addEventListener("keydown", handleKeyDown, opts);
-    return () => abortController.abort();
+    return () => window.removeEventListener("keydown", handleKeyDown, opts);
   }, [isDesktopView, isAdmin, actions.handleOpenCreate, actions.handleRefresh]);
 
   const columns = useMemo(

@@ -56,16 +56,15 @@ export const SidePanel = ({
     };
   }, [isOpen]);
 
-  /** Close panel on Escape when open; uses AbortController for single cleanup. */
+  /** Close panel on Escape when open (single listener: no AbortController). */
   useEffect(() => {
-    const abortController = new AbortController();
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-    document.addEventListener("keydown", handleEscape, { signal: abortController.signal });
-    return () => abortController.abort();
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;

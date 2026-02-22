@@ -92,9 +92,10 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     return () => { cancelled = true; };
   }, [debouncedSearchTerm, t]);
 
-  /** Close dropdown on outside click or Escape; uses AbortController for single cleanup. */
+  /** Close dropdown on outside click or Escape; AbortController used only when multiple listeners. */
   useEffect(() => {
     const abortController = new AbortController();
+    const { signal } = abortController;
     const handleClickOutside = (e: MouseEvent) => {
       if (headerSearchRef.current && !headerSearchRef.current.contains(e.target as Node)) {
         setSearchDropdownOpen(false);
@@ -103,8 +104,8 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSearchDropdownOpen(false);
     };
-    document.addEventListener("mousedown", handleClickOutside, { signal: abortController.signal });
-    document.addEventListener("keydown", handleEscape, { signal: abortController.signal });
+    document.addEventListener("mousedown", handleClickOutside, { signal });
+    document.addEventListener("keydown", handleEscape, { signal });
     return () => abortController.abort();
   }, []);
 

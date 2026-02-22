@@ -70,17 +70,16 @@ export function DataTable<T>({
     if (!stillExists) setOpenActionsRowId(null);
   }, [data, getRowId, openActionsRowId]);
 
-  /** Close the open row-actions menu on outside click; uses AbortController for single cleanup. */
+  /** Close the open row-actions menu on outside click (single listener: no AbortController). */
   useEffect(() => {
     if (!openActionsRowId) return;
-    const abortController = new AbortController();
     const handleOutsideClick = (e: MouseEvent) => {
       if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
         setOpenActionsRowId(null);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick, { signal: abortController.signal });
-    return () => abortController.abort();
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [openActionsRowId]);
 
   const hasSelection = Boolean(selection);
