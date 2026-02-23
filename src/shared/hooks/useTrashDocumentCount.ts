@@ -1,26 +1,30 @@
 /**
  * useTrashDocumentCount - Fetches total count of trashed documents for dashboard/summary.
  * Lives in shared so Dashboard can use it without pulling the feature-documents chunk.
- * Uses documentsApi.listTrashDocuments with minimal page size to get pagination.total.
+ * Uses getTrashDocuments with minimal page size to get pagination.total (or count).
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { documentsApi } from "../../app/adapter/api/documents.api";
+import { getTrashDocuments } from "@/app/adapter/api/documents";
 
 export const useTrashDocumentCount = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const hasFetched = useRef(false);
 
-  /** Fetches trashed document count from API for dashboard summary. */
+  /**
+   * Fetches trashed document count from API for dashboard summary.
+   * Reads `count` first (top-level field the server always returns), then falls
+   * back to `pagination.total` for any paginated endpoint variant.
+   */
   const fetchCount = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await documentsApi.listTrashDocuments({
-        page: 1,
-        per_page: 1,
-      });
-      const total = (response?.pagination as { total?: number } | undefined)?.total ?? 0;
+      const response = await getTrashDocuments({ page: 1, per_page: 1 });
+      const total =
+        response?.count ??
+        (response?.pagination as { total?: number } | undefined)?.total ??
+        0;
       setCount(total);
     } catch {
       setCount(0);

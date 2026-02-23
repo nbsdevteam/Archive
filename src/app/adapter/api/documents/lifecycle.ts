@@ -101,10 +101,12 @@ type TrashDoc = import('./types').Document & { deleted_at?: string; restore_dead
 
 /**
  * Get trashed documents with optional pagination and date range. POST /api/documents/trash (JSON-RPC).
+ * The API returns a top-level `count` field alongside optional `pagination`; both are surfaced so
+ * callers can reliably read the total regardless of which field the server populates.
  */
 export async function getTrashDocuments(
   params?: { page?: number; per_page?: number; search?: string; from_date?: string; to_date?: string }
-): Promise<{ success: boolean; data: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } }> {
+): Promise<{ success: boolean; data: TrashDoc[]; count?: number; pagination?: { total: number; page: number; per_page: number; total_pages: number } }> {
   const response = await apiClient.post('/api/documents/trash', {
     jsonrpc: '2.0',
     method: 'call',
@@ -118,11 +120,12 @@ export async function getTrashDocuments(
         'Failed to load trash'
     );
   }
-  const typed = result as { success: boolean; data?: TrashDoc[]; pagination?: { total: number; page: number; per_page: number; total_pages: number } };
+  const typed = result as { success: boolean; data?: TrashDoc[]; count?: number; pagination?: { total: number; page: number; per_page: number; total_pages: number } };
   const data = Array.isArray(typed.data) ? typed.data : [];
   return {
     success: typed.success,
     data: mapApiDatesToArabianStandardTime(data),
+    count: typed.count,
     pagination: typed.pagination,
   };
 }
