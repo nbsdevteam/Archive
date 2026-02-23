@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { Settings, X, Palette } from "lucide-react";
 import { ColorPicker, type ColorPickerChangeMeta } from "../../../shared/components/ui";
 import { useLayoutStore } from "../../../shared/stores/layoutStore";
 import { useThemeColorStore } from "../../../shared/stores/themeColorStore";
 
+/** Theme customizer: layout, colors, and primary color picker. Uses Lucide icons (Settings, X, Palette). */
 const ThemeSettings = () => {
   const { t } = useTranslation();
   const { layout, setLayout } = useLayoutStore();
@@ -37,7 +39,7 @@ const ThemeSettings = () => {
           tabIndex={0}
           aria-label={t("app.openThemeSettings")}
         >
-          <i className="fa fa-cog fa-w-16 fa-spin" aria-hidden />
+          <Settings className="theme-settings-cog icon-spin" size={20} aria-hidden />
         </div>
       </div>
 
@@ -56,7 +58,7 @@ const ThemeSettings = () => {
             data-bs-dismiss="offcanvas"
             aria-label={t("app.closeThemeSettings")}
           >
-            <i className="ti ti-x" aria-hidden />
+            <X size={24} aria-hidden />
           </Link>
         </div>
 
@@ -243,7 +245,7 @@ const ThemeSettings = () => {
                       onClick={handleSetColorAll}
                     >
                       <div className="select-color position-absolute">
-                        <i className="ti ti-palette" />
+                        <Palette size={20} />
                       </div>
                       <ColorPicker
                         value={customColor || undefined}

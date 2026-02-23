@@ -36,15 +36,13 @@
 .breadcrumb-arrow {
   .breadcrumb-item+.breadcrumb-item::before {
     color: variables.$gray-600;
-    content: "\f101";
-    font-family: variables.$font-awesome !important;
+    content: "\203A";
   }
 }
 .breadcrumb-pipe {
   .breadcrumb-item+.breadcrumb-item::before {
     color: variables.$gray-600;
-    content: "\f061";
-    font-family: variables.$font-awesome !important;
+    content: "\2192";
   }
 }
 .breadcrumb-line {
@@ -62,8 +60,7 @@
 .breadcrumb-divide {
   .breadcrumb-item+.breadcrumb-item::before {
     color: variables.$gray-600;
-    content: "\f054";
-    font-family: variables.$font-awesome !important;
+    content: "\203A";
   }
 }
 .breadcrumb-separatorless {

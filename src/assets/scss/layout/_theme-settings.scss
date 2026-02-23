@@ -1,6 +1,11 @@
 @use "../utils/mixins";
 @use "../utils/variables";
 
+@keyframes icon-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .sidebar-contact {
     position: fixed;
     top: 0%;
@@ -25,9 +30,13 @@
         color: variables.$white;
         border-top-left-radius: 3px;
         border-bottom-left-radius: 3px;
-        .fa-spin {
-            -webkit-animation: fa-spin 2s infinite linear;
-            animation: fa-spin 2s infinite linear;
+        .icon-spin {
+            -webkit-animation: icon-spin 2s infinite linear;
+            animation: icon-spin 2s infinite linear;
+        }
+        .theme-settings-cog {
+            display: block;
+            flex-shrink: 0;
         }
     }
     
@@ -372,8 +381,7 @@
                     position: relative;
                     padding-left: 16px;
                     &:after{
-                        content: "\f00c";
-                        font-family: "Fontawesome";
+                        content: "\2713";
                         color: variables.$primary;
                         font-weight: 700;
                         font-size: variables.$font-size-8;
@@ -442,8 +450,7 @@
         &:checked{
             ~ label{
                 &:after{
-                    content: "\f00c";
-                    font-family: "Font Awesome 5 Free";
+                    content: "\2713";
                     color: variables.$primary;
                     font-weight: 700;
                     font-size: variables.$font-size-8;
@@ -485,8 +492,7 @@
         &:checked{
             ~ label{
                 &:after{
-                    content: "\f00c";
-                    font-family: "Font Awesome 5 Free";
+                    content: "\2713";
                     color: variables.$primary;
                     font-weight: 700;
                     font-size: variables.$font-size-8;
@@ -575,8 +581,7 @@
                 border-color: variables.$primary !important;
                 position: relative;
                 &:after{
-                    content: "\f058";
-                    font-family: "Fontawesome";
+                    content: "\2713";
                     color: variables.$primary;
                     font-weight: 700;
                     font-size: 12px;

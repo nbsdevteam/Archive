@@ -683,8 +683,7 @@ div.sidebar-themesettings
 }
 
 .theme-layout.active .layout-type:after {
-  content: "\f058";
-  font-family: "Fontawesome";
+  content: "\2713";
   color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
@@ -716,8 +715,7 @@ div.sidebar-themesettings
 }
 
 .theme-colorselect.active label:after {
-  content: "\f058";
-  font-family: "Fontawesome";
+  content: "\2713";
   color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
@@ -753,8 +751,7 @@ div.sidebar-themesettings
 }
 
 .theme-sidebarcolor.active label:after {
-  content: "\f058";
-  font-family: "Fontawesome";
+  content: "\2713";
   color: rgb(var(--primary-rgb));
   font-weight: 700;
   font-size: 12px;
@@ -828,14 +825,6 @@ div.sidebar-themesettings
   margin-right: 0.5rem !important;
 }
 
-.layout-mode-rtl .fas.fa-chevron-right {
-  transform: rotate(180deg);
-}
-
-.layout-mode-rtl .fas.fa-chevron-left {
-  transform: rotate(180deg);
-}
-
 .layout-mode-rtl .notice-widget .me-2 {
   margin-right: 0 !important;
   margin-left: 0.5rem !important;
@@ -898,8 +887,7 @@ div.sidebar-themesettings
   transform: translateY(-50%);
   -webkit-transform: translateY(-50%);
   -ms-transform: translateY(-50%);
-  font-family: "Fontawesome";
-  content: "\f055";
+  content: "\002B";
 }
 
 .ant-picker-clear {

@@ -408,8 +408,7 @@ hr {
   border-radius: variables.$border-radius;
   position: relative;
   &:before {
-    content: "\f10d";
-    font-family: variables.$font-awesome;
+    content: "\201C";
     z-index: 0;
     font-size: 2rem;
     position: absolute;

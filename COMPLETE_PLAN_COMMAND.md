@@ -95,7 +95,6 @@ Plan to fix:
 3. For icon libraries that ARE used: add font-display: swap to their @font-face declarations
    Files to check:
    - src/assets/icon/tabler-icons/webfont/tabler-icons.css
-   - src/assets/css/fontawesome/css/all.min.css (or the source scss)
    - src/assets/icon/boxicons/boxicons/css/boxicons.min.css
    - src/assets/icon/ionic/ionicons.css
 4. Do NOT remove any icon library that has actual usages

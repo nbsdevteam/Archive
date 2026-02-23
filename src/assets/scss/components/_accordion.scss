@@ -19,8 +19,7 @@
         background-image: none;
     }
     &:after {
-        content: "\f078";
-        font-family: variables.$font-awesome;
+        content: "\25BC";
         font-size: variables.$font-size-12;
         line-height: 1;
         background-color: variables.$white;
@@ -411,13 +410,11 @@
     &.accordion-customicon1 {
         .accordion-button {
             &:after {
-                content: "\2b";
-                font-family: variables.$font-awesome;
+                content: "\002B";
                 background-color: variables.$default-background;
             }
             &:not(.collapsed)::after {
-                content: "\f068";
-				font-family: variables.$font-awesome;
+                content: "\2212";
                 background-color: variables.$white;
             }
         }
