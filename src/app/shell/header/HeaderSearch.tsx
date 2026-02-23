@@ -178,7 +178,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     <div ref={headerSearchRef} className="position-relative" style={{ minWidth: "280px", width: "50%", flex: "0 1 50%", maxWidth: "50%" }}>
       <div className="input-group input-group-flat d-inline-flex w-100">
         <span className="input-icon-addon">
-          <Search size={18} aria-hidden />
+          <Search size={16} aria-hidden />
         </span>
         <input
           type="text"

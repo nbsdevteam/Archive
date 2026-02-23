@@ -32,10 +32,10 @@ export function HeaderUserMenu({ routes, onLogout }: HeaderUserMenuProps) {
           </div>
           <div className="card-body">
             <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.documentsUpload}>
-              <Upload size={18} className="me-1" aria-hidden />Upload
+              <Upload size={16} className="me-1" aria-hidden />Upload
             </Link>
             <Link className="dropdown-item d-inline-flex align-items-center p-0 py-2" to={routes.activity}>
-              <Activity size={18} className="me-1" aria-hidden />Activity
+              <Activity size={16} className="me-1" aria-hidden />Activity
             </Link>
           </div>
           <div className="card-footer">
@@ -45,7 +45,7 @@ export function HeaderUserMenu({ routes, onLogout }: HeaderUserMenuProps) {
               className="dropdown-item d-inline-flex align-items-center p-0 py-2 border-0 bg-transparent w-100 text-start shadow-none"
               onClick={onLogout}
             >
-              <LogOut size={18} className="me-2" aria-hidden />Logout
+              <LogOut size={16} className="me-2" aria-hidden />Logout
             </Button>
           </div>
         </div>

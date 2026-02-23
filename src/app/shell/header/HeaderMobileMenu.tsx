@@ -30,10 +30,10 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
           </div>
         </div>
         <Link className="dropdown-item" to={routes.documentsUpload}>
-          <Upload size={18} className="me-1" aria-hidden />Upload
+          <Upload size={16} className="me-1" aria-hidden />Upload
         </Link>
         <Link className="dropdown-item" to={routes.activity}>
-          <Activity size={18} className="me-1" aria-hidden />Activity
+          <Activity size={16} className="me-1" aria-hidden />Activity
         </Link>
         <Button
           type="button"
@@ -41,7 +41,7 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
           className="dropdown-item border-0 bg-transparent w-100 text-start shadow-none"
           onClick={onLogout}
         >
-          <LogOut size={18} className="me-2" aria-hidden />Logout
+          <LogOut size={16} className="me-2" aria-hidden />Logout
         </Button>
       </div>
     </div>

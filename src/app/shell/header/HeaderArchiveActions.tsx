@@ -11,12 +11,12 @@ export function HeaderArchiveActions({ routes }: HeaderArchiveActionsProps) {
     <>
       <div className="me-1">
         <Link to={routes.documentsUpload} className="btn btn-menubar" aria-label="Upload">
-          <Upload size={18} aria-hidden />
+          <Upload size={16} aria-hidden />
         </Link>
       </div>
       <div className="me-1">
         <Link to={routes.activity} className="btn btn-menubar" aria-label="Activity">
-          <Activity size={18} aria-hidden />
+          <Activity size={16} aria-hidden />
         </Link>
       </div>
     </>

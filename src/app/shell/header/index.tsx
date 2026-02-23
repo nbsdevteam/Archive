@@ -107,7 +107,7 @@ const Header = React.memo(() => {
                   className="btn btn-menubar flex-shrink-0"
                   aria-label={t("app.toggleSidebar")}
                 >
-                  <PanelLeftClose size={18} aria-hidden />
+                  <PanelLeftClose size={16} aria-hidden />
                 </Link>
                 <HeaderSearch routes={routes} t={t} />
                 <span className="d-inline-flex flex-shrink-0 px-4"></span>
@@ -123,7 +123,7 @@ const Header = React.memo(() => {
                     aria-haspopup="true"
                     title={t("app.switchLanguage")}
                   >
-                    <Globe size={18} aria-hidden />
+                    <Globe size={16} aria-hidden />
                   </button>
                   <div className="dropdown-menu dropdown-menu-end">
                     <button
@@ -161,7 +161,7 @@ const Header = React.memo(() => {
                     className="btn btn-menubar btnFullscreen"
                     aria-label={t("app.toggleFullscreen")}
                   >
-                    <Maximize2 size={18} aria-hidden />
+                    <Maximize2 size={16} aria-hidden />
                   </Link>
                 </div>
                 <HeaderArchiveActions routes={routes} />
