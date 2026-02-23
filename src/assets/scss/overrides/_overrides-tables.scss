@@ -1,5 +1,11 @@
 /* Theme-based table overrides. Use var(--primary-rgb) from design tokens. */
 
+/* Force table-sm to use compact vertical padding regardless of NBS or Bootstrap CSS variable overrides. */
+.table.table-sm > :not(caption) > * > * {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+}
+
 /* Bootstrap table headers: consistent inline padding so first column (e.g. Name) and last column (Actions) have equal breathing room. */
 .table thead tr th:first-child {
   padding-inline-start: 1.25rem;

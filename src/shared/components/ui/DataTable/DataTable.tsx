@@ -213,7 +213,7 @@ export function DataTable<T>({
                     <td className="text-end align-middle" onClick={stopPropagation}>
                       {actionsStyle === "inline" ? (
                         /* Inline buttons — shown in the table view (desktop). Cards always use the kebab. */
-                        <div className="d-flex gap-1 justify-content-end flex-wrap">
+                        <div className="d-flex gap-1 justify-content-end flex-nowrap">
                           {rowActions!
                             .filter((action) => action.visible?.(row) !== false)
                             .map((action) => {

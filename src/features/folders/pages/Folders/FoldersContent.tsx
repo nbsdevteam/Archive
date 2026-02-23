@@ -50,9 +50,9 @@ function FolderNameWithTooltip({ name }: { name: string }) {
       portal
       disabled={!isTruncated}
       trigger={
-        <h3 ref={headingRef} className="folders__folder-name-ellipsis mb-0">
+        <h5 ref={headingRef} className="folders__folder-name-ellipsis mb-0">
           {name}
-        </h3>
+        </h5>
       }
     />
   );

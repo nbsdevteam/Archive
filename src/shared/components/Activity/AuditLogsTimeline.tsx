@@ -71,26 +71,31 @@ function TimelineItemRow({
   const DotIcon = visual.Icon;
   const viewLabel = t("common.view", { defaultValue: "View" });
   return (
-    <div className="activity-timeline-item" style={{ display: "flex", gap: 16 }}>
+    <div className="activity-timeline-item" style={{ display: "flex", gap: 0, alignItems: "flex-start" }}>
+      {/* Left side: timestamp — takes ~45% so the connector sits near the center */}
       <div
         className="activity-timeline-opposite"
         style={{
+          flex: "0 0 45%",
           fontSize: 12,
           color: "#666",
-          width: 100,
           textAlign: "right",
+          paddingRight: 12,
           paddingTop: 4,
-          flexShrink: 0,
+          minWidth: 0,
         }}
       >
         {formatAuditTimestamp(log.timestamp)}
       </div>
+      {/* Center connector: dot + vertical line */}
       <div
         style={{
+          flexShrink: 0,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          flexShrink: 0,
+          width: 20,
+          marginTop: 2,
         }}
       >
         <div
@@ -118,7 +123,8 @@ function TimelineItemRow({
           />
         )}
       </div>
-      <div style={{ padding: "4px 16px 16px", flex: 1, minWidth: 0 }}>
+      {/* Right side: content — takes remaining ~55% */}
+      <div style={{ flex: 1, padding: "0 0 16px 12px", minWidth: 0 }}>
         <div
           className="activity-timeline-label-grid"
           style={{
