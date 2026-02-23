@@ -103,6 +103,9 @@ export default defineConfig({
             !dep.includes("/feature-") &&
             !dep.includes("/charts-vendor") &&
             !dep.includes("/xyflow-vendor") &&
+            !dep.includes("/datepicker-vendor") &&
+            !dep.includes("/http-vendor") &&
+            !dep.includes("/floating-vendor") &&
             !dep.includes("/AuditLogs"),
         );
       },
@@ -172,10 +175,31 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/lucide-react")) {
             return "lucide-vendor";
           }
+          // Date picker / select / date-fns — shared by auth and others; keep out of feature-auth
+          if (
+            normalizedId.includes("node_modules/react-datepicker") ||
+            normalizedId.includes("node_modules/react-select") ||
+            normalizedId.includes("node_modules/date-fns")
+          ) {
+            return "datepicker-vendor";
+          }
+          // HTTP client — shared across features
+          if (normalizedId.includes("node_modules/axios")) {
+            return "http-vendor";
+          }
+          // Floating UI (tooltips, popovers) — used by react-select and others
+          if (normalizedId.includes("node_modules/@floating-ui")) {
+            return "floating-vendor";
+          }
           // Feature-level chunks — each feature loads independently
           if (normalizedId.includes("/src/features/")) {
             const match = normalizedId.match(/\/src\/features\/([^/]+)\//);
-            if (match) return `feature-${match[1]}`;
+            if (match) {
+              const name = match[1];
+              // Notes and documents import each other; merge to avoid circular chunk warning.
+              if (name === "notes" || name === "documents") return "feature-documents-notes";
+              return `feature-${name}`;
+            }
           }
           return undefined;
         },
