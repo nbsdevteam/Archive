@@ -19,3 +19,4 @@ export type { UseDocumentCountParams, UseDocumentCountOptions } from "./useDocum
 export { useTrashDocumentCount } from "./useTrashDocumentCount";
 export { useFolders } from "./useFolders";
 export type { Folder, FolderListParams, FolderListResponse } from "./useFolders";
+export { useNotifications } from "./useNotifications";
