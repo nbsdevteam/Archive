@@ -15,7 +15,7 @@ export interface FolderDetailMainDocSectionProps {
   isUnarchiving: boolean;
 }
 
-/** Main document card: responsive key/value layout and action buttons. No table for better mobile UX. */
+/** Main document card: single row table with barcode, name, type, date, status, actions. */
 export function FolderDetailMainDocSection({
   t,
   mainDoc,
@@ -29,7 +29,7 @@ export function FolderDetailMainDocSection({
   isUnarchiving,
 }: FolderDetailMainDocSectionProps) {
   const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
-  const handleCardClick = () => mainDoc && onNavigate(mainDoc.id);
+  const handleMainDocRowClick = () => mainDoc && onNavigate(mainDoc.id);
   const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     onDownload();
@@ -54,7 +54,7 @@ export function FolderDetailMainDocSection({
   return (
     <div className="card mb-3">
       <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h4 className="mb-0">📌 {t("folders.mainDocument", { defaultValue: "Main document" })}</h4>
+        <h6 className="mb-0">📌 {t("folders.mainDocument", { defaultValue: "Main document" })}</h6>
         {mainDoc && (
           <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={onDownload}>
             <Icon name="download" className="me-1" />
@@ -66,67 +66,52 @@ export function FolderDetailMainDocSection({
         {!mainDoc ? (
           <p className="text-muted mb-0">{t("common.noData", { defaultValue: "No data" })}</p>
         ) : (
-          <div
-            className="folder-detail-maindoc-kv"
-            style={{ cursor: "pointer" }}
-            onClick={handleCardClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleCardClick();
-              }
-            }}
-            aria-label={t("folders.mainDocument", { defaultValue: "Main document" })}
-          >
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("documents.barcode", { defaultValue: "Barcode" })}</span>
-              <span className="folder-detail-maindoc-kv-value">{mainDoc.barcode ?? "–"}</span>
-            </div>
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("documents.name", { defaultValue: "Name" })}</span>
-              <span className="folder-detail-maindoc-kv-value">{mainDoc.title ?? mainDoc.name ?? "–"}</span>
-            </div>
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("documents.type", { defaultValue: "Type" })}</span>
-              <span className="folder-detail-maindoc-kv-value">{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</span>
-            </div>
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("documents.uploadDate", { defaultValue: "Upload date" })}</span>
-              <span className="folder-detail-maindoc-kv-value">{formatDate(mainDoc.upload_date)}</span>
-            </div>
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("documents.status", { defaultValue: "Status" })}</span>
-              <span className="folder-detail-maindoc-kv-value">{mainDoc.status ?? "–"}</span>
-            </div>
-            <div className="folder-detail-maindoc-kv-row">
-              <span className="folder-detail-maindoc-kv-label">{t("common.actions", { defaultValue: "Actions" })}</span>
-              <div className="folder-detail-maindoc-kv-value folder-detail-maindoc-actions" onClick={stopPropagation}>
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleDownloadClick}>
-                <Icon name="download" className="me-1" />
-                {t("documents.download", { defaultValue: "Download" })}
-              </Button>
-              {onEdit && (
-                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleEditClick}>
-                  <Icon name="pencil" className="me-1" />
-                  {t("common.edit", { defaultValue: "Edit" })}
-                </Button>
-              )}
-              {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
-                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleUnarchiveClick} disabled={isUnarchiving}>
-                  {t("documents.unarchive", { defaultValue: "Unarchive" })}
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleArchiveClick} disabled={isArchiving}>
-                  {t("documents.archive", { defaultValue: "Archive" })}
-                </Button>
-              )}
-              <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleViewClick}>
-                {t("common.view", { defaultValue: "View" })}
-              </Button>
-              </div>
-            </div>
+          <div className="table-responsive">
+            <table className="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
+                  <th>{t("documents.name", { defaultValue: "Name" })}</th>
+                  <th>{t("documents.type", { defaultValue: "Type" })}</th>
+                  <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
+                  <th>{t("documents.status", { defaultValue: "Status" })}</th>
+                  <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ cursor: "pointer" }} onClick={handleMainDocRowClick}>
+                  <td>{mainDoc.barcode ?? "–"}</td>
+                  <td>{mainDoc.title ?? mainDoc.name ?? "–"}</td>
+                  <td>{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</td>
+                  <td>{formatDate(mainDoc.upload_date)}</td>
+                  <td>{mainDoc.status ?? "–"}</td>
+                  <td className="text-end">
+                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleDownloadClick}>
+                      <Icon name="download" className="me-1" />
+                      {t("documents.download", { defaultValue: "Download" })}
+                    </Button>
+                    {onEdit && (
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleEditClick}>
+                        <Icon name="pencil" className="me-1" />
+                        {t("common.edit", { defaultValue: "Edit" })}
+                      </Button>
+                    )}
+                    {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleUnarchiveClick} disabled={isUnarchiving}>
+                        {t("documents.unarchive", { defaultValue: "Unarchive" })}
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleArchiveClick} disabled={isArchiving}>
+                        {t("documents.archive", { defaultValue: "Archive" })}
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleViewClick}>
+                      {t("common.view", { defaultValue: "View" })}
+                    </Button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
