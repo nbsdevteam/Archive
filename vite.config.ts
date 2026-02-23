@@ -103,7 +103,6 @@ export default defineConfig({
             !dep.includes("/feature-") &&
             !dep.includes("/charts-vendor") &&
             !dep.includes("/xyflow-vendor") &&
-            !dep.includes("/datepicker-vendor") &&
             !dep.includes("/http-vendor") &&
             !dep.includes("/floating-vendor") &&
             !dep.includes("/AuditLogs"),
@@ -175,14 +174,10 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/lucide-react")) {
             return "lucide-vendor";
           }
-          // Date picker / select / date-fns — shared by auth and others; keep out of feature-auth
-          if (
-            normalizedId.includes("node_modules/react-datepicker") ||
-            normalizedId.includes("node_modules/react-select") ||
-            normalizedId.includes("node_modules/date-fns")
-          ) {
-            return "datepicker-vendor";
-          }
+          // Do NOT split out react-datepicker/react-select/date-fns into datepicker-vendor:
+          // it created a circular chunk (feature-dashboard -> feature-auth -> datepicker-vendor -> feature-dashboard)
+          // and "cannot access r before initialization" at runtime. Keep them in feature-auth (and in
+          // the lazy DateRangePickerModal chunk when used from documents/folders).
           // HTTP client — shared across features
           if (normalizedId.includes("node_modules/axios")) {
             return "http-vendor";
