@@ -386,7 +386,9 @@
                 }
                 svg {
                     width: 18px;
-                    color: #67748E;            
+                    color: #67748E;
+                    stroke: currentColor;
+                    fill: none;
                 }
                 a:hover{
                     svg {
@@ -745,6 +747,11 @@
     &.btn-menubar {
         width: 30px;
         height: 30px;
+        svg {
+            stroke: currentColor;
+            fill: none;
+            flex-shrink: 0;
+        }
         @include mixins.rounded(5px);
         display: flex;
         align-items: center;
