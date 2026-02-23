@@ -94,23 +94,26 @@ function TimelineItemRow({
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          width: 20,
+          width: 28,
           marginTop: 2,
         }}
       >
+        {/* Outlined dot: white background + colored border + colored icon, matching production MUI TimelineDot variant="outlined" */}
         <div
           style={{
-            width: 12,
-            height: 12,
+            width: 28,
+            height: 28,
             borderRadius: "50%",
-            background: ACTION_COLOR_HEX[visual.color] ?? "#1976d2",
-            border: "2px solid currentColor",
+            background: "#fff",
+            border: `2px solid ${ACTION_COLOR_HEX[visual.color] ?? "#1976d2"}`,
+            color: ACTION_COLOR_HEX[visual.color] ?? "#1976d2",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flexShrink: 0,
           }}
         >
-          <DotIcon size={10} strokeWidth={2} />
+          <DotIcon size={16} strokeWidth={2} />
         </div>
         {!isLast && (
           <div
