@@ -109,7 +109,11 @@
   z-index: 999999 !important;
 }
 
-/* Allow row-action menus to escape table clipping while preserving horizontal scroll. */
+/* Allow row-action menus to escape table clipping: parent card-body uses .h-min-50vh (min-height: 50vh);
+   child wrappers use min-height: inherit so the dropdown can overflow visibly. */
+.datatable-wrapper {
+  min-height: inherit;
+}
 .datatable-responsive-wrap {
   overflow-x: auto;
   overflow-y: visible;

@@ -1,6 +1,7 @@
 /* Base link and small utility overrides. */
 
-/* Height utility: 50% of viewport height */
+/* Height utility: 50% of viewport height. Used on card-body so row-action kebab dropdowns
+   are not clipped; child wrappers use min-height: inherit to propagate the context. */
 .h-min-50vh {
   min-height: 50vh;
 }
