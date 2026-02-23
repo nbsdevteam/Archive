@@ -142,6 +142,7 @@ const SearchPage = () => {
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
               responsive="auto"
               cardsBelow="lg"
+              actionsStyle="inline"
             />
           </div>
         </div>

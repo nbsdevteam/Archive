@@ -47,6 +47,7 @@ export function DataTable<T>({
   tbodyClassName,
   responsive = "auto",
   cardsBelow = "lg",
+  actionsStyle = "menu",
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
@@ -209,60 +210,89 @@ export function DataTable<T>({
                     </td>
                   ))}
                   {hasActions && (
-                    <td
-                      className="text-end align-middle"
-                      onClick={stopPropagation}
-                    >
-                      <div className="datatable-row-actions-dropdown position-relative d-inline-flex">
-                        <button
-                          type="button"
-                          className="datatable-row-actions-toggle p-0 btn btn-link btn-sm text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
-                          aria-label={`${t("common.actionsForRow")} ${rowId}`}
-                          aria-expanded={openActionsRowId === rowIdStr}
-                          aria-haspopup="true"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenActionsRowId(openActionsRowId === rowIdStr ? null : rowIdStr);
-                          }}
-                        >
-                          <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
-                        </button>
-                        {openActionsRowId === rowIdStr && (
-                          <ul
-                            className="dropdown-menu dropdown-menu-end show"
-                            style={{ position: "absolute", top: "100%", right: 0, zIndex: 1050 }}
+                    <td className="text-end align-middle" onClick={stopPropagation}>
+                      {actionsStyle === "inline" ? (
+                        /* Inline buttons — shown in the table view (desktop). Cards always use the kebab. */
+                        <div className="d-flex gap-1 justify-content-end flex-wrap">
+                          {rowActions!
+                            .filter((action) => action.visible?.(row) !== false)
+                            .map((action) => {
+                              const disabled = action.disabled?.(row);
+                              const label = action.renderLabel ? action.renderLabel(row) : action.label;
+                              const iconName = resolveActionIcon(action.id, action.icon);
+                              const isDanger =
+                                action.variant === "danger" ||
+                                (action.className ?? "").toLowerCase().includes("danger");
+                              return (
+                                <button
+                                  key={action.id}
+                                  type="button"
+                                  disabled={disabled}
+                                  className={`btn btn-outline-${isDanger ? "danger" : "secondary"} btn-sm d-inline-flex align-items-center gap-1`}
+                                  data-testid={action.id ? `row-action-${action.id}` : undefined}
+                                  data-action-id={action.id}
+                                  data-row-id={rowIdStr}
+                                  onClick={handleRowActionClick}
+                                >
+                                  <Icon name={iconName} style={{ width: "0.875rem", height: "0.875rem", flexShrink: 0 }} />
+                                  <span>{label}</span>
+                                </button>
+                              );
+                            })}
+                        </div>
+                      ) : (
+                        /* Kebab menu — default for the table view */
+                        <div className="datatable-row-actions-dropdown position-relative d-inline-flex">
+                          <button
+                            type="button"
+                            className="datatable-row-actions-toggle p-0 btn btn-link btn-sm text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
+                            aria-label={`${t("common.actionsForRow")} ${rowId}`}
+                            aria-expanded={openActionsRowId === rowIdStr}
+                            aria-haspopup="true"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenActionsRowId(openActionsRowId === rowIdStr ? null : rowIdStr);
+                            }}
                           >
-                            {rowActions!
-                              .filter((action) => action.visible?.(row) !== false)
-                              .map((action) => {
-                                const disabled = action.disabled?.(row);
-                                const label = action.renderLabel
-                                  ? action.renderLabel(row)
-                                  : action.label;
-                                const iconName = resolveActionIcon(action.id, action.icon);
-                                const isDanger =
-                                  action.variant === "danger" ||
-                                  (action.className ?? "").toLowerCase().includes("danger");
-                                return (
-                                  <li key={action.id}>
-                                    <button
-                                      type="button"
-                                      disabled={disabled}
-                                      className={`dropdown-item d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
-                                      data-testid={action.id ? `row-action-${action.id}` : undefined}
-                                      data-action-id={action.id}
-                                      data-row-id={rowIdStr}
-                                      onClick={handleRowActionClick}
-                                    >
-                                      <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
-                                      <span>{label}</span>
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                          </ul>
-                        )}
-                      </div>
+                            <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
+                          </button>
+                          {openActionsRowId === rowIdStr && (
+                            <ul
+                              className="dropdown-menu dropdown-menu-end show"
+                              style={{ position: "absolute", top: "100%", right: 0, zIndex: 1050 }}
+                            >
+                              {rowActions!
+                                .filter((action) => action.visible?.(row) !== false)
+                                .map((action) => {
+                                  const disabled = action.disabled?.(row);
+                                  const label = action.renderLabel
+                                    ? action.renderLabel(row)
+                                    : action.label;
+                                  const iconName = resolveActionIcon(action.id, action.icon);
+                                  const isDanger =
+                                    action.variant === "danger" ||
+                                    (action.className ?? "").toLowerCase().includes("danger");
+                                  return (
+                                    <li key={action.id}>
+                                      <button
+                                        type="button"
+                                        disabled={disabled}
+                                        className={`dropdown-item d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
+                                        data-testid={action.id ? `row-action-${action.id}` : undefined}
+                                        data-action-id={action.id}
+                                        data-row-id={rowIdStr}
+                                        onClick={handleRowActionClick}
+                                      >
+                                        <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
+                                        <span>{label}</span>
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                            </ul>
+                          )}
+                        </div>
+                      )}
                     </td>
                   )}
                 </tr>

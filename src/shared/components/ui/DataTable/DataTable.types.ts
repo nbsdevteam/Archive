@@ -55,4 +55,10 @@ export interface DataTableProps<T> {
   responsive?: "auto" | "table" | "cards";
   /** Breakpoint below which card rows are shown when responsive is "auto". Default "lg". */
   cardsBelow?: DataTableCardsBreakpoint;
+  /**
+   * How row actions are shown in the TABLE view.
+   * "menu" (default) = kebab dropdown. "inline" = individual outline buttons side by side.
+   * Card view always uses the kebab menu regardless of this setting.
+   */
+  actionsStyle?: "menu" | "inline";
 }

@@ -191,6 +191,7 @@ export function FoldersContent(props: FoldersContentProps) {
         actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
         responsive="auto"
         cardsBelow="lg"
+        actionsStyle="inline"
       />
     </div>
   );

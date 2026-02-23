@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
-import { Button, Icon } from "@/shared/components/ui";
+import { Button, DataTable, Icon } from "@/shared/components/ui";
+import type { ColumnDef, RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
 
 export interface FolderDetailMainDocSectionProps {
   t: TFunction;
@@ -15,7 +17,10 @@ export interface FolderDetailMainDocSectionProps {
   isUnarchiving: boolean;
 }
 
-/** Main document card: single row table with barcode, name, type, date, status, actions. */
+/**
+ * Main document card: single-row table on desktop with inline action buttons.
+ * Switches to stack card view on mobile (< lg) via DataTable cardsBelow="lg".
+ */
 export function FolderDetailMainDocSection({
   t,
   mainDoc,
@@ -28,28 +33,27 @@ export function FolderDetailMainDocSection({
   isArchiving,
   isUnarchiving,
 }: FolderDetailMainDocSectionProps) {
-  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
-  const handleMainDocRowClick = () => mainDoc && onNavigate(mainDoc.id);
-  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    onDownload();
-  };
-  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (mainDoc && onEdit) onEdit(mainDoc.id);
-  };
-  const handleUnarchiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (mainDoc) onUnarchive(mainDoc.id);
-  };
-  const handleArchiveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (mainDoc) onArchive(mainDoc.id);
-  };
-  const handleViewClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (mainDoc) onNavigate(mainDoc.id);
-  };
+  const columns: ColumnDef<Document>[] = useMemo(
+    () => [
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.title ?? row.name ?? "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (row) => formatDate(row.upload_date) },
+      { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => row.status ?? "–" },
+    ],
+    [t, formatDate]
+  );
+
+  const rowActions: RowAction<Document>[] = useMemo(
+    () => [
+      { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (_row, e) => { e.stopPropagation(); onDownload(); } },
+      ...(onEdit ? [{ id: "edit" as const, label: t("common.edit", { defaultValue: "Edit" }), icon: "pencil" as const, onClick: (_row: Document, e: React.MouseEvent) => { e.stopPropagation(); if (mainDoc && onEdit) onEdit(mainDoc.id); } }] : []),
+      { id: "unarchive", label: t("documents.unarchive", { defaultValue: "Unarchive" }), icon: "refresh-cw", visible: (row) => (row.status ?? "").toLowerCase() === "archived", onClick: (row, e) => { e.stopPropagation(); onUnarchive(row.id); }, disabled: () => isUnarchiving },
+      { id: "archive", label: t("documents.archive", { defaultValue: "Archive" }), icon: "archive", visible: (row) => (row.status ?? "").toLowerCase() !== "archived", onClick: (row, e) => { e.stopPropagation(); onArchive(row.id); }, disabled: () => isArchiving },
+      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row, e) => { e.stopPropagation(); onNavigate(row.id); } },
+    ].filter(Boolean) as RowAction<Document>[],
+    [t, onDownload, onEdit, onArchive, onUnarchive, onNavigate, mainDoc, isArchiving, isUnarchiving]
+  );
 
   return (
     <div className="card mb-3">
@@ -63,57 +67,20 @@ export function FolderDetailMainDocSection({
         )}
       </div>
       <div className="card-body">
-        {!mainDoc ? (
-          <p className="text-muted mb-0">{t("common.noData", { defaultValue: "No data" })}</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-sm mb-0">
-              <thead>
-                <tr>
-                  <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
-                  <th>{t("documents.name", { defaultValue: "Name" })}</th>
-                  <th>{t("documents.type", { defaultValue: "Type" })}</th>
-                  <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
-                  <th>{t("documents.status", { defaultValue: "Status" })}</th>
-                  <th className="text-end">{t("common.actions", { defaultValue: "Actions" })}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ cursor: "pointer" }} onClick={handleMainDocRowClick}>
-                  <td>{mainDoc.barcode ?? "–"}</td>
-                  <td>{mainDoc.title ?? mainDoc.name ?? "–"}</td>
-                  <td>{mainDoc.document_type_name ?? (mainDoc.document_type as { name?: string })?.name ?? "–"}</td>
-                  <td>{formatDate(mainDoc.upload_date)}</td>
-                  <td>{mainDoc.status ?? "–"}</td>
-                  <td className="text-end">
-                    <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleDownloadClick}>
-                      <Icon name="download" className="me-1" />
-                      {t("documents.download", { defaultValue: "Download" })}
-                    </Button>
-                    {onEdit && (
-                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleEditClick}>
-                        <Icon name="pencil" className="me-1" />
-                        {t("common.edit", { defaultValue: "Edit" })}
-                      </Button>
-                    )}
-                    {(mainDoc.status ?? "").toLowerCase() === "archived" ? (
-                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleUnarchiveClick} disabled={isUnarchiving}>
-                        {t("documents.unarchive", { defaultValue: "Unarchive" })}
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" className="btn-outline-secondary me-1" onClick={handleArchiveClick} disabled={isArchiving}>
-                        {t("documents.archive", { defaultValue: "Archive" })}
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm" className="btn-outline-secondary" onClick={handleViewClick}>
-                      {t("common.view", { defaultValue: "View" })}
-                    </Button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable<Document>
+          data={mainDoc ? [mainDoc] : []}
+          getRowId={(row) => row.id}
+          columns={columns}
+          loading={false}
+          emptyMessage={t("common.noData", { defaultValue: "No data" })}
+          onRowClick={(row) => onNavigate(row.id)}
+          rowActions={rowActions}
+          actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+          tableClassName="table table-sm mb-0"
+          responsive="auto"
+          cardsBelow="lg"
+          actionsStyle="inline"
+        />
       </div>
     </div>
   );

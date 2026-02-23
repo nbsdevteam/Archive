@@ -88,11 +88,12 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
   return (
     <div className="card mb-3" data-testid="folder-detail-attachments-section">
       <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <h4 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h4>
-        <div className="d-flex flex-wrap align-items-center gap-2">
+        <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
+        <div className="d-flex align-items-center gap-2">
           {documents.length > 0 && (
             <select
-              className="form-select form-select-sm folder-detail-attachments-doc-select"
+              className="form-select form-select-sm"
+              style={{ width: "auto", minWidth: 200 }}
               value={attachmentsDocId}
               onChange={onAttachmentsDocIdChange}
               data-testid="folder-detail-attachments-doc-select"
@@ -136,10 +137,11 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
             rowActions={rowActions}
             selection={selection}
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
-            tableClassName="table table-sm mb-0 folders-detail-attachments-table"
-            responsive="auto"
-            cardsBelow="lg"
-          />
+          tableClassName="table table-sm mb-0 folders-detail-attachments-table"
+          responsive="auto"
+          cardsBelow="lg"
+          actionsStyle="inline"
+        />
         )}
       </div>
     </div>
