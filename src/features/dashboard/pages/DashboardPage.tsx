@@ -110,7 +110,7 @@ const DashboardPage = () => {
         <div className="card border-0 mb-3">
           <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-0 pb-sm-1">
             <div>
-              <h1 className="mb-2">{t("dashboard.welcomeBackAdmin", { defaultValue: "Welcome back Admin" })}</h1>
+              <h3 className="mb-2">{t("dashboard.welcomeBackAdmin", { defaultValue: "Welcome back Admin" })}</h3>
               <p className="mb-0">
                 You have{" "}
                 <Link to={routes.notifications} className="text-primary text-decoration-underline">
@@ -156,7 +156,7 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-primary mb-2">
                           <Icon name="folder" className="fs-16" />
                         </span>
-                        <h2 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h2>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.totalFolders")}</h6>
                         <h3 className="mb-2 Num" onClick={stopPropagation}>{totalFolders.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
@@ -168,7 +168,7 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-info mb-2">
                           <Icon name="file-check" className="fs-16" />
                         </span>
-                        <h2 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h2>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.activeDocuments")}</h6>
                         <h3 className="mb-2 Num" onClick={stopPropagation}>{activeDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
@@ -180,7 +180,7 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-dark mb-2">
                           <Icon name="archive" className="fs-16" />
                         </span>
-                        <h2 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h2>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.archivedDocuments")}</h6>
                         <h3 className="mb-2 Num" onClick={stopPropagation}>{archivedDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
@@ -192,7 +192,7 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-danger-subtle text-danger mb-2">
                           <Icon name="trash-2" className="fs-16" />
                         </span>
-                        <h2 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h2>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.trashedDocuments")}</h6>
                         <h3 className="mb-2 Num" onClick={stopPropagation}>{trashedDocumentsCount.toLocaleString()}</h3>
                         <span className="link-default">{t("dashboard.viewDetails")}</span>
                       </Card>
@@ -204,7 +204,7 @@ const DashboardPage = () => {
                         <span className="avatar rounded-circle bg-warning mb-2">
                           <Icon name="bell" className="fs-16" />
                         </span>
-                        <h2 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h2>
+                        <h6 className="fs-13 fw-medium text-default mb-1">{t("dashboard.notifications")}</h6>
                         <h3 className="mb-2 Num" onClick={stopPropagation}>{unreadCount.toLocaleString()}</h3>
                         {notificationsLoading ? (
                           <div className="text-center py-2">
@@ -219,10 +219,10 @@ const DashboardPage = () => {
                                 <li key={n.id} className="mb-2 pb-2 border-bottom">
                                   <div className="d-flex align-items-start justify-content-between">
                                     <div className="flex-grow-1 min-w-0">
-                                      <h4 className="mb-0 fs-13 text-truncate">
+                                      <h6 className="mb-0 fs-13 text-truncate">
                                         {!n.is_read && <span className="badge bg-primary rounded-pill me-1">{t("app.new")}</span>}
                                         {n.title}
-                                      </h4>
+                                      </h6>
                                       <p className="mb-0 small text-muted text-truncate">{n.message}</p>
                                       <small className="text-muted">
                                         {n.created_at ?? ""}
@@ -251,7 +251,7 @@ const DashboardPage = () => {
                       <>
                         <LazyDonutChart items={documentsByDepartment} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
+                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
                           <p className="dashboard-donut-info__text mb-0">
                             This visualization displays the distribution of documents across all departments in your organization. 
                             Use this data to identify departments with the highest document volume, track content growth patterns, 
@@ -275,7 +275,7 @@ const DashboardPage = () => {
                       <>
                         <LazyDonutChart items={foldersByDepartmentItems} />
                         <div className="dashboard-donut-info mt-3 px-2">
-                          <h4 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h4>
+                          <h6 className="dashboard-donut-info__label mb-2">{t("app.overview")}</h6>
                           <p className="dashboard-donut-info__text mb-0">
                             This chart shows how folders are organized across your departments, providing insights into content 
                             structure and storage patterns. Monitor which departments maintain the most folders, identify areas 

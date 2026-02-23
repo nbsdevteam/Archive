@@ -194,7 +194,7 @@ export function FoldersToolbar({
     return (
       <div className="card-header d-flex flex-column gap-2">
         <div className="d-flex align-items-center gap-2">
-          <h2 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h2>
+          <h5 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h5>
           {foldersCountLabel != null && <span className="text-muted fs-13">{foldersCountLabel}</span>}
         </div>
         <div className="d-flex flex-wrap gap-2 align-items-center">
@@ -212,7 +212,7 @@ export function FoldersToolbar({
 
   return (
     <TablePageToolbar
-      title={<h2 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h2>}
+      title={<h5 className="card-title mb-0">{t("folders.title", { defaultValue: "Folders" })}</h5>}
       countSlot={foldersCountLabel}
       rightClassName="folders__header-actions"
     >

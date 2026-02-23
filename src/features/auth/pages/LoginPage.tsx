@@ -84,11 +84,11 @@ export default function LoginPage() {
                       className={styles.leftSlide}
                       aria-hidden={loginAs !== "admin"}
                     >
-                      <h2
+                      <h1
                         className={`text-white display-1 ${styles.leftTitle}`}
                       >
                         NBS Archive Admin
-                      </h2>
+                      </h1>
                       <p
                         className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}
                       >
@@ -107,11 +107,11 @@ export default function LoginPage() {
                       className={styles.leftSlide}
                       aria-hidden={loginAs !== "user"}
                     >
-                      <h2
+                      <h1
                         className={`text-white display-1 ${styles.leftTitle}`}
                       >
                         NBS Archive Workspace
-                      </h2>
+                      </h1>
                       <p
                         className={`text-white fs-20 fw-semibold text-center ${styles.leftSubtitle}`}
                       >
@@ -145,7 +145,7 @@ export default function LoginPage() {
                     </div>
                     <div className="">
                       <div className="text-center mb-3">
-                        <h1 className="mb-2">{t("auth.signIn")}</h1>
+                        <h2 className="mb-2">{t("auth.signIn")}</h2>
                         <p className="mb-0">{t("auth.accessWorkspace")}</p>
                       </div>
 
