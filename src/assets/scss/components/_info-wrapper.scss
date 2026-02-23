@@ -1,6 +1,11 @@
 /**
  * InfoWrapper popover: theme-based styling using --primary-rgb and --app-* tokens.
  * Applied to popovers with class .info-wrapper-popover (no header, body only + arrow).
+ *
+ * The component uses position:fixed + two-phase measurement to keep the tooltip
+ * fully inside the viewport regardless of where the trigger lives in the DOM.
+ * width:max-content lets short labels stay compact; max-width ensures long text
+ * wraps instead of extending off-screen.
  */
 
 .info-wrapper-popover {
@@ -10,7 +15,11 @@
   --info-wrapper-arrow-border: rgba(var(--primary-rgb), 0.25);
 
   width: max-content;
+  /* Tooltip never exceeds 40 rem or 90% of the viewport width. */
   max-width: min(40rem, 90vw);
+  /* Allow long text to wrap instead of extending the box beyond max-width. */
+  white-space: normal;
+  word-break: break-word;
   background-color: var(--info-wrapper-bg);
   border: 1px solid var(--info-wrapper-border);
   border-radius: 6px;

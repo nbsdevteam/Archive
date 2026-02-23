@@ -1,4 +1,4 @@
-import { useId, useRef, useState, useCallback, useEffect } from "react";
+import { useId, useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "../Icon";
 
@@ -21,42 +21,85 @@ export interface InfoWrapperProps {
   /** When true the tooltip never shows, regardless of hover/click. */
   disabled?: boolean;
   /**
-   * When true the tooltip is rendered via ReactDOM.createPortal onto document.body
-   * with fixed positioning. Use inside overflow:hidden containers so the tooltip
-   * is never clipped by a parent.
+   * @deprecated No-op — all tooltips now always use portal + fixed positioning
+   * so they are never clipped by overflow:hidden parents. Kept for API compatibility.
    */
   portal?: boolean;
 }
 
 const POPOVER_CLASS = "info-wrapper-popover";
+/** Minimum gap (px) between tooltip edge and viewport edge. */
+const VIEWPORT_MARGIN = 8;
 
-/** Translates position prop to Bootstrap positioning utility classes (non-portal mode). */
-function getPositionClasses(position: InfoWrapperPosition): string {
+/**
+ * Computes the raw anchor point in viewport (fixed) coordinates.
+ * The anchor is the reference point the tooltip will be placed relative to
+ * before the final viewport-clamping step.
+ */
+function calcAnchor(rect: DOMRect, position: InfoWrapperPosition): { top: number; left: number } {
   switch (position) {
-    case "top":    return "bottom-100 mb-1 start-50 translate-middle-x";
-    case "left":   return "end-100 me-1 top-50 translate-middle-y";
-    case "right":  return "start-100 ms-1 top-50 translate-middle-y";
+    case "top":    return { top: rect.top - 8,               left: rect.left + rect.width / 2 };
+    case "left":   return { top: rect.top + rect.height / 2, left: rect.left - 8 };
+    case "right":  return { top: rect.top + rect.height / 2, left: rect.right + 8 };
     case "bottom":
-    default:       return "top-100 mt-1 start-50 translate-middle-x";
-  }
-}
-
-/** CSS transform used in portal (fixed) mode to centre the tooltip on the anchor point. */
-function getPortalTransform(position: InfoWrapperPosition): string {
-  switch (position) {
-    case "top":    return "translate(-50%, -100%)";
-    case "left":   return "translate(-100%, -50%)";
-    case "right":  return "translate(0, -50%)";
-    case "bottom":
-    default:       return "translate(-50%, 0)";
+    default:       return { top: rect.bottom + 8,            left: rect.left + rect.width / 2 };
   }
 }
 
 /**
- * Generic info popover with theme-styled content.
- * Custom implementation — no react-bootstrap dependency.
- * Styling via .info-wrapper-popover in SCSS.
- * Supports `portal` mode (createPortal to document.body) for use inside overflow:hidden containers.
+ * Converts the anchor + measured tooltip dimensions into a clamped top-left corner
+ * that keeps the tooltip fully inside the visible viewport.
+ *
+ * Anchor semantics per position:
+ *   bottom → anchor.left is horizontal midpoint; anchor.top is the top edge of the tooltip
+ *   top    → anchor.left is horizontal midpoint; anchor.top is the bottom edge of the tooltip
+ *   left   → anchor.top is vertical midpoint;   anchor.left is the right edge of the tooltip
+ *   right  → anchor.top is vertical midpoint;   anchor.left is the left edge of the tooltip
+ */
+function clampToViewport(
+  anchor: { top: number; left: number },
+  width: number,
+  height: number,
+  position: InfoWrapperPosition,
+): { top: number; left: number } {
+  let top: number, left: number;
+
+  switch (position) {
+    case "top":
+      top  = anchor.top - height;
+      left = anchor.left - width / 2;
+      break;
+    case "left":
+      top  = anchor.top - height / 2;
+      left = anchor.left - width;
+      break;
+    case "right":
+      top  = anchor.top - height / 2;
+      left = anchor.left;
+      break;
+    case "bottom":
+    default:
+      top  = anchor.top;
+      left = anchor.left - width / 2;
+  }
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  left = Math.max(VIEWPORT_MARGIN, Math.min(left, vw - width - VIEWPORT_MARGIN));
+  top  = Math.max(VIEWPORT_MARGIN, Math.min(top,  vh - height - VIEWPORT_MARGIN));
+  return { top, left };
+}
+
+/**
+ * Generic info icon with a viewport-aware fixed-position tooltip.
+ *
+ * Always rendered via createPortal onto document.body so it is never clipped
+ * by overflow:hidden/scroll parents (e.g. sidebars, modals, table cells).
+ *
+ * Uses a two-phase render to guarantee correct clamping:
+ *   Phase 1 — tooltip is painted with visibility:hidden at the raw anchor position.
+ *   Phase 2 — useLayoutEffect measures the rendered box, computes the clamped
+ *             position, then flips visibility:visible.
  */
 export function InfoWrapper({
   content,
@@ -66,65 +109,67 @@ export function InfoWrapper({
   triggerClassName = "",
   showOn = "hover",
   disabled = false,
-  portal = false,
+  portal: _portal, // kept for API compat, intentionally unused
 }: InfoWrapperProps) {
   const id = useId().replace(/:/g, "-");
   const isClick = showOn === "click";
   const [visible, setVisible] = useState(false);
-  const wrapperRef = useRef<HTMLSpanElement>(null);
-  /** Fixed-position coordinates used when portal=true. */
-  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null);
+  const wrapperRef  = useRef<HTMLSpanElement>(null);
+  const tooltipRef  = useRef<HTMLDivElement>(null);
 
-  /** Close popover when user clicks outside the wrapper (click mode only). */
+  /** Raw anchor in viewport coords — set the moment the tooltip becomes visible. */
+  const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null);
+  /** Clamped final position — null until Phase 2 measurement completes. */
+  const [finalPos, setFinalPos] = useState<{ top: number; left: number } | null>(null);
+
+  /** Click-outside dismissal (click mode only). */
   useEffect(() => {
     if (!isClick || !visible) return;
-    const handleOutsideClick = (e: MouseEvent) => {
+    const onOutside = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setVisible(false);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
   }, [isClick, visible]);
 
-  /** Calculate the fixed viewport position of the tooltip anchor (portal mode only). */
-  const calculatePortalPos = useCallback(() => {
-    if (!wrapperRef.current) return;
-    const rect = wrapperRef.current.getBoundingClientRect();
-    let top: number, left: number;
-    switch (position) {
-      case "top":
-        top = rect.top - 8;
-        left = rect.left + rect.width / 2;
-        break;
-      case "left":
-        top = rect.top + rect.height / 2;
-        left = rect.left - 8;
-        break;
-      case "right":
-        top = rect.top + rect.height / 2;
-        left = rect.right + 8;
-        break;
-      case "bottom":
-      default:
-        top = rect.bottom + 8;
-        left = rect.left + rect.width / 2;
+  /**
+   * Phase 2: runs synchronously after the DOM paints the hidden tooltip.
+   * Measures its bounding box and stores the viewport-clamped position,
+   * which causes a second paint where the tooltip becomes visible.
+   */
+  useLayoutEffect(() => {
+    if (!visible || !anchor || !tooltipRef.current) {
+      setFinalPos(null);
+      return;
     }
-    setPortalPos({ top, left });
+    const { width, height } = tooltipRef.current.getBoundingClientRect();
+    setFinalPos(clampToViewport(anchor, width, height, position));
+  }, [visible, anchor, position]);
+
+  /** Snapshot the trigger's viewport rect and store it as the anchor. */
+  const calculateAnchor = useCallback(() => {
+    if (!wrapperRef.current) return;
+    setAnchor(calcAnchor(wrapperRef.current.getBoundingClientRect(), position));
   }, [position]);
 
   const show = useCallback(() => {
     if (disabled) return;
-    if (portal) calculatePortalPos();
+    calculateAnchor();
     setVisible(true);
-  }, [disabled, portal, calculatePortalPos]);
+  }, [disabled, calculateAnchor]);
 
-  const hide = useCallback(() => setVisible(false), []);
+  const hide = useCallback(() => {
+    setVisible(false);
+    setFinalPos(null);
+    setAnchor(null);
+  }, []);
+
   const toggle = useCallback(() => {
     if (disabled) return;
-    if (portal) calculatePortalPos();
-    setVisible((v) => !v);
-  }, [disabled, portal, calculatePortalPos]);
+    if (visible) { hide(); } else { calculateAnchor(); setVisible(true); }
+  }, [disabled, visible, hide, calculateAnchor]);
 
   const defaultTrigger = (
     <span
@@ -136,27 +181,23 @@ export function InfoWrapper({
     </span>
   );
 
-  const triggerElement = trigger ?? defaultTrigger;
-
   const tooltipEl = visible ? (
     <div
+      ref={tooltipRef}
       id={id}
       role="tooltip"
-      className={`${POPOVER_CLASS}${portal ? "" : ` position-absolute ${getPositionClasses(position)}`}`}
-      style={
-        portal && portalPos
-          ? {
-              position: "fixed",
-              top: portalPos.top,
-              left: portalPos.left,
-              transform: getPortalTransform(position),
-              zIndex: 1070,
-              whiteSpace: "nowrap",
-            }
-          : { zIndex: 1070, whiteSpace: "nowrap" }
-      }
+      className={POPOVER_CLASS}
+      style={{
+        position: "fixed",
+        /* Phase 1: use raw anchor so the element is in roughly the right area while hidden. */
+        top:  finalPos?.top  ?? anchor?.top  ?? 0,
+        left: finalPos?.left ?? anchor?.left ?? 0,
+        zIndex: 1070,
+        /* Hidden until Phase 2 measurement completes — prevents flicker of mis-positioned tooltip. */
+        visibility: finalPos ? "visible" : "hidden",
+      }}
     >
-      {/* popover-body wrapper ensures the SCSS nested .popover-body styles (padding, color) apply */}
+      {/* popover-body ensures nested SCSS styles (padding, color) apply */}
       <div className="popover-body">{content}</div>
     </div>
   ) : null;
@@ -174,9 +215,9 @@ export function InfoWrapper({
         aria-expanded={isClick ? visible : undefined}
         aria-controls={isClick ? id : undefined}
       >
-        {triggerElement}
+        {trigger ?? defaultTrigger}
       </span>
-      {portal ? createPortal(tooltipEl, document.body) : tooltipEl}
+      {createPortal(tooltipEl, document.body)}
     </span>
   );
 }
