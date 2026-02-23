@@ -1,4 +1,6 @@
 import { useState } from "react";
+import axios from "axios";
+import { handleApiError } from "../../../app/adapter/api/client";
 import { login as loginApi } from "../services/auth.api";
 import type { LoginCredentials, LoginResponse } from "../types/auth.types";
 import { useDepartmentsStore } from "../../../shared/stores/departmentsStore";
@@ -30,9 +32,10 @@ export const useLogin = () => {
       
       return response;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      // Prefer API error body (e.g. "Invalid credentials") over axios message ("Request failed with status code 401")
+      const errorMessage = axios.isAxiosError(err) ? handleApiError(err) : (err instanceof Error ? err.message : "Login failed");
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
