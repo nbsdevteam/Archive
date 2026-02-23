@@ -10,7 +10,8 @@ import "./shared/styles/fonts.css";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; app icons via @tabler/icons-react + lucide-react (no icon webfonts)
+// Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; Tabler icon webfont for <i class="ti ti-*"> icons
+import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
 import "../src/assets/scss/custom.scss";
 import "../src/shared/styles/arabic-font.scss";
 import "../src/shared/styles/rtl-overrides.scss";

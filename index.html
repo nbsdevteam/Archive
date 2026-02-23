@@ -9,9 +9,9 @@
   <!-- Favicon -->
 	<!-- <link rel="shortcut icon" type="image/x-icon" href="/favicon.png"> -->
 	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
-  <link rel="preload" href="/assets/index.css" as="style" />
-  <!-- Preload critical Inter to reduce LCP; no Tabler/FA webfonts (icons via @tabler/icons-react + lucide) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+  <!-- Main CSS is injected by Vite at build time; preload would reference a path that does not exist in source. -->
+  <!-- Preload critical Inter to reduce LCP -->
   <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/inter-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
   <!-- Pre-paint: set dir/lang and Bootstrap LTR/RTL from saved language to avoid flash -->

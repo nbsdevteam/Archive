@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { IconSearch, IconFile, IconFolder, IconNotes } from "@tabler/icons-react";
 import { searchApi } from "../../adapter/api/search.api";
 import type { SearchResult } from "../../adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
@@ -178,7 +177,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     <div ref={headerSearchRef} className="position-relative" style={{ minWidth: "280px", width: "50%", flex: "0 1 50%", maxWidth: "50%" }}>
       <div className="input-group input-group-flat d-inline-flex w-100">
         <span className="input-icon-addon">
-          <IconSearch size={18} aria-hidden />
+          <i className="ti ti-search" aria-hidden></i>
         </span>
         <input
           type="text"
@@ -234,11 +233,11 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
                         <td className="py-1 px-2 fs-12">
                           <div className="d-flex align-items-center gap-1">
                             {type === "document" ? (
-                              <IconFile size={16} className="text-primary" aria-hidden />
+                              <i className="ti ti-file text-primary" aria-hidden></i>
                             ) : type === "folder" ? (
-                              <IconFolder size={16} className="text-secondary" aria-hidden />
+                              <i className="ti ti-folder text-secondary" aria-hidden></i>
                             ) : (
-                              <IconNotes size={16} className="text-info" aria-hidden />
+                              <i className="ti ti-notes text-info" aria-hidden></i>
                             )}
                             <span>{typeLabel}</span>
                           </div>

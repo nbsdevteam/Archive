@@ -338,7 +338,7 @@ div.css-b62m3t-container .react-select__option--is-selected {
   color: #fff;
 }
 
-/* Tabler icon overrides removed: app uses @tabler/icons-react; no webfont. */
+/* Header icons use Tabler webfont <i class="ti ti-*">; webfont loaded in main.tsx. */
 
 [data-theme="dark"] .header .header-left #toggle_btn {
   color: #fff;
