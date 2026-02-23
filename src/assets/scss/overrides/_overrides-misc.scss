@@ -338,7 +338,7 @@ div.css-b62m3t-container .react-select__option--is-selected {
   color: #fff;
 }
 
-/* Header icons use Tabler webfont <i class="ti ti-*">; webfont loaded in main.tsx. */
+/* Header toggle/search/user icons are lucide-react; #toggle_btn color override below. */
 
 [data-theme="dark"] .header .header-left #toggle_btn {
   color: #fff;
