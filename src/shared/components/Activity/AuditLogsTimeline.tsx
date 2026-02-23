@@ -123,6 +123,8 @@ function TimelineItemRow({
               flex: 1,
               background: "#e0e0e0",
               minHeight: 24,
+              marginTop: 8,
+              marginBottom: 8,
             }}
           />
         )}
