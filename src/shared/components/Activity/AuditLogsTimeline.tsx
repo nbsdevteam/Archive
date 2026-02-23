@@ -87,10 +87,11 @@ function TimelineItemRow({
       >
         {formatAuditTimestamp(log.timestamp)}
       </div>
-      {/* Center connector: dot + vertical line */}
+      {/* Center connector: dot + vertical line — alignSelf stretch lets the line grow to match the card height */}
       <div
         style={{
           flexShrink: 0,
+          alignSelf: "stretch",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
