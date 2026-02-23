@@ -88,6 +88,23 @@ export default defineConfig({
     build: {
         /** Target modern browsers for smaller output; tree shaking works best with ESM. */
         target: "es2022",
+        /**
+         * Stop Vite from adding <link rel="modulepreload"> for lazy feature/chart chunks.
+         * By default Vite preloads ALL dynamic-import targets, which makes every feature
+         * chunk download on every page — defeating lazy loading entirely.
+         * We keep vendor preloads (react, router, i18n, etc.) for fast initial paint,
+         * but skip feature-* and heavy optional vendors so they only load on demand.
+         */
+        modulePreload: {
+            resolveDependencies(_url, deps) {
+                return deps.filter((dep) => !dep.includes("/feature-") &&
+                    !dep.includes("/charts-vendor") &&
+                    !dep.includes("/xyflow-vendor") &&
+                    !dep.includes("/http-vendor") &&
+                    !dep.includes("/floating-vendor") &&
+                    !dep.includes("/AuditLogs"));
+            },
+        },
         /** Single predictable CSS bundle so we can safely preload `/assets/index.css` in index.html. */
         cssCodeSplit: false,
         /** Enable Rollup tree shaking: remove unused exports and dead code. */
@@ -116,11 +133,6 @@ export default defineConfig({
                     // React Router — separate from react core
                     if (normalizedId.includes("node_modules/react-router")) {
                         return "router-vendor";
-                    }
-                    // MUI + Emotion — large, only needed after login
-                    if (normalizedId.includes("node_modules/@mui/") ||
-                        normalizedId.includes("node_modules/@emotion/")) {
-                        return "mui-vendor";
                     }
                     // ApexCharts — very large, only used on Dashboard page
                     if (normalizedId.includes("node_modules/apexcharts") ||
@@ -151,16 +163,27 @@ export default defineConfig({
                     if (normalizedId.includes("node_modules/lucide-react")) {
                         return "lucide-vendor";
                     }
-                    // Feature-level chunks — break circular deps by merging paired features into one chunk
+                    // Do NOT split out react-datepicker/react-select/date-fns into datepicker-vendor:
+                    // it created a circular chunk (feature-dashboard -> feature-auth -> datepicker-vendor -> feature-dashboard)
+                    // and "cannot access r before initialization" at runtime. Keep them in feature-auth (and in
+                    // the lazy DateRangePickerModal chunk when used from documents/folders).
+                    // HTTP client — shared across features
+                    if (normalizedId.includes("node_modules/axios")) {
+                        return "http-vendor";
+                    }
+                    // Floating UI (tooltips, popovers) — used by react-select and others
+                    if (normalizedId.includes("node_modules/@floating-ui")) {
+                        return "floating-vendor";
+                    }
+                    // Feature-level chunks — each feature loads independently
                     if (normalizedId.includes("/src/features/")) {
                         const match = normalizedId.match(/\/src\/features\/([^/]+)\//);
                         if (match) {
-                            const feature = match[1];
-                            // dashboard <-> notifications cycle: put notifications in dashboard chunk
-                            if (feature === "notifications") return "feature-dashboard";
-                            // notes <-> documents cycle: put documents in notes chunk
-                            if (feature === "documents") return "feature-notes";
-                            return `feature-${feature}`;
+                            const name = match[1];
+                            // Notes and documents import each other; merge to avoid circular chunk warning.
+                            if (name === "notes" || name === "documents")
+                                return "feature-documents-notes";
+                            return `feature-${name}`;
                         }
                     }
                     return undefined;
