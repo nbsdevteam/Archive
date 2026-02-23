@@ -46,11 +46,11 @@ export function FolderDetailMainDocSection({
 
   const rowActions: RowAction<Document>[] = useMemo(
     () => [
-      { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (_row, e) => { e.stopPropagation(); onDownload(); } },
+      { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (_row: Document, e: React.MouseEvent) => { e.stopPropagation(); onDownload(); } },
       ...(onEdit ? [{ id: "edit" as const, label: t("common.edit", { defaultValue: "Edit" }), icon: "pencil" as const, onClick: (_row: Document, e: React.MouseEvent) => { e.stopPropagation(); if (mainDoc && onEdit) onEdit(mainDoc.id); } }] : []),
-      { id: "unarchive", label: t("documents.unarchive", { defaultValue: "Unarchive" }), icon: "refresh-cw", visible: (row) => (row.status ?? "").toLowerCase() === "archived", onClick: (row, e) => { e.stopPropagation(); onUnarchive(row.id); }, disabled: () => isUnarchiving },
-      { id: "archive", label: t("documents.archive", { defaultValue: "Archive" }), icon: "archive", visible: (row) => (row.status ?? "").toLowerCase() !== "archived", onClick: (row, e) => { e.stopPropagation(); onArchive(row.id); }, disabled: () => isArchiving },
-      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row, e) => { e.stopPropagation(); onNavigate(row.id); } },
+      { id: "unarchive", label: t("documents.unarchive", { defaultValue: "Unarchive" }), icon: "refresh-cw", visible: (row: Document) => (row.status ?? "").toLowerCase() === "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onUnarchive(row.id); }, disabled: () => isUnarchiving },
+      { id: "archive", label: t("documents.archive", { defaultValue: "Archive" }), icon: "archive", visible: (row: Document) => (row.status ?? "").toLowerCase() !== "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onArchive(row.id); }, disabled: () => isArchiving },
+      { id: "view", label: t("common.view", { defaultValue: "View" }), icon: "eye", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onNavigate(row.id); } },
     ].filter(Boolean) as RowAction<Document>[],
     [t, onDownload, onEdit, onArchive, onUnarchive, onNavigate, mainDoc, isArchiving, isUnarchiving]
   );

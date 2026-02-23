@@ -21,7 +21,7 @@ const ACTION_COLOR_HEX: Record<AuditActionColor, string> = {
 /** Returns an onChange handler for the action filter checkbox. */
 function getActionVisibilityChangeHandler(
   action: string,
-  toggleActionVisibility: (action: string, visible: boolean) => void
+  toggleActionVisibility: (action: string, visible: boolean) => void,
 ) {
   return function handleActionVisibilityChange(checked: boolean) {
     toggleActionVisibility(action, checked);
@@ -71,7 +71,10 @@ function TimelineItemRow({
   const DotIcon = visual.Icon;
   const viewLabel = t("common.view", { defaultValue: "View" });
   return (
-    <div className="activity-timeline-item" style={{ display: "flex", gap: 0, alignItems: "flex-start" }}>
+    <div
+      className="activity-timeline-item"
+      style={{ display: "flex", gap: 0, alignItems: "flex-start" }}
+    >
       {/* Left side: timestamp — takes ~45% so the connector sits near the center */}
       <div
         className="activity-timeline-opposite"
@@ -123,8 +126,7 @@ function TimelineItemRow({
               flex: 1,
               background: "#e0e0e0",
               minHeight: 24,
-              marginTop: 8,
-              marginBottom: 8,
+              marginBlock: 8,
             }}
           />
         )}
@@ -150,7 +152,9 @@ function TimelineItemRow({
             <span className="activity-timeline-label-key">
               {t("activity.columns.user", { defaultValue: "User" })}:
             </span>{" "}
-            <span className="activity-timeline-label-value">{log.user_name || "–"}</span>
+            <span className="activity-timeline-label-value">
+              {log.user_name || "–"}
+            </span>
           </div>
           <div className="activity-timeline-label-row small text-secondary">
             <span className="activity-timeline-label-key">
@@ -169,7 +173,9 @@ function TimelineItemRow({
             ) : (
               <span className="activity-timeline-label-value">
                 {log.document_title ||
-                  t("activity.noDocument", { defaultValue: "No related document" })}
+                  t("activity.noDocument", {
+                    defaultValue: "No related document",
+                  })}
               </span>
             )}
           </div>
@@ -378,7 +384,10 @@ const AuditLogsTimelineComponent = ({
                   count: actionCount,
                 })}
                 checked={isVisible}
-                onChange={getActionVisibilityChangeHandler(action, toggleActionVisibility)}
+                onChange={getActionVisibilityChangeHandler(
+                  action,
+                  toggleActionVisibility,
+                )}
                 className="activity-timeline-filter-item"
               />
             );
@@ -415,8 +424,5 @@ const arePropsEqual = (
   prev.onDocumentClick === next.onDocumentClick &&
   prev.className === next.className;
 
-const AuditLogsTimeline = memo(
-  AuditLogsTimelineComponent,
-  arePropsEqual,
-);
+const AuditLogsTimeline = memo(AuditLogsTimelineComponent, arePropsEqual);
 export default AuditLogsTimeline;

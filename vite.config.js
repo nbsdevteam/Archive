@@ -151,11 +151,17 @@ export default defineConfig({
                     if (normalizedId.includes("node_modules/lucide-react")) {
                         return "lucide-vendor";
                     }
-                    // Feature-level chunks — each feature loads independently
+                    // Feature-level chunks — break circular deps by merging paired features into one chunk
                     if (normalizedId.includes("/src/features/")) {
                         const match = normalizedId.match(/\/src\/features\/([^/]+)\//);
-                        if (match)
-                            return `feature-${match[1]}`;
+                        if (match) {
+                            const feature = match[1];
+                            // dashboard <-> notifications cycle: put notifications in dashboard chunk
+                            if (feature === "notifications") return "feature-dashboard";
+                            // notes <-> documents cycle: put documents in notes chunk
+                            if (feature === "documents") return "feature-notes";
+                            return `feature-${feature}`;
+                        }
                     }
                     return undefined;
                 },

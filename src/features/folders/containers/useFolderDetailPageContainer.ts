@@ -9,6 +9,7 @@ import { useFolderAuditLogs } from "@/features/activity/hooks/useFolderAuditLogs
 import type { ActivityViewMode } from "@/features/activity/types";
 import { all_routes } from "@/router/all_routes";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
+import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import { navigateToDocumentDetail, navigateToAttachmentView } from "@/shared/utils/navigation/navigateWithState";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
@@ -401,7 +402,6 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
         description,
       };
       if (replaceFile instanceof File) {
-        const { fileToBase64 } = await import("@/shared/utils/files/fileToBase64");
         payload.file_data = await fileToBase64(replaceFile);
         payload.file_name = replaceFile.name;
       }

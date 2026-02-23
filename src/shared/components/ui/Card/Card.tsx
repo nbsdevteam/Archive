@@ -33,7 +33,7 @@ export const Card = ({
   const header =
     title || headerActions ? (
       <div className="d-flex align-items-center justify-content-between">
-        {title && <h3 className="mb-0 card-title">{title}</h3>}
+        {title && <h5 className="mb-0 card-title">{title}</h5>}
         {headerActions && <div>{headerActions}</div>}
       </div>
     ) : undefined;

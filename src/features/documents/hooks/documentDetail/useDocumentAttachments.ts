@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useAttachmentOperations, useSelection, useAttachmentsList } from "@/shared/hooks";
+import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import type { AttachmentListItem } from "@/shared/hooks";
 
 /**
@@ -72,7 +73,6 @@ export function useDocumentAttachments(docId: number | null, activeTab: string, 
         description,
       };
       if (replaceFile instanceof File) {
-        const { fileToBase64 } = await import("@/shared/utils/files/fileToBase64");
         payload.file_data = await fileToBase64(replaceFile);
         payload.file_name = replaceFile.name;
       }
