@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { IconArrowBarToLeft, IconWorld, IconCheck, IconMaximize } from "@tabler/icons-react";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { all_routes } from "../../../router/all_routes";
 import { useAuth } from "../../../shared/auth";
@@ -104,7 +105,7 @@ const Header = React.memo(() => {
                   className="btn btn-menubar flex-shrink-0"
                   aria-label={t("app.toggleSidebar")}
                 >
-                  <i className="ti ti-arrow-bar-to-left" aria-hidden></i>
+                  <IconArrowBarToLeft size={20} aria-hidden />
                 </Link>
                 <HeaderSearch routes={routes} t={t} />
                 <span className="d-inline-flex flex-shrink-0 px-4"></span>
@@ -120,7 +121,7 @@ const Header = React.memo(() => {
                     aria-haspopup="true"
                     title={t("app.switchLanguage")}
                   >
-                    <i className="ti ti-world" aria-hidden></i>
+                    <IconWorld size={20} aria-hidden />
                   </button>
                   <div className="dropdown-menu dropdown-menu-end">
                     <button
@@ -132,7 +133,7 @@ const Header = React.memo(() => {
                         className="me-2"
                         style={{ width: "1.25rem", textAlign: "start" }}
                       >
-                        {!isAr && <i className="ti ti-check" aria-hidden></i>}
+                        {!isAr && <IconCheck size={18} aria-hidden />}
                       </span>
                       {t("app.english")}
                     </button>
@@ -145,7 +146,7 @@ const Header = React.memo(() => {
                         className="me-2"
                         style={{ width: "1.25rem", textAlign: "start" }}
                       >
-                        {isAr && <i className="ti ti-check" aria-hidden></i>}
+                        {isAr && <IconCheck size={18} aria-hidden />}
                       </span>
                       العربية
                     </button>
@@ -158,7 +159,7 @@ const Header = React.memo(() => {
                     className="btn btn-menubar btnFullscreen"
                     aria-label={t("app.toggleFullscreen")}
                   >
-                    <i className="ti ti-maximize" aria-hidden></i>
+                    <IconMaximize size={20} aria-hidden />
                   </Link>
                 </div>
                 <HeaderUserMenu routes={routes} onLogout={handleLogout} />

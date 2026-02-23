@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { IconUpload, IconActivity, IconLogin } from "@tabler/icons-react";
 import { Button } from "../../../shared/components/ui";
 import ImageWithBasePath from "../imageWithBasePath";
 
@@ -29,10 +30,10 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
           </div>
         </div>
         <Link className="dropdown-item" to={routes.documentsUpload}>
-          <i className="ti ti-upload me-1"></i>Upload
+          <IconUpload size={18} className="me-1" aria-hidden />Upload
         </Link>
         <Link className="dropdown-item" to={routes.activity}>
-          <i className="ti ti-activity me-1"></i>Activity
+          <IconActivity size={18} className="me-1" aria-hidden />Activity
         </Link>
         <Button
           type="button"
@@ -40,7 +41,7 @@ export function HeaderMobileMenu({ routes, onLogout }: HeaderMobileMenuProps) {
           className="dropdown-item border-0 bg-transparent w-100 text-start shadow-none"
           onClick={onLogout}
         >
-          <i className="ti ti-login me-2"></i>Logout
+          <IconLogin size={18} className="me-2" aria-hidden />Logout
         </Button>
       </div>
     </div>

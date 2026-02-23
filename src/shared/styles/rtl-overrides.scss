@@ -35,7 +35,8 @@
   }
 
   /* Theme settings check position */
-  div.sidebar-themesettings .input-themeselect input[type="radio"]:checked ~ label .checkboxs-theme::before {
+  /* Theme checkbox check uses Unicode in _overrides-misc */
+div.sidebar-themesettings .input-themeselect input[type="radio"]:checked ~ label .checkboxs-theme::before {
     right: auto;
     left: 4px;
   }

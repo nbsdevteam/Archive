@@ -1,16 +1,15 @@
 @use "../utils/variables";
 
+/* Breadcrumb divider: use Unicode chevron so we don't load icon fonts */
 .page-header-breadcrumb {
   .breadcrumb-item+.breadcrumb-item::before {
-    content: var(--bs-breadcrumb-divider, "\ea65");
-    font-family: "tabler-icons" !important;
+    content: var(--bs-breadcrumb-divider, "\203A");
   }
 }
 [dir="rtl"] {
   .page-header-breadcrumb {
     .breadcrumb-item+.breadcrumb-item::before {
-      content: var(--bs-breadcrumb-divider, "\ea64");
-      font-family: "tabler-icons" !important;
+      content: var(--bs-breadcrumb-divider, "\2039");
     }
   }
 }

@@ -64,8 +64,9 @@
             color: variables.$text-color;
             width: 16px;
             height: 16px;
+            /* Legacy class for notes nav chevron (margin); icon may come from NBS/lucide */
             .fa-chevron-left {
-                margin-right: 8px;
+              margin-right: 8px;
             }
         }
         .page-wrap {

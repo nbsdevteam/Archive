@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { IconChevronsUp } from "@tabler/icons-react";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 
 /** Collapse/expand the top header bar. Native title replaces react-bootstrap Tooltip. */
@@ -18,7 +19,7 @@ const CollapseHeader = () => {
       aria-label="Collapse header"
       title="Collapse"
     >
-      <i className="ti ti-chevrons-up" aria-hidden />
+      <IconChevronsUp size={20} aria-hidden />
     </Link>
   );
 };

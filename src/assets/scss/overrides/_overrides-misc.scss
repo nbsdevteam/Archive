@@ -338,32 +338,10 @@ div.css-b62m3t-container .react-select__option--is-selected {
   color: #fff;
 }
 
-.submenu .ti-ticket:before {
-  content: "\eb3d";
-}
-
-.form-icon .ti-search:before {
-  content: "\eb1c";
-}
-
-.form-icon .ti-calendar:before {
-  content: "\ea53";
-}
-
-i.ti-trash:before {
-  content: "\eb41";
-}
+/* Tabler icon overrides removed: app uses @tabler/icons-react; no webfont. */
 
 [data-theme="dark"] .header .header-left #toggle_btn {
   color: #fff;
-}
-
-i.ti-lock:before {
-  content: "\eae2";
-}
-
-i.ti-bell:before {
-  content: "\ea35";
 }
 
 [data-theme="dark"] .login-wrapper .form-control {
@@ -389,23 +367,14 @@ i.ti-bell:before {
   margin-left: 30px;
 }
 
-.ti.ti-eye:before {
-  content: "\ea9a";
-}
-
-.ti.ti-user:before {
-  content: "\eb4d";
-}
-
+/* Theme checkbox: use Unicode check instead of Font Awesome */
 div.sidebar-themesettings
   .input-themeselect
   input[type="radio"]:checked
   ~ label
   .checkboxs-theme::before {
-  content: "\f00c";
-  font-family: "Font Awesome 5 Free";
+  content: "\2713";
   color: #fff;
-  font-weight: 700;
   font-size: 10px;
   right: 4px;
   position: absolute;

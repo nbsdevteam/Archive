@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { IconSearch, IconUpload, IconActivity } from "@tabler/icons-react";
 import ImageWithBasePath from "../imageWithBasePath";
-import "../../../assets/icon/tabler-icons/webfont/tabler-icons.css";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { SidebarDataTest } from "../../config/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
@@ -223,7 +223,7 @@ const Sidebar = memo(() => {
         </div>
         <div className="input-group input-group-flat d-inline-flex mb-4">
           <span className="input-icon-addon">
-            <i className="ti ti-search" />
+            <IconSearch size={18} aria-hidden />
           </span>
           <input
             type="text"
@@ -246,7 +246,7 @@ const Sidebar = memo(() => {
               className="btn btn-menubar"
               aria-label={t("app.upload", { defaultValue: "Upload" })}
             >
-              <i className="ti ti-upload" aria-hidden />
+              <IconUpload size={18} aria-hidden />
             </Link>
           </div>
           <div className="me-0">
@@ -257,7 +257,7 @@ const Sidebar = memo(() => {
                 defaultValue: "Activity",
               })}
             >
-              <i className="ti ti-activity" aria-hidden />
+              <IconActivity size={18} aria-hidden />
             </Link>
           </div>
         </div>

@@ -44,6 +44,7 @@
     "@hookform/resolvers": "^3.9.4",
     "@jridgewell/sourcemap-codec": "^1.5.5",
     "@nbs/component-library": "github:syednaqvi98nibras/StoryBook#latest",
+    "@tabler/icons-react": "^3.37.1",
     "@xyflow/react": "^12.10.0",
     "axios": "^1.13.4",
     "clsx": "^2.1.1",

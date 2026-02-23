@@ -10,11 +10,10 @@ import "./shared/styles/fonts.css";
 import "./shared/stores/themeColorStore";
 import "./shared/stores/layoutStore";
 
-// Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; icon fonts (Tabler for legacy template only — app icons via lucide-react)
+// Global CSS: Bootstrap LTR/RTL from head link (pre-paint); app SCSS; app icons via @tabler/icons-react + lucide-react (no icon webfonts)
 import "../src/assets/scss/custom.scss";
 import "../src/shared/styles/arabic-font.scss";
 import "../src/shared/styles/rtl-overrides.scss";
-import "../src/assets/icon/tabler-icons/webfont/tabler-icons.css";
 import "@nbs/component-library/dist/styles.css";
 import "../src/shared/styles/nbs-sidebar-overrides.css";
 import "../src/shared/styles/nbs-theme-bridge.css";
