@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
-import { Button, Icon, SearchInput, ListFilter, MobileActionsMenu } from "@/shared/components/ui";
+import { Button, Icon, SearchInput, MobileActionsMenu } from "@/shared/components/ui";
+import { ListFilter } from "@/shared/components/ui/ListFilter";
 import type { MobileActionsMenuItem } from "@/shared/components/ui";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { useViewport } from "@/shared/hooks/useViewport";

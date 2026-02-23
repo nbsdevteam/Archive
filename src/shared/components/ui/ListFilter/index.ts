@@ -1,7 +1,7 @@
-export {
-  ListFilter,
-  type ListFilterProps,
-  type ListFilterFilterConfig,
-  type ListFilterDateRangeConfig,
-  type DateRangeMode,
-} from "./ListFilter";
+export { ListFilter } from "./ListFilter";
+export type {
+  ListFilterProps,
+  ListFilterFilterConfig,
+  ListFilterDateRangeConfig,
+  DateRangeMode,
+} from "./ListFilter.types";

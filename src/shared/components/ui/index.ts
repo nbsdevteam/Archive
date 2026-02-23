@@ -9,7 +9,13 @@ export * from "./SidePanel";
 export * from "./Select";
 export * from "./Icon";
 export * from "./SearchInput";
-export * from "./ListFilter";
+/** ListFilter component not re-exported here so dashboard/shell don't pull datepicker-vendor. Import from "@/shared/components/ui/ListFilter" where needed. Types from a separate file to avoid pulling ListFilter.tsx. */
+export type {
+  DateRangeMode,
+  ListFilterProps,
+  ListFilterFilterConfig,
+  ListFilterDateRangeConfig,
+} from "./ListFilter/ListFilter.types";
 export * from "./DataTable";
 export * from "./MobileActionsMenu";
 export * from "./InfoWrapper";

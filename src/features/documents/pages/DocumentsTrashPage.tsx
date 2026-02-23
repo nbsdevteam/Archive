@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, ListFilter, MobileActionsMenu } from "@/shared/components/ui";
+import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, MobileActionsMenu } from "@/shared/components/ui";
+import { ListFilter } from "@/shared/components/ui/ListFilter";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";

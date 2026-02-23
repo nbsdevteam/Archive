@@ -1,56 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import Select, { type SingleValue } from "react-select";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import type { SelectOption } from "../Select";
+import type { ListFilterProps } from "./ListFilter.types";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { formatDate } from "@/shared/utils/format/date";
-import { DateRangePickerModal } from "./DateRangePickerModal";
 import styles from "./ListFilter.module.css";
 
-export interface ListFilterFilterConfig {
-  label: string;
-  value: number | string | null;
-  options: Array<{ value: number | string; label: string }>;
-  onChange: (value: number | string | null) => void;
-}
+/** Lazy-loaded so datepicker-vendor (react-datepicker, date-fns) only loads when user opens the date modal. */
+const DateRangePickerModal = lazy(() =>
+  import("./DateRangePickerModal").then((m) => ({ default: m.DateRangePickerModal })),
+);
 
-/** Mode for date range filter: after = from_date only, upto = to_date only, between = both. */
-export type DateRangeMode = "after" | "upto" | "between";
-
-export interface ListFilterDateRangeConfig {
-  label: string;
-  mode: DateRangeMode;
-  fromDate: Date | null;
-  toDate: Date | null;
-  onModeChange: (mode: DateRangeMode) => void;
-  onDatesChange: (args: { fromDate: Date | null; toDate: Date | null }) => void;
-  /** Called when user clicks Cancel; only refetch/clear when date was applied. */
-  onCancel?: () => void;
-  cancelLabel?: string;
-}
-
-export interface ListFilterProps {
-  isOpen: boolean;
-  onClose: () => void;
-  /** When absent (e.g. Trash page), only date range row is shown if dateRange is provided. */
-  primaryFilter?: ListFilterFilterConfig;
-  secondaryFilter?: ListFilterFilterConfig;
-  /** Optional third filter row (e.g. Company/Brand). */
-  tertiaryFilter?: ListFilterFilterConfig;
-  /** Optional date range row (By Date); when absent, no date row or Cancel is shown. */
-  dateRange?: ListFilterDateRangeConfig;
-  onApply: () => void;
-  onClear?: () => void;
-  /** When true, Apply button is disabled (e.g. when draft has no changes from applied). Enable Apply only when user has changed a value. */
-  applyDisabled?: boolean;
-  disabled?: boolean;
-  applyLabel?: string;
-  clearLabel?: string;
-  closeAriaLabel?: string;
-  ariaLabel?: string;
-}
+export type {
+  ListFilterFilterConfig,
+  DateRangeMode,
+  ListFilterDateRangeConfig,
+  ListFilterProps,
+} from "./ListFilter.types";
 
 function isStringOption(
   options: Array<{ value: number | string; label: string }>
@@ -353,18 +322,20 @@ export function ListFilter({
         </Button>
       </div>
     </div>
-    {/* Date-range modal — rendered via portal to document.body, above filter panel */}
+    {/* Date-range modal — lazy so datepicker-vendor loads only when opened */}
     {dateRange != null && dateModalOpen && (
-      <DateRangePickerModal
-        mode={dateRange.mode}
-        fromDate={dateRange.fromDate}
-        toDate={dateRange.toDate}
-        onSave={({ fromDate, toDate, mode }) => {
-          dateRange.onModeChange(mode);
-          dateRange.onDatesChange({ fromDate, toDate });
-        }}
-        onClose={() => setDateModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <DateRangePickerModal
+          mode={dateRange.mode}
+          fromDate={dateRange.fromDate}
+          toDate={dateRange.toDate}
+          onSave={({ fromDate, toDate, mode }) => {
+            dateRange.onModeChange(mode);
+            dateRange.onDatesChange({ fromDate, toDate });
+          }}
+          onClose={() => setDateModalOpen(false)}
+        />
+      </Suspense>
     )}
     </>
   );
