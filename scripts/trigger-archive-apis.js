@@ -1,14 +1,14 @@
 /**
  * Trigger NBS Archive APIs: login (admin/admin), upload document, create folder.
  * Run from project root: node scripts/trigger-archive-apis.js
- * Optional: API_BASE_URL or VITE_API_BASE_URL (default: http://localhost:8070)
+ * Optional: API_BASE_URL or VITE_API_BASE_URL (default: http://192.168.116.211:8069)
  *
  * Reports success or error for each step per NBS_ARCHIVE_API_REFERENCE_FRONTEND.md.
  */
 
 import axios from 'axios';
 
-const BASE_URL = process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:8070';
+const BASE_URL = process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || 'http://192.168.116.211:8069';
 
 const api = axios.create({
   baseURL: BASE_URL,
