@@ -1,6 +1,6 @@
 /**
- * Companies API: list/get/details/stats via JSON-RPC; create/update via HTTP POST; delete via HTTP DELETE.
- * Countries list via JSON-RPC POST /api/countries.
+ * Companies API: list/get/details/stats via JSON-RPC; create/update/batch-delete/delete-all via HTTP POST;
+ * single delete via HTTP DELETE. Countries list via JSON-RPC POST /api/countries.
  */
 
 import { jsonRpcRequest, httpClient, httpDelete } from "@/shared/lib/http";
@@ -43,6 +43,67 @@ export interface CreateCompanyPayload {
 }
 
 export interface UpdateCompanyPayload extends CreateCompanyPayload {}
+
+/** Skipped company from batch-delete / delete-all when it has active folders (unless force). */
+export interface BatchDeleteSkippedItem {
+  id: number;
+  reason: string;
+  folder_count?: number;
+}
+
+export interface BatchDeleteResponse {
+  deleted: number[];
+  skipped: BatchDeleteSkippedItem[];
+  /** Per-item failures; message-only entries are allowed when the API omits id. */
+  errors: Array<{ id?: number; message?: string }>;
+}
+
+export interface DeleteAllResponse {
+  deleted: number[];
+  deleted_count: number;
+  skipped: BatchDeleteSkippedItem[];
+}
+
+/** Unwraps top-level or `{ data: ... }` JSON from company batch/delete-all responses. */
+function parseBatchDeletePayload(body: unknown): Record<string, unknown> {
+  const root = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
+  const inner = root.data;
+  if (inner && typeof inner === "object" && !Array.isArray(inner)) {
+    return inner as Record<string, unknown>;
+  }
+  return root;
+}
+
+/** Coerces arrays and error rows for `POST /api/companies/batch-delete` results. */
+function normalizeBatchDeleteResponse(body: unknown): BatchDeleteResponse {
+  const p = parseBatchDeletePayload(body);
+  const deleted = Array.isArray(p.deleted) ? (p.deleted as unknown[]).map((x) => Number(x)).filter((n) => !Number.isNaN(n)) : [];
+  const skipped = Array.isArray(p.skipped) ? (p.skipped as BatchDeleteSkippedItem[]) : [];
+  const rawErrors = Array.isArray(p.errors) ? p.errors : [];
+  const errors = rawErrors.map((item) => {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
+      const o = item as Record<string, unknown>;
+      return {
+        id: typeof o.id === "number" ? o.id : Number(o.id),
+        message: typeof o.message === "string" ? o.message : String(o.message ?? o.error ?? ""),
+      };
+    }
+    return { message: String(item) };
+  });
+  return { deleted, skipped, errors };
+}
+
+/** Coerces arrays and `deleted_count` for `POST /api/companies/delete-all` results. */
+function normalizeDeleteAllResponse(body: unknown): DeleteAllResponse {
+  const p = parseBatchDeletePayload(body);
+  const deleted = Array.isArray(p.deleted) ? (p.deleted as unknown[]).map((x) => Number(x)).filter((n) => !Number.isNaN(n)) : [];
+  const skipped = Array.isArray(p.skipped) ? (p.skipped as BatchDeleteSkippedItem[]) : [];
+  const deletedCount =
+    typeof p.deleted_count === "number" && !Number.isNaN(p.deleted_count)
+      ? p.deleted_count
+      : deleted.length;
+  return { deleted, deleted_count: deletedCount, skipped };
+}
 
 /** JSON-RPC result shape for list endpoints. */
 interface JsonRpcListResult<T> {
@@ -130,6 +191,24 @@ export async function updateCompany(id: number, payload: UpdateCompanyPayload): 
  */
 export async function deleteCompany(id: number): Promise<void> {
   await httpDelete(`/api/companies/${id}`);
+}
+
+/**
+ * Batch delete companies (HTTP POST /api/companies/batch-delete).
+ * With force false, companies that have active folders are skipped.
+ */
+export async function batchDeleteCompanies(ids: number[], force = false): Promise<BatchDeleteResponse> {
+  const res = await httpClient.post<unknown>("/api/companies/batch-delete", { ids, force });
+  return normalizeBatchDeleteResponse(res.data);
+}
+
+/**
+ * Delete all eligible companies (HTTP POST /api/companies/delete-all).
+ * With force false, only companies with no active folders are removed.
+ */
+export async function deleteAllCompanies(force = false): Promise<DeleteAllResponse> {
+  const res = await httpClient.post<unknown>("/api/companies/delete-all", { force });
+  return normalizeDeleteAllResponse(res.data);
 }
 
 /**

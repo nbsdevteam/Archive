@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
@@ -29,14 +29,24 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * Companies list page: table with search, refresh, create (admin), row actions
- * (View details, Edit, Delete). Uses side panels for create/edit/details and
- * confirm modal for delete. Keyboard: Ctrl+C = create company, R = refresh (when not in an input).
+ * Companies list page: table with search, refresh, create (admin), row selection (admin),
+ * batch delete / delete all + force follow-up, row actions (View, Edit, Delete).
+ * Side panels for create/edit/details; confirm modals for single and batch deletes.
+ * Keyboard: Ctrl+C = create company, R = refresh (when not in an input).
  */
 export default function CompaniesPage() {
   const { t } = useTranslation();
   const { data, loading, error, actions, modals, isAdmin } = useCompaniesPageContainer();
   const { companies, countLabel, routes } = data;
+  const {
+    selectionConfig,
+    isSomeSelected,
+    selectedBatchCount,
+    batchDeleteDialogProps,
+    deleteAllDialogProps,
+    forceDeleteDialogProps,
+    pendingForceSkipCount,
+  } = modals;
 
   const deleteDialog = useConfirmDialog<number>({ onConfirm: actions.confirmDelete });
   const { isDesktopView, isMobileView } = useViewport();
@@ -85,6 +95,67 @@ export default function CompaniesPage() {
     () => getCompanyTableColumns({ t }),
     [t]
   );
+
+  const batchDeleteSelectedJsx = useMemo(() => {
+    if (!isAdmin || !isSomeSelected) return null;
+    return (
+      <Button
+        variant="outline"
+        size="md"
+        className="btn-outline-danger d-inline-flex align-items-center"
+        onClick={actions.openBatchDeleteDialog}
+        disabled={loading}
+        aria-label={t("companies.deleteSelected", { defaultValue: "Delete selected" })}
+      >
+        <Icon name="trash-2" className="me-1" />
+        {t("companies.deleteSelected", { defaultValue: "Delete selected" })}
+        {selectedBatchCount > 0 && <span className="badge bg-danger ms-2">{selectedBatchCount}</span>}
+      </Button>
+    );
+  }, [isAdmin, isSomeSelected, loading, actions.openBatchDeleteDialog, selectedBatchCount, t]);
+
+  const deleteAllJsx = useMemo(() => {
+    if (!isAdmin) return null;
+    return (
+      <Button
+        variant="outline"
+        size="md"
+        className="btn-outline-danger d-inline-flex align-items-center"
+        onClick={actions.openDeleteAllDialog}
+        disabled={loading}
+        aria-label={t("companies.deleteAll", { defaultValue: "Delete all" })}
+      >
+        <Icon name="trash-2" className="me-1" />
+        {t("companies.deleteAll", { defaultValue: "Delete all" })}
+      </Button>
+    );
+  }, [isAdmin, loading, actions.openDeleteAllDialog, t]);
+
+  /** Admin-only mobile entries mirroring desktop batch delete + delete all. */
+  const buildMobileBatchItems = useCallback((): MobileActionsMenuItem[] => {
+    const out: MobileActionsMenuItem[] = [];
+    if (!isAdmin) return out;
+    if (isSomeSelected) {
+      out.push({
+        id: "batch-delete",
+        icon: "trash-2",
+        label: t("companies.deleteSelected", { defaultValue: "Delete selected" }),
+        badgeCount: selectedBatchCount,
+        variant: "danger",
+        onClick: actions.openBatchDeleteDialog,
+        disabled: loading,
+      });
+    }
+    out.push({
+      id: "delete-all",
+      icon: "trash-2",
+      label: t("companies.deleteAll", { defaultValue: "Delete all" }),
+      variant: "danger",
+      onClick: actions.openDeleteAllDialog,
+      disabled: loading,
+    });
+    return out;
+  }, [isAdmin, isSomeSelected, selectedBatchCount, loading, actions.openBatchDeleteDialog, actions.openDeleteAllDialog, t]);
 
   const rowActions = useMemo(
     () =>
@@ -154,6 +225,7 @@ export default function CompaniesPage() {
                       label: t("companies.createCompany", { defaultValue: "Create company" }),
                       onClick: actions.handleOpenCreate,
                     });
+                    items.push(...buildMobileBatchItems());
                   }
                   return items;
                 })()}
@@ -179,6 +251,8 @@ export default function CompaniesPage() {
             countSlot={countLabel}
             rightClassName="companies__header-actions"
           >
+            {batchDeleteSelectedJsx}
+            {deleteAllJsx}
             <SearchInput
               placeholder={t("companies.searchPlaceholder", { defaultValue: "Search companies..." })}
               debounceMs={300}
@@ -236,6 +310,7 @@ export default function CompaniesPage() {
             emptyMessage={t("companies.noCompaniesFound", { defaultValue: "No companies found" })}
             rowActions={rowActions}
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+            selection={isAdmin ? selectionConfig : undefined}
           />
         </div>
       </div>
@@ -245,6 +320,43 @@ export default function CompaniesPage() {
         title={t("companies.deleteCompany", { defaultValue: "Delete company" })}
         message={t("companies.confirmDelete", { defaultValue: "Are you sure you want to delete this company?" })}
         confirmLabel={t("common.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+      />
+
+      <ConfirmModal
+        {...batchDeleteDialogProps}
+        title={t("companies.batchDeleteTitle", { defaultValue: "Delete selected companies" })}
+        message={t("companies.batchDeleteMessage", {
+          defaultValue:
+            "Delete {{count}} selected companies? Companies with active folders will be skipped unless you confirm force delete in the next step.",
+          count: selectedBatchCount,
+        })}
+        confirmLabel={t("common.delete", { defaultValue: "Delete" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+      />
+
+      <ConfirmModal
+        {...deleteAllDialogProps}
+        title={t("companies.deleteAllTitle", { defaultValue: "Delete all companies" })}
+        message={t("companies.deleteAllMessage", {
+          defaultValue: "Remove every company that has no active folders. Companies with folders will be skipped unless you force delete next.",
+        })}
+        confirmLabel={t("companies.deleteAllConfirm", { defaultValue: "Delete all" })}
+        cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
+        confirmVariant="danger"
+      />
+
+      <ConfirmModal
+        {...forceDeleteDialogProps}
+        title={t("companies.forceDeleteTitle", { defaultValue: "Force delete skipped companies" })}
+        message={t("companies.forceDeleteMessage", {
+          defaultValue:
+            "{{count}} companies with active folders were skipped. Force delete them (removes their folders too)?",
+          count: pendingForceSkipCount,
+        })}
+        confirmLabel={t("companies.forceDeleteConfirm", { defaultValue: "Force delete" })}
         cancelLabel={t("common.cancel", { defaultValue: "Cancel" })}
         confirmVariant="danger"
       />

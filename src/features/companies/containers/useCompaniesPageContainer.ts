@@ -4,13 +4,8 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { IS_ADMIN } from "@/shared/constants/access";
 import { handleApiError } from "@/app/adapter/api/client";
-import {
-  listCompanies,
-  getCompany,
-  createCompany,
-  updateCompany,
-  deleteCompany,
-} from "../services/companies.api";
+import { useSelection, useConfirmDialogEmpty } from "@/shared/hooks";
+import { listCompanies, deleteCompany, batchDeleteCompanies, deleteAllCompanies } from "../services/companies.api";
 import type { Company } from "@/shared/types/company";
 
 const DEFAULT_LIMIT = 100;
@@ -25,6 +20,9 @@ export function useCompaniesPageContainer() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editCompanyId, setEditCompanyId] = useState<number | null>(null);
   const [detailsCompanyId, setDetailsCompanyId] = useState<number | null>(null);
+  const [pendingForceIds, setPendingForceIds] = useState<number[]>([]);
+
+  const { selectedIds, selectionConfig, clear: clearSelection } = useSelection(companies, (c) => c.id);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -97,8 +95,111 @@ export function useCompaniesPageContainer() {
         throw e;
       }
     },
-    [t, i18n.language, fetchList]
+    [t, i18n.resolvedLanguage, i18n.language, fetchList]
   );
+
+  /** Second step: delete skipped ids with `force: true` after user confirms in the force modal. */
+  const handleForceDeleteConfirm = useCallback(async () => {
+    if (pendingForceIds.length === 0) return;
+    try {
+      const result = await batchDeleteCompanies(pendingForceIds, true);
+      const n = result.deleted?.length ?? 0;
+      toast.success(
+        t("companies.forceDeleteResult", {
+          defaultValue: "{{count}} company(ies) force-deleted.",
+          count: n,
+        })
+      );
+      if (result.errors?.length) {
+        for (const err of result.errors) {
+          const msg = err.message?.trim() || String(err.id ?? "");
+          if (msg) toast.error(msg);
+        }
+      }
+      setPendingForceIds([]);
+      clearSelection();
+      fetchList();
+    } catch (e) {
+      toast.error(handleApiError(e));
+      throw e;
+    }
+  }, [pendingForceIds, t, clearSelection, fetchList]);
+
+  const forceDeleteDialog = useConfirmDialogEmpty({ onConfirm: handleForceDeleteConfirm });
+
+  const handleCloseForceDeleteDialog = useCallback(() => {
+    setPendingForceIds([]);
+    forceDeleteDialog.close();
+  }, [forceDeleteDialog.close]);
+
+  /** Batch-delete selected ids with `force: false`; opens force modal if any row was skipped (active folders). */
+  const handleBatchDeleteConfirm = useCallback(async () => {
+    const ids = selectedIds.map((id) => Number(id)).filter((n) => !Number.isNaN(n));
+    if (ids.length === 0) return;
+    try {
+      const result = await batchDeleteCompanies(ids, false);
+      const deletedN = result.deleted?.length ?? 0;
+      const skippedN = result.skipped?.length ?? 0;
+      const errN = result.errors?.length ?? 0;
+      toast.success(
+        t("companies.batchDeleteResult", {
+          defaultValue: "{{deleted}} deleted, {{skipped}} skipped.",
+          deleted: deletedN,
+          skipped: skippedN,
+        })
+      );
+      if (errN > 0) {
+        for (const err of result.errors) {
+          const msg = err.message?.trim() || String(err.id ?? "");
+          if (msg) toast.error(msg);
+        }
+      }
+      clearSelection();
+      fetchList();
+      if (skippedN > 0 && result.skipped?.length) {
+        setPendingForceIds(result.skipped.map((s) => s.id));
+        forceDeleteDialog.open();
+      } else {
+        setPendingForceIds([]);
+      }
+    } catch (e) {
+      toast.error(handleApiError(e));
+      throw e;
+    }
+  }, [selectedIds, t, clearSelection, fetchList, forceDeleteDialog.open]);
+
+  const batchDeleteDialog = useConfirmDialogEmpty({ onConfirm: handleBatchDeleteConfirm });
+
+  /** Delete-all with `force: false`; opens force modal for skipped companies (same follow-up as batch). */
+  const handleDeleteAllConfirm = useCallback(async () => {
+    try {
+      const result = await deleteAllCompanies(false);
+      const deletedN = result.deleted_count ?? result.deleted?.length ?? 0;
+      const skippedN = result.skipped?.length ?? 0;
+      toast.success(
+        t("companies.deleteAllResult", {
+          defaultValue: "{{deleted}} companies removed, {{skipped}} skipped.",
+          deleted: deletedN,
+          skipped: skippedN,
+        })
+      );
+      clearSelection();
+      fetchList();
+      if (skippedN > 0 && result.skipped?.length) {
+        setPendingForceIds(result.skipped.map((s) => s.id));
+        forceDeleteDialog.open();
+      } else {
+        setPendingForceIds([]);
+      }
+    } catch (e) {
+      toast.error(handleApiError(e));
+      throw e;
+    }
+  }, [t, clearSelection, fetchList, forceDeleteDialog.open]);
+
+  const deleteAllDialog = useConfirmDialogEmpty({ onConfirm: handleDeleteAllConfirm });
+
+  const isSomeSelected = selectedIds.length > 0;
 
   const countLabel = useMemo(() => {
     if (loading) return t("common.loading", { defaultValue: "Loading..." });
@@ -127,11 +228,23 @@ export function useCompaniesPageContainer() {
       handleOpenDetails,
       handleCloseDetails,
       confirmDelete,
+      openBatchDeleteDialog: batchDeleteDialog.open,
+      openDeleteAllDialog: deleteAllDialog.open,
     },
     modals: {
       isCreateOpen,
       editCompanyId,
       detailsCompanyId,
+      selectionConfig,
+      isSomeSelected,
+      selectedBatchCount: selectedIds.length,
+      batchDeleteDialogProps: batchDeleteDialog.modalProps,
+      deleteAllDialogProps: deleteAllDialog.modalProps,
+      forceDeleteDialogProps: {
+        ...forceDeleteDialog.modalProps,
+        onClose: handleCloseForceDeleteDialog,
+      },
+      pendingForceSkipCount: pendingForceIds.length,
     },
     isAdmin: IS_ADMIN,
   };
