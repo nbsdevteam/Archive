@@ -109,6 +109,13 @@ export function UploadDocumentTargetSection({
     fillFolderNameFromTitle(e.target.value ?? "");
   };
 
+  // Debug: Log companies data when rendering main upload section
+  if (import.meta.env.DEV && uploadKind === "main") {
+    console.log("[UploadDocumentTargetSection] companies:", companies);
+    console.log("[UploadDocumentTargetSection] lockFolderContext:", lockFolderContext);
+    console.log("[UploadDocumentTargetSection] initialValues:", initialValues);
+  }
+
   return (
     <>
       <h6 className="fw-semibold mb-2">{t("documents.basicDocumentInfo", { defaultValue: "Basic document info" })}</h6>
@@ -166,17 +173,35 @@ export function UploadDocumentTargetSection({
           />
           {/* Folder Company/Brand: main uploads only, below document type and above file section. */}
           {uploadKind === "main" && (
-            <SelectField
-              control={control}
-              name="folder_company_id"
-              options={companies.map((c) => ({ value: c.id, label: c.name }))}
-              label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
-              placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
-              required
-              isDisabled={lockFolderContext}
-              error={errors.folder_company_id?.message as string | undefined}
-              data-testid="folder-company-select"
-            />
+            <>
+              {lockFolderContext &&
+              (Boolean(initialValues?.folder_company_name?.trim()) ||
+                (initialValues?.folder_company_id != null && initialValues.folder_company_id >= 1)) ? (
+                <Input
+                  label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
+                  value={
+                    initialValues?.folder_company_name?.trim()
+                      ? initialValues.folder_company_name
+                      : String(initialValues?.folder_company_id ?? "")
+                  }
+                  disabled
+                  readOnly
+                  data-testid="folder-company-display"
+                />
+              ) : (
+                <SelectField
+                  control={control}
+                  name="folder_company_id"
+                  options={companies.map((c) => ({ value: c.id, label: c.name }))}
+                  label={t("documents.folderCompanyBrand", { defaultValue: "Folder Company/Brand" })}
+                  placeholder={t("app.selectPlaceholder", { defaultValue: "Select..." })}
+                  required
+                  isDisabled={lockFolderContext}
+                  error={errors.folder_company_id?.message as string | undefined}
+                  data-testid="folder-company-select"
+                />
+              )}
+            </>
           )}
         </>
       )}
@@ -191,6 +216,7 @@ export function UploadDocumentTargetSection({
         uploadKind={uploadKind}
         uploadMultipleMain={uploadMultipleMain}
         onUploadMultipleMainChange={onUploadMultipleMainChange}
+        disableUploadMultipleMain={lockFolderContext && uploadKind === "main"}
         uploadMultipleSub={uploadMultipleSub}
         onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}

@@ -74,7 +74,11 @@ function UploadDocumentSidePanel({
     if (uploadKind !== "sub") {
       setValue("upload_multiple_sub", false);
     }
-  }, [uploadKind, setValue]);
+    // Disable upload multiple when uploading main file to a pre-created folder
+    if (lockFolderContext && uploadKind === "main") {
+      setValue("upload_multiple_main", false);
+    }
+  }, [uploadKind, lockFolderContext, setValue]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -93,8 +97,29 @@ function UploadDocumentSidePanel({
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen) fetchCompanies({ limit: 100 });
+    if (isOpen) {
+      fetchCompanies({ limit: 100 });
+      if (import.meta.env.DEV) {
+        console.log("[UploadDocumentSidePanel] Fetching companies...");
+      }
+    }
   }, [isOpen, fetchCompanies]);
+
+  // Debug: Log companies after fetch
+  useEffect(() => {
+    if (import.meta.env.DEV && isOpen) {
+      console.log("[UploadDocumentSidePanel] companies from store:", companies);
+    }
+  }, [companies, isOpen]);
+
+  /** Locked folder upload: ensure RHF has company id for validation/submit when API prefilled it outside the companies list. */
+  useEffect(() => {
+    if (!isOpen || !lockFolderContext) return;
+    const cid = initialValues?.folder_company_id;
+    if (cid != null && cid >= 1) {
+      setValue("folder_company_id", cid, { shouldValidate: true });
+    }
+  }, [isOpen, lockFolderContext, initialValues?.folder_company_id, setValue]);
 
   useEffect(() => {
     if (!departmentId || departmentId < 1) {
@@ -147,7 +172,7 @@ function UploadDocumentSidePanel({
     async (data: UploadFormValues) => {
       setIsUploading(true);
       try {
-        await submitLogic.onSubmit(data, selectedFiles, departmentId);
+        await submitLogic.onSubmit(data, selectedFiles, departmentId, lockFolderContext);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Upload failed";
         setSubmitError(msg);
@@ -156,7 +181,7 @@ function UploadDocumentSidePanel({
         setIsUploading(false);
       }
     },
-    [selectedFiles, departmentId, submitLogic.onSubmit]
+    [selectedFiles, departmentId, lockFolderContext, submitLogic.onSubmit]
   );
 
   const handleUploadClick = useCallback(async () => {

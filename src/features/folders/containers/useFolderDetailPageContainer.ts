@@ -27,6 +27,7 @@ import {
   useFolderSignaturesAndEditRequests,
   useFolderTransfer,
 } from "@/features/folders/hooks/folderDetail";
+import type { FolderUploadContextHint } from "@/features/folders/hooks/folderDetail/useFolderUploadPanel";
 import type { FolderDetailPageState, FolderDetailModals } from "@/features/folders/types/folderDetailState";
 
 /**
@@ -165,6 +166,58 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     refreshAttachmentsForCurrentDocument
   );
 
+  /** Full GET /documents/:id payload (includes company_name); list row `mainDoc` may omit it until fetch completes. */
+  const { currentDocument } = useDocumentStore();
+
+  const folderUploadHint = useMemo((): FolderUploadContextHint | null => {
+    if (folderId == null) return null;
+    const mainDetail = mainDoc && currentDocument?.id === mainDoc.id ? currentDocument : null;
+    const companyIdRaw = mainDetail?.company_id ?? mainDoc?.company_id ?? folder?.company_id;
+    const companyId =
+      typeof companyIdRaw === "number" && !Number.isNaN(companyIdRaw) && companyIdRaw >= 1 ? companyIdRaw : undefined;
+    const companyNameRaw = mainDetail?.company_name ?? mainDoc?.company_name ?? folder?.company_name;
+    const companyName =
+      typeof companyNameRaw === "string" && companyNameRaw.trim() !== "" ? companyNameRaw.trim() : undefined;
+    const folderName =
+      folder?.name?.trim() ||
+      (typeof mainDetail?.folder_name === "string" ? mainDetail.folder_name.trim() : "") ||
+      (typeof mainDoc?.folder_name === "string" ? mainDoc.folder_name.trim() : "") ||
+      undefined;
+    const folderCode = folder?.code?.trim() || undefined;
+
+    if (import.meta.env.DEV) {
+      console.log("[useFolderDetailPageContainer] folderUploadHint:", {
+        companyId,
+        companyName,
+        folderName,
+        folderCode,
+        "folder?.company_id": folder?.company_id,
+        "folder?.company_name": folder?.company_name,
+      });
+    }
+
+    return {
+      ...(companyId != null && { folder_company_id: companyId }),
+      ...(companyName != null && { folder_company_name: companyName }),
+      ...(folderName != null && folderName !== "" && { folder_name: folderName }),
+      ...(folderCode != null && folderCode !== "" && { folder_code: folderCode }),
+    };
+  }, [
+    folderId,
+    mainDoc,
+    currentDocument?.id,
+    currentDocument?.company_id,
+    currentDocument?.company_name,
+    currentDocument?.folder_name,
+    mainDoc?.company_id,
+    mainDoc?.company_name,
+    mainDoc?.folder_name,
+    folder?.company_id,
+    folder?.company_name,
+    folder?.name,
+    folder?.code,
+  ]);
+
   const {
     isUploadOpen,
     uploadPanelLockFolderContext,
@@ -177,7 +230,8 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     folderId,
     folder?.department_id ?? mainDoc?.department_id,
     documents.length,
-    attachmentsDocId
+    attachmentsDocId,
+    folderUploadHint
   );
 
   const {
@@ -200,7 +254,6 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     editRequests: routes.editRequests,
   });
 
-  const { currentDocument } = useDocumentStore();
   const {
     isArchiving,
     isUnarchiving,

@@ -39,7 +39,19 @@ export function useFolderDetailData(
     setError(null);
     try {
       const result = await getFolderDocuments(folderId);
-      setFolder(result.folder ?? null);
+      const folderData = result.folder ?? null;
+      
+      if (import.meta.env.DEV) {
+        console.log("[useFolderDetailData] Loaded folder:", {
+          id: folderData?.id,
+          name: folderData?.name,
+          company_id: folderData?.company_id,
+          company_name: folderData?.company_name,
+          fullFolder: folderData,
+        });
+      }
+      
+      setFolder(folderData);
       const docs = result.data ?? [];
       setDocuments(docs);
       const main = docs.find((d) => isMainRole(d.folder_role));
