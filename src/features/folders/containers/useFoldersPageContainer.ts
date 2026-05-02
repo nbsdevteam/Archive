@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
-import { useDraftAppliedFilters, usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
+import { useDraftAppliedFilters, usePaginationFromUrl, useClientPagination, useSelection } from "@/shared/hooks";
 import { handleApiError } from "@/app/adapter/api/client";
 import type { DateRangeMode, SelectOption } from "@/shared/components/ui";
 import { FOLDER_TYPE_VALUES } from "@/shared/constants/folderTypeOptions";
-import { deleteFolder } from "@/features/folders/services/folders.api";
+import { deleteFolder, batchDeleteFolders } from "@/features/folders/services/folders.api";
 import { useFolders } from "@/features/folders/hooks/useFolders";
 import type { Folder } from "@/features/folders/types/folders.types";
 import { filterFoldersBySearch } from "@/features/folders/utils/filterFoldersBySearch";
@@ -60,6 +60,10 @@ function getErrorMessage(error: unknown, fallback: string): string {
 export function useFoldersPageContainer() {
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.grid);
   const [searchQuery, setSearchQuery] = useState("");
+  /** Keep all useState at the top so hook order never shifts vs callbacks/effects (avoids invalid-hook-call on recovery). */
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
 
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -114,6 +118,34 @@ export function useFoldersPageContainer() {
   /** Client-side pagination: slices filteredFolders when backend doesn't paginate. */
   const { paginatedItems: paginatedFolders, pagination: resolvedPagination } =
     useClientPagination(filteredFolders, page, perPage, pagination);
+
+  const getFolderId = useCallback((f: Folder) => f.id, []);
+
+  /** Selection state for batch operations */
+  const {
+    selectedIds: selectedFolderIdsRaw,
+    selectionConfig: baseSelectionConfig,
+    clear: clearSelection,
+  } = useSelection<Folder>(paginatedFolders, getFolderId);
+
+  const selectedFolderIds = useMemo(
+    () => selectedFolderIdsRaw.map((id) => Number(id)),
+    [selectedFolderIdsRaw]
+  );
+
+  const isSomeSelected = selectedFolderIds.length > 0;
+
+  const selectionConfig = useMemo(
+    () => ({
+      ...baseSelectionConfig,
+      getRowAriaLabel: (row: Folder) =>
+        t("folders.selectFolder", {
+          defaultValue: 'Select folder "{{name}}"',
+          name: row.name || String(row.id),
+        }),
+    }),
+    [baseSelectionConfig, t]
+  );
 
   const { departments, fetchDepartments } = useDepartmentsStore();
   const { companies, fetchCompanies } = useCompaniesStore();
@@ -197,9 +229,6 @@ export function useFoldersPageContainer() {
     fetchFolders({ page: 1 });
   }, [appliedFilters.from_date, appliedFilters.to_date, baseHandleClearFilter, fetchFolders]);
 
-  // ─── Edit panel state ──────────────────────────────────────────────────────
-  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
-
   // ─── Data loading: departments and companies (from centralized stores) ──────
   useEffect(() => {
     fetchDepartments();
@@ -211,9 +240,27 @@ export function useFoldersPageContainer() {
   // ─── Navigation & search ──────────────────────────────────────────────────
   const handleNavigateToFolder = useCallback(
     (folderId: number) => {
-      navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`);
+      const folder = folders.find((f) => f.id === folderId);
+      const state = folder
+        ? {
+            prefetchedFolder: {
+              id: folder.id,
+              name: folder.name,
+              code: folder.code,
+              company_id: folder.company_id,
+              company_name: folder.company_name,
+              department_id: folder.department_id,
+            },
+          }
+        : undefined;
+      
+      if (import.meta.env.DEV) {
+        console.log("[useFoldersPageContainer] Navigating to folder with state:", state);
+      }
+      
+      navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`, { state });
     },
-    [navigate]
+    [navigate, folders]
   );
 
   /** Resets to page 1 on search so the user sees results from the start. */
@@ -293,6 +340,89 @@ export function useFoldersPageContainer() {
     setEditingFolder(null);
   }, [fetchFolders]);
 
+  // ─── Create panel handlers ─────────────────────────────────────────────────
+  const handleOpenCreateFolder = useCallback(() => {
+    setIsCreateFolderOpen(true);
+  }, []);
+
+  const handleCloseCreateFolder = useCallback(() => {
+    setIsCreateFolderOpen(false);
+  }, []);
+
+  const handleCreateFolderSuccess = useCallback(() => {
+    fetchFolders();
+    setIsCreateFolderOpen(false);
+  }, [fetchFolders]);
+
+  /** Batch delete: calls API to delete multiple folders; resets selection and refetches on success. */
+  const confirmBatchDeleteFolders = useCallback(
+    async (force = false) => {
+      if (selectedFolderIds.length === 0) return;
+      
+      setIsBatchDeleting(true);
+      try {
+        const result = await batchDeleteFolders(selectedFolderIds, force);
+        
+        // Handle partial success (some skipped or errored)
+        const hasSkipped = result.skipped.length > 0;
+        const hasErrors = result.errors.length > 0;
+        
+        if (hasSkipped && !force) {
+          // Some folders contain documents - ask user if they want to force delete
+          const skippedNames = result.skipped.map(f => f.name).join(", ");
+          const confirmForce = window.confirm(
+            t("folders.batchDeleteHasDocuments", {
+              defaultValue: "{{count}} folder(s) contain documents and were skipped: {{names}}. Delete them anyway?",
+              count: result.skipped.length,
+              names: skippedNames,
+            })
+          );
+          
+          if (confirmForce) {
+            // User confirmed - retry with force=true for skipped folders only
+            const skippedIds = result.skipped.map(f => f.id);
+            await confirmBatchDeleteFolders(true);
+            return;
+          }
+        }
+        
+        if (hasErrors) {
+          toast.error(
+            t("folders.batchDeleteWithErrors", {
+              defaultValue: "{{deleted}} deleted, {{errors}} failed",
+              deleted: result.deleted_count,
+              errors: result.errors.length,
+            })
+          );
+        } else if (hasSkipped) {
+          toast.warning(
+            t("folders.batchDeletePartialSkipped", {
+              defaultValue: "{{deleted}} deleted, {{skipped}} skipped (contain documents)",
+              deleted: result.deleted_count,
+              skipped: result.skipped.length,
+            })
+          );
+        } else {
+          toast.success(
+            t("folders.batchDeleteSuccess", {
+              defaultValue: "{{count}} folders deleted successfully",
+              count: result.deleted_count,
+            })
+          );
+        }
+        
+        clearSelection();
+        fetchFolders();
+      } catch (e: unknown) {
+        toast.error(getErrorMessage(e, t("folders.batchDeleteFailed", { defaultValue: "Failed to delete folders" })));
+        throw e;
+      } finally {
+        setIsBatchDeleting(false);
+      }
+    },
+    [selectedFolderIds, t, fetchFolders, clearSelection]
+  );
+
   // ─── Pagination handlers ────────────────────────────────────────────────────
   const handlePageChange = useCallback(
     (p: number) => { setPage(p); },
@@ -357,6 +487,13 @@ export function useFoldersPageContainer() {
       dateRangeMode: draftFilters.date_mode ?? deriveDateMode(draftFilters),
       hasAppliedDateFilter: !!(appliedFilters.from_date || appliedFilters.to_date),
     },
+    selection: {
+      selectedFolderIds,
+      isSomeSelected,
+      selectionConfig,
+      clearSelection,
+      isBatchDeleting,
+    },
     actions: {
       handleSearchDebounced,
       handleNavigateToFolder,
@@ -364,12 +501,17 @@ export function useFoldersPageContainer() {
       handleGridKeyDown,
       getFolderStatusBadgeVariant,
       confirmDeleteFolder,
+      confirmBatchDeleteFolders,
       handleOpenEditFolder,
       handleCloseEditFolder,
       handleEditFolderSuccess,
+      handleOpenCreateFolder,
+      handleCloseCreateFolder,
+      handleCreateFolderSuccess,
     },
     modals: {
       editingFolder,
+      isCreateFolderOpen,
     },
   };
 }

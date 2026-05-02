@@ -49,7 +49,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
-  const { folderId } = useFolderDetailIds();
+  const { folderId, prefetchedFolder } = useFolderDetailIds();
 
   const {
     folder,
@@ -172,18 +172,31 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const folderUploadHint = useMemo((): FolderUploadContextHint | null => {
     if (folderId == null) return null;
     const mainDetail = mainDoc && currentDocument?.id === mainDoc.id ? currentDocument : null;
-    const companyIdRaw = mainDetail?.company_id ?? mainDoc?.company_id ?? folder?.company_id;
+    
+    // Priority: mainDetail > mainDoc > folder (API) > prefetchedFolder (navigation state)
+    const companyIdRaw = 
+      mainDetail?.company_id ?? 
+      mainDoc?.company_id ?? 
+      folder?.company_id ?? 
+      prefetchedFolder?.company_id;
     const companyId =
       typeof companyIdRaw === "number" && !Number.isNaN(companyIdRaw) && companyIdRaw >= 1 ? companyIdRaw : undefined;
-    const companyNameRaw = mainDetail?.company_name ?? mainDoc?.company_name ?? folder?.company_name;
+    
+    const companyNameRaw = 
+      mainDetail?.company_name ?? 
+      mainDoc?.company_name ?? 
+      folder?.company_name ?? 
+      prefetchedFolder?.company_name;
     const companyName =
       typeof companyNameRaw === "string" && companyNameRaw.trim() !== "" ? companyNameRaw.trim() : undefined;
+    
     const folderName =
       folder?.name?.trim() ||
       (typeof mainDetail?.folder_name === "string" ? mainDetail.folder_name.trim() : "") ||
       (typeof mainDoc?.folder_name === "string" ? mainDoc.folder_name.trim() : "") ||
+      prefetchedFolder?.name?.trim() ||
       undefined;
-    const folderCode = folder?.code?.trim() || undefined;
+    const folderCode = folder?.code?.trim() || prefetchedFolder?.code?.trim() || undefined;
 
     if (import.meta.env.DEV) {
       console.log("[useFolderDetailPageContainer] folderUploadHint:", {
@@ -191,8 +204,12 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
         companyName,
         folderName,
         folderCode,
-        "folder?.company_id": folder?.company_id,
-        "folder?.company_name": folder?.company_name,
+        sources: {
+          "folder?.company_id": folder?.company_id,
+          "folder?.company_name": folder?.company_name,
+          "prefetchedFolder?.company_id": prefetchedFolder?.company_id,
+          "prefetchedFolder?.company_name": prefetchedFolder?.company_name,
+        },
       });
     }
 
@@ -216,6 +233,10 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     folder?.company_name,
     folder?.name,
     folder?.code,
+    prefetchedFolder?.company_id,
+    prefetchedFolder?.company_name,
+    prefetchedFolder?.name,
+    prefetchedFolder?.code,
   ]);
 
   const {
