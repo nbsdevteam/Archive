@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
+import { getFolderFromCache } from "../../utils/folderNavigationCache";
 
 export interface PrefetchedFolderFromNav {
   id: number;
@@ -12,7 +13,9 @@ export interface PrefetchedFolderFromNav {
 
 /**
  * Parses and validates folder id from route params.
- * Also reads prefetched folder info from navigation state (company_id, company_name, etc.).
+ * Also reads prefetched folder info from:
+ * 1. Navigation state (when navigating from folders list)
+ * 2. localStorage cache (when page is reloaded)
  * Returns null if the id is missing or not a valid number.
  */
 export function useFolderDetailIds() {
@@ -26,14 +29,33 @@ export function useFolderDetailIds() {
   
   const prefetchedFolder = useMemo(() => {
     const state = location.state as { prefetchedFolder?: PrefetchedFolderFromNav } | null;
-    const folder = state?.prefetchedFolder;
+    const folderFromNav = state?.prefetchedFolder;
     
-    if (import.meta.env.DEV && folder) {
-      console.log("[useFolderDetailIds] Prefetched folder from navigation:", folder);
+    // First try navigation state (fresh navigation)
+    if (folderFromNav) {
+      if (import.meta.env.DEV) {
+        console.log("[useFolderDetailIds] Using folder from navigation state:", folderFromNav);
+      }
+      return folderFromNav;
     }
     
-    return folder ?? null;
-  }, [location.state]);
+    // Fallback to localStorage cache (page reload)
+    if (folderId != null) {
+      const folderFromCache = getFolderFromCache(folderId);
+      if (folderFromCache) {
+        if (import.meta.env.DEV) {
+          console.log("[useFolderDetailIds] Using folder from localStorage cache:", folderFromCache);
+        }
+        return folderFromCache;
+      }
+    }
+    
+    if (import.meta.env.DEV && folderId != null) {
+      console.log("[useFolderDetailIds] No prefetched folder data available (not in nav state or cache)");
+    }
+    
+    return null;
+  }, [location.state, folderId]);
   
   return { folderId, prefetchedFolder };
 }

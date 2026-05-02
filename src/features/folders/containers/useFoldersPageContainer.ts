@@ -14,6 +14,7 @@ import { useFolders } from "@/features/folders/hooks/useFolders";
 import type { Folder } from "@/features/folders/types/folders.types";
 import { filterFoldersBySearch } from "@/features/folders/utils/filterFoldersBySearch";
 import { getFolderStatusBadgeVariant } from "@/features/folders/utils/getFolderStatusBadgeVariant";
+import { saveFolderToCache } from "@/features/folders/utils/folderNavigationCache";
 
 const VIEW_MODE = { grid: "grid", list: "list" } as const;
 type ViewMode = (typeof VIEW_MODE)[keyof typeof VIEW_MODE];
@@ -241,24 +242,30 @@ export function useFoldersPageContainer() {
   const handleNavigateToFolder = useCallback(
     (folderId: number) => {
       const folder = folders.find((f) => f.id === folderId);
-      const state = folder
-        ? {
-            prefetchedFolder: {
-              id: folder.id,
-              name: folder.name,
-              code: folder.code,
-              company_id: folder.company_id,
-              company_name: folder.company_name,
-              department_id: folder.department_id,
-            },
-          }
-        : undefined;
       
-      if (import.meta.env.DEV) {
-        console.log("[useFoldersPageContainer] Navigating to folder with state:", state);
+      if (folder) {
+        const folderInfo = {
+          id: folder.id,
+          name: folder.name,
+          code: folder.code,
+          company_id: folder.company_id,
+          company_name: folder.company_name,
+          department_id: folder.department_id,
+        };
+        
+        // Save to localStorage for persistence across reloads
+        saveFolderToCache(folderInfo);
+        
+        const state = { prefetchedFolder: folderInfo };
+        
+        if (import.meta.env.DEV) {
+          console.log("[useFoldersPageContainer] Navigating to folder with state and saving to cache");
+        }
+        
+        navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`, { state });
+      } else {
+        navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`);
       }
-      
-      navigate(`${all_routes.folderDetail.replace(":id", String(folderId))}`, { state });
     },
     [navigate, folders]
   );
