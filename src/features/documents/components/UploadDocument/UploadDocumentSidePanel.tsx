@@ -96,21 +96,24 @@ function UploadDocumentSidePanel({
     return () => { cancelled = true; };
   }, [isOpen]);
 
+  // Only fetch companies when creating NEW folders (not in locked folder context)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !lockFolderContext) {
       fetchCompanies({ limit: 100 });
       if (import.meta.env.DEV) {
-        console.log("[UploadDocumentSidePanel] Fetching companies...");
+        console.log("[UploadDocumentSidePanel] Fetching companies for new folder creation");
       }
     }
-  }, [isOpen, fetchCompanies]);
+  }, [isOpen, lockFolderContext, fetchCompanies]);
 
   // Debug: Log companies after fetch
   useEffect(() => {
     if (import.meta.env.DEV && isOpen) {
-      console.log("[UploadDocumentSidePanel] companies from store:", companies);
+      console.log("[UploadDocumentSidePanel] lockFolderContext:", lockFolderContext);
+      console.log("[UploadDocumentSidePanel] companies count:", companies.length);
+      console.log("[UploadDocumentSidePanel] initialValues.folder_company_name:", initialValues?.folder_company_name);
     }
-  }, [companies, isOpen]);
+  }, [companies, isOpen, lockFolderContext, initialValues?.folder_company_name]);
 
   /** Locked folder upload: ensure RHF has company id for validation/submit when API prefilled it outside the companies list. */
   useEffect(() => {

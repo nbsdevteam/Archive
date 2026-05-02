@@ -52,12 +52,7 @@ export function useFolderUploadPanel(
     };
 
     if (import.meta.env.DEV) {
-      console.log("[useFolderUploadPanel] handleUploadInFolder:", {
-        kind,
-        documentsCount,
-        folderUploadHint,
-        initialValues,
-      });
+      console.log("[useFolderUploadPanel] Opening upload panel with initialValues:", initialValues);
     }
 
     setUploadPanelInitialValues(initialValues);

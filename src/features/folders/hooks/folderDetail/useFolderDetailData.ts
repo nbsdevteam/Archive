@@ -47,7 +47,6 @@ export function useFolderDetailData(
           name: folderData?.name,
           company_id: folderData?.company_id,
           company_name: folderData?.company_name,
-          fullFolder: folderData,
         });
       }
       

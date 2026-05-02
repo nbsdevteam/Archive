@@ -109,11 +109,16 @@ export function UploadDocumentTargetSection({
     fillFolderNameFromTitle(e.target.value ?? "");
   };
 
-  // Debug: Log companies data when rendering main upload section
+  // Debug: Log company field state when rendering main upload section
   if (import.meta.env.DEV && uploadKind === "main") {
-    console.log("[UploadDocumentTargetSection] companies:", companies);
-    console.log("[UploadDocumentTargetSection] lockFolderContext:", lockFolderContext);
-    console.log("[UploadDocumentTargetSection] initialValues:", initialValues);
+    console.log("[UploadDocumentTargetSection] Company field state:", {
+      lockFolderContext,
+      hasCompanyName: Boolean(initialValues?.folder_company_name?.trim()),
+      hasCompanyId: initialValues?.folder_company_id != null && initialValues?.folder_company_id >= 1,
+      folder_company_name: initialValues?.folder_company_name,
+      folder_company_id: initialValues?.folder_company_id,
+      companiesCount: companies.length,
+    });
   }
 
   return (

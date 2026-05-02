@@ -199,17 +199,16 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
     const folderCode = folder?.code?.trim() || prefetchedFolder?.code?.trim() || undefined;
 
     if (import.meta.env.DEV) {
-      console.log("[useFolderDetailPageContainer] folderUploadHint:", {
-        companyId,
-        companyName,
-        folderName,
-        folderCode,
-        sources: {
-          "folder?.company_id": folder?.company_id,
-          "folder?.company_name": folder?.company_name,
-          "prefetchedFolder?.company_id": prefetchedFolder?.company_id,
-          "prefetchedFolder?.company_name": prefetchedFolder?.company_name,
-        },
+      console.log("[useFolderDetailPageContainer] folderUploadHint result:", {
+        folder_company_id: companyId,
+        folder_company_name: companyName,
+        folder_name: folderName,
+        folder_code: folderCode,
+      });
+      console.log("[useFolderDetailPageContainer] Company sources:", {
+        fromPrefetchedNav: prefetchedFolder?.company_name,
+        fromFolderAPI: folder?.company_name,
+        fromMainDoc: mainDoc?.company_name,
       });
     }
 
