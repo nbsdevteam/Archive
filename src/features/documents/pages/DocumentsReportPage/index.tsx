@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
+import { PaginationSection } from "@/shared/components/PaginationSection";
 import { Button, Icon, Spinner, DataTable } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui";
 import { TruncatedCell } from "@/shared/components/ui/DataTable/datatableShared";
@@ -208,9 +209,6 @@ const DocumentsReportPage = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  /** Detect current document direction for RTL-aware pagination layout. */
-  const isRtl = document.documentElement.dir === "rtl";
-
   /** Generic form field setter. */
   const setField = <K extends keyof ReportParams>(key: K, value: ReportParams[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -243,6 +241,26 @@ const DocumentsReportPage = () => {
         setResult(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load page");
+      } finally {
+        setPageLoading(false);
+      }
+    },
+    [form, result]
+  );
+
+  /** Change server page size (matches Documents list); resets to page 1 and refetches. */
+  const handlePerPageChange = useCallback(
+    async (newPerPage: number) => {
+      if (!result) return;
+      const per = Math.min(500, Math.max(1, newPerPage));
+      setPageLoading(true);
+      setError(null);
+      try {
+        const data = await getDocumentsReport(buildPayload({ ...form, per_page: per, page: 1 }));
+        setForm((prev) => ({ ...prev, per_page: per, page: 1 }));
+        setResult(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to change page size");
       } finally {
         setPageLoading(false);
       }
@@ -398,12 +416,6 @@ const DocumentsReportPage = () => {
     ],
     []
   );
-
-  const hasPagination = result ? result.pagination.total_pages > 1 : false;
-  const canPrev = result ? result.pagination.page > 1 && !pageLoading : false;
-  const canNext = result
-    ? result.pagination.page < result.pagination.total_pages && !pageLoading
-    : false;
 
   return (
     <PageLayout
@@ -655,22 +667,6 @@ const DocumentsReportPage = () => {
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fs-13">Results per page</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    min={1}
-                    max={500}
-                    value={form.per_page ?? 50}
-                    onChange={(e) =>
-                      setField(
-                        "per_page",
-                        Math.min(500, Math.max(1, Number(e.target.value) || 50))
-                      )
-                    }
-                  />
-                </div>
-                <div className="col-md-4">
                   <label className="form-label fs-13">Document role</label>
                   <select
                     className="form-select form-select-sm"
@@ -822,60 +818,40 @@ const DocumentsReportPage = () => {
             </div>
           </div>
 
-          {/* Card footer: pagination (opposite side) + actions */}
-          <div className="card-footer d-flex align-items-center justify-content-between gap-2">
-            {/* Pagination group — left in LTR, right in RTL */}
-            <div className={`d-flex gap-2 align-items-center ${isRtl ? "order-2" : "order-1"}`}>
-              {hasPagination && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="md"
-                    className="btn-outline-secondary d-inline-flex align-items-center"
-                    disabled={!canPrev}
-                    onClick={() => void handlePageChange(result.pagination.page - 1)}
-                  >
-                    <Icon name="chevron-left" className="me-1" />
-                    Prev
-                  </Button>
-                  <span className="fs-13 text-muted px-1">
-                    {result.pagination.page} / {result.pagination.total_pages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="md"
-                    className="btn-outline-secondary d-inline-flex align-items-center"
-                    disabled={!canNext}
-                    onClick={() => void handlePageChange(result.pagination.page + 1)}
-                  >
-                    Next
-                    <Icon name="chevron-right" className="ms-1" />
-                  </Button>
-                </>
-              )}
-            </div>
+          {/* Pagination + per page (Documents list pattern); always show in results so page size is controllable even when total is 0 */}
+          {result.pagination && (
+            <PaginationSection
+              page={result.pagination.page ?? 1}
+              perPage={result.pagination.per_page ?? form.per_page ?? 50}
+              total={result.pagination.total}
+              totalPages={result.pagination.total_pages}
+              onPageChange={(p) => void handlePageChange(p)}
+              onPerPageChange={(per) => void handlePerPageChange(per)}
+              disabled={pageLoading}
+              perPageOptions={[10, 20, 50, 100, 200, 500]}
+            />
+          )}
 
-            {/* Action group — right in LTR, left in RTL */}
-            <div className={`d-flex gap-2 ${isRtl ? "order-1" : "order-2"}`}>
-              <Button
-                variant="outline"
-                size="md"
-                className="btn-outline-secondary d-inline-flex align-items-center"
-                onClick={handleNewSearch}
-              >
-                <Icon name="arrow-left" className="me-1" />
-                New Search
-              </Button>
-              <Button
-                variant="outline"
-                size="md"
-                className="btn-outline-secondary d-inline-flex align-items-center"
-                onClick={() => navigate(all_routes.documents)}
-              >
-                <Icon name="arrow-left" className="me-1" />
-                Back to Documents
-              </Button>
-            </div>
+          {/* Card footer: list actions only */}
+          <div className="card-footer d-flex align-items-center justify-content-end gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="md"
+              className="btn-outline-secondary d-inline-flex align-items-center"
+              onClick={handleNewSearch}
+            >
+              <Icon name="arrow-left" className="me-1" />
+              New Search
+            </Button>
+            <Button
+              variant="outline"
+              size="md"
+              className="btn-outline-secondary d-inline-flex align-items-center"
+              onClick={() => navigate(all_routes.documents)}
+            >
+              <Icon name="arrow-left" className="me-1" />
+              Back to Documents
+            </Button>
           </div>
         </div>
       )}
