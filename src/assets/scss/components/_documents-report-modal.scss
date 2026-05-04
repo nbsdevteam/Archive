@@ -1,5 +1,21 @@
 // Documents Report Modal – styles for the fetch-documents report feature.
 
+// Outline button that follows the runtime CSS-variable theme colour (--primary-rgb)
+// instead of Bootstrap's compiled $primary (which won't reflect theme switches).
+.btn-outline-theme {
+  color: rgba(var(--primary-rgb), 1);
+  border-color: rgba(var(--primary-rgb), 1);
+  background-color: transparent;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: rgba(var(--primary-rgb), 0.1);
+    border-color: rgba(var(--primary-rgb), 1);
+    color: rgba(var(--primary-rgb), 1);
+  }
+}
+
 .documents-report-modal {
   // ── Header strip with primary gradient ──────────────────────────────────────
   &__header {

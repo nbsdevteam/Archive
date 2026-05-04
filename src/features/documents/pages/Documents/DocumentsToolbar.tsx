@@ -350,7 +350,7 @@ export function DocumentsToolbar({
       <Button
         variant="outline"
         size="md"
-        className="d-inline-flex align-items-center btn-outline-primary"
+        className="d-inline-flex align-items-center btn-outline-theme"
         onClick={actions.handleOpenReport}
         aria-label={t("documents.fetchReportAria", { defaultValue: "Fetch uploaded documents report" })}
       >
