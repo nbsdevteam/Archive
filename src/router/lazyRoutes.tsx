@@ -83,6 +83,10 @@ export const DocumentsPage = createLazyComponent(
   () => import("../features/documents/pages/Documents"),
   <LoadingSpinner text="Loading documents..." />,
 );
+export const DocumentsReportPage = createLazyComponent(
+  () => import("../features/documents/pages/DocumentsReportPage"),
+  <LoadingSpinner text="Loading report..." />,
+);
 export const DocumentsTrashPage = createLazyComponent(
   () => import("../features/documents/pages/DocumentsTrashPage"),
   <LoadingSpinner text="Loading trash..." />,

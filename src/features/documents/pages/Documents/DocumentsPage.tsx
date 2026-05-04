@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
@@ -14,7 +14,6 @@ import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
-import { DocumentsReportModal } from "@/features/documents/components/DocumentsReportModal";
 import { PaginationSection } from "@/shared/components/PaginationSection";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
@@ -31,7 +30,6 @@ const DocumentsPage = () => {
   const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
-  const [isReportOpen, setIsReportOpen] = useState(false);
   const { documents, routes, pagination } = data;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { handlePageChange, handlePerPageChange } = paging;
@@ -181,7 +179,7 @@ const DocumentsPage = () => {
             handleOpenBatchMoveConfirm: actions.handleOpenBatchMoveConfirm,
             handleOpenUpload: actions.handleOpenUpload,
             handleRefresh: actions.handleRefresh,
-            handleOpenReport: () => setIsReportOpen(true),
+            handleOpenReport: () => navigate(routes.documentsReport),
           }}
           modals={modals}
           batchArchiveDialog={batchArchiveDialog}
@@ -236,10 +234,6 @@ const DocumentsPage = () => {
         documentId={modals.editDocumentId}
         onClose={actions.handleCloseEdit}
         onSuccess={actions.handleEditSuccess}
-      />
-      <DocumentsReportModal
-        isOpen={isReportOpen}
-        onClose={() => setIsReportOpen(false)}
       />
     </PageLayout>
   );

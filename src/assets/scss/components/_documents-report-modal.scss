@@ -195,6 +195,66 @@
   }
 }
 
+// ── Page-level styles (DocumentsReportPage) ──────────────────────────────────
+// Prefix: drp-  (documents report page)
+
+// Gradient card-header used in the filter card
+.drp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 1) 0%,
+    rgba(var(--primary-rgb), 0.78) 100%
+  );
+  border-radius: calc(0.375rem - 1px) calc(0.375rem - 1px) 0 0; // match BS card border-radius top
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+
+  &__subtitle {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.8rem;
+    margin-top: 0.1rem;
+  }
+}
+
+// Section label inside filter card body
+.drp-section-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--app-muted-color, #6b7280);
+}
+
+// Results card header: flex column so summary + search stack vertically
+.drp-results-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+}
+
+// Search bar in results header
+.drp-results-search {
+  max-width: 480px;
+  width: 100%;
+}
+
 // ── Fixed footer ─────────────────────────────────────────────────────────────
 .drm-footer {
   display: flex;

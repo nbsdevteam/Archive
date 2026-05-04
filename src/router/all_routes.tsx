@@ -8,6 +8,7 @@ export const all_routes: Record<string, string> = {
 
   // documents + folders
   documents: "/documents",
+  documentsReport: "/documents/report",
   documentsUpload: "/documents/upload",
   documentsTrash: "/documents/trash",
   /** Archived documents list (status=archived). */

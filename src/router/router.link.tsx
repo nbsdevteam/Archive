@@ -8,6 +8,7 @@ import {
   DocumentAttachmentViewPage,
   DocumentDetailPage,
   DocumentsPage,
+  DocumentsReportPage,
   DocumentsTrashPage,
   ArchivedDocumentsPage,
   EditRequestsPage,
@@ -47,6 +48,10 @@ export const publicRoutes = [
   {
     path: routes.documents,
     element: <DocumentsPage />,
+  },
+  {
+    path: routes.documentsReport,
+    element: <DocumentsReportPage />,
   },
   {
     path: routes.documentsTrash,
