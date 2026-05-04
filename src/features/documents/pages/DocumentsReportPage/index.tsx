@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
@@ -17,29 +18,6 @@ import type {
 } from "@/app/adapter/api/documents/report";
 
 type Phase = "form" | "loading" | "results";
-
-const CONFIDENTIALITY_OPTIONS = [
-  { value: "", label: "Any" },
-  { value: "public", label: "Public" },
-  { value: "internal", label: "Internal" },
-  { value: "confidential", label: "Confidential" },
-  { value: "strict", label: "Strict" },
-];
-
-const STATE_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "archived", label: "Archived" },
-  { value: "all", label: "All" },
-];
-
-/** Filter by folder document role (backend `document_role` param). */
-const DOCUMENT_ROLE_OPTIONS = [
-  { value: "", label: "Any" },
-  { value: "main", label: "Main" },
-  { value: "sub", label: "Sub" },
-  { value: "attachment", label: "Attachment" },
-  { value: "other", label: "Other" },
-] as const;
 
 const DEFAULT_FORM: ReportParams = {
   from_date: "",
@@ -84,11 +62,12 @@ function buildPayload(form: ReportParams): ReportParams {
   return p;
 }
 
-/** Formats an ISO datetime string to "DD MMM YYYY". */
-function formatDate(iso: string | undefined | null): string {
+/** Formats an ISO datetime string for the current locale (e.g. DD MMM YYYY). */
+function formatReportDate(iso: string | undefined | null, locale: string): string {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString("en-GB", {
+    const loc = locale.startsWith("ar") ? "ar-SA" : "en-GB";
+    return new Date(iso).toLocaleDateString(loc, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -98,51 +77,67 @@ function formatDate(iso: string | undefined | null): string {
   }
 }
 
-/** Copies text to clipboard and fires a toast confirmation. */
-function copyToClipboard(text: string) {
-  void navigator.clipboard
-    .writeText(text)
-    .then(() => toast.success("Copied to clipboard", { autoClose: 2000 }))
-    .catch(() => toast.error("Failed to copy"));
-}
-
-/** Coloured badge for document confidentiality level. */
+/** Coloured badge for document confidentiality level (label uses i18n when key matches API). */
 function ConfidentialityBadge({ level }: { level: string }) {
+  const { t } = useTranslation();
   const map: Record<string, string> = {
     public: "bg-success-subtle text-success",
     internal: "bg-primary-subtle text-primary",
     confidential: "bg-warning-subtle text-warning",
     strict: "bg-danger-subtle text-danger",
   };
-  const cls = map[level?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return <span className={`badge ${cls} text-capitalize`}>{level || "—"}</span>;
+  const key = level?.toLowerCase();
+  const cls = map[key] ?? "bg-secondary-subtle text-secondary";
+  const known = key && ["public", "internal", "confidential", "strict"].includes(key);
+  const label = known ? t(`documents.confidentiality.${key}`) : level || "—";
+  return <span className={`badge ${cls} text-capitalize`}>{label}</span>;
 }
 
 /** Coloured badge for document state. */
 function StateBadge({ state }: { state: string }) {
+  const { t } = useTranslation();
   const map: Record<string, string> = {
     active: "bg-success-subtle text-success",
     archived: "bg-secondary-subtle text-secondary",
     trashed: "bg-danger-subtle text-danger",
   };
-  const cls = map[state?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return <span className={`badge ${cls} text-capitalize`}>{state || "—"}</span>;
+  const key = state?.toLowerCase();
+  const cls = map[key] ?? "bg-secondary-subtle text-secondary";
+  const labelKeys: Record<string, string> = {
+    active: "documents.report.stateActive",
+    archived: "documents.report.stateArchived",
+    trashed: "documents.report.stateTrashed",
+  };
+  const label =
+    key && labelKeys[key] ? t(labelKeys[key]) : state || "—";
+  return <span className={`badge ${cls} text-capitalize`}>{label}</span>;
 }
 
 /** Coloured badge for OCR processing status. */
 function OcrBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const map: Record<string, string> = {
     completed: "bg-success-subtle text-success",
     pending: "bg-warning-subtle text-warning",
     failed: "bg-danger-subtle text-danger",
     processing: "bg-info-subtle text-info",
   };
-  const cls = map[status?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return <span className={`badge ${cls} text-capitalize`}>{status || "—"}</span>;
+  const key = status?.toLowerCase();
+  const cls = map[key] ?? "bg-secondary-subtle text-secondary";
+  const labelKeys: Record<string, string> = {
+    completed: "documents.report.ocrCompleted",
+    pending: "documents.report.ocrPending",
+    failed: "documents.report.ocrFailed",
+    processing: "documents.report.ocrProcessing",
+  };
+  const label =
+    key && labelKeys[key] ? t(labelKeys[key]) : status || "—";
+  return <span className={`badge ${cls} text-capitalize`}>{label}</span>;
 }
 
 /** Compact badge for folder document role (main / sub / attachment / other). */
 function DocumentRoleBadge({ role }: { role: string }) {
+  const { t } = useTranslation();
   const r = (role || "").toLowerCase();
   const map: Record<string, string> = {
     main: "bg-primary-subtle text-primary",
@@ -151,42 +146,48 @@ function DocumentRoleBadge({ role }: { role: string }) {
     other: "bg-light text-dark border",
   };
   const cls = map[r] ?? "bg-secondary-subtle text-secondary";
-  return <span className={`badge ${cls} text-capitalize`}>{role || "—"}</span>;
+  const labelKeys: Record<string, string> = {
+    main: "documents.report.roleMain",
+    sub: "documents.report.roleSub",
+    attachment: "documents.report.roleAttachment",
+    other: "documents.report.roleOther",
+  };
+  const label = r && labelKeys[r] ? t(labelKeys[r]) : role || "—";
+  return <span className={`badge ${cls} text-capitalize`}>{label}</span>;
 }
 
 /**
  * Role column: badge, optional parent id, optional attachment flag.
  */
 function DocumentRoleCell({ doc }: { doc: ReportDocument }) {
+  const { t } = useTranslation();
   const role = doc.document_role;
+  const parentLine =
+    doc.parent_document_id != null
+      ? t("documents.report.parentDocument", { id: doc.parent_document_id })
+      : null;
+  const attachmentLine =
+    doc.is_attachment === true ? (
+      <div className="d-flex align-items-center gap-1 text-muted fs-11 mt-1">
+        <Icon name="paperclip" style={{ width: "0.75em", height: "0.75em" }} />
+        <span>{t("documents.report.flaggedAttachment")}</span>
+      </div>
+    ) : null;
+
   if (!role || !String(role).trim()) {
     return (
       <div className="drp-role-cell">
         <span className="text-muted">—</span>
-        {doc.parent_document_id != null && (
-          <div className="text-muted fs-11 mt-1">Parent #{doc.parent_document_id}</div>
-        )}
-        {doc.is_attachment === true && (
-          <div className="d-flex align-items-center gap-1 text-muted fs-11 mt-1">
-            <Icon name="paperclip" style={{ width: "0.75em", height: "0.75em" }} />
-            <span>Flagged attachment</span>
-          </div>
-        )}
+        {parentLine != null && <div className="text-muted fs-11 mt-1">{parentLine}</div>}
+        {attachmentLine}
       </div>
     );
   }
   return (
     <div className="drp-role-cell">
       <DocumentRoleBadge role={String(role)} />
-      {doc.parent_document_id != null && (
-        <div className="text-muted fs-11 mt-1">Parent #{doc.parent_document_id}</div>
-      )}
-      {doc.is_attachment === true && (
-        <div className="d-flex align-items-center gap-1 text-muted fs-11 mt-1">
-          <Icon name="paperclip" style={{ width: "0.75em", height: "0.75em" }} />
-          <span>Flagged attachment</span>
-        </div>
-      )}
+      {parentLine != null && <div className="text-muted fs-11 mt-1">{parentLine}</div>}
+      {attachmentLine}
     </div>
   );
 }
@@ -201,6 +202,7 @@ function DocumentRoleCell({ doc }: { doc: ReportDocument }) {
  */
 const DocumentsReportPage = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const [phase, setPhase] = useState<Phase>("form");
   const [form, setForm] = useState<ReportParams>(DEFAULT_FORM);
@@ -208,6 +210,54 @@ const DocumentsReportPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  /** Select options for confidentiality (reuses global confidentiality labels). */
+  const confidentialityOptions = useMemo(
+    () => [
+      { value: "", label: t("documents.report.filterAny") },
+      { value: "public", label: t("documents.confidentiality.public") },
+      { value: "internal", label: t("documents.confidentiality.internal") },
+      { value: "confidential", label: t("documents.confidentiality.confidential") },
+      { value: "strict", label: t("documents.confidentiality.strict") },
+    ],
+    [t]
+  );
+
+  /** Document lifecycle state filter values. */
+  const stateOptions = useMemo(
+    () => [
+      { value: "active", label: t("documents.report.stateActive") },
+      { value: "archived", label: t("documents.report.stateArchived") },
+      { value: "all", label: t("documents.report.stateAll") },
+    ],
+    [t]
+  );
+
+  /** Folder document_role filter values (matches API). */
+  const documentRoleOptions = useMemo(
+    () =>
+      [
+        { value: "", label: t("documents.report.filterAny") },
+        { value: "main", label: t("documents.report.roleMain") },
+        { value: "sub", label: t("documents.report.roleSub") },
+        { value: "attachment", label: t("documents.report.roleAttachment") },
+        { value: "other", label: t("documents.report.roleOther") },
+      ] as const,
+    [t]
+  );
+
+  /** Copies row text to the clipboard and shows a translated toast. */
+  const copyTextToClipboard = useCallback(
+    (text: string) => {
+      void navigator.clipboard
+        .writeText(text)
+        .then(() =>
+          toast.success(t("documents.report.toastCopied"), { autoClose: 2000 })
+        )
+        .catch(() => toast.error(t("documents.report.toastCopyFailed")));
+    },
+    [t]
+  );
 
   /** Generic form field setter. */
   const setField = <K extends keyof ReportParams>(key: K, value: ReportParams[K]) =>
@@ -224,10 +274,12 @@ const DocumentsReportPage = () => {
       setResult(data);
       setPhase("results");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch report");
+      setError(
+        err instanceof Error ? err.message : t("documents.report.fetchFailed")
+      );
       setPhase("form");
     }
-  }, [form]);
+  }, [form, t]);
 
   /** Navigate to a different results page. */
   const handlePageChange = useCallback(
@@ -240,12 +292,14 @@ const DocumentsReportPage = () => {
         setForm((prev) => ({ ...prev, page: newPage }));
         setResult(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load page");
+        setError(
+          err instanceof Error ? err.message : t("documents.report.loadPageFailed")
+        );
       } finally {
         setPageLoading(false);
       }
     },
-    [form, result]
+    [form, result, t]
   );
 
   /** Change server page size (matches Documents list); resets to page 1 and refetches. */
@@ -260,12 +314,16 @@ const DocumentsReportPage = () => {
         setForm((prev) => ({ ...prev, per_page: per, page: 1 }));
         setResult(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to change page size");
+        setError(
+          err instanceof Error
+            ? err.message
+            : t("documents.report.changePageSizeFailed")
+        );
       } finally {
         setPageLoading(false);
       }
     },
-    [form, result]
+    [form, result, t]
   );
 
   /** Reset to the filter form without clearing field values (so user can refine). */
@@ -303,7 +361,7 @@ const DocumentsReportPage = () => {
     () => [
       {
         id: "name",
-        header: "Name",
+        header: t("documents.report.colName"),
         width: "min(32vw, 22rem)",
         className: "drm-td-name",
         headerClassName: "drm-th-name",
@@ -315,10 +373,10 @@ const DocumentsReportPage = () => {
             <button
               type="button"
               className="drm-copy-btn"
-              title="Copy name"
+              title={t("documents.report.copyNameTitle")}
               onClick={(e) => {
                 e.stopPropagation();
-                copyToClipboard(doc.name);
+                copyTextToClipboard(doc.name);
               }}
             >
               <Icon name="copy" />
@@ -328,7 +386,7 @@ const DocumentsReportPage = () => {
       },
       {
         id: "document_role",
-        header: "Role",
+        header: t("documents.report.colRole"),
         width: "8.5rem",
         headerClassName: "align-top",
         className: "align-top",
@@ -336,70 +394,70 @@ const DocumentsReportPage = () => {
       },
       {
         id: "barcode",
-        header: "Barcode",
+        header: t("documents.report.colBarcode"),
         width: "8rem",
         truncate: true,
         render: (doc) => <code className="fs-12">{doc.barcode}</code>,
       },
       {
         id: "upload_date",
-        header: "Upload Date",
+        header: t("documents.report.colUploadDate"),
         width: "7.5rem",
         truncate: true,
-        render: (doc) => formatDate(doc.upload_date),
+        render: (doc) => formatReportDate(doc.upload_date, i18n.language),
       },
       {
         id: "uploader_name",
-        header: "Uploader",
+        header: t("documents.report.colUploader"),
         width: "9rem",
         truncate: true,
         render: (doc) => doc.uploader_name,
       },
       {
         id: "department_name",
-        header: "Department",
+        header: t("documents.report.colDepartment"),
         width: "9rem",
         truncate: true,
         render: (doc) => doc.department_name,
       },
       {
         id: "document_type_name",
-        header: "Doc Type",
+        header: t("documents.report.colDocType"),
         width: "8rem",
         truncate: true,
         render: (doc) => doc.document_type_name,
       },
       {
         id: "company_name",
-        header: "Company",
+        header: t("documents.report.colCompany"),
         width: "8rem",
         truncate: true,
         render: (doc) => doc.company_name || "—",
       },
       {
         id: "folder_name",
-        header: "Folder",
+        header: t("documents.report.colFolder"),
         width: "9rem",
         truncate: true,
         render: (doc) => doc.folder_name || "—",
       },
       {
         id: "confidentiality_level",
-        header: "Confidentiality",
+        header: t("documents.report.colConfidentiality"),
         width: "7.5rem",
         truncate: true,
         render: (doc) => <ConfidentialityBadge level={doc.confidentiality_level} />,
       },
       {
         id: "state",
-        header: "State",
+        header: t("documents.report.colState"),
         width: "5.5rem",
         truncate: true,
         render: (doc) => <StateBadge state={doc.state} />,
       },
       {
         id: "version_count",
-        header: "Ver.",
+        header: t("documents.report.colVer"),
         width: "3rem",
         headerClassName: "text-center",
         className: "text-center",
@@ -408,20 +466,20 @@ const DocumentsReportPage = () => {
       },
       {
         id: "ocr_status",
-        header: "OCR",
+        header: t("documents.report.colOcr"),
         width: "6rem",
         truncate: true,
         render: (doc) => <OcrBadge status={doc.ocr_status} />,
       },
     ],
-    []
+    [t, i18n.language, copyTextToClipboard]
   );
 
   return (
     <PageLayout
-      title="Documents Report"
+      title={t("documents.report.pageTitle")}
       breadcrumbItems={[
-        { label: "Documents", to: all_routes.documents },
+        { label: t("documents.title"), to: all_routes.documents },
       ]}
       homeTo={all_routes.adminDashboard}
       rightContent={<CollapseHeader />}
@@ -436,9 +494,11 @@ const DocumentsReportPage = () => {
               <Icon name="bar-chart-2" />
             </div>
             <div>
-              <h5 className="mb-0 fw-semibold text-white lh-1">Filters</h5>
+              <h5 className="mb-0 fw-semibold text-white lh-1">
+                {t("documents.report.filtersTitle")}
+              </h5>
               <p className="mb-0 drp-card-header__subtitle">
-                All fields are optional — leave empty to fetch all documents up to today
+                {t("documents.report.filtersSubtitle")}
               </p>
             </div>
           </div>
@@ -448,19 +508,16 @@ const DocumentsReportPage = () => {
           {/* Info banner */}
           <div className="alert alert-info d-flex align-items-start gap-2 py-2 mb-4">
             <Icon name="info" className="flex-shrink-0 mt-1" />
-            <span className="fs-13">
-              When both an <strong>ID</strong> and a <strong>name</strong> are provided for
-              the same filter, the ID takes priority.
-            </span>
+            <span className="fs-13">{t("documents.report.idNamePriorityHint")}</span>
           </div>
 
           <div className="row g-3">
             {/* Date Range */}
             <div className="col-12">
-              <p className="drp-section-label">Date Range</p>
+              <p className="drp-section-label">{t("documents.report.sectionDateRange")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">From Date</label>
+                  <label className="form-label fs-13">{t("documents.report.fromDate")}</label>
                   <input
                     type="date"
                     className="form-control form-control-sm"
@@ -469,7 +526,7 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">To Date</label>
+                  <label className="form-label fs-13">{t("documents.report.toDate")}</label>
                   <input
                     type="date"
                     className="form-control form-control-sm"
@@ -482,14 +539,14 @@ const DocumentsReportPage = () => {
 
             {/* Company */}
             <div className="col-12">
-              <p className="drp-section-label">Company / Brand</p>
+              <p className="drp-section-label">{t("documents.report.sectionCompanyBrand")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Company ID</label>
+                  <label className="form-label fs-13">{t("documents.report.companyId")}</label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
-                    placeholder="e.g. 7436"
+                    placeholder={t("documents.report.placeholderCompanyId")}
                     value={form.company_id ?? ""}
                     onChange={(e) =>
                       setField("company_id", e.target.value ? Number(e.target.value) : undefined)
@@ -497,11 +554,11 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Company Name</label>
+                  <label className="form-label fs-13">{t("documents.report.companyName")}</label>
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="e.g. ALCAN"
+                    placeholder={t("documents.report.placeholderCompanyName")}
                     value={form.company_name ?? ""}
                     onChange={(e) => setField("company_name", e.target.value)}
                   />
@@ -511,14 +568,14 @@ const DocumentsReportPage = () => {
 
             {/* Department */}
             <div className="col-12">
-              <p className="drp-section-label">Department</p>
+              <p className="drp-section-label">{t("documents.report.sectionDepartment")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Department ID</label>
+                  <label className="form-label fs-13">{t("documents.report.departmentId")}</label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
-                    placeholder="e.g. 4"
+                    placeholder={t("documents.report.placeholderDepartmentId")}
                     value={form.department_id ?? ""}
                     onChange={(e) =>
                       setField(
@@ -529,11 +586,11 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Department Name</label>
+                  <label className="form-label fs-13">{t("documents.report.departmentName")}</label>
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="e.g. Supply Chain"
+                    placeholder={t("documents.report.placeholderDepartmentName")}
                     value={form.department_name ?? ""}
                     onChange={(e) => setField("department_name", e.target.value)}
                   />
@@ -543,14 +600,14 @@ const DocumentsReportPage = () => {
 
             {/* Document Type */}
             <div className="col-12">
-              <p className="drp-section-label">Document Type</p>
+              <p className="drp-section-label">{t("documents.report.sectionDocumentType")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Document Type ID</label>
+                  <label className="form-label fs-13">{t("documents.report.documentTypeId")}</label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
-                    placeholder="e.g. 5"
+                    placeholder={t("documents.report.placeholderDocumentTypeId")}
                     value={form.document_type_id ?? ""}
                     onChange={(e) =>
                       setField(
@@ -561,11 +618,11 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Document Type Name</label>
+                  <label className="form-label fs-13">{t("documents.report.documentTypeName")}</label>
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="e.g. Invoice"
+                    placeholder={t("documents.report.placeholderDocumentTypeName")}
                     value={form.document_type ?? ""}
                     onChange={(e) => setField("document_type", e.target.value)}
                   />
@@ -575,14 +632,14 @@ const DocumentsReportPage = () => {
 
             {/* Uploader */}
             <div className="col-12">
-              <p className="drp-section-label">Uploader</p>
+              <p className="drp-section-label">{t("documents.report.sectionUploader")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Uploader ID</label>
+                  <label className="form-label fs-13">{t("documents.report.uploaderId")}</label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
-                    placeholder="e.g. 2"
+                    placeholder={t("documents.report.placeholderUploaderId")}
                     value={form.uploader_id ?? ""}
                     onChange={(e) =>
                       setField(
@@ -593,11 +650,11 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Uploader Name</label>
+                  <label className="form-label fs-13">{t("documents.report.uploaderName")}</label>
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="e.g. admin"
+                    placeholder={t("documents.report.placeholderUploaderName")}
                     value={form.uploader_name ?? ""}
                     onChange={(e) => setField("uploader_name", e.target.value)}
                   />
@@ -607,14 +664,14 @@ const DocumentsReportPage = () => {
 
             {/* Folder */}
             <div className="col-12">
-              <p className="drp-section-label">Folder</p>
+              <p className="drp-section-label">{t("documents.report.sectionFolder")}</p>
               <div className="row g-2">
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Folder ID</label>
+                  <label className="form-label fs-13">{t("documents.report.folderId")}</label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
-                    placeholder="e.g. 45"
+                    placeholder={t("documents.report.placeholderFolderId")}
                     value={form.folder_id ?? ""}
                     onChange={(e) =>
                       setField("folder_id", e.target.value ? Number(e.target.value) : undefined)
@@ -622,11 +679,11 @@ const DocumentsReportPage = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fs-13">Folder Name</label>
+                  <label className="form-label fs-13">{t("documents.report.folderName")}</label>
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="e.g. ALCAN-386"
+                    placeholder={t("documents.report.placeholderFolderName")}
                     value={form.folder_name ?? ""}
                     onChange={(e) => setField("folder_name", e.target.value)}
                   />
@@ -636,16 +693,16 @@ const DocumentsReportPage = () => {
 
             {/* Additional filters */}
             <div className="col-12">
-              <p className="drp-section-label">Additional Filters</p>
+              <p className="drp-section-label">{t("documents.report.sectionAdditionalFilters")}</p>
               <div className="row g-2">
                 <div className="col-md-4">
-                  <label className="form-label fs-13">Confidentiality Level</label>
+                  <label className="form-label fs-13">{t("documents.report.confidentialityLevel")}</label>
                   <select
                     className="form-select form-select-sm"
                     value={form.confidentiality_level ?? ""}
                     onChange={(e) => setField("confidentiality_level", e.target.value)}
                   >
-                    {CONFIDENTIALITY_OPTIONS.map((o) => (
+                    {confidentialityOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -653,13 +710,13 @@ const DocumentsReportPage = () => {
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fs-13">State</label>
+                  <label className="form-label fs-13">{t("documents.report.state")}</label>
                   <select
                     className="form-select form-select-sm"
                     value={form.state ?? "active"}
                     onChange={(e) => setField("state", e.target.value)}
                   >
-                    {STATE_OPTIONS.map((o) => (
+                    {stateOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -667,20 +724,20 @@ const DocumentsReportPage = () => {
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fs-13">Document role</label>
+                  <label className="form-label fs-13">{t("documents.report.documentRole")}</label>
                   <select
                     className="form-select form-select-sm"
                     value={form.document_role ?? ""}
                     onChange={(e) => setField("document_role", e.target.value)}
                   >
-                    {DOCUMENT_ROLE_OPTIONS.map((o) => (
+                    {documentRoleOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
                     ))}
                   </select>
                   <p className="text-muted fs-11 mb-0 mt-1">
-                    Filter by main / sub / attachment / other within folder context.
+                    {t("documents.report.documentRoleHelp")}
                   </p>
                 </div>
               </div>
@@ -704,10 +761,10 @@ const DocumentsReportPage = () => {
             onClick={() => navigate(all_routes.documents)}
           >
             <Icon name="arrow-left" className="me-1" />
-            Back to Documents
+            {t("documents.report.backToDocuments")}
           </Button>
           <Button variant="primary" size="md" onClick={() => void handleSubmit()}>
-            Submit
+            {t("common.submit")}
           </Button>
         </div>
       </div>
@@ -722,16 +779,18 @@ const DocumentsReportPage = () => {
                 <Icon name="bar-chart-2" />
               </div>
               <div>
-                <h5 className="mb-0 fw-semibold text-white lh-1">Fetching report</h5>
+                <h5 className="mb-0 fw-semibold text-white lh-1">
+                  {t("documents.report.loadingTitle")}
+                </h5>
                 <p className="mb-0 drp-card-header__subtitle">
-                  Please wait while documents are loaded…
+                  {t("documents.report.loadingSubtitle")}
                 </p>
               </div>
             </div>
           </div>
           <div className="card-body d-flex flex-column align-items-center justify-content-center py-5 gap-3">
             <Spinner size="lg" />
-            <p className="text-muted mb-0 fs-14">Fetching documents report…</p>
+            <p className="text-muted mb-0 fs-14">{t("documents.report.loadingBody")}</p>
           </div>
         </div>
       )}
@@ -743,20 +802,23 @@ const DocumentsReportPage = () => {
           <div className="card-header drp-results-header">
             <div className="drm-summary">
               <span className="drm-summary__item">
-                <strong>Total Documents:</strong> {result.summary.total.toLocaleString()}
+                <strong>{t("documents.report.totalDocuments")}:</strong>{" "}
+                {result.summary.total.toLocaleString(i18n.language)}
               </span>
               <span className="drm-summary__item">
-                <strong>Pages:</strong> {result.pagination.total_pages}
+                <strong>{t("documents.report.pages")}:</strong> {result.pagination.total_pages}
               </span>
               <span className="drm-summary__item">
-                <strong>From:</strong> {formatDate(result.summary.from_date)}
+                <strong>{t("documents.report.summaryFrom")}:</strong>{" "}
+                {formatReportDate(result.summary.from_date, i18n.language)}
               </span>
               <span className="drm-summary__item">
-                <strong>To:</strong> {formatDate(result.summary.to_date)}
+                <strong>{t("documents.report.summaryTo")}:</strong>{" "}
+                {formatReportDate(result.summary.to_date, i18n.language)}
               </span>
               {Object.keys(result.summary.filters ?? {}).length > 0 && (
                 <span className="drm-summary__item">
-                  <strong>Active Filters:</strong>{" "}
+                  <strong>{t("documents.report.activeFilters")}:</strong>{" "}
                   {Object.keys(result.summary.filters).length}
                 </span>
               )}
@@ -771,7 +833,7 @@ const DocumentsReportPage = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search by name, barcode, uploader, department…"
+                  placeholder={t("documents.report.searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -780,7 +842,7 @@ const DocumentsReportPage = () => {
                     type="button"
                     className="btn btn-outline-secondary btn-sm"
                     onClick={() => setSearch("")}
-                    title="Clear search"
+                    title={t("documents.report.clearSearchAria")}
                   >
                     <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
                   </button>
@@ -788,7 +850,10 @@ const DocumentsReportPage = () => {
               </div>
               {search && (
                 <p className="text-muted fs-12 mt-1 mb-0">
-                  Showing {displayedData.length} of {result.data.length} loaded results
+                  {t("documents.report.showingCount", {
+                    shown: displayedData.length,
+                    total: result.data.length,
+                  })}
                 </p>
               )}
             </div>
@@ -799,7 +864,7 @@ const DocumentsReportPage = () => {
             {pageLoading && (
               <div className="d-flex align-items-center gap-2 px-3 py-2 text-muted fs-13 border-bottom">
                 <Spinner size="sm" />
-                Loading page…
+                {t("documents.report.loadingPage")}
               </div>
             )}
             {error && (
@@ -811,7 +876,7 @@ const DocumentsReportPage = () => {
                 getRowId={(row) => row.id}
                 columns={columns}
                 loading={pageLoading}
-                emptyMessage="No documents matched your filters."
+                emptyMessage={t("documents.report.emptyMessage")}
                 tableClassName="table table-hover table-sm mb-0 drm-table"
                 responsive="table"
               />
@@ -841,7 +906,7 @@ const DocumentsReportPage = () => {
               onClick={handleNewSearch}
             >
               <Icon name="arrow-left" className="me-1" />
-              New Search
+              {t("documents.report.newSearch")}
             </Button>
             <Button
               variant="outline"
@@ -850,7 +915,7 @@ const DocumentsReportPage = () => {
               onClick={() => navigate(all_routes.documents)}
             >
               <Icon name="arrow-left" className="me-1" />
-              Back to Documents
+              {t("documents.report.backToDocuments")}
             </Button>
           </div>
         </div>
