@@ -5,6 +5,7 @@ import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Button, Icon, Spinner, DataTable } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui";
+import { TruncatedCell } from "@/shared/components/ui/DataTable/datatableShared";
 import { all_routes } from "@/router/all_routes";
 import { getDocumentsReport } from "@/app/adapter/api/documents";
 import type {
@@ -130,13 +131,10 @@ function OcrBadge({ status }: { status: string }) {
 /**
  * DocumentsReportPage – full-page report tool.
  *
- * Top card: optional filter form (all fields optional; Submit fetches all
- *   docs up to today when left empty).
- * Bottom card: appears after a successful fetch; shows an inline summary
- *   strip, a client-side search bar, and the DataTable with a copy-to-clipboard
- *   icon in the Name column. Pagination prev/next sit on the opposite side of
- *   the New Search / Back buttons so the layout works naturally in both LTR
- *   and RTL modes.
+ * Form phase: filter card only (all fields optional).
+ * Loading phase: single loading card (filter card is replaced).
+ * Results phase: results card only — summary, client-side search, DataTable
+ *   (Name column keeps copy icon; other columns use ellipsis + InfoWrapper tooltip).
  */
 const DocumentsReportPage = () => {
   const navigate = useNavigate();
@@ -212,18 +210,20 @@ const DocumentsReportPage = () => {
     );
   }, [result?.data, search]);
 
-  /** DataTable column definitions – memoised so render is stable. */
+  /** DataTable column definitions – Name gets flexible width; others max-width + truncate + tooltip. */
   const columns = useMemo<ColumnDef<ReportDocument>[]>(
     () => [
       {
         id: "name",
         header: "Name",
-        width: "280px",
+        width: "min(32vw, 22rem)",
+        className: "drm-td-name",
+        headerClassName: "drm-th-name",
         render: (doc) => (
           <div className="drm-name-cell">
-            <span className="drm-name-text" title={doc.name}>
-              {doc.name}
-            </span>
+            <TruncatedCell>
+              <span className="drm-name-inner">{doc.name}</span>
+            </TruncatedCell>
             <button
               type="button"
               className="drm-copy-btn"
@@ -241,71 +241,80 @@ const DocumentsReportPage = () => {
       {
         id: "barcode",
         header: "Barcode",
-        width: "140px",
+        width: "8rem",
+        truncate: true,
         render: (doc) => <code className="fs-12">{doc.barcode}</code>,
       },
       {
         id: "upload_date",
         header: "Upload Date",
-        width: "110px",
-        render: (doc) => (
-          <span className="text-nowrap fs-12">{formatDate(doc.upload_date)}</span>
-        ),
+        width: "7.5rem",
+        truncate: true,
+        render: (doc) => formatDate(doc.upload_date),
       },
       {
         id: "uploader_name",
         header: "Uploader",
-        width: "120px",
+        width: "9rem",
+        truncate: true,
         render: (doc) => doc.uploader_name,
       },
       {
         id: "department_name",
         header: "Department",
-        width: "130px",
+        width: "9rem",
+        truncate: true,
         render: (doc) => doc.department_name,
       },
       {
         id: "document_type_name",
         header: "Doc Type",
-        width: "110px",
+        width: "8rem",
+        truncate: true,
         render: (doc) => doc.document_type_name,
       },
       {
         id: "company_name",
         header: "Company",
-        width: "110px",
-        render: (doc) => doc.company_name || <span className="text-muted">—</span>,
+        width: "8rem",
+        truncate: true,
+        render: (doc) => doc.company_name || "—",
       },
       {
         id: "folder_name",
         header: "Folder",
-        width: "120px",
-        render: (doc) => doc.folder_name || <span className="text-muted">—</span>,
+        width: "9rem",
+        truncate: true,
+        render: (doc) => doc.folder_name || "—",
       },
       {
         id: "confidentiality_level",
         header: "Confidentiality",
-        width: "120px",
+        width: "7.5rem",
+        truncate: true,
         render: (doc) => <ConfidentialityBadge level={doc.confidentiality_level} />,
       },
       {
         id: "state",
         header: "State",
-        width: "90px",
+        width: "5.5rem",
+        truncate: true,
         render: (doc) => <StateBadge state={doc.state} />,
       },
       {
         id: "version_count",
         header: "Ver.",
-        width: "60px",
+        width: "3rem",
         headerClassName: "text-center",
         className: "text-center",
-        render: (doc) => doc.version_count,
+        truncate: true,
+        render: (doc) => String(doc.version_count),
       },
       {
         id: "ocr_status",
         header: "OCR",
-        width: "90px",
+        width: "6rem",
+        truncate: true,
         render: (doc) => <OcrBadge status={doc.ocr_status} />,
       },
     ],
@@ -327,7 +336,8 @@ const DocumentsReportPage = () => {
       homeTo={all_routes.adminDashboard}
       rightContent={<CollapseHeader />}
     >
-      {/* ── Filter card ────────────────────────────────────────── */}
+      {/* ── Form: filter card only (replaced by loading / results after submit) ── */}
+      {phase === "form" && (
       <div className="card mb-3">
         {/* Gradient card header */}
         <div className="drp-card-header">
@@ -365,7 +375,6 @@ const DocumentsReportPage = () => {
                     type="date"
                     className="form-control form-control-sm"
                     value={form.from_date ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("from_date", e.target.value)}
                   />
                 </div>
@@ -375,7 +384,6 @@ const DocumentsReportPage = () => {
                     type="date"
                     className="form-control form-control-sm"
                     value={form.to_date ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("to_date", e.target.value)}
                   />
                 </div>
@@ -393,7 +401,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. 7436"
                     value={form.company_id ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField("company_id", e.target.value ? Number(e.target.value) : undefined)
                     }
@@ -406,7 +413,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. ALCAN"
                     value={form.company_name ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("company_name", e.target.value)}
                   />
                 </div>
@@ -424,7 +430,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. 4"
                     value={form.department_id ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField(
                         "department_id",
@@ -440,7 +445,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. Supply Chain"
                     value={form.department_name ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("department_name", e.target.value)}
                   />
                 </div>
@@ -458,7 +462,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. 5"
                     value={form.document_type_id ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField(
                         "document_type_id",
@@ -474,7 +477,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. Invoice"
                     value={form.document_type ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("document_type", e.target.value)}
                   />
                 </div>
@@ -492,7 +494,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. 2"
                     value={form.uploader_id ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField(
                         "uploader_id",
@@ -508,7 +509,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. admin"
                     value={form.uploader_name ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("uploader_name", e.target.value)}
                   />
                 </div>
@@ -526,7 +526,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. 45"
                     value={form.folder_id ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField("folder_id", e.target.value ? Number(e.target.value) : undefined)
                     }
@@ -539,7 +538,6 @@ const DocumentsReportPage = () => {
                     className="form-control form-control-sm"
                     placeholder="e.g. ALCAN-386"
                     value={form.folder_name ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("folder_name", e.target.value)}
                   />
                 </div>
@@ -555,7 +553,6 @@ const DocumentsReportPage = () => {
                   <select
                     className="form-select form-select-sm"
                     value={form.confidentiality_level ?? ""}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("confidentiality_level", e.target.value)}
                   >
                     {CONFIDENTIALITY_OPTIONS.map((o) => (
@@ -570,7 +567,6 @@ const DocumentsReportPage = () => {
                   <select
                     className="form-select form-select-sm"
                     value={form.state ?? "active"}
-                    disabled={phase === "loading"}
                     onChange={(e) => setField("state", e.target.value)}
                   >
                     {STATE_OPTIONS.map((o) => (
@@ -588,7 +584,6 @@ const DocumentsReportPage = () => {
                     min={1}
                     max={500}
                     value={form.per_page ?? 50}
-                    disabled={phase === "loading"}
                     onChange={(e) =>
                       setField(
                         "per_page",
@@ -611,12 +606,6 @@ const DocumentsReportPage = () => {
 
         {/* Card footer: actions */}
         <div className="card-footer d-flex align-items-center justify-content-end gap-2">
-          {phase === "loading" ? (
-            <div className="d-flex align-items-center gap-2 text-muted fs-13 me-auto">
-              <Spinner size="sm" />
-              Fetching documents report…
-            </div>
-          ) : null}
           <Button
             variant="outline"
             size="md"
@@ -626,18 +615,37 @@ const DocumentsReportPage = () => {
             <Icon name="arrow-left" className="me-1" />
             Back to Documents
           </Button>
-          <Button
-            variant="primary"
-            size="md"
-            disabled={phase === "loading"}
-            onClick={() => void handleSubmit()}
-          >
+          <Button variant="primary" size="md" onClick={() => void handleSubmit()}>
             Submit
           </Button>
         </div>
       </div>
+      )}
 
-      {/* ── Results card (shown after successful fetch) ─────────── */}
+      {/* ── Loading: replaces filter UI until the API responds ───── */}
+      {phase === "loading" && (
+        <div className="card mb-3">
+          <div className="drp-card-header">
+            <div className="d-flex align-items-center gap-3">
+              <div className="drp-card-header__icon">
+                <Icon name="bar-chart-2" />
+              </div>
+              <div>
+                <h5 className="mb-0 fw-semibold text-white lh-1">Fetching report</h5>
+                <p className="mb-0 drp-card-header__subtitle">
+                  Please wait while documents are loaded…
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="card-body d-flex flex-column align-items-center justify-content-center py-5 gap-3">
+            <Spinner size="lg" />
+            <p className="text-muted mb-0 fs-14">Fetching documents report…</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Results: replaces filter / loading (summary + search + table) ─ */}
       {phase === "results" && result && (
         <div className="card">
           {/* Summary stats strip as card-header */}

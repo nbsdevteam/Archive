@@ -129,44 +129,47 @@
   overflow-y: auto;
 }
 
+// Report results table: header labels align with body cells (same padding, no forced uppercase).
 .drm-table {
   font-size: 0.8125rem;
   margin-bottom: 0 !important;
+  table-layout: fixed;
+
+  thead th,
+  tbody td {
+    box-sizing: border-box;
+    padding: 0.5rem 0.65rem;
+    vertical-align: middle;
+  }
 
   thead th {
-    // Sticky header inside the scrollable wrapper
     position: sticky;
     top: 0;
     z-index: 2;
     background-color: var(--bs-table-bg, #f8f9fa);
-    white-space: nowrap;
-    padding: 0.5rem 0.65rem;
     font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  tbody td {
-    padding: 0.4rem 0.65rem;
-    vertical-align: middle;
+    font-size: 0.8125rem;
+    line-height: 1.3;
   }
 }
 
-// ── Name cell: name text + copy icon ────────────────────────────────────────
+// ── Name cell: TruncatedCell (tooltip) + copy icon ─────────────────────────
 .drm-name-cell {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  min-width: 0; // allow flexbox text truncation
+  min-width: 0;
+  width: 100%;
 }
 
-.drm-name-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
+// Let the shared TruncatedCell / InfoWrapper shrink so ellipsis + tooltip work beside the copy button
+.drm-name-cell .datatable-cell-truncate-wrap {
+  flex: 1 1 0;
   min-width: 0;
+  max-width: 100%;
+}
+
+.drm-name-inner {
   font-weight: 500;
 }
 
