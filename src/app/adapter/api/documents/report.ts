@@ -19,6 +19,8 @@ export interface ReportParams {
   folder_name?: string;
   /** "active" (default) | "archived" | "all" */
   state?: string;
+  /** "main" | "sub" | "attachment" | "other" — filter by role within folder */
+  document_role?: string;
   page?: number;
   /** Max 500 */
   per_page?: number;
@@ -48,6 +50,12 @@ export interface ReportDocument {
   bl_number?: string | null;
   invoice_number?: string | null;
   container_number?: string | null;
+  /** Role within folder context */
+  document_role?: 'main' | 'sub' | 'attachment' | 'other';
+  /** True when explicitly flagged as attachment to parent */
+  is_attachment?: boolean;
+  /** Parent document id when sub/attachment */
+  parent_document_id?: number | null;
 }
 
 export interface ReportSummary {

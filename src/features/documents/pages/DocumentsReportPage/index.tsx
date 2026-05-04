@@ -8,6 +8,7 @@ import type { ColumnDef } from "@/shared/components/ui";
 import { TruncatedCell } from "@/shared/components/ui/DataTable/datatableShared";
 import { all_routes } from "@/router/all_routes";
 import { getDocumentsReport } from "@/app/adapter/api/documents";
+import "@/features/documents/styles/documents.css";
 import type {
   ReportParams,
   ReportResult,
@@ -30,6 +31,15 @@ const STATE_OPTIONS = [
   { value: "all", label: "All" },
 ];
 
+/** Filter by folder document role (backend `document_role` param). */
+const DOCUMENT_ROLE_OPTIONS = [
+  { value: "", label: "Any" },
+  { value: "main", label: "Main" },
+  { value: "sub", label: "Sub" },
+  { value: "attachment", label: "Attachment" },
+  { value: "other", label: "Other" },
+] as const;
+
 const DEFAULT_FORM: ReportParams = {
   from_date: "",
   to_date: "",
@@ -45,6 +55,7 @@ const DEFAULT_FORM: ReportParams = {
   folder_id: undefined,
   folder_name: "",
   state: "active",
+  document_role: "",
   page: 1,
   per_page: 50,
 };
@@ -66,6 +77,7 @@ function buildPayload(form: ReportParams): ReportParams {
   if (form.folder_id) p.folder_id = Number(form.folder_id);
   if (form.folder_name) p.folder_name = form.folder_name;
   if (form.state) p.state = form.state;
+  if (form.document_role) p.document_role = form.document_role;
   p.page = form.page ?? 1;
   p.per_page = Math.min(500, Math.max(1, form.per_page ?? 50));
   return p;
@@ -126,6 +138,56 @@ function OcrBadge({ status }: { status: string }) {
   };
   const cls = map[status?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
   return <span className={`badge ${cls} text-capitalize`}>{status || "—"}</span>;
+}
+
+/** Compact badge for folder document role (main / sub / attachment / other). */
+function DocumentRoleBadge({ role }: { role: string }) {
+  const r = (role || "").toLowerCase();
+  const map: Record<string, string> = {
+    main: "bg-primary-subtle text-primary",
+    sub: "bg-secondary-subtle text-secondary",
+    attachment: "bg-info-subtle text-info",
+    other: "bg-light text-dark border",
+  };
+  const cls = map[r] ?? "bg-secondary-subtle text-secondary";
+  return <span className={`badge ${cls} text-capitalize`}>{role || "—"}</span>;
+}
+
+/**
+ * Role column: badge, optional parent id, optional attachment flag.
+ */
+function DocumentRoleCell({ doc }: { doc: ReportDocument }) {
+  const role = doc.document_role;
+  if (!role || !String(role).trim()) {
+    return (
+      <div className="drp-role-cell">
+        <span className="text-muted">—</span>
+        {doc.parent_document_id != null && (
+          <div className="text-muted fs-11 mt-1">Parent #{doc.parent_document_id}</div>
+        )}
+        {doc.is_attachment === true && (
+          <div className="d-flex align-items-center gap-1 text-muted fs-11 mt-1">
+            <Icon name="paperclip" style={{ width: "0.75em", height: "0.75em" }} />
+            <span>Flagged attachment</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="drp-role-cell">
+      <DocumentRoleBadge role={String(role)} />
+      {doc.parent_document_id != null && (
+        <div className="text-muted fs-11 mt-1">Parent #{doc.parent_document_id}</div>
+      )}
+      {doc.is_attachment === true && (
+        <div className="d-flex align-items-center gap-1 text-muted fs-11 mt-1">
+          <Icon name="paperclip" style={{ width: "0.75em", height: "0.75em" }} />
+          <span>Flagged attachment</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -196,18 +258,26 @@ const DocumentsReportPage = () => {
     setSearch("");
   }, []);
 
-  /** Client-side search: matches name, barcode, uploader, or department. */
+  /** Client-side search across visible row text (including role and parent id). */
   const displayedData = useMemo(() => {
     if (!result?.data) return [];
     if (!search.trim()) return result.data;
     const q = search.toLowerCase();
-    return result.data.filter(
-      (d) =>
+    return result.data.filter((d) => {
+      const parentStr = d.parent_document_id != null ? String(d.parent_document_id) : "";
+      const roleStr = d.document_role ? String(d.document_role).toLowerCase() : "";
+      return (
         d.name?.toLowerCase().includes(q) ||
         d.barcode?.toLowerCase().includes(q) ||
         d.uploader_name?.toLowerCase().includes(q) ||
-        d.department_name?.toLowerCase().includes(q)
-    );
+        d.department_name?.toLowerCase().includes(q) ||
+        d.company_name?.toLowerCase().includes(q) ||
+        (d.folder_name != null && String(d.folder_name).toLowerCase().includes(q)) ||
+        d.document_type_name?.toLowerCase().includes(q) ||
+        (roleStr && roleStr.includes(q)) ||
+        parentStr.includes(q)
+      );
+    });
   }, [result?.data, search]);
 
   /** DataTable column definitions – Name gets flexible width; others max-width + truncate + tooltip. */
@@ -237,6 +307,14 @@ const DocumentsReportPage = () => {
             </button>
           </div>
         ),
+      },
+      {
+        id: "document_role",
+        header: "Role",
+        width: "8.5rem",
+        headerClassName: "align-top",
+        className: "align-top",
+        render: (doc) => <DocumentRoleCell doc={doc} />,
       },
       {
         id: "barcode",
@@ -592,6 +670,23 @@ const DocumentsReportPage = () => {
                     }
                   />
                 </div>
+                <div className="col-md-4">
+                  <label className="form-label fs-13">Document role</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={form.document_role ?? ""}
+                    onChange={(e) => setField("document_role", e.target.value)}
+                  >
+                    {DOCUMENT_ROLE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-muted fs-11 mb-0 mt-1">
+                    Filter by main / sub / attachment / other within folder context.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -647,7 +742,7 @@ const DocumentsReportPage = () => {
 
       {/* ── Results: replaces filter / loading (summary + search + table) ─ */}
       {phase === "results" && result && (
-        <div className="card">
+        <div className="card documents__table-card drp-results-card mb-3">
           {/* Summary stats strip as card-header */}
           <div className="card-header drp-results-header">
             <div className="drm-summary">
@@ -703,8 +798,8 @@ const DocumentsReportPage = () => {
             </div>
           </div>
 
-          {/* Table body */}
-          <div className="card-body p-0">
+          {/* Table body — match Documents list card body (min height + full-width scroll) */}
+          <div className="card-body h-min-50vh p-0">
             {pageLoading && (
               <div className="d-flex align-items-center gap-2 px-3 py-2 text-muted fs-13 border-bottom">
                 <Spinner size="sm" />
@@ -714,7 +809,7 @@ const DocumentsReportPage = () => {
             {error && (
               <div className="alert alert-danger m-3 mb-0 fs-13 py-2">{error}</div>
             )}
-            <div className="drm-table-wrap">
+            <div className="drm-table-wrap drm-table-wrap--page">
               <DataTable<ReportDocument>
                 data={displayedData}
                 getRowId={(row) => row.id}

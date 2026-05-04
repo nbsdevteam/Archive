@@ -129,6 +129,29 @@
   overflow-y: auto;
 }
 
+// Full-page report: no max-height; DataTable inner wrap must allow horizontal scroll
+// (datatable-responsive-wrap is globally `overflow-x: hidden` in _overrides-tables.scss).
+.drm-table-wrap--page {
+  max-height: none;
+  overflow: visible;
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+}
+
+.drp-results-card {
+  .datatable-responsive-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible;
+    min-width: 0;
+  }
+
+  .drm-table {
+    min-width: 1400px;
+    width: 100%;
+  }
+}
+
 // Report results table: header labels align with body cells (same padding, no forced uppercase).
 .drm-table {
   font-size: 0.8125rem;
