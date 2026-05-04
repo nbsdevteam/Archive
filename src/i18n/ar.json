@@ -40,7 +40,13 @@
     "ok": "موافق",
     "status": "الحالة",
     "type": "النوع",
-    "timestamp": "الوقت"
+    "timestamp": "الوقت",
+    "submit": "إرسال",
+    "pagination": "ترقيم الصفحات",
+    "perPage": "لكل صفحة",
+    "firstPage": "الصفحة الأولى",
+    "pageNumber": "الصفحة {{num}}",
+    "lastPage": "الصفحة الأخيرة"
   },
   "errors": {
     "notFound": "غير موجود.",

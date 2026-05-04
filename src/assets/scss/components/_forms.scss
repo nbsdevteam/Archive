@@ -914,13 +914,20 @@ kbd {
     @include mixins.transform(translateY(-50%));
     position: absolute;
     top: 50%;
-    right: 10px;
+    /* Logical inset: LTR = end/right, RTL = end/left — keeps icon off typed text */
+    inset-inline-end: 10px;
+    inset-inline-start: auto;
     &:hover{
         color: variables.$primary;
     }
 }
 .pass-group {
     position: relative;
+    /* Room for the visibility toggle on the inline-end side */
+    .form-control,
+    .pass-input {
+        padding-inline-end: 2.75rem;
+    }
 }
 .toggle-passwords,.toggle-passworda {
     cursor: pointer;
@@ -941,7 +948,8 @@ kbd {
     @include mixins.transform(translateY(-50%));
     position: absolute;
     top: 50%;
-    right: 10px;
+    inset-inline-end: 10px;
+    inset-inline-start: auto;
     &:hover{
         color:variables.$primary;
     }

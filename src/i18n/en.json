@@ -40,7 +40,13 @@
     "ok": "OK",
     "status": "Status",
     "type": "Type",
-    "timestamp": "Timestamp"
+    "timestamp": "Timestamp",
+    "submit": "Submit",
+    "pagination": "Pagination",
+    "perPage": "Per page",
+    "firstPage": "First page",
+    "pageNumber": "Page {{num}}",
+    "lastPage": "Last page"
   },
   "errors": {
     "notFound": "Not found.",

@@ -47,7 +47,8 @@
     .crm-dropdown {
         .dropdown-menu {
             @include mixins.respond-above(lg) {
-                right: unset !important;
+                /* Let logical positioning apply (was physical right: unset) */
+                inset-inline-end: unset !important;
             }
         }
     }
@@ -64,8 +65,11 @@
             margin: 0;
             padding: 0;
             @include mixins.transition(all 0.4s ease);
+            /* Align to inline-end of toggle: LTR = right, RTL = left — keeps menu in viewport */
             left: unset !important;
-            right: 0 !important;
+            right: unset !important;
+            inset-inline-end: 0 !important;
+            inset-inline-start: auto !important;
         }
         @include mixins.respond-below(lg) {
             transition: none;
