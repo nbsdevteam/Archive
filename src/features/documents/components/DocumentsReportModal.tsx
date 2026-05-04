@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
-import { Modal, Button, Icon, Spinner } from "@/shared/components/ui";
-import { ModalFooter } from "@/shared/components/ui";
+import { useState, useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
+import { Modal, Button, Icon, Spinner, DataTable } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui";
 import { getDocumentsReport } from "@/app/adapter/api/documents";
 import type { ReportParams, ReportResult, ReportDocument } from "@/app/adapter/api/documents/report";
 
@@ -66,7 +67,7 @@ function buildPayload(form: ReportParams): ReportParams {
   return p;
 }
 
-/** Formats an ISO date string to a human-readable "DD MMM YYYY" form. */
+/** Formats an ISO date/datetime string to "DD MMM YYYY". */
 function formatDate(iso: string | undefined | null): string {
   if (!iso) return "—";
   try {
@@ -80,7 +81,15 @@ function formatDate(iso: string | undefined | null): string {
   }
 }
 
-/** Bootstrap badge for document confidentiality level. */
+/** Copies text to clipboard and fires a success toast. */
+function copyToClipboard(text: string) {
+  void navigator.clipboard
+    .writeText(text)
+    .then(() => toast.success("Copied to clipboard", { autoClose: 2000 }))
+    .catch(() => toast.error("Failed to copy"));
+}
+
+/** Bootstrap badge variants for confidentiality level. */
 function ConfidentialityBadge({ level }: { level: string }) {
   const map: Record<string, string> = {
     public: "bg-success-subtle text-success",
@@ -89,9 +98,7 @@ function ConfidentialityBadge({ level }: { level: string }) {
     strict: "bg-danger-subtle text-danger",
   };
   const cls = map[level?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return (
-    <span className={`badge ${cls} text-capitalize`}>{level || "—"}</span>
-  );
+  return <span className={`badge ${cls} text-capitalize`}>{level || "—"}</span>;
 }
 
 /** Bootstrap badge for document state. */
@@ -102,12 +109,10 @@ function StateBadge({ state }: { state: string }) {
     trashed: "bg-danger-subtle text-danger",
   };
   const cls = map[state?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return (
-    <span className={`badge ${cls} text-capitalize`}>{state || "—"}</span>
-  );
+  return <span className={`badge ${cls} text-capitalize`}>{state || "—"}</span>;
 }
 
-/** Bootstrap badge for OCR processing status. */
+/** Bootstrap badge for OCR status. */
 function OcrBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     completed: "bg-success-subtle text-success",
@@ -116,78 +121,16 @@ function OcrBadge({ status }: { status: string }) {
     processing: "bg-info-subtle text-info",
   };
   const cls = map[status?.toLowerCase()] ?? "bg-secondary-subtle text-secondary";
-  return (
-    <span className={`badge ${cls} text-capitalize`}>{status || "—"}</span>
-  );
-}
-
-/** Results table for the fetched report data. */
-function ResultsTable({ data }: { data: ReportDocument[] }) {
-  if (data.length === 0) {
-    return (
-      <div className="text-center py-5 text-muted">
-        <Icon name="file-search-corner" className="mb-2 opacity-40" style={{ width: 40, height: 40 }} />
-        <p className="mb-0">No documents matched your filters.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="documents-report-modal__table-wrap">
-      <table className="table table-sm table-hover documents-report-modal__table mb-0">
-        <thead className="table-light">
-          <tr>
-            <th className="text-nowrap">ID</th>
-            <th className="text-nowrap">Name</th>
-            <th className="text-nowrap">Barcode</th>
-            <th className="text-nowrap">Upload Date</th>
-            <th className="text-nowrap">Uploader</th>
-            <th className="text-nowrap">Department</th>
-            <th className="text-nowrap">Doc Type</th>
-            <th className="text-nowrap">Company</th>
-            <th className="text-nowrap">Folder</th>
-            <th className="text-nowrap">Confidentiality</th>
-            <th className="text-nowrap">State</th>
-            <th className="text-nowrap text-center">Ver.</th>
-            <th className="text-nowrap">OCR</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((doc) => (
-            <tr key={doc.id}>
-              <td className="text-muted fs-12">{doc.id}</td>
-              <td className="fw-medium">{doc.name}</td>
-              <td>
-                <code className="fs-12">{doc.barcode}</code>
-              </td>
-              <td className="text-nowrap fs-12">{formatDate(doc.upload_date)}</td>
-              <td className="text-nowrap">{doc.uploader_name}</td>
-              <td className="text-nowrap">{doc.department_name}</td>
-              <td className="text-nowrap">{doc.document_type_name}</td>
-              <td className="text-nowrap">{doc.company_name || <span className="text-muted">—</span>}</td>
-              <td className="text-nowrap">{doc.folder_name || <span className="text-muted">—</span>}</td>
-              <td>
-                <ConfidentialityBadge level={doc.confidentiality_level} />
-              </td>
-              <td>
-                <StateBadge state={doc.state} />
-              </td>
-              <td className="text-center">{doc.version_count}</td>
-              <td>
-                <OcrBadge status={doc.ocr_status} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  return <span className={`badge ${cls} text-capitalize`}>{status || "—"}</span>;
 }
 
 /**
- * DocumentsReportModal – two-phase modal:
- * 1. Filter form: all fields optional, fetches all docs up to today on Proceed.
- * 2. Results view: summary stats + scrollable table + pagination.
+ * DocumentsReportModal – fully refactored two-phase modal:
+ *
+ * Phase 1 (form): all optional filter fields at the top; Submit in footer.
+ * Phase 2 (results): summary stats strip + search box + DataTable with a
+ *   copy-to-clipboard icon on the Name column; pagination on the opposite
+ *   side from New Search / Close to support both LTR and RTL layouts.
  */
 export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalProps) {
   const [phase, setPhase] = useState<Phase>("form");
@@ -195,8 +138,12 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
   const [result, setResult] = useState<ReportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
-  /** Reset local state and close. */
+  /** Detect current document direction for RTL-aware footer layout. */
+  const isRtl = document.documentElement.dir === "rtl";
+
+  /** Reset state and close the modal. */
   const handleClose = useCallback(() => {
     onClose();
     setTimeout(() => {
@@ -204,20 +151,23 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
       setResult(null);
       setError(null);
       setForm(DEFAULT_FORM);
+      setSearch("");
     }, 250);
   }, [onClose]);
 
-  /** Go back to the filter form to run a new search. */
+  /** Return to the filter form without resetting field values. */
   const handleNewSearch = useCallback(() => {
     setPhase("form");
     setResult(null);
     setError(null);
+    setSearch("");
   }, []);
 
-  /** Fetch the report with the current form values. */
-  const handleProceed = useCallback(async () => {
+  /** Fetch the report using the current form values. */
+  const handleSubmit = useCallback(async () => {
     setPhase("loading");
     setError(null);
+    setSearch("");
     try {
       const data = await getDocumentsReport(buildPayload({ ...form, page: 1 }));
       setForm((prev) => ({ ...prev, page: 1 }));
@@ -229,11 +179,12 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
     }
   }, [form]);
 
-  /** Fetch a specific page while staying in results view. */
+  /** Navigate to a different page of results. */
   const handlePageChange = useCallback(
     async (newPage: number) => {
       if (!result) return;
       setPageLoading(true);
+      setError(null);
       try {
         const data = await getDocumentsReport(buildPayload({ ...form, page: newPage }));
         setForm((prev) => ({ ...prev, page: newPage }));
@@ -247,400 +198,597 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
     [form, result]
   );
 
-  /** Generic field setter for the filter form. */
-  const setField = <K extends keyof ReportParams>(key: K, value: ReportParams[K]) => {
+  /** Generic form field setter. */
+  const setField = <K extends keyof ReportParams>(key: K, value: ReportParams[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
-  };
+
+  /** Client-side search filter: matches name or barcode case-insensitively. */
+  const displayedData = useMemo(() => {
+    if (!result?.data) return [];
+    if (!search.trim()) return result.data;
+    const q = search.toLowerCase();
+    return result.data.filter(
+      (d) =>
+        d.name?.toLowerCase().includes(q) ||
+        d.barcode?.toLowerCase().includes(q) ||
+        d.uploader_name?.toLowerCase().includes(q) ||
+        d.department_name?.toLowerCase().includes(q)
+    );
+  }, [result?.data, search]);
+
+  /** DataTable column definitions for report results. */
+  const columns = useMemo<ColumnDef<ReportDocument>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Name",
+        width: "280px",
+        render: (doc) => (
+          <div className="drm-name-cell">
+            <span className="drm-name-text" title={doc.name}>
+              {doc.name}
+            </span>
+            <button
+              type="button"
+              className="drm-copy-btn"
+              title="Copy name"
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(doc.name);
+              }}
+            >
+              <Icon name="copy" />
+            </button>
+          </div>
+        ),
+      },
+      {
+        id: "barcode",
+        header: "Barcode",
+        width: "140px",
+        render: (doc) => <code className="fs-12">{doc.barcode}</code>,
+      },
+      {
+        id: "upload_date",
+        header: "Upload Date",
+        width: "110px",
+        render: (doc) => <span className="text-nowrap fs-12">{formatDate(doc.upload_date)}</span>,
+      },
+      {
+        id: "uploader_name",
+        header: "Uploader",
+        width: "120px",
+        render: (doc) => doc.uploader_name,
+      },
+      {
+        id: "department_name",
+        header: "Department",
+        width: "130px",
+        render: (doc) => doc.department_name,
+      },
+      {
+        id: "document_type_name",
+        header: "Doc Type",
+        width: "110px",
+        render: (doc) => doc.document_type_name,
+      },
+      {
+        id: "company_name",
+        header: "Company",
+        width: "110px",
+        render: (doc) => doc.company_name || <span className="text-muted">—</span>,
+      },
+      {
+        id: "folder_name",
+        header: "Folder",
+        width: "120px",
+        render: (doc) => doc.folder_name || <span className="text-muted">—</span>,
+      },
+      {
+        id: "confidentiality_level",
+        header: "Confidentiality",
+        width: "120px",
+        render: (doc) => <ConfidentialityBadge level={doc.confidentiality_level} />,
+      },
+      {
+        id: "state",
+        header: "State",
+        width: "90px",
+        render: (doc) => <StateBadge state={doc.state} />,
+      },
+      {
+        id: "version_count",
+        header: "Ver.",
+        width: "60px",
+        headerClassName: "text-center",
+        className: "text-center",
+        render: (doc) => doc.version_count,
+      },
+      {
+        id: "ocr_status",
+        header: "OCR",
+        width: "90px",
+        render: (doc) => <OcrBadge status={doc.ocr_status} />,
+      },
+    ],
+    []
+  );
+
+  const hasPagination = result ? result.pagination.total_pages > 1 : false;
+  const canPrev = result ? result.pagination.page > 1 && !pageLoading : false;
+  const canNext = result
+    ? result.pagination.page < result.pagination.total_pages && !pageLoading
+    : false;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="xl">
-      {/* ── Colored header ── */}
-      <div className="documents-report-modal__header">
+    <Modal isOpen={isOpen} onClose={handleClose} size="xl" className="drm-outer">
+      {/* ── Flush gradient header ─────────────────────────────── */}
+      <div className="drm-header">
         <div className="d-flex align-items-center gap-3">
-          <div className="documents-report-modal__header-icon">
+          <div className="drm-header__icon">
             <Icon name="bar-chart-2" />
           </div>
           <div>
-            <h5 className="mb-0 fw-semibold text-white">Fetch Uploaded Documents</h5>
-            <p className="mb-0 fs-13 documents-report-modal__header-subtitle">
+            <h5 className="mb-0 fw-semibold text-white lh-1">
+              Fetch Uploaded Documents
+            </h5>
+            <p className="mb-0 drm-header__subtitle">
               Generate a custom report with optional filters
             </p>
           </div>
         </div>
         <button
           type="button"
-          className="btn-close btn-close-white"
+          className="btn-close btn-close-white flex-shrink-0"
           onClick={handleClose}
           aria-label="Close"
         />
       </div>
 
-      {/* ── Phase: form ── */}
-      {phase === "form" && (
-        <>
-          <div className="alert alert-info d-flex align-items-start gap-2 mb-4 py-2 mt-2">
-            <Icon name="info" className="flex-shrink-0 mt-1" style={{ width: "1em", height: "1em" }} />
-            <span className="fs-13">
-              All fields below are <strong>optional</strong>. Clicking <strong>Proceed</strong> without
-              filling any field will fetch <strong>all documents up to today</strong>. When both an ID and a
-              name are provided for the same filter, the ID takes priority.
-            </span>
+      {/* ── Scrollable body ───────────────────────────────────── */}
+      <div className="drm-body">
+
+        {/* ── Phase: form ── */}
+        {(phase === "form" || phase === "loading") && (
+          <div className="drm-section">
+            <div className="alert alert-info d-flex align-items-start gap-2 py-2 mb-4">
+              <Icon name="info" className="flex-shrink-0 mt-1" />
+              <span className="fs-13">
+                All fields are <strong>optional</strong>. Submitting without filters fetches{" "}
+                <strong>all documents up to today</strong>. When both an ID and name are given,
+                the ID takes priority.
+              </span>
+            </div>
+
+            <div className="row g-3">
+              {/* Date Range */}
+              <div className="col-12">
+                <p className="drm-section-label">Date Range</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">From Date</label>
+                    <input
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={form.from_date ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("from_date", e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">To Date</label>
+                    <input
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={form.to_date ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("to_date", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Company */}
+              <div className="col-12">
+                <p className="drm-section-label">Company / Brand</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Company ID</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. 7436"
+                      value={form.company_id ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField("company_id", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Company Name</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. ALCAN"
+                      value={form.company_name ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("company_name", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Department */}
+              <div className="col-12">
+                <p className="drm-section-label">Department</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Department ID</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. 4"
+                      value={form.department_id ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField("department_id", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Department Name</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. Supply Chain"
+                      value={form.department_name ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("department_name", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Document Type */}
+              <div className="col-12">
+                <p className="drm-section-label">Document Type</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Document Type ID</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. 5"
+                      value={form.document_type_id ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField(
+                          "document_type_id",
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Document Type Name</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. Invoice"
+                      value={form.document_type ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("document_type", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Uploader */}
+              <div className="col-12">
+                <p className="drm-section-label">Uploader</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Uploader ID</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. 2"
+                      value={form.uploader_id ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField("uploader_id", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Uploader Name</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. admin"
+                      value={form.uploader_name ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("uploader_name", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Folder */}
+              <div className="col-12">
+                <p className="drm-section-label">Folder</p>
+                <div className="row g-2">
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Folder ID</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. 45"
+                      value={form.folder_id ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField("folder_id", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fs-13">Folder Name</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="e.g. ALCAN-386"
+                      value={form.folder_name ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("folder_name", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional filters */}
+              <div className="col-12">
+                <p className="drm-section-label">Additional Filters</p>
+                <div className="row g-2">
+                  <div className="col-md-4">
+                    <label className="form-label fs-13">Confidentiality Level</label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={form.confidentiality_level ?? ""}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("confidentiality_level", e.target.value)}
+                    >
+                      {CONFIDENTIALITY_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fs-13">State</label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={form.state ?? "active"}
+                      disabled={phase === "loading"}
+                      onChange={(e) => setField("state", e.target.value)}
+                    >
+                      {STATE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fs-13">Results per page</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      min={1}
+                      max={500}
+                      value={form.per_page ?? 50}
+                      disabled={phase === "loading"}
+                      onChange={(e) =>
+                        setField(
+                          "per_page",
+                          Math.min(500, Math.max(1, Number(e.target.value) || 50))
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="alert alert-danger mt-3 mb-0 fs-13 d-flex align-items-center gap-2">
+                <Icon name="x" className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {phase === "loading" && (
+              <div className="d-flex align-items-center gap-2 mt-4 text-muted fs-13">
+                <Spinner size="sm" />
+                Fetching documents report…
+              </div>
+            )}
           </div>
+        )}
 
-          <div className="row g-3">
-            {/* Date Range */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Date Range</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">From Date</label>
-                  <input
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={form.from_date ?? ""}
-                    onChange={(e) => setField("from_date", e.target.value)}
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">To Date</label>
-                  <input
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={form.to_date ?? ""}
-                    onChange={(e) => setField("to_date", e.target.value)}
-                  />
-                </div>
-              </div>
+        {/* ── Phase: results ── */}
+        {phase === "results" && result && (
+          <div className="drm-section">
+            {/* Summary stats strip */}
+            <div className="drm-summary">
+              <span className="drm-summary__item">
+                <strong>Total Documents:</strong> {result.summary.total.toLocaleString()}
+              </span>
+              <span className="drm-summary__item">
+                <strong>Pages:</strong> {result.pagination.total_pages}
+              </span>
+              <span className="drm-summary__item">
+                <strong>From:</strong> {formatDate(result.summary.from_date)}
+              </span>
+              <span className="drm-summary__item">
+                <strong>To:</strong> {formatDate(result.summary.to_date)}
+              </span>
+              {Object.keys(result.summary.filters ?? {}).length > 0 && (
+                <span className="drm-summary__item">
+                  <strong>Active Filters:</strong>{" "}
+                  {Object.keys(result.summary.filters).length}
+                </span>
+              )}
             </div>
 
-            {/* Company */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Company / Brand</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Company ID</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. 7436"
-                    value={form.company_id ?? ""}
-                    onChange={(e) =>
-                      setField("company_id", e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Company Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. ALCAN"
-                    value={form.company_name ?? ""}
-                    onChange={(e) => setField("company_name", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Department */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Department</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Department ID</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. 4"
-                    value={form.department_id ?? ""}
-                    onChange={(e) =>
-                      setField("department_id", e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Department Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. Supply Chain"
-                    value={form.department_name ?? ""}
-                    onChange={(e) => setField("department_name", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Document Type */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Document Type</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Document Type ID</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. 5"
-                    value={form.document_type_id ?? ""}
-                    onChange={(e) =>
-                      setField("document_type_id", e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Document Type Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. Invoice"
-                    value={form.document_type ?? ""}
-                    onChange={(e) => setField("document_type", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Uploader */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Uploader</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Uploader ID</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. 2"
-                    value={form.uploader_id ?? ""}
-                    onChange={(e) =>
-                      setField("uploader_id", e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Uploader Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. admin"
-                    value={form.uploader_name ?? ""}
-                    onChange={(e) => setField("uploader_name", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Folder */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Folder</p>
-              <div className="row g-2">
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Folder ID</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. 45"
-                    value={form.folder_id ?? ""}
-                    onChange={(e) =>
-                      setField("folder_id", e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fs-13">Folder Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    placeholder="e.g. ALCAN-386"
-                    value={form.folder_name ?? ""}
-                    onChange={(e) => setField("folder_name", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Confidentiality + State + Per Page */}
-            <div className="col-12">
-              <p className="documents-report-modal__section-label">Additional Filters</p>
-              <div className="row g-2">
-                <div className="col-md-4">
-                  <label className="form-label fs-13">Confidentiality Level</label>
-                  <select
-                    className="form-select form-select-sm"
-                    value={form.confidentiality_level ?? ""}
-                    onChange={(e) => setField("confidentiality_level", e.target.value)}
+            {/* Inline search */}
+            <div className="mb-3">
+              <div className="input-group input-group-sm">
+                <span className="input-group-text">
+                  <Icon name="search" style={{ width: "0.85em", height: "0.85em" }} />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by name, barcode, uploader, department…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setSearch("")}
+                    title="Clear search"
                   >
-                    {CONFIDENTIALITY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fs-13">State</label>
-                  <select
-                    className="form-select form-select-sm"
-                    value={form.state ?? "active"}
-                    onChange={(e) => setField("state", e.target.value)}
-                  >
-                    {STATE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fs-13">Results per page</label>
-                  <input
-                    type="number"
-                    className="form-control form-control-sm"
-                    min={1}
-                    max={500}
-                    value={form.per_page ?? 50}
-                    onChange={(e) =>
-                      setField("per_page", Math.min(500, Math.max(1, Number(e.target.value) || 50)))
-                    }
-                  />
-                </div>
+                    <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
+                  </button>
+                )}
               </div>
+              {search && (
+                <p className="text-muted fs-12 mt-1 mb-0">
+                  Showing {displayedData.length} of {result.data.length} loaded results
+                </p>
+              )}
+            </div>
+
+            {pageLoading && (
+              <div className="d-flex align-items-center gap-2 mb-2 text-muted fs-13">
+                <Spinner size="sm" />
+                Loading page…
+              </div>
+            )}
+
+            {error && (
+              <div className="alert alert-danger mb-3 fs-13 py-2">{error}</div>
+            )}
+
+            {/* Results table */}
+            <div className="drm-table-wrap">
+              <DataTable<ReportDocument>
+                data={displayedData}
+                getRowId={(row) => row.id}
+                columns={columns}
+                loading={pageLoading}
+                emptyMessage="No documents matched your filters."
+                tableClassName="table table-hover table-sm mb-0 drm-table"
+                responsive="table"
+              />
             </div>
           </div>
+        )}
+      </div>
 
-          {error && (
-            <div className="alert alert-danger mt-3 mb-0 fs-13 d-flex align-items-center gap-2">
-              <Icon name="x" className="flex-shrink-0" />
-              {error}
-            </div>
+      {/* ── Fixed footer ─────────────────────────────────────── */}
+      <div className="drm-footer">
+        {/* Pagination group: left side in LTR, right side in RTL */}
+        <div className={`d-flex gap-2 ${isRtl ? "order-2" : "order-1"}`}>
+          {phase === "results" && hasPagination && (
+            <>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center"
+                disabled={!canPrev}
+                onClick={() => void handlePageChange(result!.pagination.page - 1)}
+              >
+                <Icon name="chevron-left" className="me-1" />
+                Prev
+              </Button>
+              <span className="d-flex align-items-center fs-13 text-muted px-1">
+                {result!.pagination.page} / {result!.pagination.total_pages}
+              </span>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center"
+                disabled={!canNext}
+                onClick={() => void handlePageChange(result!.pagination.page + 1)}
+              >
+                Next
+                <Icon name="chevron-right" className="ms-1" />
+              </Button>
+            </>
           )}
+        </div>
 
-          <ModalFooter>
+        {/* Action group: right side in LTR, left side in RTL */}
+        <div className={`d-flex gap-2 ${isRtl ? "order-1" : "order-2"}`}>
+          {phase === "form" && (
+            <>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary"
+                onClick={handleClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                isLoading={false}
+                disabled={false}
+                onClick={() => void handleSubmit()}
+              >
+                Submit
+              </Button>
+            </>
+          )}
+          {phase === "loading" && (
             <Button
               variant="outline"
               size="md"
               className="btn-outline-secondary"
-              onClick={handleClose}
+              disabled
             >
               Cancel
             </Button>
-            <Button variant="primary" size="md" onClick={() => void handleProceed()}>
-              <Icon name="search" className="me-2" />
-              Proceed
-            </Button>
-          </ModalFooter>
-        </>
-      )}
-
-      {/* ── Phase: loading ── */}
-      {phase === "loading" && (
-        <div className="d-flex flex-column align-items-center justify-content-center py-5 gap-3">
-          <Spinner size="lg" />
-          <p className="text-muted mb-0 fs-14">Fetching documents report…</p>
+          )}
+          {phase === "results" && (
+            <>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary d-inline-flex align-items-center"
+                onClick={handleNewSearch}
+              >
+                <Icon name="arrow-left" className="me-1" />
+                New Search
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                className="btn-outline-secondary"
+                onClick={handleClose}
+              >
+                Close
+              </Button>
+            </>
+          )}
         </div>
-      )}
-
-      {/* ── Phase: results ── */}
-      {phase === "results" && result && (
-        <>
-          {/* Summary stats strip */}
-          <div className="documents-report-modal__summary">
-            <div className="documents-report-modal__stat">
-              <span className="documents-report-modal__stat-value">
-                {result.summary.total.toLocaleString()}
-              </span>
-              <span className="documents-report-modal__stat-label">Total Documents</span>
-            </div>
-            <div className="documents-report-modal__stat">
-              <span className="documents-report-modal__stat-value">
-                {result.pagination.total_pages}
-              </span>
-              <span className="documents-report-modal__stat-label">Pages</span>
-            </div>
-            <div className="documents-report-modal__stat">
-              <span className="documents-report-modal__stat-value">
-                {formatDate(result.summary.from_date)}
-              </span>
-              <span className="documents-report-modal__stat-label">From</span>
-            </div>
-            <div className="documents-report-modal__stat">
-              <span className="documents-report-modal__stat-value">
-                {formatDate(result.summary.to_date)}
-              </span>
-              <span className="documents-report-modal__stat-label">To</span>
-            </div>
-            {Object.keys(result.summary.filters ?? {}).length > 0 && (
-              <div className="documents-report-modal__stat">
-                <span className="documents-report-modal__stat-value">
-                  {Object.keys(result.summary.filters).length}
-                </span>
-                <span className="documents-report-modal__stat-label">Active Filters</span>
-              </div>
-            )}
-          </div>
-
-          {/* Page-level loading overlay */}
-          {pageLoading && (
-            <div className="d-flex align-items-center gap-2 my-2 text-muted fs-13">
-              <Spinner size="sm" />
-              Loading page…
-            </div>
-          )}
-
-          {error && (
-            <div className="alert alert-danger mb-2 fs-13 py-2">{error}</div>
-          )}
-
-          <ResultsTable data={result.data} />
-
-          {/* Pagination controls */}
-          {result.pagination.total_pages > 1 && (
-            <div className="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2">
-              <span className="text-muted fs-13">
-                Page <strong>{result.pagination.page}</strong> of{" "}
-                <strong>{result.pagination.total_pages}</strong> &middot;{" "}
-                {result.pagination.total.toLocaleString()} total
-              </span>
-              <div className="d-flex gap-2">
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="btn-outline-secondary d-inline-flex align-items-center"
-                  disabled={result.pagination.page <= 1 || pageLoading}
-                  onClick={() => void handlePageChange(result.pagination.page - 1)}
-                >
-                  <Icon name="chevron-left" className="me-1" />
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="btn-outline-secondary d-inline-flex align-items-center"
-                  disabled={result.pagination.page >= result.pagination.total_pages || pageLoading}
-                  onClick={() => void handlePageChange(result.pagination.page + 1)}
-                >
-                  Next
-                  <Icon name="chevron-right" className="ms-1" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <ModalFooter>
-            <Button
-              variant="outline"
-              size="md"
-              className="btn-outline-secondary d-inline-flex align-items-center"
-              onClick={handleNewSearch}
-            >
-              <Icon name="arrow-left" className="me-1" />
-              New Search
-            </Button>
-            <Button variant="outline" size="md" className="btn-outline-secondary" onClick={handleClose}>
-              Close
-            </Button>
-          </ModalFooter>
-        </>
-      )}
+      </div>
     </Modal>
   );
 }

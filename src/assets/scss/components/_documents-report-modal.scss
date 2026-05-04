@@ -1,7 +1,9 @@
-// Documents Report Modal – styles for the fetch-documents report feature.
+// Documents Report Modal (DRM) – styles for the fetch-documents report feature.
+// Class prefix: drm-  (short prefix keeps selectors concise).
 
-// Outline button that follows the runtime CSS-variable theme colour (--primary-rgb)
-// instead of Bootstrap's compiled $primary (which won't reflect theme switches).
+// ── Theme-following outline button ──────────────────────────────────────────
+// Bootstrap's btn-outline-primary uses the compiled SCSS $primary (not the
+// runtime CSS variable), so we define our own CSS-var-based outline class.
 .btn-outline-theme {
   color: rgba(var(--primary-rgb), 1);
   border-color: rgba(var(--primary-rgb), 1);
@@ -16,108 +18,191 @@
   }
 }
 
-.documents-report-modal {
-  // ── Header strip with primary gradient ──────────────────────────────────────
-  &__header {
+// ── Outer modal: remove modal-body padding so the header is fully flush ──────
+.drm-outer {
+  // Override default Bootstrap modal-body padding so we fully control spacing.
+  .modal-content {
+    overflow: hidden; // lets modal-content border-radius clip the header
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    background: linear-gradient(
-      135deg,
-      rgba(var(--primary-rgb), 1) 0%,
-      rgba(var(--primary-rgb), 0.8) 100%
-    );
-    border-radius: 0.5rem;
-    padding: 1rem 1.25rem;
-    margin: -1rem -1rem 1.25rem -1rem; // bleed to modal-body edges
+    flex-direction: column;
+    max-height: 90vh;
   }
 
-  &__header-icon {
+  .modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden; // body handles scroll via drm-body child
+  }
+}
+
+// ── Gradient header – flush with modal-content top ───────────────────────────
+.drm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 1) 0%,
+    rgba(var(--primary-rgb), 0.78) 100%
+  );
+  flex-shrink: 0;
+
+  &__icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.4rem;
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
-    font-size: 1.25rem;
     flex-shrink: 0;
+    font-size: 1.1rem;
   }
 
-  &__header-subtitle {
+  &__subtitle {
     color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.8rem;
+    margin-top: 0.1rem;
   }
+}
 
-  // ── Section label above each field group ────────────────────────────────────
-  &__section-label {
-    margin-bottom: 0.4rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text-muted, #6c757d);
-  }
+// ── Scrollable body area ──────────────────────────────────────────────────────
+.drm-body {
+  flex: 1;
+  overflow-y: auto;
+}
 
-  // ── Summary stats strip shown above results ──────────────────────────────────
-  &__summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    background: rgba(var(--primary-rgb), 0.06);
-    border: 1px solid rgba(var(--primary-rgb), 0.15);
-    border-radius: 0.5rem;
-    padding: 0.85rem 1.25rem;
-    margin-bottom: 1rem;
-  }
+// ── Section padding (used inside form & results areas) ───────────────────────
+.drm-section {
+  padding: 1.25rem;
+}
 
-  &__stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
+// ── Section label (e.g. "DATE RANGE") ───────────────────────────────────────
+.drm-section-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--app-muted-color, #6b7280);
+}
 
-  &__stat-value {
-    font-size: 1rem;
-    font-weight: 700;
-    color: rgba(var(--primary-rgb), 1);
-    line-height: 1.2;
-  }
+// ── Summary stats strip ──────────────────────────────────────────────────────
+.drm-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  padding: 0.65rem 1rem;
+  background: rgba(var(--primary-rgb), 0.07);
+  border: 1px solid rgba(var(--primary-rgb), 0.18);
+  border-radius: 0.375rem;
+  margin-bottom: 0.875rem;
+  font-size: 0.8125rem; // 13px
 
-  &__stat-label {
-    font-size: 0.7rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted, #6c757d);
-  }
+  &__item {
+    white-space: nowrap;
+    color: var(--app-text-color, #374151);
 
-  // ── Scrollable table wrapper ─────────────────────────────────────────────────
-  &__table-wrap {
-    overflow-x: auto;
-    max-height: 400px;
-    overflow-y: auto;
-    border: 1px solid var(--border-color, #dee2e6);
-    border-radius: 0.375rem;
-  }
-
-  &__table {
-    font-size: 0.8125rem; // 13px
-
-    thead th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: var(--bs-table-bg, #f8f9fa);
+    strong {
       font-weight: 600;
-      white-space: nowrap;
-      padding: 0.5rem 0.75rem;
-    }
-
-    tbody td {
-      padding: 0.45rem 0.75rem;
-      vertical-align: middle;
+      color: var(--app-title-color, #202c4b);
     }
   }
+}
+
+// ── Results table wrapper ────────────────────────────────────────────────────
+.drm-table-wrap {
+  border: 1px solid var(--app-border-color, #e5e7eb);
+  border-radius: 0.375rem;
+  overflow: hidden; // clips DataTable's own borders at rounded corners
+
+  // Allow horizontal scroll when many columns are shown
+  overflow-x: auto;
+
+  // Constrain table height so the modal footer always stays visible
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.drm-table {
+  font-size: 0.8125rem;
+  margin-bottom: 0 !important;
+
+  thead th {
+    // Sticky header inside the scrollable wrapper
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--bs-table-bg, #f8f9fa);
+    white-space: nowrap;
+    padding: 0.5rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tbody td {
+    padding: 0.4rem 0.65rem;
+    vertical-align: middle;
+  }
+}
+
+// ── Name cell: name text + copy icon ────────────────────────────────────────
+.drm-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0; // allow flexbox text truncation
+}
+
+.drm-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.drm-copy-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0.15rem;
+  border-radius: 0.25rem;
+  color: var(--app-muted-color, #6b7280);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s;
+  font-size: 0.75rem;
+
+  &:hover {
+    opacity: 1;
+    color: rgba(var(--primary-rgb), 1);
+  }
+
+  &:focus {
+    outline: 2px solid rgba(var(--primary-rgb), 0.4);
+    outline-offset: 1px;
+  }
+}
+
+// ── Fixed footer ─────────────────────────────────────────────────────────────
+.drm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--app-border-color, #e5e7eb);
+  background: var(--bs-body-bg, #fff);
+  flex-shrink: 0;
 }
