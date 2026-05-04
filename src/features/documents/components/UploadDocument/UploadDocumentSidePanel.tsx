@@ -18,6 +18,7 @@ import { UploadDocumentFormContent } from "./UploadDocumentFormContent";
 import { UploadDocumentActions } from "./UploadDocumentActions";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useUploadSubmit } from "./useUploadSubmit";
+import { FailedUploadsModal } from "./FailedUploadsModal";
 
 /** Upload side panel: composes form state, submit logic, and target/file/optional/actions sections. */
 function UploadDocumentSidePanel({
@@ -38,6 +39,7 @@ function UploadDocumentSidePanel({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isFailedModalOpen, setIsFailedModalOpen] = useState(false);
 
   const submitLogic = useUploadSubmit({ onSuccess, onClose, t, setSubmitError });
   const resolver = useMemo(() => createUploadDocumentResolver(t), [t]);
@@ -176,6 +178,11 @@ function UploadDocumentSidePanel({
       setIsUploading(true);
       try {
         await submitLogic.onSubmit(data, selectedFiles, departmentId, lockFolderContext);
+        
+        // After upload completes, check if there are failed files and show modal
+        if (submitLogic.failedUploads.length > 0) {
+          setIsFailedModalOpen(true);
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Upload failed";
         setSubmitError(msg);
@@ -184,7 +191,7 @@ function UploadDocumentSidePanel({
         setIsUploading(false);
       }
     },
-    [selectedFiles, departmentId, lockFolderContext, submitLogic.onSubmit]
+    [selectedFiles, departmentId, lockFolderContext, submitLogic.onSubmit, submitLogic.failedUploads.length]
   );
 
   const handleUploadClick = useCallback(async () => {
@@ -287,8 +294,20 @@ function UploadDocumentSidePanel({
 
   const tagOptions: SelectOption[] = useMemo(() => tags.map((tag) => ({ value: tag.id, label: tag.name })), [tags]);
 
+  const handleCloseFailedModal = useCallback(() => {
+    setIsFailedModalOpen(false);
+    submitLogic.clearFailedUploads();
+  }, [submitLogic]);
+
   return (
-    <SidePanel
+    <>
+      <FailedUploadsModal
+        isOpen={isFailedModalOpen}
+        onClose={handleCloseFailedModal}
+        failedFiles={submitLogic.failedUploads}
+      />
+      
+      <SidePanel
       isOpen={isOpen}
       onClose={onClose}
       closeOnBackdropClick={false}
@@ -349,6 +368,7 @@ function UploadDocumentSidePanel({
         />
       </form>
     </SidePanel>
+    </>
   );
 }
 
