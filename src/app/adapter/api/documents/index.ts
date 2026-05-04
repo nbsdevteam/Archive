@@ -21,10 +21,18 @@ export type {
   UpdateDocumentResponse,
   StartBulkUploadParams,
   BulkUploadStartData,
-  BulkUploadFilePayload,
+  BulkUploadUploadFileParams,
+  BulkUploadUploadFileResponse,
+  BulkUploadFinalizeData,
   BulkUploadProgressData,
   ListBulkUploadJobsParams,
   DeleteLikeResponse,
+  SingleCallBulkUploadParams,
+  SingleCallBulkUploadResponse,
+  UploadSingleFileParams,
+  UploadSingleFileResponse,
+  UploadSingleFileBaseParams,
+  UploadFileResult,
 } from './types';
 
 // ========== Utility Exports ==========
@@ -54,6 +62,9 @@ export * from './bulk-upload';
 
 // Batch Operations
 export * from './batch';
+
+// Report
+export * from './report';
 
 // ========== Backward Compatibility: documentsApi Object ==========
 import * as core from './core';
@@ -124,10 +135,14 @@ export const documentsApi = {
 
   // Bulk Upload
   startBulkUpload: bulkUpload.startBulkUpload,
-  uploadFilesToBulkJob: bulkUpload.uploadFilesToBulkJob,
+  uploadFileToBulkJob: bulkUpload.uploadFileToBulkJob,
+  finalizeBulkUpload: bulkUpload.finalizeBulkUpload,
   getBulkUploadProgress: bulkUpload.getBulkUploadProgress,
   cancelBulkUploadJob: bulkUpload.cancelBulkUploadJob,
   listBulkUploadJobs: bulkUpload.listBulkUploadJobs,
+  singleCallBulkUpload: bulkUpload.singleCallBulkUpload,
+  uploadSingleFile: bulkUpload.uploadSingleFile,
+  uploadFilesWithConcurrency: bulkUpload.uploadFilesWithConcurrency,
 
   // Batch Operations
   batchMoveDocumentsToFolder: batch.batchMoveDocumentsToFolder,

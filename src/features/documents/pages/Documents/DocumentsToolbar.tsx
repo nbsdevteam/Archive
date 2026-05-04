@@ -48,6 +48,7 @@ export interface DocumentsToolbarProps {
     handleOpenBatchMoveConfirm: () => void;
     handleOpenUpload: () => void;
     handleRefresh: () => void;
+    handleOpenReport: () => void;
   };
   modals: {
     isMoveSubmitting: boolean;
@@ -235,6 +236,12 @@ export function DocumentsToolbar({
   if (isMobileView) {
     const mobileMenuItems: MobileActionsMenuItem[] = [
       {
+        id: "fetch-report",
+        icon: "bar-chart-2",
+        label: t("documents.fetchReport", { defaultValue: "Fetch Uploaded Documents" }),
+        onClick: actions.handleOpenReport,
+      },
+      {
         id: "upload",
         icon: "file-up",
         label: t("documents.uploadDocuments", { defaultValue: "Upload Documents" }),
@@ -340,6 +347,16 @@ export function DocumentsToolbar({
         aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
       />
       {filterButtonJsx}
+      <Button
+        variant="outline"
+        size="md"
+        className="d-inline-flex align-items-center btn-outline-primary"
+        onClick={actions.handleOpenReport}
+        aria-label={t("documents.fetchReportAria", { defaultValue: "Fetch uploaded documents report" })}
+      >
+        <Icon name="bar-chart-2" className="me-2" />
+        {t("documents.fetchReport", { defaultValue: "Fetch Uploaded Documents" })}
+      </Button>
       <Button
         variant="outline"
         size="md"

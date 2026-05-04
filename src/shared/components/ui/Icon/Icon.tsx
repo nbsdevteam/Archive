@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   Archive,
+  BarChart2,
   Bell,
   Calendar,
   ChevronDown,
@@ -44,6 +45,7 @@ import {
 const iconMap = {
   home: Home,
   "smart-home": Home,
+  "bar-chart-2": BarChart2,
   upload: Upload,
   "file-up": FileUp,
   download: Download,

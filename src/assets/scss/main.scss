@@ -38,6 +38,8 @@
 @use "components/grid";
 @use "components/timeline";
 @use "components/sweetalert";
+@use "components/attachment-document-dropdown";
+@use "components/documents-report-modal";
 
 /****** Layout ******/
 @use "layout/common";
