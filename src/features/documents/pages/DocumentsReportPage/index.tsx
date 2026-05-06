@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import * as XLSX from "xlsx";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PaginationSection } from "@/shared/components/PaginationSection";
@@ -209,6 +210,7 @@ const DocumentsReportPage = () => {
   const [result, setResult] = useState<ReportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [search, setSearch] = useState("");
 
   /** Select options for confidentiality (reuses global confidentiality labels). */
@@ -325,6 +327,70 @@ const DocumentsReportPage = () => {
     },
     [form, result, t]
   );
+
+  /** Export all documents to Excel without pagination. */
+  const handleExportToExcel = useCallback(async () => {
+    if (!result) return;
+    setExportLoading(true);
+    try {
+      // Fetch ALL documents without pagination (per_page = large number or all)
+      const exportPayload = buildPayload({
+        ...form,
+        page: 1,
+        per_page: result.summary.total > 0 ? result.summary.total : 10000,
+      });
+      const allData = await getDocumentsReport(exportPayload);
+
+      // Map documents to Excel rows with translated headers
+      const excelData = allData.data.map((doc) => ({
+        [t("documents.report.colName")]: doc.name || "",
+        [t("documents.report.colBarcode")]: doc.barcode || "",
+        [t("documents.report.colUploadDate")]: formatReportDate(doc.upload_date, i18n.language),
+        [t("documents.report.colUploader")]: doc.uploader_name || "",
+        [t("documents.report.colDepartment")]: doc.department_name || "",
+        [t("documents.report.colDocType")]: doc.document_type_name || "",
+        [t("documents.report.colCompany")]: doc.company_name || "",
+        [t("documents.report.colFolder")]: doc.folder_name || "",
+        [t("documents.report.colRole")]: doc.document_role || "",
+        [t("documents.report.colConfidentiality")]: doc.confidentiality_level || "",
+        [t("documents.report.colState")]: doc.state || "",
+        [t("documents.report.colVer")]: doc.version_count?.toString() || "0",
+        [t("documents.report.colOcr")]: doc.ocr_status || "",
+        [t("documents.report.parentDocument").replace(" #{{id}}", "")]: doc.parent_document_id?.toString() || "",
+      }));
+
+      // Create workbook and worksheet
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, t("documents.report.pageTitle"));
+
+      // Auto-size columns
+      const maxWidth = 50;
+      const colWidths = Object.keys(excelData[0] || {}).map((key) => {
+        const maxLen = Math.max(
+          key.length,
+          ...excelData.map((row) => String(row[key] || "").length)
+        );
+        return { wch: Math.min(maxLen + 2, maxWidth) };
+      });
+      worksheet["!cols"] = colWidths;
+
+      // Generate filename with current date
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0];
+      const filename = `documents-report-${dateStr}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(workbook, filename);
+      toast.success(t("documents.report.exportSuccess"), { autoClose: 3000 });
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : t("documents.report.exportFailed");
+      toast.error(msg);
+    } finally {
+      setExportLoading(false);
+    }
+  }, [result, form, t, i18n.language]);
 
   /** Reset to the filter form without clearing field values (so user can refine). */
   const handleNewSearch = useCallback(() => {
@@ -824,38 +890,62 @@ const DocumentsReportPage = () => {
               )}
             </div>
 
-            {/* Inline search */}
-            <div className="drp-results-search">
-              <div className="input-group input-group-sm">
-                <span className="input-group-text">
-                  <Icon name="search" style={{ width: "0.85em", height: "0.85em" }} />
-                </span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={t("documents.report.searchPlaceholder")}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+            {/* Export button and search */}
+            <div className="d-flex align-items-start gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline-primary d-inline-flex align-items-center gap-1 flex-shrink-0"
+                onClick={() => void handleExportToExcel()}
+                disabled={exportLoading || pageLoading || !result.data.length}
+                title={t("documents.report.exportToExcel")}
+              >
+                {exportLoading ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span>{t("documents.report.exportingToExcel")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="download" style={{ width: "1em", height: "1em" }} />
+                    <span>{t("documents.report.exportToExcel")}</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Inline search */}
+              <div className="drp-results-search">
+                <div className="input-group input-group-sm">
+                  <span className="input-group-text">
+                    <Icon name="search" style={{ width: "0.85em", height: "0.85em" }} />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={t("documents.report.searchPlaceholder")}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => setSearch("")}
+                      title={t("documents.report.clearSearchAria")}
+                    >
+                      <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
+                    </button>
+                  )}
+                </div>
                 {search && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => setSearch("")}
-                    title={t("documents.report.clearSearchAria")}
-                  >
-                    <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
-                  </button>
+                  <p className="text-muted fs-12 mt-1 mb-0">
+                    {t("documents.report.showingCount", {
+                      shown: displayedData.length,
+                      total: result.data.length,
+                    })}
+                  </p>
                 )}
               </div>
-              {search && (
-                <p className="text-muted fs-12 mt-1 mb-0">
-                  {t("documents.report.showingCount", {
-                    shown: displayedData.length,
-                    total: result.data.length,
-                  })}
-                </p>
-              )}
             </div>
           </div>
 
