@@ -7,6 +7,31 @@
     width: 100%;
   }
 
+  /**
+   * Report results toolbar: same visual width as documents list search (~320px),
+   * not full card width (avoid flex:1 growth when only export sits beside it).
+   */
+  &__search-wrap--report.search-input {
+    width: min(100%, 320px);
+    max-width: 100%;
+    flex: 0 0 auto;
+  }
+
+  &__search-stack--report {
+    width: min(100%, 320px);
+    max-width: 100%;
+  }
+
+  @media (max-width: 576px) {
+    &__search-wrap--report.search-input {
+      width: 100%;
+    }
+
+    &__search-stack--report {
+      width: 100%;
+    }
+  }
+
   &__table-card {
     margin-bottom: 24px;
   }

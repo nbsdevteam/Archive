@@ -30,6 +30,8 @@ export interface SearchInputProps {
   clearAriaLabel?: string;
   /** Optional row below the field (e.g. filtered result counts). */
   footer?: ReactNode;
+  /** Classes merged onto the outer wrapper when `footer` is set (e.g. fixed width stack). */
+  stackClassName?: string;
   "aria-label"?: string;
 }
 
@@ -49,6 +51,7 @@ const SearchInputInner = ({
   clearable = false,
   clearAriaLabel = "Clear search",
   footer,
+  stackClassName = "",
   "aria-label": ariaLabel = "Search",
 }: SearchInputProps) => {
   const isControlled = controlledValue !== undefined;
@@ -140,7 +143,9 @@ const SearchInputInner = ({
   }
 
   return (
-    <div className="search-input-stack w-100">
+    <div
+      className={["search-input-stack", stackClassName].filter(Boolean).join(" ").trim()}
+    >
       {field}
       <div className="search-input__footer">{footer}</div>
     </div>

@@ -893,58 +893,56 @@ const DocumentsReportPage = () => {
               )}
             </div>
 
-            {/* Toolbar: same SearchInput as documents list; export at inline-end (right in LTR, left in RTL). */}
-            <div className="w-100">
-              <div className="d-flex flex-wrap align-items-center gap-2 w-100">
-                <div className="flex-grow-1 min-w-0" style={{ flexBasis: "min(100%, 320px)" }}>
-                  <SearchInput
-                    value={search}
-                    onImmediateChange={setSearch}
-                    debounceMs={0}
-                    onDebouncedChange={noopDebouncedSearch}
-                    placeholder={t("documents.report.searchPlaceholder")}
-                    icon="file-search-corner"
-                    wide
-                    highlight
-                    clearable
-                    clearAriaLabel={t("documents.report.clearSearchAria")}
-                    className="documents__search-wrap w-100"
-                    inputClassName="documents__search-input"
-                    aria-label={t("documents.report.searchPlaceholder")}
-                    footer={
-                      search.trim() ? (
-                        <p className="text-muted fs-12 mt-1 mb-0">
-                          {t("documents.report.showingCount", {
-                            shown: displayedData.length,
-                            total: result.data.length,
-                          })}
-                        </p>
-                      ) : undefined
-                    }
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="d-inline-flex align-items-center btn-outline-theme flex-shrink-0"
-                  onClick={() => void handleExportToExcel()}
-                  disabled={exportLoading || pageLoading || !result.data.length}
-                  title={t("documents.report.exportToExcel")}
-                  aria-label={t("documents.report.exportToExcel")}
-                >
-                  {exportLoading ? (
-                    <>
-                      <Spinner size="sm" className="me-2" />
-                      {t("documents.report.exportingToExcel")}
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="download" className="me-2" />
-                      {t("documents.report.exportToExcel")}
-                    </>
-                  )}
-                </Button>
-              </div>
+            {/* Toolbar: search matches documents list width (~320px); export at inline-end. */}
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 w-100">
+              <SearchInput
+                value={search}
+                onImmediateChange={setSearch}
+                debounceMs={0}
+                onDebouncedChange={noopDebouncedSearch}
+                placeholder={t("documents.report.searchPlaceholder")}
+                icon="file-search-corner"
+                highlight
+                clearable
+                clearAriaLabel={t("documents.report.clearSearchAria")}
+                className="documents__search-wrap documents__search-wrap--report"
+                stackClassName={
+                  search.trim() ? "documents__search-stack--report" : ""
+                }
+                inputClassName="documents__search-input"
+                aria-label={t("documents.report.searchPlaceholder")}
+                footer={
+                  search.trim() ? (
+                    <p className="text-muted fs-12 mt-1 mb-0">
+                      {t("documents.report.showingCount", {
+                        shown: displayedData.length,
+                        total: result.data.length,
+                      })}
+                    </p>
+                  ) : undefined
+                }
+              />
+              <Button
+                variant="outline"
+                size="md"
+                className="d-inline-flex align-items-center btn-outline-theme flex-shrink-0"
+                onClick={() => void handleExportToExcel()}
+                disabled={exportLoading || pageLoading || !result.data.length}
+                title={t("documents.report.exportToExcel")}
+                aria-label={t("documents.report.exportToExcel")}
+              >
+                {exportLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    {t("documents.report.exportingToExcel")}
+                  </>
+                ) : (
+                  <>
+                    <Icon name="download" className="me-2" />
+                    {t("documents.report.exportToExcel")}
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 

@@ -656,11 +656,13 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
                 onDebouncedChange={noopDebouncedSearch}
                 placeholder={t("documents.report.searchPlaceholder")}
                 icon="file-search-corner"
-                wide
                 highlight
                 clearable
                 clearAriaLabel={t("documents.report.clearSearchAria")}
-                className="documents__search-wrap w-100"
+                className="documents__search-wrap documents__search-wrap--report"
+                stackClassName={
+                  search.trim() ? "documents__search-stack--report" : ""
+                }
                 inputClassName="documents__search-input"
                 aria-label={t("documents.report.searchPlaceholder")}
                 footer={
