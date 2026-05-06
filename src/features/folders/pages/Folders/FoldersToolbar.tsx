@@ -10,6 +10,9 @@ export interface FoldersToolbarProps {
   foldersCountLabel: React.ReactNode;
   viewMode: "grid" | "list";
   setViewMode: (mode: "grid" | "list") => void;
+  isSomeSelected?: boolean;
+  selectedFolderIds?: number[];
+  isBatchDeleting?: boolean;
   filter: {
     isFilterOpen: boolean;
     handleOpenFilter: () => void;
@@ -38,7 +41,12 @@ export interface FoldersToolbarProps {
     dateRangeMode: "after" | "upto" | "between";
     hasAppliedDateFilter: boolean;
   };
-  actions: { handleSearchDebounced: (q: string) => void; handleRefresh: () => void };
+  actions: {
+    handleSearchDebounced: (q: string) => void;
+    handleRefresh: () => void;
+    handleOpenBatchDelete?: () => void;
+    handleOpenCreateFolder?: () => void;
+  };
   loading: boolean;
 }
 
@@ -48,6 +56,9 @@ export function FoldersToolbar({
   foldersCountLabel,
   viewMode,
   setViewMode,
+  isSomeSelected = false,
+  selectedFolderIds = [],
+  isBatchDeleting = false,
   filter,
   actions,
   loading,
@@ -163,11 +174,43 @@ export function FoldersToolbar({
       icon="folder-search"
       wide
       highlight
+      clearable
+      clearAriaLabel={t("folders.clearSearchAria")}
       className={isMobileView ? "w-100" : "folders__search-wrap"}
       inputClassName="folders__search-input"
       aria-label={t("folders.searchAria", { defaultValue: "Search folders" })}
     />
   );
+
+  const addFolderButtonJsx = actions.handleOpenCreateFolder ? (
+    <Button
+      variant="primary"
+      size="md"
+      className="d-inline-flex align-items-center"
+      onClick={actions.handleOpenCreateFolder}
+      aria-label={t("folders.addFolder", { defaultValue: "Add Folder" })}
+    >
+      <Icon name="folder-plus" className="me-1" />
+      {t("folders.addFolder", { defaultValue: "Add Folder" })}
+    </Button>
+  ) : null;
+
+  const batchDeleteButtonJsx = isSomeSelected && actions.handleOpenBatchDelete ? (
+    <Button
+      variant="outline"
+      size="md"
+      className="btn-outline-danger d-inline-flex align-items-center"
+      onClick={actions.handleOpenBatchDelete}
+      disabled={isBatchDeleting}
+      aria-label={t("folders.deleteSelected", { defaultValue: "Delete selected" })}
+    >
+      <Icon name="trash-2" className="me-1" />
+      {t("folders.deleteSelected", { defaultValue: "Delete selected" })}
+      {selectedFolderIds.length > 0 && (
+        <span className="badge bg-danger ms-2">{selectedFolderIds.length}</span>
+      )}
+    </Button>
+  ) : null;
 
   if (isMobileView) {
     const mobileMenuItems: MobileActionsMenuItem[] = [
@@ -191,6 +234,28 @@ export function FoldersToolbar({
         onClick: actions.handleRefresh,
       },
     ];
+
+    if (actions.handleOpenCreateFolder) {
+      mobileMenuItems.unshift({
+        id: "add-folder",
+        icon: "folder-plus",
+        label: t("folders.addFolder", { defaultValue: "Add Folder" }),
+        onClick: actions.handleOpenCreateFolder,
+      });
+    }
+    
+    if (isSomeSelected && actions.handleOpenBatchDelete) {
+      mobileMenuItems.push({
+        id: "batch-delete",
+        icon: "trash-2",
+        label: t("folders.deleteSelected", { defaultValue: "Delete selected" }),
+        badgeCount: selectedFolderIds.length,
+        onClick: actions.handleOpenBatchDelete,
+        disabled: isBatchDeleting,
+        variant: "danger",
+      });
+    }
+    
     return (
       <div className="card-header d-flex flex-column gap-2">
         <div className="d-flex align-items-center gap-2">
@@ -216,6 +281,8 @@ export function FoldersToolbar({
       countSlot={foldersCountLabel}
       rightClassName="folders__header-actions"
     >
+      {addFolderButtonJsx}
+      {batchDeleteButtonJsx}
       {searchInputJsx}
       {filterButtonJsx}
       {viewToggleJsx}

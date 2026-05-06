@@ -240,6 +240,8 @@ export default function CompaniesPage() {
                 icon="search"
                 wide
                 highlight
+                clearable
+                clearAriaLabel={t("companies.clearSearchAria")}
                 className="w-100"
                 aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
               />
@@ -260,6 +262,8 @@ export default function CompaniesPage() {
               icon="search"
               wide
               highlight
+              clearable
+              clearAriaLabel={t("companies.clearSearchAria")}
               className="companies__search-wrap"
               aria-label={t("companies.searchPlaceholder", { defaultValue: "Search companies" })}
             />

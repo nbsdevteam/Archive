@@ -1,9 +1,11 @@
 import { useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { Modal, Button, Icon, Spinner, DataTable } from "@/shared/components/ui";
+import { Modal, Button, Icon, Spinner, DataTable, SearchInput } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui";
 import { getDocumentsReport } from "@/app/adapter/api/documents";
 import type { ReportParams, ReportResult, ReportDocument } from "@/app/adapter/api/documents/report";
+import "@/features/documents/styles/documents.css";
 
 interface DocumentsReportModalProps {
   isOpen: boolean;
@@ -133,12 +135,15 @@ function OcrBadge({ status }: { status: string }) {
  *   side from New Search / Close to support both LTR and RTL layouts.
  */
 export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalProps) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("form");
   const [form, setForm] = useState<ReportParams>(DEFAULT_FORM);
   const [result, setResult] = useState<ReportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  const noopDebouncedSearch = useCallback((_value: string) => {}, []);
 
   /** Detect current document direction for RTL-aware footer layout. */
   const isRtl = document.documentElement.dir === "rtl";
@@ -642,35 +647,33 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
               )}
             </div>
 
-            {/* Inline search */}
+            {/* Inline search — same SearchInput as documents list / report page */}
             <div className="mb-3">
-              <div className="input-group input-group-sm">
-                <span className="input-group-text">
-                  <Icon name="search" style={{ width: "0.85em", height: "0.85em" }} />
-                </span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Search by name, barcode, uploader, department…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                {search && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => setSearch("")}
-                    title="Clear search"
-                  >
-                    <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
-                  </button>
-                )}
-              </div>
-              {search && (
-                <p className="text-muted fs-12 mt-1 mb-0">
-                  Showing {displayedData.length} of {result.data.length} loaded results
-                </p>
-              )}
+              <SearchInput
+                value={search}
+                onImmediateChange={setSearch}
+                debounceMs={0}
+                onDebouncedChange={noopDebouncedSearch}
+                placeholder={t("documents.report.searchPlaceholder")}
+                icon="file-search-corner"
+                wide
+                highlight
+                clearable
+                clearAriaLabel={t("documents.report.clearSearchAria")}
+                className="documents__search-wrap w-100"
+                inputClassName="documents__search-input"
+                aria-label={t("documents.report.searchPlaceholder")}
+                footer={
+                  search.trim() ? (
+                    <p className="text-muted fs-12 mt-1 mb-0">
+                      {t("documents.report.showingCount", {
+                        shown: displayedData.length,
+                        total: result.data.length,
+                      })}
+                    </p>
+                  ) : undefined
+                }
+              />
             </div>
 
             {pageLoading && (

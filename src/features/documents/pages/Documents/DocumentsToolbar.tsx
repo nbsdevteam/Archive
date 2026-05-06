@@ -319,6 +319,8 @@ export function DocumentsToolbar({
             icon="file-search-corner"
             wide
             highlight
+            clearable
+            clearAriaLabel={t("documents.clearSearchAria")}
             className="w-100"
             inputClassName="documents__search-input"
             aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}
@@ -342,6 +344,8 @@ export function DocumentsToolbar({
         icon="file-search-corner"
         wide
         highlight
+        clearable
+        clearAriaLabel={t("documents.clearSearchAria")}
         className="documents__search-wrap"
         inputClassName="documents__search-input"
         aria-label={t("documents.searchAria", { defaultValue: "Search documents" })}

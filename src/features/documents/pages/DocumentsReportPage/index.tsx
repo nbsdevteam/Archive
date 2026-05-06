@@ -6,7 +6,7 @@ import * as XLSX from "xlsx";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PaginationSection } from "@/shared/components/PaginationSection";
-import { Button, Icon, Spinner, DataTable } from "@/shared/components/ui";
+import { Button, Icon, Spinner, DataTable, SearchInput } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui";
 import { TruncatedCell } from "@/shared/components/ui/DataTable/datatableShared";
 import { all_routes } from "@/router/all_routes";
@@ -247,6 +247,9 @@ const DocumentsReportPage = () => {
       ] as const,
     [t]
   );
+
+  /** No-op debounced handler when search is driven only by `onImmediateChange` (client-side filter). */
+  const noopDebouncedSearch = useCallback((_value: string) => {}, []);
 
   /** Copies row text to the clipboard and shows a translated toast. */
   const copyTextToClipboard = useCallback(
@@ -890,61 +893,57 @@ const DocumentsReportPage = () => {
               )}
             </div>
 
-            {/* Export button and search */}
-            <div className="d-flex align-items-start gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-outline-primary d-inline-flex align-items-center gap-1 flex-shrink-0"
-                onClick={() => void handleExportToExcel()}
-                disabled={exportLoading || pageLoading || !result.data.length}
-                title={t("documents.report.exportToExcel")}
-              >
-                {exportLoading ? (
-                  <>
-                    <Spinner size="sm" />
-                    <span>{t("documents.report.exportingToExcel")}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="download" style={{ width: "1em", height: "1em" }} />
-                    <span>{t("documents.report.exportToExcel")}</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Inline search */}
-              <div className="drp-results-search">
-                <div className="input-group input-group-sm">
-                  <span className="input-group-text">
-                    <Icon name="search" style={{ width: "0.85em", height: "0.85em" }} />
-                  </span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder={t("documents.report.searchPlaceholder")}
+            {/* Toolbar: same SearchInput as documents list; export at inline-end (right in LTR, left in RTL). */}
+            <div className="w-100">
+              <div className="d-flex flex-wrap align-items-center gap-2 w-100">
+                <div className="flex-grow-1 min-w-0" style={{ flexBasis: "min(100%, 320px)" }}>
+                  <SearchInput
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onImmediateChange={setSearch}
+                    debounceMs={0}
+                    onDebouncedChange={noopDebouncedSearch}
+                    placeholder={t("documents.report.searchPlaceholder")}
+                    icon="file-search-corner"
+                    wide
+                    highlight
+                    clearable
+                    clearAriaLabel={t("documents.report.clearSearchAria")}
+                    className="documents__search-wrap w-100"
+                    inputClassName="documents__search-input"
+                    aria-label={t("documents.report.searchPlaceholder")}
+                    footer={
+                      search.trim() ? (
+                        <p className="text-muted fs-12 mt-1 mb-0">
+                          {t("documents.report.showingCount", {
+                            shown: displayedData.length,
+                            total: result.data.length,
+                          })}
+                        </p>
+                      ) : undefined
+                    }
                   />
-                  {search && (
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => setSearch("")}
-                      title={t("documents.report.clearSearchAria")}
-                    >
-                      <Icon name="x" style={{ width: "0.85em", height: "0.85em" }} />
-                    </button>
-                  )}
                 </div>
-                {search && (
-                  <p className="text-muted fs-12 mt-1 mb-0">
-                    {t("documents.report.showingCount", {
-                      shown: displayedData.length,
-                      total: result.data.length,
-                    })}
-                  </p>
-                )}
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="d-inline-flex align-items-center btn-outline-theme flex-shrink-0"
+                  onClick={() => void handleExportToExcel()}
+                  disabled={exportLoading || pageLoading || !result.data.length}
+                  title={t("documents.report.exportToExcel")}
+                  aria-label={t("documents.report.exportToExcel")}
+                >
+                  {exportLoading ? (
+                    <>
+                      <Spinner size="sm" className="me-2" />
+                      {t("documents.report.exportingToExcel")}
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="download" className="me-2" />
+                      {t("documents.report.exportToExcel")}
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>

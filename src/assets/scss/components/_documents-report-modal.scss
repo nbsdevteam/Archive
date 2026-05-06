@@ -275,9 +275,9 @@
   padding: 0.875rem 1.25rem;
 }
 
-// Search bar in results header
+// Search bar in results header (legacy wrapper; toolbar uses flex + SearchInput full width)
 .drp-results-search {
-  max-width: 480px;
+  max-width: none;
   width: 100%;
 }
 
