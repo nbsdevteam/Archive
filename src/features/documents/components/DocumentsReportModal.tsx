@@ -649,33 +649,35 @@ export function DocumentsReportModal({ isOpen, onClose }: DocumentsReportModalPr
 
             {/* Inline search — same SearchInput as documents list / report page */}
             <div className="mb-3">
-              <SearchInput
-                value={search}
-                onImmediateChange={setSearch}
-                debounceMs={0}
-                onDebouncedChange={noopDebouncedSearch}
-                placeholder={t("documents.report.searchPlaceholder")}
-                icon="file-search-corner"
-                highlight
-                clearable
-                clearAriaLabel={t("documents.report.clearSearchAria")}
-                className="documents__search-wrap documents__search-wrap--report"
-                stackClassName={
-                  search.trim() ? "documents__search-stack--report" : ""
-                }
-                inputClassName="documents__search-input"
-                aria-label={t("documents.report.searchPlaceholder")}
-                footer={
-                  search.trim() ? (
-                    <p className="text-muted fs-12 mt-1 mb-0">
-                      {t("documents.report.showingCount", {
-                        shown: displayedData.length,
-                        total: result.data.length,
-                      })}
-                    </p>
-                  ) : undefined
-                }
-              />
+              <div className="drp-results-toolbar__search">
+                <SearchInput
+                  value={search}
+                  onImmediateChange={setSearch}
+                  debounceMs={0}
+                  onDebouncedChange={noopDebouncedSearch}
+                  placeholder={t("documents.report.searchPlaceholder")}
+                  icon="file-search-corner"
+                  highlight
+                  clearable
+                  clearAriaLabel={t("documents.report.clearSearchAria")}
+                  className="documents__search-wrap documents__search-wrap--report"
+                  stackClassName={
+                    search.trim() ? "documents__search-stack--report" : ""
+                  }
+                  inputClassName="documents__search-input"
+                  aria-label={t("documents.report.searchPlaceholder")}
+                  footer={
+                    search.trim() ? (
+                      <p className="text-muted fs-12 mt-1 mb-0">
+                        {t("documents.report.showingCount", {
+                          shown: displayedData.length,
+                          total: result.data.length,
+                        })}
+                      </p>
+                    ) : undefined
+                  }
+                />
+              </div>
             </div>
 
             {pageLoading && (
