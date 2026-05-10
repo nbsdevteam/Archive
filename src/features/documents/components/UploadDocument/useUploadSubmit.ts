@@ -2,12 +2,25 @@ import { useCallback, useRef, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { documentsApi } from "@/app/adapter/api/documents.api";
+import { uploadFilesWithConcurrency } from "@/app/adapter/api/documents";
+import type { BulkUploadProgressData, UploadFileResult, UploadSingleFileBaseParams } from "@/app/adapter/api/documents.api";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
-import type { BulkUploadProgressData } from "@/app/adapter/api/documents.api";
 import { createFolder } from "@/app/adapter/api/folders.api";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
-import { getBaseName } from "@/shared/utils/files/filename";
 import type { UploadFormValues } from "./types";
+
+function summarizeMultiUploadOutcomes(results: UploadFileResult[], totalFiles: number) {
+  const successCount = results.filter((r) => r.success).length;
+  const failedCount = results.filter((r) => !r.success).length;
+  const skippedCount = Math.max(0, totalFiles - results.length);
+  return { successCount, failedCount, skippedCount };
+}
+
+/** Optional yyyy-mm-dd from date picker for upload APIs (JSON body or X-Document-Date). */
+function optionalDocumentDateParam(data: UploadFormValues): { document_date?: string } {
+  const d = data.document_date?.trim();
+  return d ? { document_date: d } : {};
+}
 
 export interface UseUploadSubmitParams {
   onSuccess?: () => void;
@@ -22,57 +35,93 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
   const [bulkJobId, setBulkJobId] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<BulkUploadProgressData | null>(null);
   const [isCancellingBulkJob, setIsCancellingBulkJob] = useState(false);
+  const [failedUploads, setFailedUploads] = useState<UploadFileResult[]>([]);
   const bulkCancelRequestedRef = useRef(false);
 
-  const isBulkTerminalStatus = useCallback((status?: string) => {
-    const normalized = (status ?? "").toLowerCase();
-    return ["completed", "done", "failed", "cancelled", "canceled"].includes(normalized);
-  }, []);
-
-  const pollBulkJobUntilFinished = useCallback(
-    async (jobId: string) => {
-      for (;;) {
-        const progressResponse = await documentsApi.getBulkUploadProgress(jobId);
-        const progress = progressResponse.data ?? {};
-        setBulkProgress(progress);
-        const total = Number(progress.total ?? 0);
-        const processed = Number(progress.processed ?? 0);
-        const failed = Number(progress.failed ?? 0);
-        const finishedByCounts = total > 0 && processed + failed >= total;
-        if (bulkCancelRequestedRef.current || finishedByCounts || isBulkTerminalStatus(progress.status)) {
-          return progress;
-        }
-        await new Promise((r) => setTimeout(r, 2000));
-      }
-    },
-    [isBulkTerminalStatus]
-  );
-
-  const handleCancelBulkJob = useCallback(async () => {
+  /** Stops workers from taking new files (NBS v2 per-file uploads — no server job to cancel). */
+  const handleCancelBulkJob = useCallback(() => {
     if (!bulkJobId) return;
     setIsCancellingBulkJob(true);
     bulkCancelRequestedRef.current = true;
-    try {
-      await documentsApi.cancelBulkUploadJob(bulkJobId);
-      setBulkProgress((prev) => ({ ...(prev ?? {}), status: "cancelled" }));
-      const cancelMsg = t("documents.uploadCancelled", { defaultValue: "Upload cancelled." });
-      toast.info(cancelMsg);
-      announce(cancelMsg);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : t("common.unexpectedError", { defaultValue: "Unexpected error" });
-      setSubmitError(msg);
-      toast.error(msg);
-      announce(msg);
-    } finally {
-      setIsCancellingBulkJob(false);
-    }
-  }, [bulkJobId, t, setSubmitError, announce]);
+    setBulkProgress((prev) => ({ ...(prev ?? {}), status: "cancelled" }));
+    const cancelMsg = t("documents.uploadCancelled", { defaultValue: "Upload cancelled." });
+    toast.info(cancelMsg);
+    announce(cancelMsg);
+    setIsCancellingBulkJob(false);
+  }, [bulkJobId, t, announce]);
+
+  /** NBS v2: POST `/api/documents/upload/single` per file with bounded concurrency. */
+  const executeMultiFileUpload = useCallback(async (files: File[], baseParams: UploadSingleFileBaseParams) => {
+    bulkCancelRequestedRef.current = false;
+    setBulkJobId("batch-upload");
+    setBulkProgress({
+      status: "processing",
+      total: files.length,
+      processed: 0,
+      successful: 0,
+      failed: 0,
+    });
+    const results = await uploadFilesWithConcurrency(files, baseParams, {
+      cancelledRef: bulkCancelRequestedRef,
+      onProgress: (done, total, result) => {
+        setBulkProgress((prev) => ({
+          ...(prev ?? {}),
+          status: bulkCancelRequestedRef.current ? "cancelled" : "processing",
+          total,
+          processed: done,
+          successful: (prev?.successful ?? 0) + (result.success ? 1 : 0),
+          failed: (prev?.failed ?? 0) + (result.success ? 0 : 1),
+        }));
+      },
+    });
+    const wasCancelled = bulkCancelRequestedRef.current;
+    setBulkJobId(null);
+    setBulkProgress(null);
+    bulkCancelRequestedRef.current = false;
+    return { results, wasCancelled, totalFiles: files.length };
+  }, []);
+
+  const finalizeMultiUploadFeedback = useCallback(
+    (results: UploadFileResult[], totalFiles: number, wasCancelled: boolean) => {
+      const { successCount, failedCount, skippedCount } = summarizeMultiUploadOutcomes(results, totalFiles);
+      const failedFiles = results.filter((r) => !r.success);
+      
+      if (failedFiles.length > 0) {
+        setFailedUploads(failedFiles);
+      }
+      
+      if (successCount === 0) {
+        if (wasCancelled) return;
+        throw new Error(t("documents.bulkUploadAllFailed", { defaultValue: "All uploads failed." }));
+      }
+      if (wasCancelled && skippedCount > 0) {
+        const partialMsg = t("documents.bulkUploadCancelledPartial", {
+          defaultValue: "Upload stopped. {{count}} file(s) uploaded before cancel.",
+          count: successCount,
+        });
+        toast.warning(partialMsg);
+        announce(partialMsg);
+      } else if (failedCount > 0 || skippedCount > 0) {
+        const warnMsg = t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." });
+        toast.warning(warnMsg);
+        announce(warnMsg);
+      } else {
+        const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
+        toast.success(successMsg);
+        announce(successMsg);
+      }
+      onSuccess?.();
+      onClose();
+    },
+    [t, announce, onSuccess, onClose]
+  );
 
   const onSubmit = useCallback(
     async (
       data: UploadFormValues,
       selectedFiles: File[],
-      departmentId: number
+      departmentId: number,
+      lockFolderContext: boolean
     ) => {
       const isMainMulti = data.upload_kind === "main" && data.upload_multiple_main === true;
       const isSubMulti = data.upload_kind === "sub" && data.upload_multiple_sub === true;
@@ -139,81 +188,34 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           announce(msg);
           return;
         }
-        const startResponse = await documentsApi.startBulkUpload({
+        const { results, wasCancelled, totalFiles } = await executeMultiFileUpload(filesToUse, {
           department_id: Number(data.department_id),
           document_type_id: Number(data.document_type_id),
           folder_id: folderIdForJob,
+          create_folder: false,
           confidentiality_level: data.confidentiality_level,
-          auto_ocr: false,
-          auto_barcode: false,
+          auto_ocr: true,
+          ...optionalDocumentDateParam(data),
         });
-        const jobId = startResponse.data?.job_id;
-        if (!jobId) throw new Error("Bulk upload job id is missing.");
-        setBulkJobId(jobId);
-        setBulkProgress({ status: "starting", total: filesToUse.length, processed: 0, failed: 0 });
-        const bulkFilesPayload = await Promise.all(
-          filesToUse.map(async (subFile) => ({
-            file_name: subFile.name,
-            file_data: await fileToBase64(subFile),
-            name: subFile.name,
-            description: "",
-          }))
-        );
-        await documentsApi.uploadFilesToBulkJob(jobId, bulkFilesPayload);
-        const finalProgress = await pollBulkJobUntilFinished(jobId);
-        const finalStatus = (finalProgress.status ?? "").toLowerCase();
-        if (finalStatus === "cancelled" || finalStatus === "canceled" || bulkCancelRequestedRef.current) return;
-        if (Number(finalProgress.failed ?? 0) > 0) {
-          const warnMsg = t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." });
-          toast.warning(warnMsg);
-          announce(warnMsg);
-        } else {
-          const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
-          toast.success(successMsg);
-          announce(successMsg);
-        }
-        onSuccess?.();
-        onClose();
+        finalizeMultiUploadFeedback(results, totalFiles, wasCancelled);
         return;
       }
 
       if (isMainMulti && filesToUse.length >= 1) {
-        const startResponse = await documentsApi.startBulkUpload({
+        // Only use existing folder_id if explicitly uploading from within a pre-created empty folder
+        const useExistingFolder = lockFolderContext && data.folder_id && data.folder_id > 0;
+        const existingFolderId = useExistingFolder ? data.folder_id : undefined;
+        const { results, wasCancelled, totalFiles } = await executeMultiFileUpload(filesToUse, {
           department_id: Number(data.department_id),
           document_type_id: Number(data.document_type_id),
-          create_folder_per_file: true,
+          create_folder: !existingFolderId,
           confidentiality_level: data.confidentiality_level,
-          auto_ocr: false,
-          auto_barcode: false,
+          auto_ocr: true,
+          ...(existingFolderId && { folder_id: existingFolderId }),
           ...(data.folder_company_id != null && data.folder_company_id >= 1 && { company_id: data.folder_company_id }),
+          ...optionalDocumentDateParam(data),
         });
-        const jobId = startResponse.data?.job_id;
-        if (!jobId) throw new Error("Bulk upload job id is missing.");
-        setBulkJobId(jobId);
-        setBulkProgress({ status: "starting", total: filesToUse.length, processed: 0, failed: 0 });
-        const bulkFilesPayload = await Promise.all(
-          filesToUse.map(async (mainFile) => ({
-            file_name: mainFile.name,
-            file_data: await fileToBase64(mainFile),
-            name: getBaseName(mainFile.name) || mainFile.name,
-            description: "",
-          }))
-        );
-        await documentsApi.uploadFilesToBulkJob(jobId, bulkFilesPayload);
-        const finalProgress = await pollBulkJobUntilFinished(jobId);
-        const finalStatus = (finalProgress.status ?? "").toLowerCase();
-        if (finalStatus === "cancelled" || finalStatus === "canceled" || bulkCancelRequestedRef.current) return;
-        if (Number(finalProgress.failed ?? 0) > 0) {
-          const warnMsg = t("documents.bulkUploadCompletedWithFailures", { defaultValue: "Upload finished with some failed files." });
-          toast.warning(warnMsg);
-          announce(warnMsg);
-        } else {
-          const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
-          toast.success(successMsg);
-          announce(successMsg);
-        }
-        onSuccess?.();
-        onClose();
+        finalizeMultiUploadFeedback(results, totalFiles, wasCancelled);
         return;
       }
 
@@ -223,8 +225,13 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         return;
       }
       const fileData = await fileToBase64(singleFile);
-      let finalFolderId: number | undefined = data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
-      if (data.upload_kind === "main" && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
+      // Use existing folder_id if explicitly uploading main doc from within a pre-created empty folder
+      let finalFolderId: number | undefined = 
+        (lockFolderContext && data.upload_kind === "main" && data.folder_id && data.folder_id > 0) 
+          ? data.folder_id 
+          : undefined;
+      // Create new folder if no existing folder and folder details are provided
+      if (!finalFolderId && data.upload_kind === "main" && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
         const newFolder = await createFolder({
           name: data.folder_name.trim(),
           code: data.folder_code.trim(),
@@ -251,6 +258,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         ...(data.invoice_number?.trim() ? { invoice_number: data.invoice_number.trim() } : {}),
         ...(data.envoy_number?.trim() ? { envoy_number: data.envoy_number.trim() } : {}),
         ...(data.tags?.length ? { tags: data.tags } : {}),
+        ...optionalDocumentDateParam(data),
       });
       if (!resp?.success) throw new Error(resp?.error || "Upload failed");
       const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
@@ -259,7 +267,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       onSuccess?.();
       onClose();
     },
-    [onSuccess, onClose, t, setSubmitError, pollBulkJobUntilFinished, announce]
+    [onSuccess, onClose, t, setSubmitError, announce, executeMultiFileUpload, finalizeMultiUploadFeedback]
   );
 
   return {
@@ -275,6 +283,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       setBulkJobId(null);
       setBulkProgress(null);
       bulkCancelRequestedRef.current = false;
+      setFailedUploads([]);
     }, []),
+    failedUploads,
+    clearFailedUploads: useCallback(() => setFailedUploads([]), []),
   };
 }

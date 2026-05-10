@@ -16,7 +16,12 @@ export interface SearchResult {
   document_type_name?: string;
   document_type?: { name?: string };
   upload_date?: string;
+  /** Business date when API returns it on search hits (dd-mm-yyyy). */
+  document_date?: string | null;
   created_at?: string;
+  // OCR fields (April 2026)
+  ocr_status?: string;
+  ocr_snippet?: string;
 }
 
 export interface SearchParams {

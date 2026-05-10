@@ -17,6 +17,8 @@ export type UploadFormValues = {
   folder_type?: string;
   folder_description?: string;
   folder_company_id?: number;
+  /** Display-only hint from folder/main document API when upload is locked to folder context. */
+  folder_company_name?: string;
   confidentiality_level: "internal" | "public" | "confidential" | "strict";
   po_number?: string;
   bl_number?: string;
@@ -24,6 +26,8 @@ export type UploadFormValues = {
   invoice_number?: string;
   envoy_number?: string;
   tags?: number[];
+  /** Optional document date for `<input type="date">` (yyyy-mm-dd); sent on upload when set. */
+  document_date?: string;
 };
 
 export type UploadDocumentFormValues = UploadFormValues;
@@ -54,6 +58,7 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
     folder_type: initialValues?.folder_type ?? "other",
     folder_description: initialValues?.folder_description ?? "",
     folder_company_id: initialValues?.folder_company_id ?? 0,
+    folder_company_name: initialValues?.folder_company_name ?? "",
     confidentiality_level: initialValues?.confidentiality_level ?? "internal",
     po_number: initialValues?.po_number ?? "",
     bl_number: initialValues?.bl_number ?? "",
@@ -61,6 +66,7 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
     invoice_number: initialValues?.invoice_number ?? "",
     envoy_number: initialValues?.envoy_number ?? "",
     tags: initialValues?.tags ?? [],
+    document_date: initialValues?.document_date ?? "",
     file: undefined,
   };
 }

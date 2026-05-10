@@ -1,5 +1,19 @@
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
+import { formatDocumentDateDisplay } from "@/shared/utils/documents/documentDate";
+
+function formatFolderCellValue(
+  name: string | null | undefined,
+  id: number | null | undefined,
+  idLabel: string,
+): string | null {
+  const hasId = id != null && id !== undefined;
+  const hasName = Boolean(name && String(name).trim());
+  if (hasName && hasId) return `${name} (${idLabel}: ${id})`;
+  if (hasName) return String(name);
+  if (hasId) return `${idLabel}: ${id}`;
+  return null;
+}
 
 export interface DocumentDetailInfoCardProps {
   t: TFunction;
@@ -27,6 +41,26 @@ export function DocumentDetailInfoCard({
   formatDate,
   tags,
 }: DocumentDetailInfoCardProps) {
+  const folderIdLabel = t("documents.folderIdShort", { defaultValue: "ID" });
+  /** Single row labeled "Parent folder": prefer API parent fields; else folder (avoids duplicate Folder + Parent rows). */
+  const parentFolderDisplay =
+    formatFolderCellValue(
+      doc.parent_folder_name ?? undefined,
+      doc.parent_folder_id ?? undefined,
+      folderIdLabel,
+    ) ??
+    formatFolderCellValue(
+      doc.folder_name ?? undefined,
+      doc.folder_id ?? undefined,
+      folderIdLabel,
+    );
+  const isMainDocumentLabel =
+    doc.is_main_document === true
+      ? t("common.yes", { defaultValue: "Yes" })
+      : doc.is_main_document === false
+        ? t("common.no", { defaultValue: "No" })
+        : "–";
+
   return (
     <div className="card mb-3 document-detail__info-card">
       <div className="card-header d-flex flex-wrap align-items-center gap-2">
@@ -68,9 +102,27 @@ export function DocumentDetailInfoCard({
                   <td>{formatDate(doc.upload_date)}</td>
                 </tr>
                 <tr>
+                  <td className="text-muted">{t("documents.documentDate", { defaultValue: "Document date" })}</td>
+                  <td>{formatDocumentDateDisplay(doc.document_date)}</td>
+                </tr>
+                <tr>
                   <td className="text-muted">{t("documents.lastModified", { defaultValue: "Last modified" })}</td>
                   <td>{formatDate(doc.last_modified)}</td>
                 </tr>
+                <tr>
+                  <td className="text-muted">
+                    {t("documents.isMainDocument", { defaultValue: "Is main document" })}
+                  </td>
+                  <td>{isMainDocumentLabel}</td>
+                </tr>
+                {parentFolderDisplay != null && (
+                  <tr>
+                    <td className="text-muted">
+                      {t("documents.parentFolder", { defaultValue: "Parent folder" })}
+                    </td>
+                    <td>{parentFolderDisplay}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

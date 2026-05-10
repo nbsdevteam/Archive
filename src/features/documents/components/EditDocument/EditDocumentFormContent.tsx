@@ -116,6 +116,14 @@ export function EditDocumentFormContent({
           required
           autoComplete="off"
         />
+        <Input
+          type="date"
+          label={t("documents.documentDateOptional", { defaultValue: "Document date (optional)" })}
+          {...register("document_date")}
+          error={errors.document_date?.message}
+          helperText={t("documents.documentDateHint")}
+          autoComplete="off"
+        />
         {showLinkToFolder && (
           folderName ? (
             <Input

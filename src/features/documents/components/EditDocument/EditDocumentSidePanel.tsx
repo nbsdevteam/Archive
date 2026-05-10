@@ -6,7 +6,11 @@ import { createEditDocumentResolver } from "../../utils/EditDocumentSidePanel.va
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { documentsApi } from "@/app/adapter/api/documents.api";
-import type { DocumentDetail } from "@/app/adapter/api/documents.api";
+import type { DocumentDetail, UpdateDocumentParams } from "@/app/adapter/api/documents.api";
+import {
+  apiDocumentDateToHtmlInput,
+  htmlInputDateToApiWrite,
+} from "@/shared/utils/documents/documentDate";
 import { adminApi } from "@/app/adapter/api/admin.api";
 import { listFolders } from "@/app/adapter/api/folders.api";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
@@ -33,6 +37,7 @@ function getDefaultEditFormValues(): EditDocumentFormValues {
     invoice_number: "",
     envoy_number: "",
     tags: [],
+    document_date: "",
     changeDescription: "",
     unlockToken: "",
   };
@@ -56,14 +61,19 @@ function documentToEditFormValues(doc: DocumentDetail, initialFolderId?: number 
     invoice_number: typeof doc.invoice_number === "string" ? doc.invoice_number : "",
     envoy_number: typeof doc.envoy_number === "string" ? doc.envoy_number : "",
     tags: tags.length > 0 ? tags : [],
+    document_date: apiDocumentDateToHtmlInput(doc.document_date),
     changeDescription: "",
     unlockToken: "",
   };
 }
 
 /** Builds update params from form values (only fields that backend accepts). */
-function formValuesToUpdateParams(values: EditDocumentFormValues, isSubDoc: boolean): Record<string, unknown> {
-  const params: Record<string, unknown> = {
+function formValuesToUpdateParams(
+  values: EditDocumentFormValues,
+  isSubDoc: boolean,
+  sourceDoc: DocumentDetail
+): UpdateDocumentParams {
+  const params: UpdateDocumentParams = {
     title: values.title.trim(),
     department_id: values.department_id,
     document_type_id: values.document_type_id,
@@ -76,6 +86,13 @@ function formValuesToUpdateParams(values: EditDocumentFormValues, isSubDoc: bool
   if (values.envoy_number?.trim()) params.envoy_number = values.envoy_number.trim();
   if (values.tags && values.tags.length > 0) params.tags = values.tags;
   if (isSubDoc && values.folder_id != null) params.folder_id = values.folder_id > 0 ? values.folder_id : null;
+
+  const origHtml = apiDocumentDateToHtmlInput(sourceDoc.document_date);
+  const cur = htmlInputDateToApiWrite(values.document_date);
+  if (cur !== origHtml) {
+    params.document_date = cur ? cur : null;
+  }
+
   return params;
 }
 
@@ -95,6 +112,7 @@ function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail,
   const tagsB = (current.tags ?? []).slice().sort((a, b) => a - b).join(",");
   if (tagsA !== tagsB) return true;
   if (isSubDoc && (values.folder_id ?? 0) !== (current.folder_id ?? 0)) return true;
+  if ((values.document_date ?? "") !== (current.document_date ?? "")) return true;
   return false;
 }
 
@@ -245,8 +263,8 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
         }
         const didChangeMetadata = hasMetadataChanges(values, doc, isSubDoc, initialFolderId);
         if (didChangeMetadata) {
-          const params = formValuesToUpdateParams(values, isSubDoc);
-          await documentsApi.updateDocument(documentId, params as Parameters<typeof documentsApi.updateDocument>[1]);
+          const params = formValuesToUpdateParams(values, isSubDoc, doc);
+          await documentsApi.updateDocument(documentId, params);
         }
         toast.success(t("documents.updateSuccess", { defaultValue: "Document updated successfully." }));
         onSuccess?.();

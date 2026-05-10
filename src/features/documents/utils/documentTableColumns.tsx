@@ -3,6 +3,7 @@ import type { ColumnDef } from "../../../shared/components/ui/DataTable/DataTabl
 import type { Document } from "../../../app/adapter/api/documents.api";
 import { Icon } from "@/shared/components/ui/Icon";
 import { getDocumentStatusBadgeVariant } from "./getDocumentStatusBadgeVariant";
+import { formatDocumentDateDisplay } from "@/shared/utils/documents/documentDate";
 
 /** Badge variant helper type for status column */
 export type DocumentStatusBadgeVariantFn = (status?: string) => string;
@@ -22,7 +23,15 @@ export interface DocumentColumnsOptions {
   sort?: DocumentTableSortOptions;
 }
 
-const SORTABLE_COLUMN_IDS = ["name", "barcode", "type", "department", "company", "uploadDate", "status"] as const;
+const SORTABLE_COLUMN_IDS = ["name", "barcode", "fileSize", "type", "department", "company", "uploadDate", "documentDate", "status"] as const;
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
 
 /**
  * Renders a sortable column header: label plus a stacked up/down arrow pair button.
@@ -96,6 +105,7 @@ export function getDocumentTableColumns(
   const baseColumns: ColumnDef<Document>[] = [
     {
       id: "name",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("name") ? (
         <SortableHeader
           label={t("documents.name", { defaultValue: "Name" })}
@@ -110,6 +120,7 @@ export function getDocumentTableColumns(
     },
     {
       id: "barcode",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("barcode") ? (
         <SortableHeader
           label={t("documents.barcode", { defaultValue: "Barcode" })}
@@ -123,7 +134,27 @@ export function getDocumentTableColumns(
       render: (row: Document) => <span className="Num">{row.barcode || "-"}</span>,
     },
     {
+      id: "fileSize",
+      truncate: true,
+      header: sort && SORTABLE_COLUMN_IDS.includes("fileSize") ? (
+        <SortableHeader
+          label={t("documents.fileSize", { defaultValue: "File Size" })}
+          columnId="fileSize"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.fileSize", { defaultValue: "File Size" })
+      ),
+      render: (row: Document) => (
+        <span className="Num text-muted small">
+          {row.file_size != null && row.file_size > 0 ? formatFileSize(row.file_size) : "-"}
+        </span>
+      ),
+    },
+    {
       id: "type",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("type") ? (
         <SortableHeader
           label={t("documents.type", { defaultValue: "Type" })}
@@ -139,6 +170,7 @@ export function getDocumentTableColumns(
     },
     {
       id: "department",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("department") ? (
         <SortableHeader
           label={t("documents.department", { defaultValue: "Department" })}
@@ -154,6 +186,7 @@ export function getDocumentTableColumns(
     },
     {
       id: "company",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("company") ? (
         <SortableHeader
           label={t("documents.companyBrand", { defaultValue: "Company/Brand" })}
@@ -168,6 +201,7 @@ export function getDocumentTableColumns(
     },
     {
       id: "uploadDate",
+      truncate: true,
       header: sort && SORTABLE_COLUMN_IDS.includes("uploadDate") ? (
         <SortableHeader
           label={t("documents.uploadDate", { defaultValue: "Upload Date" })}
@@ -179,6 +213,23 @@ export function getDocumentTableColumns(
         t("documents.uploadDate", { defaultValue: "Upload Date" })
       ),
       render: (row: Document) => row.upload_date || "-",
+    },
+    {
+      id: "documentDate",
+      truncate: true,
+      header: sort && SORTABLE_COLUMN_IDS.includes("documentDate") ? (
+        <SortableHeader
+          label={t("documents.documentDate", { defaultValue: "Document date" })}
+          columnId="documentDate"
+          sort={sort}
+          t={t}
+        />
+      ) : (
+        t("documents.documentDate", { defaultValue: "Document date" })
+      ),
+      render: (row: Document) => (
+        <span className="Num text-muted small">{formatDocumentDateDisplay(row.document_date)}</span>
+      ),
     },
     {
       id: "status",
@@ -223,35 +274,51 @@ export function getDocumentTableColumnsForTrash(
   return [
     {
       id: "name",
+      truncate: true,
       header: t("documents.name", { defaultValue: "Document name" }),
       render: (row: TrashDocument) => row.name || row.title || "-",
     },
     {
       id: "barcode",
+      truncate: true,
       header: t("documents.barcode", { defaultValue: "Barcode" }),
       render: (row: TrashDocument) => (
         <span className="Num">{row.barcode || "-"}</span>
       ),
     },
     {
+      id: "fileSize",
+      truncate: true,
+      header: t("documents.fileSize", { defaultValue: "File Size" }),
+      render: (row: TrashDocument) => (
+        <span className="Num text-muted small">
+          {row.file_size != null && row.file_size > 0 ? formatFileSize(row.file_size) : "-"}
+        </span>
+      ),
+    },
+    {
       id: "type",
+      truncate: true,
       header: t("documents.type", { defaultValue: "Type" }),
       render: (row: TrashDocument) =>
         row.document_type_name || row.document_type?.name || "-",
     },
     {
       id: "department",
+      truncate: true,
       header: t("documents.department", { defaultValue: "Department" }),
       render: (row: TrashDocument) =>
         row.department_name || row.department?.name || "-",
     },
     {
       id: "deletedAt",
+      truncate: true,
       header: t("documents.deletedAt", { defaultValue: "Deleted at" }),
       render: (row: TrashDocument) => row.deleted_at ?? "–",
     },
     {
       id: "restoreDeadline",
+      truncate: true,
       header: t("documents.restoreDeadline", { defaultValue: "Restore deadline" }),
       render: (row: TrashDocument) => row.restore_deadline ?? "–",
     },

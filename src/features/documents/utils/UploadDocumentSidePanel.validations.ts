@@ -116,6 +116,7 @@ export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormV
       invoice_number: optionalTrimmedString(values.invoice_number),
       envoy_number: optionalTrimmedString(values.envoy_number),
       tags,
+      document_date: optionalTrimmedString(values.document_date),
     };
 
     return { values: normalized, issues };

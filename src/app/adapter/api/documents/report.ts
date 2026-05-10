@@ -32,6 +32,8 @@ export interface ReportDocument {
   name: string;
   barcode: string;
   upload_date: string;
+  /** dd-mm-yyyy from API; null when unset. */
+  document_date?: string | null;
   uploader_id: number;
   uploader_name: string;
   department_id: number;

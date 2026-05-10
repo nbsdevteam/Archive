@@ -6,9 +6,10 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { Document } from "@/app/adapter/api/documents.api";
 import { parseDisplayUploadDate } from "@/shared/utils/format/date";
+import { parseDocumentDateForSort } from "@/shared/utils/documents/documentDate";
 
 /** Column ids that support ascending/descending sort. */
-const DIRECTIONAL_COLUMN_IDS = ["name", "barcode", "uploadDate"] as const;
+const DIRECTIONAL_COLUMN_IDS = ["name", "barcode", "uploadDate", "documentDate"] as const;
 
 /** Column ids that support group-to-top cycling (alphabetical groups). */
 const GROUP_COLUMN_IDS = ["type", "department", "company", "status"] as const;
@@ -80,7 +81,7 @@ type NonNullSortState = NonNullable<DocumentsTableSortState>;
 type DocumentWithIndex = { document: Document; originalIndex: number };
 
 /**
- * Sorts documents by a directional column (name, barcode, or uploadDate) asc/desc.
+ * Sorts documents by a directional column (name, barcode, uploadDate, or documentDate) asc/desc.
  */
 function applyDirectionalSort(
   documentsWithIndex: DocumentWithIndex[],
@@ -110,8 +111,7 @@ function applyDirectionalSort(
       const byIndex = itemA.originalIndex - itemB.originalIndex;
       return comparison !== 0 ? directionMultiplier * comparison : byIndex;
     });
-  } else {
-    // uploadDate: parseDisplayUploadDate (number | null)
+  } else if (column === "uploadDate") {
     documentsWithIndex.sort((itemA, itemB) => {
       const uploadTimeA = parseDisplayUploadDate(itemA.document.upload_date) as
         | number
@@ -121,6 +121,17 @@ function applyDirectionalSort(
         | null;
       const timestampA = uploadTimeA ?? -Infinity;
       const timestampB = uploadTimeB ?? -Infinity;
+      const comparison = timestampA - timestampB;
+      const byIndex = itemA.originalIndex - itemB.originalIndex;
+      return comparison !== 0 ? directionMultiplier * comparison : byIndex;
+    });
+  } else {
+    // documentDate: business date from API (dd-mm-yyyy); missing sorts last
+    documentsWithIndex.sort((itemA, itemB) => {
+      const tA = parseDocumentDateForSort(itemA.document.document_date);
+      const tB = parseDocumentDateForSort(itemB.document.document_date);
+      const timestampA = tA ?? -Infinity;
+      const timestampB = tB ?? -Infinity;
       const comparison = timestampA - timestampB;
       const byIndex = itemA.originalIndex - itemB.originalIndex;
       return comparison !== 0 ? directionMultiplier * comparison : byIndex;
@@ -204,7 +215,7 @@ function applySort(
 
 /**
  * Client-side sort hook for the documents table.
- * Directional columns (name, barcode, uploadDate): toggle asc/desc.
+ * Directional columns (name, barcode, uploadDate, documentDate): toggle asc/desc.
  * Group columns (type, department, company, status): cycle which alphabetical group is first.
  * Sorting is stable and applies only to the current page.
  */

@@ -17,6 +17,7 @@ import type {
   ReportResult,
   ReportDocument,
 } from "@/app/adapter/api/documents/report";
+import { formatDocumentDateDisplay } from "@/shared/utils/documents/documentDate";
 
 type Phase = "form" | "loading" | "results";
 
@@ -349,6 +350,7 @@ const DocumentsReportPage = () => {
         [t("documents.report.colName")]: doc.name || "",
         [t("documents.report.colBarcode")]: doc.barcode || "",
         [t("documents.report.colUploadDate")]: formatReportDate(doc.upload_date, i18n.language),
+        [t("documents.report.colDocumentDate")]: formatDocumentDateDisplay(doc.document_date),
         [t("documents.report.colUploader")]: doc.uploader_name || "",
         [t("documents.report.colDepartment")]: doc.department_name || "",
         [t("documents.report.colDocType")]: doc.document_type_name || "",
@@ -359,7 +361,7 @@ const DocumentsReportPage = () => {
         [t("documents.report.colState")]: doc.state || "",
         [t("documents.report.colVer")]: doc.version_count?.toString() || "0",
         [t("documents.report.colOcr")]: doc.ocr_status || "",
-        [t("documents.report.parentDocument").replace(" #{{id}}", "")]: doc.parent_document_id?.toString() || "",
+        [t("documents.report.colParentDocumentId")]: doc.parent_document_id?.toString() || "",
       }));
 
       // Create workbook and worksheet
@@ -420,7 +422,8 @@ const DocumentsReportPage = () => {
         (d.folder_name != null && String(d.folder_name).toLowerCase().includes(q)) ||
         d.document_type_name?.toLowerCase().includes(q) ||
         (roleStr && roleStr.includes(q)) ||
-        parentStr.includes(q)
+        parentStr.includes(q) ||
+        formatDocumentDateDisplay(d.document_date).toLowerCase().includes(q)
       );
     });
   }, [result?.data, search]);
@@ -474,6 +477,13 @@ const DocumentsReportPage = () => {
         width: "7.5rem",
         truncate: true,
         render: (doc) => formatReportDate(doc.upload_date, i18n.language),
+      },
+      {
+        id: "document_date",
+        header: t("documents.report.colDocumentDate"),
+        width: "7.5rem",
+        truncate: true,
+        render: (doc) => formatDocumentDateDisplay(doc.document_date),
       },
       {
         id: "uploader_name",

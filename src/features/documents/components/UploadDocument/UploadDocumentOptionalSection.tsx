@@ -60,6 +60,17 @@ export function UploadDocumentOptionalSection({
           </div>
         </>
       )}
+      <h6 className="fw-semibold mb-2 mt-2">
+        {t("documents.documentDateSection", { defaultValue: "Document date" })}
+      </h6>
+      <Input
+        type="date"
+        label={t("documents.documentDateOptional", { defaultValue: "Document date (optional)" })}
+        {...register("document_date")}
+        error={errors.document_date?.message}
+        helperText={t("documents.documentDateHint")}
+        autoComplete="off"
+      />
       <MultiSelectField
         control={control}
         name="tags"

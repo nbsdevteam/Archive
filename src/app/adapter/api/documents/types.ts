@@ -24,6 +24,8 @@ export interface Document {
   uploader_id: number;
   uploader_name: string;
   upload_date: string;
+  /** Business/document date (dd-mm-yyyy from API); null for legacy rows. */
+  document_date?: string | null;
   status: string;
   confidentiality_level: string;
   barcode: string;
@@ -40,6 +42,10 @@ export interface Document {
   folder_id?: number | null;
   /** Display name of the folder (e.g. "FIN-RCPT-testyTarget_398"). */
   folder_name?: string | null;
+  /** Parent folder id (API may mirror folder_id when document is in a folder). */
+  parent_folder_id?: number | null;
+  /** Display name of the parent folder. */
+  parent_folder_name?: string | null;
   /** For sub-documents: parent main document id. */
   parent_document_id?: number | null;
   /** True when this document is a main document (can be transferred to folder); false for sub/attachment. */
@@ -160,6 +166,8 @@ export interface UploadDocumentRequest {
   envoy_number?: string;
   tags?: number[];
   custom_fields?: Record<string, unknown>;
+  /** Optional; API accepts dd-mm-yyyy, yyyy-mm-dd, dd/mm/yyyy, yyyy/mm/dd. */
+  document_date?: string;
 }
 
 export interface UploadDocumentResponse {
@@ -181,6 +189,8 @@ export interface UpdateDocumentParams {
   invoice_number?: string;
   envoy_number?: string;
   tags?: number[];
+  /** Set or change date (yyyy-mm-dd, dd-mm-yyyy, etc.); `null` clears. */
+  document_date?: string | null;
 }
 
 export interface UpdateDocumentResponse {
@@ -193,11 +203,15 @@ export interface UpdateDocumentResponse {
 export interface StartBulkUploadParams {
   department_id: number;
   document_type_id: number;
+  /** Total number of files that will be uploaded (required by backend for the job). */
+  total_files: number;
   folder_id?: number;
   create_folder_per_file?: boolean;
   confidentiality_level?: ConfidentialityLevel;
   auto_ocr?: boolean;
   auto_barcode?: boolean;
+  /** Optional company when creating folders per file (main multi upload). */
+  company_id?: number;
 }
 
 export interface BulkUploadStartData {
@@ -205,17 +219,38 @@ export interface BulkUploadStartData {
   id?: number;
 }
 
-export interface BulkUploadFilePayload {
+/** One file for multipart POST .../bulk-upload/{job_id}/upload-file */
+export interface BulkUploadUploadFileParams {
+  file: File;
   file_name: string;
-  file_data: string;
   name: string;
   description?: string;
+}
+
+export interface BulkUploadUploadFileResponse {
+  success: boolean;
+  document_id?: number;
+  folder_id?: number;
+  parent_folder_id?: number;
+  parent_folder_name?: string;
+  processed?: number;
+  successful?: number;
+  failed?: number;
+  total?: number;
+  error?: string;
+}
+
+export interface BulkUploadFinalizeData {
+  status: 'completed' | 'partial' | 'failed';
+  successful?: number;
+  failed?: number;
 }
 
 export interface BulkUploadProgressData {
   status?: string;
   total?: number;
   processed?: number;
+  successful?: number;
   failed?: number;
 }
 
@@ -236,3 +271,86 @@ export interface RestoreResponse {
   restored?: number[];
   failed?: number[];
 }
+
+/**
+ * @deprecated Prefer `uploadSingleFile` + `uploadFilesWithConcurrency` (POST `/api/documents/upload/single`).
+ * Legacy `POST /api/documents/bulk-upload/upload` loads all files in one request and breaks on large batches.
+ */
+export interface SingleCallBulkUploadParams {
+  department_id: number;
+  document_type_id: number;
+  company_id?: number;
+  /** Target folder for sub-document uploads (ignored when create_folder_per_file is true). */
+  folder_id?: number;
+  confidentiality_level?: ConfidentialityLevel;
+  create_folder_per_file?: boolean;
+  auto_ocr?: boolean;
+  files: File[];
+}
+
+/** @deprecated Legacy single-call bulk upload response. Prefer `UploadSingleFileResponse` per file. */
+export interface SingleCallBulkUploadResponse {
+  success: boolean;
+  job_id: string;
+  status: string;
+  total: number;
+  successful: number;
+  failed: number;
+  error_log?: string | null;
+  documents: Array<{
+    file_name: string;
+    success: boolean;
+    document_id?: number;
+    folder_id?: number;
+    parent_folder_id?: number;
+    parent_folder_name?: string;
+    error?: string | null;
+  }>;
+}
+
+/** POST `/api/documents/upload/single` — one file, raw binary body + metadata headers (NBS v2). */
+export interface UploadSingleFileParams {
+  file: File;
+  department_id: number;
+  document_type_id: number;
+  /** Original filename; defaults to `file.name`. */
+  file_name?: string;
+  /** Display name in archive; defaults to filename stem. */
+  name?: string;
+  company_id?: number;
+  confidentiality_level?: ConfidentialityLevel;
+  /** Maps to `X-Create-Folder`; default `true` per API. */
+  create_folder?: boolean;
+  /** Maps to `X-Auto-Ocr`; default `true` per API. */
+  auto_ocr?: boolean;
+  /** Attach to existing folder (`X-Folder-Id`). */
+  folder_id?: number;
+  /** Sent as `X-Document-Date` when set (yyyy-mm-dd from date picker). */
+  document_date?: string;
+}
+
+/** JSON body from POST `/api/documents/upload/single`. */
+export interface UploadSingleFileResponse {
+  success: boolean;
+  document_id?: number;
+  document_name?: string;
+  barcode?: string;
+  folder_id?: number;
+  folder_name?: string;
+  ocr_queued?: boolean;
+  error?: string;
+}
+
+/** One completed file from the concurrency upload helper. */
+export interface UploadFileResult {
+  file: File;
+  success: boolean;
+  document_id?: number;
+  folder_id?: number;
+  folder_name?: string;
+  barcode?: string;
+  error?: string;
+}
+
+/** Shared metadata for concurrent single-file uploads (excludes per-file `file`, `file_name`, `name`). */
+export type UploadSingleFileBaseParams = Omit<UploadSingleFileParams, 'file' | 'file_name' | 'name'>;

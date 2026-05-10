@@ -70,6 +70,7 @@ export function makeEditDocumentValidator(t: TFunction): Validator<EditDocumentF
       invoice_number: optionalTrimmedString(values.invoice_number),
       envoy_number: optionalTrimmedString(values.envoy_number),
       tags: optionalNumberArray(values.tags),
+      document_date: optionalTrimmedString(values.document_date),
       changeDescription: optionalTrimmedString(values.changeDescription),
       unlockToken: optionalTrimmedString(values.unlockToken),
     };

@@ -7,6 +7,7 @@ import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types
 import { PageLayout } from "../../../shared/layout/PageLayout";
 import { useSearchPageContainer } from "../containers/useSearchPageContainer";
 import type { SearchResult } from "../types/search.types";
+import { formatDocumentDateDisplay } from "@/shared/utils/documents/documentDate";
 import "../styles/search.css";
 
 /**
@@ -35,11 +36,20 @@ const SearchPage = () => {
 
   const searchColumns: ColumnDef<SearchResult>[] = useMemo(
     () => [
-      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name || row.title || "–" },
-      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode || "–" },
-      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name || (row.document_type as { name?: string })?.name || "–" },
-      { id: "department", header: t("documents.department", { defaultValue: "Department" }), render: (row) => row.department_name || (row.department as { name?: string })?.name || "–" },
-      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload Date" }), render: (row) => row.upload_date ?? row.created_at ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.name || row.title || "–" },
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), truncate: true, render: (row) => row.barcode || "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), truncate: true, render: (row) => row.document_type_name || (row.document_type as { name?: string })?.name || "–" },
+      { id: "department", header: t("documents.department", { defaultValue: "Department" }), truncate: true, render: (row) => row.department_name || (row.department as { name?: string })?.name || "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload Date" }), truncate: true, render: (row) => row.upload_date ?? row.created_at ?? "–" },
+      { id: "document_date", header: t("documents.documentDate", { defaultValue: "Document date" }), truncate: true, render: (row) => formatDocumentDateDisplay(row.document_date) },
+      { 
+        id: "ocr_snippet", 
+        header: t("search.ocrSnippet", { defaultValue: "OCR Excerpt" }), 
+        truncate: true,
+        render: (row) => row.ocr_snippet 
+          ? <span className="text-muted fst-italic small">{row.ocr_snippet}</span>
+          : "–" 
+      },
     ],
     [t]
   );
@@ -142,7 +152,6 @@ const SearchPage = () => {
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
               responsive="auto"
               cardsBelow="lg"
-              actionsStyle="inline"
             />
           </div>
         </div>
