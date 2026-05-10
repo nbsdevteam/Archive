@@ -2,6 +2,7 @@ export * from "./Button";
 export * from "./Spinner";
 export * from "./Alert";
 export * from "./Input";
+export * from "./DateField";
 export * from "./Modal";
 export * from "./ConfirmModal";
 export * from "./Card";
@@ -17,6 +18,7 @@ export type {
   ListFilterDateRangeConfig,
 } from "./ListFilter/ListFilter.types";
 export * from "./DataTable";
+export * from "./DataList";
 export * from "./MobileActionsMenu";
 export * from "./InfoWrapper";
 export * from "./Checkbox";

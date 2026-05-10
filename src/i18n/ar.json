@@ -70,6 +70,7 @@
     "documentDateOptional": "تاريخ المستند (اختياري)",
     "documentDateHint": "اختياري. الخادم يخزّن التواريخ ويعيدها بصيغة يوم-شهر-سنة.",
     "documentDateSection": "تاريخ المستند",
+    "optionalDocumentDateAndTags": "تاريخ المستند والوسوم (اختياري)",
     "lastModified": "آخر تعديل",
     "status": "الحالة",
     "confidentialityLabel": "السرية",

@@ -6,7 +6,7 @@ import type { SelectOption } from "@/shared/components/ui";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
 import type { Folder } from "@/app/adapter/api/folders.types";
-import { Input, SelectField, MultiSelectField, Icon, Button } from "@/shared/components/ui";
+import { Input, SelectField, MultiSelectField, DateField, Icon, Button } from "@/shared/components/ui";
 
 const CONFIDENTIALITY_OPTIONS = (t: TFunction): SelectOption<string>[] => [
   { value: "internal", label: t("documents.confidentiality.internal") },
@@ -116,14 +116,6 @@ export function EditDocumentFormContent({
           required
           autoComplete="off"
         />
-        <Input
-          type="date"
-          label={t("documents.documentDateOptional", { defaultValue: "Document date (optional)" })}
-          {...register("document_date")}
-          error={errors.document_date?.message}
-          helperText={t("documents.documentDateHint")}
-          autoComplete="off"
-        />
         {showLinkToFolder && (
           folderName ? (
             <Input
@@ -188,14 +180,33 @@ export function EditDocumentFormContent({
           <Input label={t("documents.envoyNumber")} {...register("envoy_number")} placeholder="ENV-2024-001" autoComplete="off" />
         </div>
       </div>
-      <MultiSelectField
-        control={control}
-        name="tags"
-        options={tagOptions}
-        label={t("documents.tagsOptional", { defaultValue: "Tags (optional)" })}
-        placeholder={t("common.selectTags", { defaultValue: "Select tags" })}
-        error={errors.tags?.message as string | undefined}
-      />
+      <h6 className="fw-semibold mb-2 mt-2">
+        <Icon name="calendar" className="me-1" />
+        {t("documents.optionalDocumentDateAndTags", { defaultValue: "Document date & tags (optional)" })}
+      </h6>
+      <div className="row g-2 mb-3 align-items-start">
+        <div className="col-md-4 col-lg-3">
+          <DateField
+            control={control}
+            name="document_date"
+            label={t("documents.documentDate", { defaultValue: "Document date" })}
+            error={errors.document_date?.message as string | undefined}
+            helperText={t("documents.documentDateHint")}
+            omitBottomMargin
+          />
+        </div>
+        <div className="col-md-8 col-lg-9">
+          <MultiSelectField
+            control={control}
+            name="tags"
+            options={tagOptions}
+            label={t("documents.tags", { defaultValue: "Tags" })}
+            placeholder={t("common.selectTags", { defaultValue: "Select tags" })}
+            error={errors.tags?.message as string | undefined}
+            omitBottomMargin
+          />
+        </div>
+      </div>
 
       <h6 className="fw-semibold mb-2 mt-3">{t("documents.replaceFileOptional", { defaultValue: "Replace file (optional)" })}</h6>
       <p className="text-muted small mb-2">{t("documents.replaceFileCreatesNewVersion", { defaultValue: "Selecting a new file will upload it as a new version." })}</p>

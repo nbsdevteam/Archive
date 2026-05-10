@@ -71,6 +71,7 @@
     "documentDateOptional": "Document date (optional)",
     "documentDateHint": "Optional. The server stores and returns dates as dd-mm-yyyy.",
     "documentDateSection": "Document date",
+    "optionalDocumentDateAndTags": "Document date & tags (optional)",
     "lastModified": "Last modified",
     "status": "Status",
     "confidentialityLabel": "Confidentiality",

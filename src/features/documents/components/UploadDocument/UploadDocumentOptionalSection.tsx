@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import type { Control, FieldErrors } from "react-hook-form";
 import type { UploadFormValues } from "./types";
-import { Input, MultiSelectField } from "@/shared/components/ui";
+import { Input, MultiSelectField, DateField } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
 import { Icon } from "@/shared/components/ui";
 
@@ -61,24 +61,32 @@ export function UploadDocumentOptionalSection({
         </>
       )}
       <h6 className="fw-semibold mb-2 mt-2">
-        {t("documents.documentDateSection", { defaultValue: "Document date" })}
+        <Icon name="calendar" className="me-1" />
+        {t("documents.optionalDocumentDateAndTags", { defaultValue: "Document date & tags (optional)" })}
       </h6>
-      <Input
-        type="date"
-        label={t("documents.documentDateOptional", { defaultValue: "Document date (optional)" })}
-        {...register("document_date")}
-        error={errors.document_date?.message}
-        helperText={t("documents.documentDateHint")}
-        autoComplete="off"
-      />
-      <MultiSelectField
-        control={control}
-        name="tags"
-        options={tagOptions}
-        label={t("documents.tagsOptional", { defaultValue: "Tags (optional)" })}
-        placeholder={t("common.selectTags", { defaultValue: "Select tags" })}
-        error={errors.tags?.message as string | undefined}
-      />
+      <div className="row g-2 mb-3 align-items-start">
+        <div className="col-md-4 col-lg-3">
+          <DateField
+            control={control}
+            name="document_date"
+            label={t("documents.documentDate", { defaultValue: "Document date" })}
+            error={errors.document_date?.message as string | undefined}
+            helperText={t("documents.documentDateHint")}
+            omitBottomMargin
+          />
+        </div>
+        <div className="col-md-8 col-lg-9">
+          <MultiSelectField
+            control={control}
+            name="tags"
+            options={tagOptions}
+            label={t("documents.tags", { defaultValue: "Tags" })}
+            placeholder={t("common.selectTags", { defaultValue: "Select tags" })}
+            error={errors.tags?.message as string | undefined}
+            omitBottomMargin
+          />
+        </div>
+      </div>
     </>
   );
 }

@@ -12,6 +12,8 @@ interface MultiSelectFieldProps<T extends FieldValues, Name extends FieldPath<T>
   isDisabled?: boolean;
   error?: string;
   className?: string;
+  /** When true, the outer wrapper has no bottom margin (e.g. paired in a grid row). */
+  omitBottomMargin?: boolean;
 }
 
 /** Returns a change handler for multi Select that syncs selected ids with react-hook-form field. */
@@ -37,12 +39,13 @@ export function MultiSelectField<T extends FieldValues, Name extends FieldPath<T
   isDisabled,
   error,
   className = "",
+  omitBottomMargin = false,
 }: MultiSelectFieldProps<T, Name>) {
   const labelId = useId();
   const accessibleName = label ?? placeholder;
   // Expose accessible name for screen readers/TTS via aria-label and aria-labelledby (react-select supports both).
   return (
-    <div className={`mb-3 ${className}`}>
+    <div className={`${omitBottomMargin ? "" : "mb-3 "}${className}`.trim()}>
       {label && <label id={labelId} className="form-label">{label}</label>}
       <Controller
         control={control}
