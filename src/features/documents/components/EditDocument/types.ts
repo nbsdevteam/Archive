@@ -11,7 +11,7 @@ export type EditDocumentFormValues = {
   invoice_number?: string;
   envoy_number?: string;
   tags?: number[];
-  /** yyyy-mm-dd from date input; empty means clear when saving. */
+  /** dd-mm-yyyy from text date field; empty means clear when saving. */
   document_date?: string;
   changeDescription?: string;
   /** Required when document is locked and user selects a replacement file. */

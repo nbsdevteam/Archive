@@ -26,7 +26,7 @@ export type UploadFormValues = {
   invoice_number?: string;
   envoy_number?: string;
   tags?: number[];
-  /** Optional document date for `<input type="date">` (yyyy-mm-dd); sent on upload when set. */
+  /** Optional document date as dd-mm-yyyy (text field); sent on upload when valid. */
   document_date?: string;
 };
 

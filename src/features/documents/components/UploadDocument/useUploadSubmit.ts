@@ -8,6 +8,7 @@ import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { createFolder } from "@/app/adapter/api/folders.api";
 import { fileToBase64 } from "@/shared/utils/files/fileToBase64";
 import type { UploadFormValues } from "./types";
+import { toCanonicalDdMmYyyy } from "@/shared/utils/documents/documentDate";
 
 function summarizeMultiUploadOutcomes(results: UploadFileResult[], totalFiles: number) {
   const successCount = results.filter((r) => r.success).length;
@@ -16,10 +17,12 @@ function summarizeMultiUploadOutcomes(results: UploadFileResult[], totalFiles: n
   return { successCount, failedCount, skippedCount };
 }
 
-/** Optional yyyy-mm-dd from date picker for upload APIs (JSON body or X-Document-Date). */
+/** Optional dd-mm-yyyy for upload APIs (JSON body or X-Document-Date); only sent when the value parses. */
 function optionalDocumentDateParam(data: UploadFormValues): { document_date?: string } {
   const d = data.document_date?.trim();
-  return d ? { document_date: d } : {};
+  if (!d) return {};
+  const canon = toCanonicalDdMmYyyy(d);
+  return canon ? { document_date: canon } : {};
 }
 
 export interface UseUploadSubmitParams {

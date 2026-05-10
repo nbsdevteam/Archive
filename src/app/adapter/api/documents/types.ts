@@ -325,7 +325,7 @@ export interface UploadSingleFileParams {
   auto_ocr?: boolean;
   /** Attach to existing folder (`X-Folder-Id`). */
   folder_id?: number;
-  /** Sent as `X-Document-Date` when set (yyyy-mm-dd from date picker). */
+  /** Sent as `X-Document-Date` when set (dd-mm-yyyy preferred; API accepts other formats). */
   document_date?: string;
 }
 

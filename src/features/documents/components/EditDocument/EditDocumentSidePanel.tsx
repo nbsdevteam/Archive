@@ -8,8 +8,8 @@ import type { SelectOption } from "@/shared/components/ui";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import type { DocumentDetail, UpdateDocumentParams } from "@/app/adapter/api/documents.api";
 import {
-  apiDocumentDateToHtmlInput,
   htmlInputDateToApiWrite,
+  toCanonicalDdMmYyyy,
 } from "@/shared/utils/documents/documentDate";
 import { adminApi } from "@/app/adapter/api/admin.api";
 import { listFolders } from "@/app/adapter/api/folders.api";
@@ -61,7 +61,7 @@ function documentToEditFormValues(doc: DocumentDetail, initialFolderId?: number 
     invoice_number: typeof doc.invoice_number === "string" ? doc.invoice_number : "",
     envoy_number: typeof doc.envoy_number === "string" ? doc.envoy_number : "",
     tags: tags.length > 0 ? tags : [],
-    document_date: apiDocumentDateToHtmlInput(doc.document_date),
+    document_date: toCanonicalDdMmYyyy(doc.document_date),
     changeDescription: "",
     unlockToken: "",
   };
@@ -87,10 +87,15 @@ function formValuesToUpdateParams(
   if (values.tags && values.tags.length > 0) params.tags = values.tags;
   if (isSubDoc && values.folder_id != null) params.folder_id = values.folder_id > 0 ? values.folder_id : null;
 
-  const origHtml = apiDocumentDateToHtmlInput(sourceDoc.document_date);
-  const cur = htmlInputDateToApiWrite(values.document_date);
-  if (cur !== origHtml) {
-    params.document_date = cur ? cur : null;
+  const origCanon = toCanonicalDdMmYyyy(sourceDoc.document_date ?? "");
+  const curRaw = htmlInputDateToApiWrite(values.document_date);
+  const curCanon = toCanonicalDdMmYyyy(values.document_date);
+  if (curCanon !== origCanon) {
+    if (curRaw === "") {
+      params.document_date = null;
+    } else if (curCanon) {
+      params.document_date = curCanon;
+    }
   }
 
   return params;
@@ -112,7 +117,11 @@ function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail,
   const tagsB = (current.tags ?? []).slice().sort((a, b) => a - b).join(",");
   if (tagsA !== tagsB) return true;
   if (isSubDoc && (values.folder_id ?? 0) !== (current.folder_id ?? 0)) return true;
-  if ((values.document_date ?? "") !== (current.document_date ?? "")) return true;
+  const vCanon = toCanonicalDdMmYyyy(values.document_date);
+  const cCanon = toCanonicalDdMmYyyy(current.document_date);
+  if (vCanon !== cCanon) return true;
+  const vRaw = htmlInputDateToApiWrite(values.document_date);
+  if (vRaw && !vCanon) return true;
   return false;
 }
 

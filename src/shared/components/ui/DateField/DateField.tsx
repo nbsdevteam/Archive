@@ -5,6 +5,7 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
+import { toCanonicalDdMmYyyy } from "@/shared/utils/documents/documentDate";
 
 const heightClassBySize = {
   sm: "control-height-sm",
@@ -28,7 +29,8 @@ export interface DateFieldProps<T extends FieldValues, N extends FieldPath<T>> {
 }
 
 /**
- * Native date input (yyyy-mm-dd) wired through react-hook-form; matches Input layout and control heights.
+ * Document date as text (dd-mm-yyyy) so day-first typing works; normalizes valid input on blur.
+ * Avoids `type="date"` where segment order is locale-dependent and days &gt; 12 are rejected as “month”.
  */
 export function DateField<T extends FieldValues, N extends FieldPath<T>>({
   control,
@@ -62,17 +64,31 @@ export function DateField<T extends FieldValues, N extends FieldPath<T>>({
         name={name}
         render={({ field }) => {
           const str = field.value != null ? String(field.value) : "";
+          /** On blur, pad to dd-mm-yyyy when the string parses; keep partial input if not yet valid. */
+          const handleBlur = () => {
+            const raw = field.value != null ? String(field.value) : "";
+            const trimmed = raw.trim();
+            if (!trimmed) {
+              field.onChange("");
+            } else {
+              const canon = toCanonicalDdMmYyyy(trimmed);
+              if (canon) field.onChange(canon);
+            }
+            field.onBlur();
+          };
           return (
             <input
               id={id}
-              type="date"
+              type="text"
+              placeholder="dd-mm-yyyy"
               className={`form-control ${heightClass} ${error ? "is-invalid" : ""}`.trim()}
               value={str}
               onChange={(e) => field.onChange(e.target.value)}
-              onBlur={field.onBlur}
+              onBlur={handleBlur}
               ref={field.ref}
               disabled={disabled}
               autoComplete="off"
+              spellCheck={false}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? errorId : undefined}
             />
