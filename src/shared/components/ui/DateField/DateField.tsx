@@ -64,7 +64,31 @@ export function DateField<T extends FieldValues, N extends FieldPath<T>>({
         name={name}
         render={({ field }) => {
           const str = field.value != null ? String(field.value) : "";
-          /** On blur, pad to dd-mm-yyyy when the string parses; keep partial input if not yet valid. */
+          
+          /** Format as user types: auto-insert dashes at positions 2 and 5 (dd-mm-yyyy). */
+          const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            let input = e.target.value;
+            // Remove all non-digits
+            const digits = input.replace(/\D/g, "");
+            
+            // Auto-format: add dashes after DD and MM
+            let formatted = digits;
+            if (digits.length >= 3) {
+              formatted = digits.slice(0, 2) + "-" + digits.slice(2);
+            }
+            if (digits.length >= 5) {
+              formatted = digits.slice(0, 2) + "-" + digits.slice(2, 4) + "-" + digits.slice(4, 8);
+            }
+            
+            // Limit to 10 chars (dd-mm-yyyy)
+            if (formatted.length > 10) {
+              formatted = formatted.slice(0, 10);
+            }
+            
+            field.onChange(formatted);
+          };
+
+          /** On blur, validate and pad to dd-mm-yyyy when the string parses. */
           const handleBlur = () => {
             const raw = field.value != null ? String(field.value) : "";
             const trimmed = raw.trim();
@@ -76,6 +100,7 @@ export function DateField<T extends FieldValues, N extends FieldPath<T>>({
             }
             field.onBlur();
           };
+
           return (
             <input
               id={id}
@@ -83,7 +108,7 @@ export function DateField<T extends FieldValues, N extends FieldPath<T>>({
               placeholder="dd-mm-yyyy"
               className={`form-control ${heightClass} ${error ? "is-invalid" : ""}`.trim()}
               value={str}
-              onChange={(e) => field.onChange(e.target.value)}
+              onChange={handleChange}
               onBlur={handleBlur}
               ref={field.ref}
               disabled={disabled}
