@@ -25,6 +25,10 @@
     }
     .input-group {
         width: 259px;
+        position: relative;
+        border-radius: 5px;
+        transition: all 0.15s ease-in-out;
+        
         .input-icon-addon {
             font-size: variables.$font-size-14;
         }
@@ -35,11 +39,31 @@
             border-bottom-left-radius: 5px !important;
             padding-left: 32px;
             font-size: variables.$font-size-12;
+            
+            &:focus {
+                box-shadow: none;
+            }
         }
         .input-group-text {
             border-left: 0;
             min-height: 30px;
+            transition: all 0.15s ease-in-out;
         }
+        
+        &:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-radius: 5px;
+            
+            .input-group-text {
+                border-color: #86b7fe;
+                background-color: #fff;
+            }
+            
+            input {
+                border-color: #86b7fe !important;
+            }
+        }
+        
         @include mixins.respond-below(xl) {
             display: none;
         }
