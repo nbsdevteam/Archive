@@ -827,6 +827,8 @@
     "selectPlaceholder": "Select..."
   },
   "shortcuts": {
+    "global-search": "Global search",
+    "open-filter": "Filter",
     "new-document": "New document",
     "download-document": "Download document",
     "create-sub-document": "Create sub-document",

@@ -73,6 +73,23 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     const { signal } = abortController;
     const opts = { capture: true, signal };
     const handleKeyDown = (e: KeyboardEvent) => {
+      /** Alt + / focuses global search; handled here so capture phase runs before other listeners and overlay state does not block the chord. */
+      if (
+        e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.repeat &&
+        (e.key === "/" || e.key === "Divide" || e.code === "Slash" || e.code === "NumpadDivide")
+      ) {
+        const fn = handlersRef.current[SHORTCUT_KEYS.GLOBAL_SEARCH];
+        if (typeof fn === "function") {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+          setOverlayOpen(false);
+          return;
+        }
+      }
       if (e.key === "Alt" && !e.repeat) {
         e.preventDefault();
         e.stopPropagation();
@@ -80,7 +97,8 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (overlayOpen) {
-        const key = e.key.toLowerCase();
+        const raw = e.key;
+        const key = raw.length === 1 ? raw.toLowerCase() : raw;
         const id = (Object.entries(SHORTCUT_TRIGGER_KEYS).find(
           ([idEntry, v]) => v === key && typeof handlersRef.current[idEntry as ShortcutKeyId] === "function"
         ) as [ShortcutKeyId, string] | undefined)?.[0];

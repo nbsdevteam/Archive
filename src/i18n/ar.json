@@ -819,6 +819,8 @@
     "selectPlaceholder": "اختر..."
   },
   "shortcuts": {
+    "global-search": "بحث عام",
+    "open-filter": "تصفية",
     "new-document": "مستند جديد",
     "download-document": "تحميل المستند",
     "create-sub-document": "إنشاء مستند فرعي",

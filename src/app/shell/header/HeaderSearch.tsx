@@ -4,6 +4,8 @@ import { Search, FileText, Folder, StickyNote } from "lucide-react";
 import { searchApi } from "../../adapter/api/search.api";
 import type { SearchResult } from "../../adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
+import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
+import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
 import { DataTable } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 export interface HeaderSearchProps {
@@ -14,9 +16,10 @@ export interface HeaderSearchProps {
 /**
  * Header global search: controlled input, debounced API call, dropdown results.
  * Navigates to document/folder/note on result click; closes on outside click or Escape.
- * Supports Alt+/ keyboard shortcut to focus the search input.
+ * Registers global-search (Alt + /) with ShortcutsProvider so the overlay lists it and the chord is handled centrally.
  */
 export function HeaderSearch({ routes, t }: HeaderSearchProps) {
+  const { registerHandler } = useShortcuts();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -173,17 +176,15 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     return () => abortController.abort();
   }, []);
 
-  /** Handle Alt+/ keyboard shortcut to focus search input. */
-  useEffect(() => {
-    const handleGlobalShortcut = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === "/") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", handleGlobalShortcut);
-    return () => document.removeEventListener("keydown", handleGlobalShortcut);
+  /** Registers Alt + / with the app shortcuts system (overlay + global key handler). */
+  const focusGlobalSearch = useCallback(() => {
+    searchInputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    registerHandler(SHORTCUT_KEYS.GLOBAL_SEARCH, focusGlobalSearch);
+    return () => registerHandler(SHORTCUT_KEYS.GLOBAL_SEARCH, undefined);
+  }, [registerHandler, focusGlobalSearch]);
 
   const handleSearchResultClick = useCallback(
     (item: SearchResult) => {
