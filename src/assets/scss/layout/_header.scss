@@ -41,7 +41,9 @@
             font-size: variables.$font-size-12;
             
             &:focus {
-                box-shadow: none;
+                box-shadow: none !important;
+                border-color: #86b7fe !important;
+                outline: 0;
             }
         }
         .input-group-text {
@@ -55,12 +57,14 @@
             border-radius: 5px;
             
             .input-group-text {
-                border-color: #86b7fe;
+                border-color: #86b7fe !important;
                 background-color: #fff;
             }
             
             input {
                 border-color: #86b7fe !important;
+                border-top-color: #86b7fe !important;
+                border-bottom-color: #86b7fe !important;
             }
         }
         
