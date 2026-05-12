@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Folder, StickyNote } from "lucide-react";
 import { searchApi } from "../../adapter/api/search.api";
 import type { SearchResult } from "../../adapter/api/search.api";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
+import { DataTable } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 export interface HeaderSearchProps {
   routes: Record<string, string>;
   t: (key: string) => string;
@@ -12,6 +14,7 @@ export interface HeaderSearchProps {
 /**
  * Header global search: controlled input, debounced API call, dropdown results.
  * Navigates to document/folder/note on result click; closes on outside click or Escape.
+ * Supports Alt+/ keyboard shortcut to focus the search input.
  */
 export function HeaderSearch({ routes, t }: HeaderSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +26,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
   const navigate = useNavigate();
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const headerSearchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeType = useCallback((type: string | undefined): "document" | "folder" | "note" => {
     const lowerType = type?.toLowerCase();
@@ -62,6 +66,65 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
       return formatDateCompact(item.create_date ?? item.created_at);
     },
     [formatDateCompact, getEffectiveType]
+  );
+
+  const searchColumns: ColumnDef<SearchResult>[] = useMemo(
+    () => [
+      {
+        id: "type",
+        header: t("app.type"),
+        headerClassName: "border-0 py-1 px-2 fs-11",
+        className: "py-1 px-2 fs-12",
+        render: (item) => {
+          const type = getEffectiveType(item);
+          const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+          return (
+            <div className="d-flex align-items-center gap-1">
+              {type === "document" ? (
+                <FileText size={16} className="text-primary" aria-hidden />
+              ) : type === "folder" ? (
+                <Folder size={16} className="text-secondary" aria-hidden />
+              ) : (
+                <StickyNote size={16} className="text-info" aria-hidden />
+              )}
+              <span>{typeLabel}</span>
+            </div>
+          );
+        },
+      },
+      {
+        id: "name",
+        header: t("app.name"),
+        headerClassName: "border-0 py-1 px-2 fs-11",
+        className: "py-1 px-2 fs-12",
+        truncate: true,
+        render: (item) => getDisplayName(item),
+      },
+      {
+        id: "department",
+        header: t("documents.department"),
+        headerClassName: "border-0 py-1 px-2 fs-11",
+        className: "py-1 px-2 fs-12",
+        truncate: true,
+        render: (item) => item.department_name || "-",
+      },
+      {
+        id: "meta",
+        header: t("app.meta"),
+        headerClassName: "border-0 py-1 px-2 fs-11",
+        className: "py-1 px-2 fs-12",
+        truncate: true,
+        render: (item) => getMeta(item),
+      },
+      {
+        id: "action",
+        header: t("app.action"),
+        headerClassName: "border-0 py-1 px-2 fs-11 text-end",
+        className: "py-1 px-2 fs-12 text-end",
+        render: () => <span className="badge bg-light text-dark">View</span>,
+      },
+    ],
+    [t, getEffectiveType, getDisplayName, getMeta]
   );
 
   useEffect(() => {
@@ -110,6 +173,18 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     return () => abortController.abort();
   }, []);
 
+  /** Handle Alt+/ keyboard shortcut to focus search input. */
+  useEffect(() => {
+    const handleGlobalShortcut = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleGlobalShortcut);
+    return () => document.removeEventListener("keydown", handleGlobalShortcut);
+  }, []);
+
   const handleSearchResultClick = useCallback(
     (item: SearchResult) => {
       setSearchDropdownOpen(false);
@@ -147,33 +222,6 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
     if (searchTerm.trim().length >= 2) setSearchDropdownOpen(true);
   }, [searchTerm]);
 
-  /** Navigates to the result row clicked; reads result index from data-result-index. */
-  const handleSearchResultRowClick = useCallback(
-    (e: React.MouseEvent<HTMLTableRowElement>) => {
-      const index = e.currentTarget.dataset.resultIndex;
-      if (index != null) {
-        const item = searchResults[Number(index)];
-        if (item) handleSearchResultClick(item);
-      }
-    },
-    [searchResults, handleSearchResultClick]
-  );
-
-  /** Handles Enter/Space on result row for accessibility. */
-  const handleSearchResultRowKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const index = e.currentTarget.dataset.resultIndex;
-        if (index != null) {
-          const item = searchResults[Number(index)];
-          if (item) handleSearchResultClick(item);
-        }
-      }
-    },
-    [searchResults, handleSearchResultClick]
-  );
-
   return (
     <div ref={headerSearchRef} className="position-relative" style={{ minWidth: "280px", width: "50%", flex: "0 1 50%", maxWidth: "50%" }}>
       <div className="input-group input-group-flat d-inline-flex w-100">
@@ -181,6 +229,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           <Search size={16} aria-hidden />
         </span>
         <input
+          ref={searchInputRef}
           type="text"
           className="form-control"
           placeholder={t("app.searchPlaceholder")}
@@ -190,7 +239,7 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           aria-label={t("app.searchPlaceholder")}
         />
         <span className="input-group-text">
-          <kbd>CTRL + / </kbd>
+          <kbd>ALT + /</kbd>
         </span>
       </div>
       {searchTerm.trim().length >= 2 && searchDropdownOpen && (
@@ -206,55 +255,14 @@ export function HeaderSearch({ routes, t }: HeaderSearchProps) {
           ) : searchResults.length === 0 ? (
             <div className="p-3 text-muted small">{t("app.noResults")}</div>
           ) : (
-            <div className="table-responsive mb-0">
-              <table className="table table-sm table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th className="border-0 py-1 px-2 fs-11">{t("app.type")}</th>
-                    <th className="border-0 py-1 px-2 fs-11">{t("app.name")}</th>
-                    <th className="border-0 py-1 px-2 fs-11">{t("documents.department")}</th>
-                    <th className="border-0 py-1 px-2 fs-11">{t("app.meta")}</th>
-                    <th className="border-0 py-1 px-2 fs-11 text-end">{t("app.action")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchResults.map((item, index) => {
-                    const type = getEffectiveType(item);
-                    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-                    return (
-                      <tr
-                        key={`${type}-${item.id}`}
-                        style={{ cursor: "pointer" }}
-                        role="button"
-                        tabIndex={0}
-                        data-result-index={index}
-                        onClick={handleSearchResultRowClick}
-                        onKeyDown={handleSearchResultRowKeyDown}
-                      >
-                        <td className="py-1 px-2 fs-12">
-                          <div className="d-flex align-items-center gap-1">
-                            {type === "document" ? (
-                              <FileText size={16} className="text-primary" aria-hidden />
-                            ) : type === "folder" ? (
-                              <Folder size={16} className="text-secondary" aria-hidden />
-                            ) : (
-                              <StickyNote size={16} className="text-info" aria-hidden />
-                            )}
-                            <span>{typeLabel}</span>
-                          </div>
-                        </td>
-                        <td className="py-1 px-2 fs-12">{getDisplayName(item)}</td>
-                        <td className="py-1 px-2 fs-12">{item.department_name || "-"}</td>
-                        <td className="py-1 px-2 fs-12">{getMeta(item)}</td>
-                        <td className="py-1 px-2 fs-12 text-end">
-                          <span className="badge bg-light text-dark">View</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <DataTable<SearchResult>
+              data={searchResults}
+              getRowId={(row) => `${getEffectiveType(row)}-${row.id}`}
+              columns={searchColumns}
+              onRowClick={handleSearchResultClick}
+              responsive="table"
+              tableClassName="table table-sm table-hover mb-0"
+            />
           )}
         </div>
       )}
