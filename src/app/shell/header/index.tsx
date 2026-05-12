@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { PanelLeftClose, Globe, Check, Maximize2 } from "lucide-react";
+import { Globe, Check, Maximize2 } from "lucide-react";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { all_routes } from "../../../router/all_routes";
 import { useAuth } from "../../../shared/auth";
@@ -32,8 +32,7 @@ const Header = React.memo(() => {
   );
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { setMobileSidebar, mobileSidebar, toggleMiniSidebar } =
-    useSidebarUiStore();
+  const { setMobileSidebar, mobileSidebar } = useSidebarUiStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleLogout = useCallback(() => {
@@ -44,11 +43,6 @@ const Header = React.memo(() => {
     () => setMobileSidebar(!mobileSidebar),
     [setMobileSidebar, mobileSidebar],
   );
-  const handleToggleMiniSidebar = useCallback(
-    () => toggleMiniSidebar(),
-    [toggleMiniSidebar],
-  );
-
   /** Toggles browser fullscreen mode and tracks state for icon swap. */
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
@@ -100,15 +94,6 @@ const Header = React.memo(() => {
                 id="header-search"
                 style={{ flex: 1, minWidth: 0, gap: "1.25rem" }}
               >
-                <Link
-                  id="toggle_btn"
-                  to="#"
-                  onClick={handleToggleMiniSidebar}
-                  className="btn btn-menubar flex-shrink-0"
-                  aria-label={t("app.toggleSidebar")}
-                >
-                  <PanelLeftClose size={16} aria-hidden />
-                </Link>
                 <HeaderSearch routes={routes} t={t} />
                 <span className="d-inline-flex flex-shrink-0 px-4"></span>
               </div>
