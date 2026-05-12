@@ -36,12 +36,21 @@ const ShortcutsContext = createContext<ShortcutsContextValue | null>(null);
 export function ShortcutsProvider({ children }: { children: ReactNode }) {
   const { isDesktopView } = useViewport();
   const [overlayOpen, setOverlayOpen] = useState(false);
+  /** Mirrors overlayOpen for key handlers; updated synchronously so Alt then / never reads stale state, and keyboard listeners stay mounted (effect does not depend on overlayOpen). */
+  const overlayOpenRef = useRef(false);
   const handlersRef = useRef<HandlersMap>({});
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!isDesktopView) setOverlayOpen(false);
+    if (!isDesktopView) {
+      overlayOpenRef.current = false;
+      setOverlayOpen(false);
+    }
   }, [isDesktopView]);
+
+  useEffect(() => {
+    overlayOpenRef.current = overlayOpen;
+  }, [overlayOpen]);
 
   const registerHandler = useCallback((key: ShortcutKeyId, handler: ShortcutHandler | undefined) => {
     handlersRef.current[key] = handler;
@@ -73,19 +82,24 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     const { signal } = abortController;
     const opts = { capture: true, signal };
     const handleKeyDown = (e: KeyboardEvent) => {
-      /** Alt + / focuses global search; handled here so capture phase runs before other listeners and overlay state does not block the chord. */
-      if (
+      /** Alt + / focuses global search; use e.code so the physical slash key works when Alt changes e.key (layouts / OS). */
+      const isSlashChord =
         e.altKey &&
         !e.ctrlKey &&
         !e.metaKey &&
         !e.repeat &&
-        (e.key === "/" || e.key === "Divide" || e.code === "Slash" || e.code === "NumpadDivide")
-      ) {
+        (e.code === "Slash" ||
+          e.code === "NumpadDivide" ||
+          e.key === "/" ||
+          e.key === "Divide");
+
+      if (isSlashChord) {
         const fn = handlersRef.current[SHORTCUT_KEYS.GLOBAL_SEARCH];
         if (typeof fn === "function") {
           e.preventDefault();
           e.stopPropagation();
           fn();
+          overlayOpenRef.current = false;
           setOverlayOpen(false);
           return;
         }
@@ -93,10 +107,11 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
       if (e.key === "Alt" && !e.repeat) {
         e.preventDefault();
         e.stopPropagation();
+        overlayOpenRef.current = true;
         setOverlayOpen(true);
         return;
       }
-      if (overlayOpen) {
+      if (overlayOpenRef.current) {
         const raw = e.key;
         const key = raw.length === 1 ? raw.toLowerCase() : raw;
         const id = (Object.entries(SHORTCUT_TRIGGER_KEYS).find(
@@ -106,6 +121,7 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
           e.preventDefault();
           e.stopPropagation();
           runHandler(id);
+          overlayOpenRef.current = false;
           setOverlayOpen(false);
         }
       }
@@ -114,17 +130,22 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
       if (e.key === "Alt" && !e.repeat) {
         e.preventDefault();
         e.stopPropagation();
+        overlayOpenRef.current = false;
         setOverlayOpen(false);
       }
     };
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOverlayOpen(false);
+      if (e.key === "Escape") {
+        overlayOpenRef.current = false;
+        setOverlayOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown, opts);
     window.addEventListener("keyup", handleKeyUp, opts);
     window.addEventListener("keydown", handleEscape, opts);
+    /** Intentionally omit overlayOpen from deps: including it removed listeners on every Alt press and dropped the first "/" keydown. */
     return () => abortController.abort();
-  }, [isDesktopView, overlayOpen, runHandler]);
+  }, [isDesktopView, runHandler]);
 
   // Memoize context value to prevent consumers from re-rendering unnecessarily
   const value: ShortcutsContextValue = useMemo(
