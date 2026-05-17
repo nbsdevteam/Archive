@@ -1,10 +1,14 @@
 import type { LucideProps } from "lucide-react";
 import {
+  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   ArrowRightLeft,
   Archive,
   BarChart2,
   Bell,
+  Clock,
+  Code,
   Copy,
   Calendar,
   ChevronDown,
@@ -17,6 +21,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  File,
   FileCheck,
   FileSearchCorner,
   FileText,
@@ -24,6 +29,7 @@ import {
   Folder,
   FolderPlus,
   FolderSearch,
+  HardDrive,
   Home,
   Info,
   MoreVertical,
@@ -31,12 +37,14 @@ import {
   Pencil,
   RefreshCw,
   Search,
+  Tag,
   Trash,
   Trash2,
   Upload,
   FileUp,
   User,
   X,
+  XCircle,
 } from "lucide-react";
 
 /**
@@ -44,6 +52,8 @@ import {
  * Add new mappings here as needed.
  */
 const iconMap = {
+  "alert-circle": AlertCircle,
+  "alert-triangle": AlertTriangle,
   home: Home,
   "smart-home": Home,
   "bar-chart-2": BarChart2,
@@ -68,8 +78,10 @@ const iconMap = {
   "folder-search": FolderSearch,
   "file-search-corner": FileSearchCorner,
   bell: Bell,
+  file: File,
   "file-text": FileText,
   "file-check": FileCheck,
+  "hard-drive": HardDrive,
   archive: Archive,
   user: User,
   x: X,
@@ -84,6 +96,10 @@ const iconMap = {
   edit: Pencil,
   pencil: Pencil,
   calendar: Calendar,
+  clock: Clock,
+  code: Code,
+  tag: Tag,
+  "x-circle": XCircle,
 } as const;
 
 export type IconName = keyof typeof iconMap;

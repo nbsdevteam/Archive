@@ -248,8 +248,8 @@ export function useFoldersPageContainer() {
           id: folder.id,
           name: folder.name,
           code: folder.code,
-          company_id: folder.company_id,
-          company_name: folder.company_name,
+          company_id: folder.company_id ?? undefined,
+          company_name: folder.company_name ?? undefined,
           department_id: folder.department_id,
         };
         

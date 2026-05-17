@@ -32,12 +32,7 @@ export function FailedUploadsModal({ isOpen, onClose, failedFiles }: FailedUploa
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="d-flex align-items-center gap-2">
-          <Icon name="alert-circle" className="text-danger" />
-          <span>{t("documents.uploadFailedDetails", { defaultValue: "Files Failed to Upload" })}</span>
-        </div>
-      }
+      title={t("documents.uploadFailedDetails", { defaultValue: "Files Failed to Upload" })}
       size="xl"
     >
       <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>

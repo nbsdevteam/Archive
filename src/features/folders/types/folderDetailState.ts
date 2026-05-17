@@ -110,7 +110,7 @@ export interface FolderDetailActions {
   formatDate: (date?: string | null) => string;
   handleNavigateToDocument: (docId: number) => void;
   handleUploadInFolder: () => void;
-  handleAttachmentsDocIdChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleAttachmentsDocIdChange: (docId: number) => void;
   handleAddAttachment: () => void;
   handleDownloadMainDocument: () => Promise<void>;
   handleDownloadDocument: (docId: number) => Promise<void>;
