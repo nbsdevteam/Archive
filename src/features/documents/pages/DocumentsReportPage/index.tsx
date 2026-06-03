@@ -483,7 +483,7 @@ const DocumentsReportPage = () => {
         header: t("documents.report.colUploadVersion"),
         width: "7rem",
         truncate: true,
-        render: (doc) => doc.document_upload_version || "—",
+        render: (doc) => (doc.document_upload_version == null ? "—" : doc.document_upload_version),
       },
       {
         id: "document_date",

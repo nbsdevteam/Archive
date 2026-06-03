@@ -156,7 +156,8 @@ export function getDocumentTableColumns(
       id: "uploadVersion",
       truncate: true,
       header: t("documents.uploadVersion", { defaultValue: "Upload version" }),
-      render: (row: Document) => row.document_upload_version || "—",
+      render: (row: Document) =>
+        row.document_upload_version == null ? "—" : row.document_upload_version,
     },
     {
       id: "type",

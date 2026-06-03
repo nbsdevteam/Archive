@@ -103,7 +103,7 @@ export function DocumentDetailInfoCard({
                 </tr>
                 <tr>
                   <td className="text-muted">{t("documents.uploadVersion", { defaultValue: "Upload version" })}</td>
-                  <td>{doc.document_upload_version || "—"}</td>
+                  <td>{doc.document_upload_version == null ? "—" : doc.document_upload_version}</td>
                 </tr>
                 <tr>
                   <td className="text-muted">{t("documents.documentDate", { defaultValue: "Document date" })}</td>
