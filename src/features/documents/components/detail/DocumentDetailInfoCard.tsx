@@ -102,6 +102,10 @@ export function DocumentDetailInfoCard({
                   <td>{formatDate(doc.upload_date)}</td>
                 </tr>
                 <tr>
+                  <td className="text-muted">{t("documents.uploadVersion", { defaultValue: "Upload version" })}</td>
+                  <td>{doc.document_upload_version || "—"}</td>
+                </tr>
+                <tr>
                   <td className="text-muted">{t("documents.documentDate", { defaultValue: "Document date" })}</td>
                   <td>{formatDocumentDateDisplay(doc.document_date)}</td>
                 </tr>

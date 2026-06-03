@@ -46,6 +46,8 @@ export interface ReportDocument {
   folder_name: string | null;
   confidentiality_level: string;
   state: string;
+  /** Upload version label when duplicate file names are allowed. */
+  document_upload_version?: string | null;
   version_count: number;
   ocr_status: string;
   po_number?: string | null;

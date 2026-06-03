@@ -479,6 +479,13 @@ const DocumentsReportPage = () => {
         render: (doc) => formatReportDate(doc.upload_date, i18n.language),
       },
       {
+        id: "document_upload_version",
+        header: t("documents.report.colUploadVersion"),
+        width: "7rem",
+        truncate: true,
+        render: (doc) => doc.document_upload_version || "—",
+      },
+      {
         id: "document_date",
         header: t("documents.report.colDocumentDate"),
         width: "7.5rem",

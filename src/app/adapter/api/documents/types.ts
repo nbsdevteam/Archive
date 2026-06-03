@@ -36,6 +36,8 @@ export interface Document {
   file_name: string;
   /** File size in bytes; API may return 0 when unknown. */
   file_size: number;
+  /** Upload version label when duplicate file names are allowed. */
+  document_upload_version?: string | null;
   /** Optional shipping/logistics fields; API returns false when not set. */
   po_number?: string | false;
   bl_number?: string | false;
