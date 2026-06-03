@@ -245,9 +245,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       }
       const fileData = await fileToBase64(singleFile);
       // Use existing folder_id if explicitly uploading main doc from within a pre-created empty folder
-      let finalFolderId: number | undefined = 
-        (lockFolderContext && data.upload_kind === "main" && data.folder_id && data.folder_id > 0) 
-          ? data.folder_id 
+      let finalFolderId: number | undefined =
+        (lockFolderContext && data.upload_kind === "main" && data.folder_id && data.folder_id > 0)
+          ? data.folder_id
           : undefined;
       // Create new folder if no existing folder and folder details are provided
       if (!finalFolderId && data.upload_kind === "main" && data.folder_name?.trim() && data.folder_code?.trim() && departmentId) {
@@ -261,6 +261,9 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         });
         finalFolderId = newFolder.id;
       }
+      const subFolderId =
+        data.upload_kind === "sub" && data.folder_id && data.folder_id > 0 ? data.folder_id : undefined;
+      const folderIdForSingleUpload = data.upload_kind === "sub" ? subFolderId : finalFolderId;
       // Single-file upload: send folder_id (scalar). Multi-file flows use bulk APIs and folder_ids elsewhere.
       const resp = await documentsApi.uploadDocument({
         department_id: Number(data.department_id),
@@ -270,7 +273,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         file_name: singleFile.name,
         confidentiality_level: data.confidentiality_level,
         upload_kind: data.upload_kind,
-        ...(finalFolderId ? { folder_id: finalFolderId } : {}),
+        ...(folderIdForSingleUpload ? { folder_id: folderIdForSingleUpload } : {}),
         ...(data.po_number?.trim() ? { po_number: data.po_number.trim() } : {}),
         ...(data.bl_number?.trim() ? { bl_number: data.bl_number.trim() } : {}),
         ...(data.container_number?.trim() ? { container_number: data.container_number.trim() } : {}),

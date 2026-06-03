@@ -100,6 +100,7 @@ describe('Create document and add secondary', () => {
     cy.wait('@uploadDocument').then(() => {
       expect(uploadPayload).to.have.property('upload_kind', 'sub');
       expect(uploadPayload).to.have.property('title', title);
+      expect(uploadPayload).to.have.property('folder_id', FOLDER_ID);
     });
   });
 });
