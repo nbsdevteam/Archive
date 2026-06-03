@@ -54,6 +54,7 @@ const DocumentsPage = () => {
   }, [isDesktopView, registerHandler, actions.handleRefresh]);
 
   const restoreDialog = useConfirmDialog<number>({ onConfirm: actions.confirmRestore });
+  const trashDialog = useConfirmDialog<number>({ onConfirm: actions.confirmTrash });
   const archiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmArchive });
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.confirmUnarchive });
   const batchArchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchArchive });
@@ -121,6 +122,16 @@ const DocumentsPage = () => {
           onClick: (row) => archiveDialog.open(row.id),
         },
         {
+          id: "trash",
+          labelKey: "documents.moveToTrash",
+          defaultValue: "Move to trash",
+          icon: "trash-2",
+          variant: "outline",
+          className: "btn-outline-danger me-1",
+          visible: (row) => row.is_main_document === false && (row.status ?? "").toLowerCase() === "active",
+          onClick: (row) => trashDialog.open(row.id),
+        },
+        {
           id: "unarchive",
           labelKey: "documents.unarchive",
           defaultValue: "Unarchive",
@@ -154,6 +165,7 @@ const DocumentsPage = () => {
       archiveDialog.open,
       unarchiveDialog.open,
       restoreDialog.open,
+      trashDialog.open,
     ]
   );
 
@@ -231,6 +243,7 @@ const DocumentsPage = () => {
         batchArchiveDialog={batchArchiveDialog}
         batchUnarchiveDialog={batchUnarchiveDialog}
         batchRestoreDialog={batchRestoreDialog}
+        trashDialog={trashDialog}
         selectedDocumentIds={selectedDocumentIds}
       />
       <EditDocumentSidePanel
