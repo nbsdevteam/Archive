@@ -1,12 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Document } from "@/app/adapter/api/documents.api";
-import { Icon } from "@/shared/components/ui";
+import { Icon, InfoWrapper } from "@/shared/components/ui";
 
 export interface AttachmentDocumentDropdownProps {
   documents: Document[];
   selectedDocId: number | "";
   onSelectDocument: (docId: number) => void;
   ariaLabel?: string;
+}
+
+/** Shows an ellipsized title with tooltip only when it overflows. */
+function AttachmentDocTitle({ title, className }: { title: string; className?: string }) {
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const el = spanRef.current;
+    if (el) setIsTruncated(el.scrollWidth > el.clientWidth);
+  }, [title]);
+
+  return (
+    <InfoWrapper
+      content={title}
+      position="top"
+      portal
+      disabled={!isTruncated}
+      trigger={
+        <span ref={spanRef} className={className}>
+          {title}
+        </span>
+      }
+    />
+  );
 }
 
 /**
@@ -78,7 +103,10 @@ export function AttachmentDocumentDropdown({
         <span className="flex-grow-1 text-start text-truncate">
           {selectedDoc ? (
             <>
-              {selectedDoc.title ?? selectedDoc.name ?? "–"}
+              <AttachmentDocTitle
+                title={selectedDoc.title ?? selectedDoc.name ?? "–"}
+                className="attachment-doc-selected-title"
+              />
               {isMainDoc(selectedDoc) && (
                 <span className="attachment-doc-main-badge ms-2">Main</span>
               )}
@@ -118,7 +146,10 @@ export function AttachmentDocumentDropdown({
                   />
                   <div className="flex-grow-1 text-truncate">
                     <div className="d-flex align-items-center gap-2">
-                      <span className="attachment-doc-title">{doc.title ?? doc.name ?? "–"}</span>
+                      <AttachmentDocTitle
+                        title={doc.title ?? doc.name ?? "–"}
+                        className="attachment-doc-title attachment-doc-title-ellipsis"
+                      />
                     </div>
                     <div className="attachment-doc-barcode text-muted small d-flex align-items-center gap-2">
                       <span>{doc.barcode}</span>
