@@ -102,10 +102,14 @@ describe('Document update', () => {
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const updatedTitle = `E2E Updated Title ${suffix}`;
     cy.get('input[name="title"]').clear().type(updatedTitle);
+    cy.get('input[name="expiry_date"]').clear().type('31-12-2026');
+    cy.get('input[name="reminder_days"]').clear().type('14');
     cy.get('[data-testid="edit-document-save"]').click();
 
     cy.wait('@updateDocument').then(() => {
       expect(updatePayload).to.have.property('title', updatedTitle);
+      expect(updatePayload).to.have.property('expiry_date', '31-12-2026');
+      expect(updatePayload).to.have.property('reminder_days', 14);
     });
   });
 });

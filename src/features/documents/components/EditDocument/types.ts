@@ -13,6 +13,10 @@ export type EditDocumentFormValues = {
   tags?: number[];
   /** dd-mm-yyyy from text date field; empty means clear when saving. */
   document_date?: string;
+  /** Optional expiry date as dd-mm-yyyy. */
+  expiry_date?: string;
+  /** Days before expiry to remind. */
+  reminder_days?: number;
   changeDescription?: string;
   /** Required when document is locked and user selects a replacement file. */
   unlockToken?: string;

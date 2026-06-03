@@ -58,6 +58,8 @@ describe('Create document and add secondary', () => {
     cy.get('input[name="folder_name"]').clear().type(folderName);
     cy.get('input[name="folder_code"]').clear().type(folderCode);
     cy.get('input[type="file"]').selectFile({ contents: Cypress.Buffer.from('pdf content'), fileName: 'e2e-doc.pdf' }, { force: true });
+    cy.get('input[name="expiry_date"]').type('31-12-2026');
+    cy.get('input[name="reminder_days"]').clear().type('30');
 
     cy.get('[data-testid="upload-document-submit"]').click();
 
@@ -65,6 +67,8 @@ describe('Create document and add secondary', () => {
       expect(uploadPayload).to.have.property('title', title);
       expect(uploadPayload).to.have.property('file_name', 'e2e-doc.pdf');
       expect(uploadPayload).to.have.property('file_data');
+      expect(uploadPayload).to.have.property('expiry_date', '31-12-2026');
+      expect(uploadPayload).to.have.property('reminder_days', 30);
     });
   });
 

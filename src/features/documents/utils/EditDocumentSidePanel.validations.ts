@@ -71,6 +71,11 @@ export function makeEditDocumentValidator(t: TFunction): Validator<EditDocumentF
       envoy_number: optionalTrimmedString(values.envoy_number),
       tags: optionalNumberArray(values.tags),
       document_date: optionalTrimmedString(values.document_date),
+      expiry_date: optionalTrimmedString(values.expiry_date),
+      reminder_days:
+        typeof values.reminder_days === 'number' && !Number.isNaN(values.reminder_days)
+          ? Math.max(0, Math.floor(values.reminder_days))
+          : undefined,
       changeDescription: optionalTrimmedString(values.changeDescription),
       unlockToken: optionalTrimmedString(values.unlockToken),
     };

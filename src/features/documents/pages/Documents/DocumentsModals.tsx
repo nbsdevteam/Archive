@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 import { Button, ConfirmModal, Modal, ModalFooter } from "@/shared/components/ui";
 import UploadDocumentSidePanel from "@/features/documents/components/UploadDocument/UploadDocumentSidePanel";
+import { SetDocumentRemindersModal } from "@/features/documents/components/SetDocumentRemindersModal";
 import { TransferToFolderModal } from "@/shared/components/modals";
 
 /** Props for document list modals: upload panel, confirm dialogs, transfer modal, main-files block modal. */
@@ -16,6 +17,7 @@ export interface DocumentsModalsProps {
     isMoveSubmitting: boolean;
     /** Shown when user tries to batch-trash and selection includes main files; lists names and confirms they were unchecked. */
     mainFilesBlockModal: { isOpen: boolean; mainFileNames: string[] };
+    remindersModal: { isOpen: boolean; scope: 'selected' | 'all' };
   };
   actions: {
     handleCloseUpload: () => void;
@@ -23,6 +25,8 @@ export interface DocumentsModalsProps {
     handleCloseBatchMoveConfirm: () => void;
     handleConfirmBatchMove: (targetFolderId: number) => void | Promise<void>;
     handleCloseMainFilesBlockModal: () => void;
+    handleCloseSetReminders: () => void;
+    handleSetRemindersSuccess: (updated: number) => void;
   };
   restoreDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
   archiveDialog: { modalProps: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean } };
@@ -149,6 +153,14 @@ export function DocumentsModals({
         excludeFolderIds={modals.moveExcludeFolderIds.length > 0 ? modals.moveExcludeFolderIds : undefined}
         onConfirm={actions.handleConfirmBatchMove}
         isSubmitting={modals.isMoveSubmitting}
+      />
+      <SetDocumentRemindersModal
+        isOpen={modals.remindersModal.isOpen}
+        onClose={actions.handleCloseSetReminders}
+        onSuccess={actions.handleSetRemindersSuccess}
+        scope={modals.remindersModal.scope}
+        selectedDocumentIds={selectedDocumentIds}
+        t={t}
       />
     </>
   );

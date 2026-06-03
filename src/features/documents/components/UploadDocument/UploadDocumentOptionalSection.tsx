@@ -87,6 +87,34 @@ export function UploadDocumentOptionalSection({
           />
         </div>
       </div>
+      <h6 className="fw-semibold mb-2 mt-2">
+        <Icon name="bell" className="me-1" />
+        {t("documents.expiryAndReminderOptional", { defaultValue: "Expiry & reminder (optional)" })}
+      </h6>
+      <div className="row g-2 mb-3 align-items-start">
+        <div className="col-md-4 col-lg-3">
+          <DateField
+            control={control}
+            name="expiry_date"
+            label={t("documents.expiryDate", { defaultValue: "Expiry date" })}
+            error={errors.expiry_date?.message as string | undefined}
+            helperText={t("documents.expiryDateHint", { defaultValue: "Optional. Stored as dd-mm-yyyy." })}
+            omitBottomMargin
+          />
+        </div>
+        <div className="col-md-4 col-lg-3">
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            label={t("documents.reminderDays", { defaultValue: "Reminder (days before)" })}
+            {...register("reminder_days", { valueAsNumber: true })}
+            error={errors.reminder_days?.message as string | undefined}
+            placeholder="7"
+            autoComplete="off"
+          />
+        </div>
+      </div>
     </>
   );
 }

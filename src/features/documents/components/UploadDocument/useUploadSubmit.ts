@@ -25,6 +25,20 @@ function optionalDocumentDateParam(data: UploadFormValues): { document_date?: st
   return canon ? { document_date: canon } : {};
 }
 
+/** Optional expiry date and reminder days for upload payloads. */
+function optionalExpiryReminderParams(data: UploadFormValues): { expiry_date?: string; reminder_days?: number } {
+  const params: { expiry_date?: string; reminder_days?: number } = {};
+  const expiryRaw = data.expiry_date?.trim();
+  if (expiryRaw) {
+    const canon = toCanonicalDdMmYyyy(expiryRaw);
+    if (canon) params.expiry_date = canon;
+  }
+  if (typeof data.reminder_days === 'number' && !Number.isNaN(data.reminder_days) && data.reminder_days >= 0) {
+    params.reminder_days = Math.floor(data.reminder_days);
+  }
+  return params;
+}
+
 export interface UseUploadSubmitParams {
   onSuccess?: () => void;
   onClose: () => void;
@@ -199,6 +213,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           confidentiality_level: data.confidentiality_level,
           auto_ocr: true,
           ...optionalDocumentDateParam(data),
+          ...optionalExpiryReminderParams(data),
         });
         finalizeMultiUploadFeedback(results, totalFiles, wasCancelled);
         return;
@@ -217,6 +232,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
           ...(existingFolderId && { folder_id: existingFolderId }),
           ...(data.folder_company_id != null && data.folder_company_id >= 1 && { company_id: data.folder_company_id }),
           ...optionalDocumentDateParam(data),
+          ...optionalExpiryReminderParams(data),
         });
         finalizeMultiUploadFeedback(results, totalFiles, wasCancelled);
         return;
@@ -262,6 +278,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         ...(data.envoy_number?.trim() ? { envoy_number: data.envoy_number.trim() } : {}),
         ...(data.tags?.length ? { tags: data.tags } : {}),
         ...optionalDocumentDateParam(data),
+        ...optionalExpiryReminderParams(data),
       });
       if (!resp?.success) throw new Error(resp?.error || "Upload failed");
       const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";

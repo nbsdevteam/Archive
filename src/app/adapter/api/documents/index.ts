@@ -33,6 +33,8 @@ export type {
   UploadSingleFileResponse,
   UploadSingleFileBaseParams,
   UploadFileResult,
+  SetDocumentRemindersParams,
+  SetDocumentRemindersResponse,
 } from './types';
 
 // ========== Utility Exports ==========
@@ -66,6 +68,9 @@ export * from './batch';
 // Report
 export * from './report';
 
+// Reminders
+export * from './reminders';
+
 // ========== Backward Compatibility: documentsApi Object ==========
 import * as core from './core';
 import * as preview from './preview';
@@ -75,6 +80,7 @@ import * as lifecycle from './lifecycle';
 import * as relations from './relations';
 import * as bulkUpload from './bulk-upload';
 import * as batch from './batch';
+import * as reminders from './reminders';
 
 /**
  * Backward-compatible documentsApi object.
@@ -146,4 +152,7 @@ export const documentsApi = {
 
   // Batch Operations
   batchMoveDocumentsToFolder: batch.batchMoveDocumentsToFolder,
+
+  // Reminders
+  setDocumentReminders: reminders.setDocumentReminders,
 };

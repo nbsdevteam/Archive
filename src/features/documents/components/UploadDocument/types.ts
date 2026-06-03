@@ -28,6 +28,10 @@ export type UploadFormValues = {
   tags?: number[];
   /** Optional document date as dd-mm-yyyy (text field); sent on upload when valid. */
   document_date?: string;
+  /** Optional expiry date as dd-mm-yyyy. */
+  expiry_date?: string;
+  /** Days before expiry to remind; optional non-negative integer. */
+  reminder_days?: number;
 };
 
 export type UploadDocumentFormValues = UploadFormValues;
@@ -67,6 +71,8 @@ export function getDefaultUploadFormValues(initialValues?: Partial<UploadFormVal
     envoy_number: initialValues?.envoy_number ?? "",
     tags: initialValues?.tags ?? [],
     document_date: initialValues?.document_date ?? "",
+    expiry_date: initialValues?.expiry_date ?? "",
+    reminder_days: initialValues?.reminder_days,
     file: undefined,
   };
 }

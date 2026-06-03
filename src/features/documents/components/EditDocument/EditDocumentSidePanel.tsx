@@ -38,6 +38,8 @@ function getDefaultEditFormValues(): EditDocumentFormValues {
     envoy_number: "",
     tags: [],
     document_date: "",
+    expiry_date: "",
+    reminder_days: undefined,
     changeDescription: "",
     unlockToken: "",
   };
@@ -62,6 +64,8 @@ function documentToEditFormValues(doc: DocumentDetail, initialFolderId?: number 
     envoy_number: typeof doc.envoy_number === "string" ? doc.envoy_number : "",
     tags: tags.length > 0 ? tags : [],
     document_date: toCanonicalDdMmYyyy(doc.document_date),
+    expiry_date: toCanonicalDdMmYyyy(doc.expiry_date),
+    reminder_days: doc.reminder_days ?? undefined,
     changeDescription: "",
     unlockToken: "",
   };
@@ -98,6 +102,26 @@ function formValuesToUpdateParams(
     }
   }
 
+  const origExpiryCanon = toCanonicalDdMmYyyy(sourceDoc.expiry_date ?? "");
+  const curExpiryRaw = htmlInputDateToApiWrite(values.expiry_date);
+  const curExpiryCanon = toCanonicalDdMmYyyy(values.expiry_date);
+  if (curExpiryCanon !== origExpiryCanon) {
+    if (curExpiryRaw === "") {
+      params.expiry_date = null;
+    } else if (curExpiryCanon) {
+      params.expiry_date = curExpiryCanon;
+    }
+  }
+
+  const origReminder = sourceDoc.reminder_days ?? null;
+  const curReminder =
+    typeof values.reminder_days === "number" && !Number.isNaN(values.reminder_days)
+      ? Math.floor(values.reminder_days)
+      : null;
+  if (curReminder !== origReminder) {
+    params.reminder_days = curReminder;
+  }
+
   return params;
 }
 
@@ -122,6 +146,17 @@ function hasMetadataChanges(values: EditDocumentFormValues, doc: DocumentDetail,
   if (vCanon !== cCanon) return true;
   const vRaw = htmlInputDateToApiWrite(values.document_date);
   if (vRaw && !vCanon) return true;
+  const vExpiryCanon = toCanonicalDdMmYyyy(values.expiry_date);
+  const cExpiryCanon = toCanonicalDdMmYyyy(current.expiry_date);
+  if (vExpiryCanon !== cExpiryCanon) return true;
+  const vExpiryRaw = htmlInputDateToApiWrite(values.expiry_date);
+  if (vExpiryRaw && !vExpiryCanon) return true;
+  const vReminder =
+    typeof values.reminder_days === "number" && !Number.isNaN(values.reminder_days)
+      ? Math.floor(values.reminder_days)
+      : null;
+  const cReminder = current.reminder_days ?? null;
+  if (vReminder !== cReminder) return true;
   return false;
 }
 

@@ -38,6 +38,10 @@ export const useDocumentsPageContainer = () => {
     isOpen: false,
     mainFileNames: [],
   });
+  const [remindersModal, setRemindersModal] = useState<{ isOpen: boolean; scope: 'selected' | 'all' }>({
+    isOpen: false,
+    scope: 'selected',
+  });
 
   const { t } = useTranslation();
   const announce = useAnnounce();
@@ -163,6 +167,32 @@ export const useDocumentsPageContainer = () => {
     fetchDocuments(getFetchParams());
     setIsUploadOpen(false);
   }, [fetchDocuments, getFetchParams]);
+
+  const handleOpenSetRemindersSelected = useCallback(() => {
+    if (selectedDocumentIds.length === 0) return;
+    setRemindersModal({ isOpen: true, scope: 'selected' });
+  }, [selectedDocumentIds.length]);
+
+  const handleOpenSetRemindersAll = useCallback(() => {
+    setRemindersModal({ isOpen: true, scope: 'all' });
+  }, []);
+
+  const handleCloseSetReminders = useCallback(() => {
+    setRemindersModal((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const handleSetRemindersSuccess = useCallback(
+    (updated: number) => {
+      fetchDocuments(getFetchParams());
+      toast.success(
+        t('documents.setRemindersSuccess', {
+          defaultValue: 'Reminders updated for {{count}} document(s).',
+          count: updated,
+        })
+      );
+    },
+    [fetchDocuments, getFetchParams, t]
+  );
 
   /** Single-doc confirm: call from useConfirmDialog onConfirm. */
   const confirmTrash = useCallback(
@@ -443,6 +473,10 @@ export const useDocumentsPageContainer = () => {
       handleOpenUpload,
       handleCloseUpload,
       handleUploadSuccess,
+      handleOpenSetRemindersSelected,
+      handleOpenSetRemindersAll,
+      handleCloseSetReminders,
+      handleSetRemindersSuccess,
       handleOpenEdit,
       handleCloseEdit,
       handleEditSuccess,
@@ -474,6 +508,7 @@ export const useDocumentsPageContainer = () => {
       isRestoring,
       isUnarchiving,
       mainFilesBlockModal,
+      remindersModal,
     },
   };
 };

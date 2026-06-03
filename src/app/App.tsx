@@ -9,6 +9,7 @@ import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
 import { usePrefersColorScheme } from "../shared/hooks";
 import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
+import { DocumentExpiryReminderProvider } from "../shared/components/reminders/DocumentExpiryReminderProvider";
 
 const RTL_BODY_CLASS = "layout-mode-rtl";
 
@@ -81,6 +82,7 @@ export const App = () => {
           <RtlSync />
           <AppRouter />
           <ThemedToastContainer />
+          <DocumentExpiryReminderProvider />
         </LiveAnnouncerProvider>
       </AppProviders>
     </BrowserRouter>

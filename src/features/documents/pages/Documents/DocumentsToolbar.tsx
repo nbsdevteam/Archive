@@ -49,6 +49,8 @@ export interface DocumentsToolbarProps {
     handleOpenUpload: () => void;
     handleRefresh: () => void;
     handleOpenReport: () => void;
+    handleOpenSetRemindersSelected: () => void;
+    handleOpenSetRemindersAll: () => void;
   };
   modals: {
     isMoveSubmitting: boolean;
@@ -199,6 +201,21 @@ export function DocumentsToolbar({
             )}
           </Button>
         )}
+        <Button
+          variant="outline"
+          size="md"
+          className="btn-outline-secondary d-inline-flex align-items-center"
+          onClick={actions.handleOpenSetRemindersSelected}
+          disabled={selectedDocumentIds.length === 0}
+          data-testid="set-reminders-selected-btn"
+          aria-label={t("documents.setRemindersSelectedAria", { defaultValue: "Set reminders for selected documents" })}
+        >
+          <Icon name="bell" className="me-1" />
+          {t("documents.setRemindersSelected", { defaultValue: "Set reminders" })}
+          {selectedDocumentIds.length > 0 && (
+            <span className="badge bg-secondary ms-2">{selectedDocumentIds.length}</span>
+          )}
+        </Button>
       </>
     ) : null;
 
@@ -373,6 +390,17 @@ export function DocumentsToolbar({
         {t("documents.uploadDocuments", { defaultValue: "Upload Documents" })}
       </Button>
       {refreshButtonJsx}
+      <Button
+        variant="outline"
+        size="md"
+        className="d-inline-flex align-items-center btn-outline-secondary"
+        onClick={actions.handleOpenSetRemindersAll}
+        data-testid="set-reminders-all-btn"
+        aria-label={t("documents.setRemindersAllAria", { defaultValue: "Set reminders for all active documents" })}
+      >
+        <Icon name="bell" className="me-2" />
+        {t("documents.setRemindersAll", { defaultValue: "Set reminders" })}
+      </Button>
     </TablePageToolbar>
   );
 }

@@ -117,6 +117,11 @@ export function makeUploadDocumentValidator(t: TFunction): Validator<UploadFormV
       envoy_number: optionalTrimmedString(values.envoy_number),
       tags,
       document_date: optionalTrimmedString(values.document_date),
+      expiry_date: optionalTrimmedString(values.expiry_date),
+      reminder_days:
+        typeof values.reminder_days === 'number' && !Number.isNaN(values.reminder_days)
+          ? Math.max(0, Math.floor(values.reminder_days))
+          : undefined,
     };
 
     return { values: normalized, issues };

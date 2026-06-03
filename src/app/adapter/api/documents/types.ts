@@ -26,6 +26,10 @@ export interface Document {
   upload_date: string;
   /** Business/document date (dd-mm-yyyy from API); null for legacy rows. */
   document_date?: string | null;
+  /** Expiry date (dd-mm-yyyy from API); null when not set. */
+  expiry_date?: string | null;
+  /** Days before expiry to show reminder; null when not configured. */
+  reminder_days?: number | null;
   status: string;
   confidentiality_level: string;
   barcode: string;
@@ -168,6 +172,10 @@ export interface UploadDocumentRequest {
   custom_fields?: Record<string, unknown>;
   /** Optional; API accepts dd-mm-yyyy, yyyy-mm-dd, dd/mm/yyyy, yyyy/mm/dd. */
   document_date?: string;
+  /** Optional expiry date (dd-mm-yyyy preferred). */
+  expiry_date?: string;
+  /** Optional reminder window in days before expiry. */
+  reminder_days?: number;
 }
 
 export interface UploadDocumentResponse {
@@ -191,6 +199,27 @@ export interface UpdateDocumentParams {
   tags?: number[];
   /** Set or change date (yyyy-mm-dd, dd-mm-yyyy, etc.); `null` clears. */
   document_date?: string | null;
+  /** Set or change expiry (dd-mm-yyyy, etc.); `null` clears. */
+  expiry_date?: string | null;
+  /** Reminder days before expiry; `null` clears. */
+  reminder_days?: number | null;
+}
+
+/** Params for POST /api/documents/set-reminders (bulk reminder/expiry update). */
+export interface SetDocumentRemindersParams {
+  reminder_days: number;
+  /** When omitted, applies reminder_days to all active documents. */
+  document_ids?: number[];
+  /** Optional shared expiry for listed documents. */
+  expiry_date?: string;
+}
+
+export interface SetDocumentRemindersResponse {
+  success: boolean;
+  updated: number;
+  reminder_days: number;
+  expiry_date?: string | null;
+  error?: string;
 }
 
 export interface UpdateDocumentResponse {

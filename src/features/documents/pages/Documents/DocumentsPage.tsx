@@ -180,6 +180,8 @@ const DocumentsPage = () => {
             handleOpenUpload: actions.handleOpenUpload,
             handleRefresh: actions.handleRefresh,
             handleOpenReport: () => navigate(routes.documentsReport),
+            handleOpenSetRemindersSelected: actions.handleOpenSetRemindersSelected,
+            handleOpenSetRemindersAll: actions.handleOpenSetRemindersAll,
           }}
           modals={modals}
           batchArchiveDialog={batchArchiveDialog}
@@ -219,6 +221,8 @@ const DocumentsPage = () => {
             handleCloseBatchMoveConfirm: actions.handleCloseBatchMoveConfirm,
             handleConfirmBatchMove: actions.handleConfirmBatchMove,
             handleCloseMainFilesBlockModal: actions.handleCloseMainFilesBlockModal,
+            handleCloseSetReminders: actions.handleCloseSetReminders,
+            handleSetRemindersSuccess: actions.handleSetRemindersSuccess,
           } satisfies DocumentsModalsProps["actions"]
         }
         restoreDialog={restoreDialog}
