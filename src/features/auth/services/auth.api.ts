@@ -17,7 +17,7 @@ import type {
 import { bootstrapAuthSession } from "./sessionBootstrap";
 
 /**
- * Login: stores tokens, bootstraps /me, permissions, and marquee settings.
+ * Login: stores tokens, bootstraps /me and permissions.
  */
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await adapterAuthApi.login(data);
@@ -57,7 +57,7 @@ export const getMe = async (): Promise<UserResponse> => {
   return adapterAuthApi.getCurrentUser();
 };
 
-/** Re-hydrate user, permissions, and marquee after token refresh. */
+/** Re-hydrate user and permissions after token refresh. */
 export const refreshSession = async (): Promise<void> => {
   await bootstrapAuthSession();
 };

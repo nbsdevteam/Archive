@@ -6,7 +6,6 @@ import { Button, DataTable, Icon } from "@/shared/components/ui";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { usePermissionsPageContainer } from "../containers/usePermissionsPageContainer";
 import type { AdminUser } from "../types/permissions.types";
-import { MarqueeSettingsSection } from "../components/MarqueeSettingsSection";
 import {
   AdminResetPasswordModal,
   CreateUserModal,
@@ -16,7 +15,7 @@ import {
 import "../styles/permissions.css";
 
 /**
- * Admin permissions page: user CRUD, capability editor, and marquee settings.
+ * Admin permissions page: user CRUD and capability editor.
  */
 const PermissionsPage = () => {
   const { t } = useTranslation();
@@ -109,8 +108,6 @@ const PermissionsPage = () => {
       homeTo={c.routes.adminDashboard}
       rightContent={<CollapseHeader />}
     >
-      <MarqueeSettingsSection />
-
       <div className="card">
         <div className="card-header d-flex align-items-center justify-content-between flex-wrap gap-2 permissions__header">
           <h5 className="card-title mb-0">{t("app.userPermissions")}</h5>

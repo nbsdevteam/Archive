@@ -15,7 +15,7 @@
   display: flex;
   gap: 2rem;
   white-space: nowrap;
-  animation: expiry-reminder-scroll var(--expiry-marquee-duration, 25s) linear infinite;
+  animation: expiry-reminder-scroll 25s linear infinite;
   will-change: transform;
 }
 

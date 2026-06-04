@@ -1,6 +1,5 @@
 import { authApi as adapterAuthApi } from "@/app/adapter/api/auth.api";
 import { getMyPermissions } from "@/features/permissions/services/permissions.api";
-import { getMarqueeSettings } from "@/features/settings/services/settings.api";
 import { useCapabilityPermissionsStore } from "@/shared/stores/capabilityPermissionsStore";
 import {
   DEFAULT_CAPABILITY_PERMISSIONS,
@@ -26,7 +25,7 @@ export function normalizeCapabilityPermissions(
 }
 
 /**
- * Fetches /api/auth/me, persists user, loads capability permissions and marquee duration.
+ * Fetches /api/auth/me, persists user, loads capability permissions.
  */
 export async function bootstrapAuthSession(): Promise<User | null> {
   const meResponse = await adapterAuthApi.getCurrentUser();
@@ -44,15 +43,6 @@ export async function bootstrapAuthSession(): Promise<User | null> {
     store.setPermissions(normalizeCapabilityPermissions(remote ?? fromMe));
   } catch {
     store.setPermissions(normalizeCapabilityPermissions(fromMe));
-  }
-
-  try {
-    const marquee = await getMarqueeSettings();
-    if (marquee?.marquee_duration != null) {
-      store.setMarqueeDurationSeconds(marquee.marquee_duration);
-    }
-  } catch {
-    // Non-admins may not read admin settings; keep default duration.
   }
 
   return user;
