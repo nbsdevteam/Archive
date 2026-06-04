@@ -6,6 +6,7 @@ import ThemeSettings from "../../app/shell/theme-settings";
 import { useSidebarUiStore } from "../stores/sidebarUiStore";
 import { ShortcutsProvider } from "../shortcuts/ShortcutsContext";
 import { ShortcutsOverlay } from "../components/ShortcutsOverlay";
+import { DocumentExpiryReminderMarquee } from "../components/reminders/DocumentExpiryReminderProvider";
 
 /** Prevents event from bubbling so sidebar overlay does not close sidebar on click. */
 function stopSidebarOverlayPropagation(e: React.SyntheticEvent) {
@@ -51,6 +52,7 @@ export const AppShell = () => {
           />
         )}
         <Header />
+        <DocumentExpiryReminderMarquee />
         <Sidebar />
         <Outlet />
         <ThemeSettings />

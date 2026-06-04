@@ -16,6 +16,7 @@ export interface DocumentsTableCardProps {
   selectionConfig: SelectionConfig<Document>;
   onRetry: () => void;
   onRowClick: (documentId: number) => void;
+  rowClassName?: (row: Document) => string;
 }
 
 /** Card body with error alert and documents DataTable. */
@@ -29,6 +30,7 @@ export function DocumentsTableCard({
   selectionConfig,
   onRetry,
   onRowClick,
+  rowClassName,
 }: DocumentsTableCardProps) {
   return (
     <div className="card-body h-min-50vh">
@@ -50,6 +52,7 @@ export function DocumentsTableCard({
         rowActions={rowActions}
         selection={selectionConfig}
         actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+        rowClassName={rowClassName}
       />
     </div>
   );

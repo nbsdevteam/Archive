@@ -12,6 +12,8 @@ export interface ColumnDef<T> {
   headerClassName?: string;
   /** Label for card view on small screens; falls back to string header or id. */
   mobileLabel?: string;
+  /** When true, cell text is truncated with ellipsis; full text shows in InfoWrapper tooltip only if clipped. */
+  truncate?: boolean;
 }
 
 export interface RowAction<T> {
@@ -51,6 +53,7 @@ export interface DataTableProps<T> {
   actionsColumnHeader?: ReactNode;
   tableClassName?: string;
   tbodyClassName?: string;
+  rowClassName?: (row: T) => string;
   /** "auto" = cards below breakpoint, "table" = always table, "cards" = always cards. Default "auto". */
   responsive?: "auto" | "table" | "cards";
   /** Breakpoint below which card rows are shown when responsive is "auto". Default "lg". */
@@ -62,3 +65,21 @@ export interface DataTableProps<T> {
    */
   actionsStyle?: "menu" | "inline";
 }
+
+/** Card/list layout for tabular rows; same data model as DataTable without table-only props. */
+export type DataListProps<T> = Pick<
+  DataTableProps<T>,
+  | "data"
+  | "getRowId"
+  | "columns"
+  | "loading"
+  | "emptyMessage"
+  | "onRowClick"
+  | "rowActions"
+  | "selection"
+  | "actionsColumnHeader"
+  | "rowClassName"
+> & {
+  /** Extra class on the outer cards wrapper (e.g. Bootstrap display utilities). */
+  className?: string;
+};

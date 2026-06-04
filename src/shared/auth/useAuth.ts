@@ -6,6 +6,7 @@ import {
   clearTokens,
   getStoredUser,
   clearStoredUser,
+  clearExpiryReminderModalSession,
 } from "../utils/storage";
 import type { User } from "./types";
 
@@ -31,6 +32,7 @@ export const useAuth = () => {
     } finally {
       clearStoredUser();
       clearTokens();
+      clearExpiryReminderModalSession();
       const { useDepartmentsStore } = await import("../stores/departmentsStore");
       useDepartmentsStore.getState().clearDepartments();
     }

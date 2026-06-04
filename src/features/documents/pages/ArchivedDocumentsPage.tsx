@@ -14,6 +14,7 @@ import { buildRowActions } from "@/shared/utils/buildRowActions";
 import { useArchivedDocumentsPageContainer } from "@/features/documents/containers/useArchivedDocumentsPageContainer";
 import { useDocumentsTableSort } from "@/features/documents/hooks/useDocumentsTableSort";
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
+import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryReminderStore";
 import "@/features/documents/styles/documents.css";
 
 /**
@@ -30,6 +31,12 @@ const ArchivedDocumentsPage = () => {
   const { handlePageChange, handlePerPageChange } = paging;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
+  const dueDocuments = useDocumentExpiryReminderStore((state) => state.dueDocuments);
+  const dueDocumentIds = useMemo(() => new Set(dueDocuments.map((doc) => doc.id)), [dueDocuments]);
+  const rowClassName = useMemo(
+    () => (row: Document) => (dueDocumentIds.has(row.id) ? "documents-expiry-row" : ""),
+    [dueDocumentIds]
+  );
 
   const unarchiveDialog = useConfirmDialog<number>({ onConfirm: actions.handleUnarchive });
   const batchUnarchiveDialog = useConfirmDialogEmpty({ onConfirm: actions.confirmBatchUnarchive });
@@ -292,6 +299,7 @@ const ArchivedDocumentsPage = () => {
             rowActions={rowActions}
             selection={selectionConfig}
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+            rowClassName={rowClassName}
           />
           {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
             <PaginationSection

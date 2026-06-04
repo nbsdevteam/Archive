@@ -12,6 +12,7 @@ import { useDocumentsTableSort } from "@/features/documents/hooks/useDocumentsTa
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
+import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryReminderStore";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
 import { PaginationSection } from "@/shared/components/PaginationSection";
@@ -34,6 +35,12 @@ const DocumentsPage = () => {
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { handlePageChange, handlePerPageChange } = paging;
   const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
+  const dueDocuments = useDocumentExpiryReminderStore((state) => state.dueDocuments);
+  const dueDocumentIds = useMemo(() => new Set(dueDocuments.map((doc) => doc.id)), [dueDocuments]);
+  const rowClassName = useMemo(
+    () => (row: Document) => (dueDocumentIds.has(row.id) ? "documents-expiry-row" : ""),
+    [dueDocumentIds]
+  );
 
   useEffect(() => {
     if (!isDesktopView) return;
@@ -210,6 +217,7 @@ const DocumentsPage = () => {
           selectionConfig={selectionConfig}
           onRetry={actions.handleRetry}
           onRowClick={actions.handleNavigateToDocument}
+          rowClassName={rowClassName}
         />
         {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
           <PaginationSection

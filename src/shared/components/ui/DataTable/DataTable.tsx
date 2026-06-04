@@ -1,37 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { DataTableProps, ColumnDef } from "./DataTable.types";
+import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
-import type { IconName } from "../Icon";
 import { Spinner } from "../Spinner";
-
-/** Prevents click from bubbling to parent (e.g. row click). */
-function stopPropagation(e: React.SyntheticEvent) {
-  e.stopPropagation();
-}
-
-/** Returns a string label for a column in card view: mobileLabel > string header > id. */
-function getColumnCardLabel<T>(col: ColumnDef<T>): string {
-  if (col.mobileLabel) return col.mobileLabel;
-  if (typeof col.header === "string") return col.header;
-  return col.id;
-}
-
-/**
- * Resolves icon for a row action: use configured icon or infer from action id so menu items always show an icon.
- */
-function resolveActionIcon(actionId: string, configuredIcon?: IconName): IconName {
-  if (configuredIcon) return configuredIcon;
-  const id = String(actionId ?? "").toLowerCase();
-  if (id.includes("view")) return "eye";
-  if (id.includes("download")) return "download";
-  if (id.includes("transfer")) return "arrow-right-left";
-  if (id.includes("archive") && !id.includes("unarchive")) return "archive";
-  if (id.includes("unarchive") || id.includes("restore")) return "refresh-cw";
-  if (id.includes("trash") || id.includes("delete")) return "trash-2";
-  if (id.includes("edit")) return "pencil";
-  return "info";
-}
+import { DataList } from "../DataList/DataList";
+import { resolveActionIcon, stopPropagation, TruncatedCell } from "./datatableShared";
+import { RowActionsPortalMenu } from "./RowActionsPortalMenu";
 
 export function DataTable<T>({
   data,
@@ -45,14 +19,15 @@ export function DataTable<T>({
   actionsColumnHeader,
   tableClassName = "table table-striped mb-0",
   tbodyClassName,
+  rowClassName,
   responsive = "auto",
   cardsBelow = "lg",
   actionsStyle = "menu",
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
-  const tableRef = useRef<HTMLDivElement | null>(null);
   const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
+  const [actionsMenuAnchor, setActionsMenuAnchor] = useState<HTMLElement | null>(null);
 
   const showTable = responsive === "table" || responsive === "auto";
   const showCards = responsive === "cards" || responsive === "auto";
@@ -68,20 +43,11 @@ export function DataTable<T>({
   useEffect(() => {
     if (!openActionsRowId) return;
     const stillExists = data.some((row) => String(getRowId(row)) === openActionsRowId);
-    if (!stillExists) setOpenActionsRowId(null);
+    if (!stillExists) {
+      setOpenActionsRowId(null);
+      setActionsMenuAnchor(null);
+    }
   }, [data, getRowId, openActionsRowId]);
-
-  /** Close the open row-actions menu on outside click (single listener: no AbortController). */
-  useEffect(() => {
-    if (!openActionsRowId) return;
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
-        setOpenActionsRowId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [openActionsRowId]);
 
   const hasSelection = Boolean(selection);
   const hasActions = Boolean(rowActions && rowActions.length > 0);
@@ -118,6 +84,7 @@ export function DataTable<T>({
       if (row && action) {
         action.onClick(row, e);
         setOpenActionsRowId(null);
+        setActionsMenuAnchor(null);
       }
     },
     [data, getRowId, rowActions]
@@ -125,7 +92,7 @@ export function DataTable<T>({
 
   const tableBlock = (
     <div className={`table-responsive datatable-responsive-wrap ${tableDisplayClass}`.trim()}>
-      <table className={tableClassName}>
+      <table className={tableClassName} style={{ tableLayout: "fixed", width: "100%" }}>
         <thead>
           <tr>
             {hasSelection && (
@@ -177,6 +144,7 @@ export function DataTable<T>({
               const rowIdStr = String(rowId);
               const isSelected = hasSelection && selection!.selectedIds.includes(rowId);
               const rowClickHandler = onRowClick ? handleTableRowClick : undefined;
+              const rowClass = rowClassName ? rowClassName(row) : "";
 
               return (
                 <tr
@@ -184,6 +152,7 @@ export function DataTable<T>({
                   style={rowClickHandler ? { cursor: "pointer" } : undefined}
                   onClick={rowClickHandler}
                   data-row-id={rowIdStr}
+                  className={rowClass || undefined}
                 >
                   {hasSelection && (
                     <td onClick={stopPropagation}>
@@ -205,14 +174,16 @@ export function DataTable<T>({
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.id} className={col.className}>
-                      {col.render(row)}
+                    <td
+                      key={col.id}
+                      className={[col.className, col.truncate ? "datatable-td-truncate" : ""].filter(Boolean).join(" ") || undefined}
+                    >
+                      {col.truncate ? <TruncatedCell>{col.render(row)}</TruncatedCell> : col.render(row)}
                     </td>
                   ))}
                   {hasActions && (
                     <td className="text-end align-middle" onClick={stopPropagation}>
                       {actionsStyle === "inline" ? (
-                        /* Inline buttons — shown in the table view (desktop). Cards always use the kebab. */
                         <div className="d-flex gap-1 justify-content-end flex-nowrap">
                           {rowActions!
                             .filter((action) => action.visible?.(row) !== false)
@@ -241,7 +212,6 @@ export function DataTable<T>({
                             })}
                         </div>
                       ) : (
-                        /* Kebab menu — default for the table view */
                         <div className="datatable-row-actions-dropdown position-relative d-inline-flex">
                           <button
                             type="button"
@@ -251,15 +221,21 @@ export function DataTable<T>({
                             aria-haspopup="true"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setOpenActionsRowId(openActionsRowId === rowIdStr ? null : rowIdStr);
+                              const opening = openActionsRowId !== rowIdStr;
+                              setOpenActionsRowId(opening ? rowIdStr : null);
+                              setActionsMenuAnchor(opening ? e.currentTarget : null);
                             }}
                           >
                             <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
                           </button>
                           {openActionsRowId === rowIdStr && (
-                            <ul
-                              className="dropdown-menu dropdown-menu-end show"
-                              style={{ position: "absolute", top: "100%", right: 0, zIndex: 1050 }}
+                            <RowActionsPortalMenu
+                              open
+                              anchor={actionsMenuAnchor}
+                              onClose={() => {
+                                setOpenActionsRowId(null);
+                                setActionsMenuAnchor(null);
+                              }}
                             >
                               {rowActions!
                                 .filter((action) => action.visible?.(row) !== false)
@@ -289,7 +265,7 @@ export function DataTable<T>({
                                     </li>
                                   );
                                 })}
-                            </ul>
+                            </RowActionsPortalMenu>
                           )}
                         </div>
                       )}
@@ -304,142 +280,24 @@ export function DataTable<T>({
     </div>
   );
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const id = e.currentTarget.getAttribute("data-row-id");
-      if (id == null || !onRowClick) return;
-      const row = data.find((r) => String(getRowId(r)) === id);
-      if (row) onRowClick(row);
-    },
-    [data, getRowId, onRowClick]
-  );
-
   const cardsBlock = showCards && (
-    <div className={`datatable-cards ${cardsDisplayClass}`.trim()}>
-      {loading ? (
-        <div className="datatable-cards-loading text-center py-4">
-          <Spinner size="md" />
-        </div>
-      ) : data.length === 0 ? (
-        <div className="datatable-cards-empty text-center py-4 text-muted">{emptyMessage}</div>
-      ) : (
-        <ul className="datatable-cards-list list-unstyled mb-0">
-          {data.map((row) => {
-            const rowId = getRowId(row);
-            const rowIdStr = String(rowId);
-            const isSelected = hasSelection && selection!.selectedIds.includes(rowId);
-            return (
-              <li key={rowIdStr} className="datatable-card-item">
-                <div
-                  className="datatable-card rounded border mb-2"
-                  data-row-id={rowIdStr}
-                  onClick={onRowClick ? handleCardClick : undefined}
-                  style={onRowClick ? { cursor: "pointer" } : undefined}
-                  role={onRowClick ? "button" : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  onKeyDown={
-                    onRowClick
-                      ? (e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleCardClick(e as unknown as React.MouseEvent<HTMLDivElement>);
-                          }
-                        }
-                      : undefined
-                  }
-                >
-                  <div className="datatable-card-header d-flex align-items-center justify-content-between gap-2 p-2 border-bottom">
-                    {hasSelection && (
-                      <div className="form-check mb-0" onClick={stopPropagation}>
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          checked={isSelected}
-                          data-row-id={rowIdStr}
-                          onChange={() => handleSelectionToggle(rowId)}
-                          onClick={stopPropagation}
-                          aria-label={
-                            selection!.getRowAriaLabel
-                              ? selection!.getRowAriaLabel(row)
-                              : t("common.selectRow", { defaultValue: "Select row", rowId })
-                          }
-                        />
-                      </div>
-                    )}
-                    <div className="d-flex align-items-center ms-auto" onClick={stopPropagation}>
-                      {hasActions && (
-                        <div className="datatable-row-actions-dropdown position-relative d-inline-flex">
-                          <button
-                            type="button"
-                            className="datatable-row-actions-toggle p-0 btn btn-link btn-sm text-body-secondary text-decoration-none shadow-none d-inline-flex align-items-center justify-content-center"
-                            aria-label={`${t("common.actionsForRow")} ${rowId}`}
-                            aria-expanded={openActionsRowId === rowIdStr}
-                            aria-haspopup="true"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenActionsRowId(openActionsRowId === rowIdStr ? null : rowIdStr);
-                            }}
-                          >
-                            <Icon name="more-vertical" style={{ width: "1.25rem", height: "1.25rem" }} />
-                          </button>
-                          {openActionsRowId === rowIdStr && (
-                            <ul
-                              className="dropdown-menu dropdown-menu-end show"
-                              style={{ position: "absolute", top: "100%", right: 0, zIndex: 1050 }}
-                            >
-                              {rowActions!
-                                .filter((action) => action.visible?.(row) !== false)
-                                .map((action) => {
-                                  const disabled = action.disabled?.(row);
-                                  const label = action.renderLabel
-                                    ? action.renderLabel(row)
-                                    : action.label;
-                                  const iconName = resolveActionIcon(action.id, action.icon);
-                                  const isDanger =
-                                    action.variant === "danger" ||
-                                    (action.className ?? "").toLowerCase().includes("danger");
-                                  return (
-                                    <li key={action.id}>
-                                      <button
-                                        type="button"
-                                        disabled={disabled}
-                                        className={`dropdown-item d-flex align-items-center gap-2 ${isDanger ? "text-danger" : ""}`.trim()}
-                                        data-testid={action.id ? `row-action-${action.id}` : undefined}
-                                        data-action-id={action.id}
-                                        data-row-id={rowIdStr}
-                                        onClick={handleRowActionClick}
-                                      >
-                                        <Icon name={iconName} style={{ width: "1rem", height: "1rem", flexShrink: 0 }} />
-                                        <span>{label}</span>
-                                      </button>
-                                    </li>
-                                  );
-                                })}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="datatable-card-body p-2">
-                    {columns.map((col) => (
-                      <div key={col.id} className="datatable-card-row d-flex flex-wrap gap-1 gap-sm-2 mb-1">
-                        <span className="datatable-card-label text-muted small">{getColumnCardLabel(col)}</span>
-                        <span className="datatable-card-value flex-grow-1">{col.render(row)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+    <DataList<T>
+      data={data}
+      getRowId={getRowId}
+      columns={columns}
+      loading={loading}
+      emptyMessage={emptyMessage}
+      onRowClick={onRowClick}
+      rowActions={rowActions}
+      selection={selection}
+      actionsColumnHeader={actionsColumnHeader}
+      rowClassName={rowClassName}
+      className={cardsDisplayClass}
+    />
   );
 
   return (
-    <div ref={tableRef} className="datatable-wrapper">
+    <div className="datatable-wrapper">
       {showTable && tableBlock}
       {cardsBlock}
     </div>

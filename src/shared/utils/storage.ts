@@ -6,6 +6,7 @@
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "user";
+export const EXPIRY_REMINDER_MODAL_SESSION_KEY = "expiry-reminder-modal-dismissed";
 
 /**
  * Get the access token from storage
@@ -98,6 +99,15 @@ export const clearStoredUser = (): void => {
   }
 };
 
+/** Clears the per-session expiry reminder modal flag (used on logout). */
+export const clearExpiryReminderModalSession = (): void => {
+  try {
+    sessionStorage.removeItem(EXPIRY_REMINDER_MODAL_SESSION_KEY);
+  } catch (error) {
+    console.error("Failed to clear expiry reminder modal session:", error);
+  }
+};
+
 /**
  * Check if user is authenticated (has access token)
  */
@@ -117,5 +127,6 @@ export const forceLogout = (): void => {
 
   clearTokens();
   clearStoredUser();
+  clearExpiryReminderModalSession();
   window.location.href = "/login";
 };

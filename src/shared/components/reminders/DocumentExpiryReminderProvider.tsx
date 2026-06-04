@@ -1,25 +1,20 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { documentsApi } from '@/app/adapter/api/documents.api';
-import type { Document } from '@/app/adapter/api/documents.api';
-import { all_routes } from '@/router/all_routes';
-import { isAuthenticated } from '@/shared/utils/storage';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { documentsApi } from "@/app/adapter/api/documents.api";
+import type { Document } from "@/app/adapter/api/documents.api";
+import { EXPIRY_REMINDER_MODAL_SESSION_KEY, isAuthenticated } from "@/shared/utils/storage";
+import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryReminderStore";
 import {
   asExpiryReminderDocument,
-  buildExpiryReminderDismissKey,
   daysUntilExpiry,
   filterDueExpiryReminders,
   getExpiryReminderDocumentLabel,
-} from '@/shared/utils/documents/expiryReminder';
-import {
-  DISMISSED_EXPIRY_REMINDERS_KEY,
-  useDocumentExpiryReminderStore,
-} from '@/shared/stores/documentExpiryReminderStore';
+} from "@/shared/utils/documents/expiryReminder";
+import { formatDate } from "@/shared/utils/format/date";
+import { Button, Modal, ModalFooter } from "@/shared/components/ui";
 
-const GROUPED_EXPIRY_REMINDER_TOAST_ID = 'grouped-expiry-reminder-toast';
 const REMINDER_FETCH_PAGE_SIZE = 200;
+const REMINDER_POLL_INTERVAL_MS = 60_000;
 
 /** Fetches all active documents across paginated list API for reminder evaluation. */
 async function fetchAllActiveDocumentsForReminders(): Promise<Document[]> {
@@ -28,7 +23,7 @@ async function fetchAllActiveDocumentsForReminders(): Promise<Document[]> {
   let totalPages = 1;
   do {
     const response = await documentsApi.getDocuments({
-      status: 'active',
+      status: "active",
       page,
       per_page: REMINDER_FETCH_PAGE_SIZE,
     });
@@ -39,158 +34,172 @@ async function fetchAllActiveDocumentsForReminders(): Promise<Document[]> {
   return all;
 }
 
-interface GroupedExpiryReminderToastContentProps {
-  documents: ReturnType<typeof asExpiryReminderDocument>[];
-  onViewDocument: (documentId: number) => void;
-  onDismiss: () => void;
+function isReminderModalDismissed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(EXPIRY_REMINDER_MODAL_SESSION_KEY) === "true";
+  } catch {
+    return false;
+  }
 }
 
-/** Body for the grouped persistent expiry reminder toast. */
-function GroupedExpiryReminderToastContent({
-  documents,
-  onViewDocument,
-  onDismiss,
-}: GroupedExpiryReminderToastContentProps) {
+function markReminderModalDismissed(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(EXPIRY_REMINDER_MODAL_SESSION_KEY, "true");
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+/** Persistent marquee bar just below the header. */
+export function DocumentExpiryReminderMarquee() {
   const { t } = useTranslation();
-  const preview = documents.slice(0, 5);
-  const remaining = documents.length - preview.length;
+  const dueDocuments = useDocumentExpiryReminderStore((s) => s.dueDocuments);
+
+  const message = useMemo(() => {
+    if (dueDocuments.length === 0) return "";
+    return dueDocuments
+      .map((doc) => {
+        const name = getExpiryReminderDocumentLabel(doc);
+        const expiry = doc.expiry_date ?? "—";
+        const remaining = daysUntilExpiry(doc.expiry_date);
+        const suffix =
+          remaining == null
+            ? ""
+            : remaining < 0
+              ? t("documents.expiryReminderOverdueDays", {
+                  defaultValue: "{{count}} day(s) overdue",
+                  count: Math.abs(remaining),
+                })
+              : remaining === 0
+                ? t("documents.expiryReminderDueToday", { defaultValue: "Expires today" })
+                : t("documents.expiryReminderDaysLeft", {
+                    defaultValue: "{{count}} day(s) left",
+                    count: remaining,
+                  });
+        return `${name} (${expiry})${suffix ? ` — ${suffix}` : ""}`;
+      })
+      .join(" • ");
+  }, [dueDocuments, t]);
+
+  if (!message) return null;
 
   return (
-    <div className="d-flex flex-column gap-2">
-      <strong>{t('documents.expiryReminderToastTitle', { defaultValue: 'Document expiry reminders' })}</strong>
-      <p className="mb-0 small">
-        {t('documents.expiryReminderToastSummary', {
-          defaultValue: '{{count}} document(s) are approaching or past expiry.',
-          count: documents.length,
-        })}
-      </p>
-      <ul className="mb-0 ps-3 small">
-        {preview.map((doc) => {
-          const days = daysUntilExpiry(doc.expiry_date);
-          const dayLabel =
-            days == null
-              ? ''
-              : days < 0
-                ? t('documents.expiryReminderOverdueDays', { defaultValue: '{{count}} day(s) overdue', count: Math.abs(days) })
-                : days === 0
-                  ? t('documents.expiryReminderDueToday', { defaultValue: 'Expires today' })
-                  : t('documents.expiryReminderDaysLeft', { defaultValue: '{{count}} day(s) left', count: days });
-          return (
-            <li key={doc.id}>
-              <button
-                type="button"
-                className="btn btn-link btn-sm p-0 text-start"
-                onClick={() => onViewDocument(doc.id)}
-              >
-                {getExpiryReminderDocumentLabel(doc)}
-              </button>
-              {dayLabel ? <span className="text-muted ms-1">({dayLabel})</span> : null}
-            </li>
-          );
-        })}
-      </ul>
-      {remaining > 0 && (
-        <p className="mb-0 small text-muted">
-          {t('documents.expiryReminderAndMore', { defaultValue: 'and {{count}} more…', count: remaining })}
-        </p>
-      )}
-      <div className="d-flex gap-2 flex-wrap">
-        <button type="button" className="btn btn-sm btn-outline-light" onClick={() => onViewDocument(documents[0].id)}>
-          {t('documents.expiryReminderViewFirst', { defaultValue: 'View first' })}
-        </button>
-        <button type="button" className="btn btn-sm btn-link text-white" onClick={onDismiss}>
-          {t('documents.expiryReminderDismiss', { defaultValue: 'Dismiss' })}
-        </button>
+    <div className="expiry-reminder-marquee" role="status" aria-live="polite">
+      <div className="expiry-reminder-marquee__track">
+        <span>{message}</span>
+        <span aria-hidden>{message}</span>
       </div>
     </div>
   );
 }
 
+interface ReminderModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  documents: Document[];
+}
+
+function DocumentExpiryReminderModal({ isOpen, onClose, documents }: ReminderModalProps) {
+  const { t } = useTranslation();
+
+  if (!isOpen || documents.length === 0) return null;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      title={t("documents.expiryReminderModalTitle", { defaultValue: "Expiring documents" })}
+    >
+      <div className="table-responsive">
+        <table className="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>{t("documents.name", { defaultValue: "Name" })}</th>
+              <th>{t("documents.barcode", { defaultValue: "Barcode" })}</th>
+              <th>{t("documents.documentType", { defaultValue: "Document type" })}</th>
+              <th>{t("documents.department", { defaultValue: "Department" })}</th>
+              <th>{t("documents.expiryDate", { defaultValue: "Expiry date" })}</th>
+              <th>{t("documents.reminderDays", { defaultValue: "Reminder (days before expiry)" })}</th>
+              <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
+              <th>{t("documents.uploadVersion", { defaultValue: "Upload version" })}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.title ?? doc.name ?? "—"}</td>
+                <td>{doc.barcode ?? "—"}</td>
+                <td>{doc.document_type_name ?? doc.document_type?.name ?? "—"}</td>
+                <td>{doc.department_name ?? doc.department?.name ?? "—"}</td>
+                <td>{doc.expiry_date ?? "—"}</td>
+                <td>{doc.reminder_days ?? "—"}</td>
+                <td>{formatDate(doc.upload_date)}</td>
+                <td>{doc.document_upload_version == null ? "—" : doc.document_upload_version}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ModalFooter>
+        <Button variant="primary" onClick={onClose}>
+          {t("common.close", { defaultValue: "Close" })}
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
+
 /**
- * Authenticated app-level provider: evaluates due expiry reminders and shows one grouped persistent toast.
- * Survives reload/new tab until the user closes the toast; dismissal is stored in localStorage.
+ * App-level controller: computes due documents, updates the store,
+ * and opens the login-only modal once per session.
  */
 export function DocumentExpiryReminderProvider() {
-  const navigate = useNavigate();
-  const dismissedKeys = useDocumentExpiryReminderStore((s) => s.dismissedKeys);
-  const dismissKeys = useDocumentExpiryReminderStore((s) => s.dismissKeys);
-  const syncFromStorage = useDocumentExpiryReminderStore((s) => s.syncFromStorage);
+  const dueDocuments = useDocumentExpiryReminderStore((s) => s.dueDocuments);
+  const setDueDocuments = useDocumentExpiryReminderStore((s) => s.setDueDocuments);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const evaluatingRef = useRef(false);
 
-  const handleViewDocument = useCallback(
-    (documentId: number) => {
-      navigate(all_routes.documentDetail.replace(':id', String(documentId)));
-    },
-    [navigate]
-  );
-
-  const handleDismiss = useCallback(
-    (keys: string[]) => {
-      dismissKeys(keys);
-      toast.dismiss(GROUPED_EXPIRY_REMINDER_TOAST_ID);
-    },
-    [dismissKeys]
-  );
-
-  /** Loads active documents, filters due undismissed reminders, and renders grouped toast. */
-  const evaluateAndShowReminders = useCallback(async () => {
+  const refreshReminders = useCallback(async () => {
     if (!isAuthenticated() || evaluatingRef.current) return;
     evaluatingRef.current = true;
     try {
       const documents = await fetchAllActiveDocumentsForReminders();
       const due = filterDueExpiryReminders(documents.map(asExpiryReminderDocument));
-      const undismissed = due.filter((doc) => !dismissedKeys.includes(buildExpiryReminderDismissKey(doc)));
-
-      if (undismissed.length === 0) {
-        toast.dismiss(GROUPED_EXPIRY_REMINDER_TOAST_ID);
-        return;
+      const dueIds = new Set(due.map((doc) => doc.id));
+      const dueFullDocs = documents.filter((doc) => dueIds.has(doc.id));
+      setDueDocuments(dueFullDocs);
+      if (dueFullDocs.length > 0 && !isReminderModalDismissed()) {
+        setIsModalOpen(true);
       }
-
-      const dismissKeysForGroup = undismissed.map(buildExpiryReminderDismissKey);
-
-      toast.warning(
-        ({ closeToast }) => (
-          <GroupedExpiryReminderToastContent
-            documents={undismissed}
-            onViewDocument={handleViewDocument}
-            onDismiss={() => {
-              handleDismiss(dismissKeysForGroup);
-              closeToast?.();
-            }}
-          />
-        ),
-        {
-          toastId: GROUPED_EXPIRY_REMINDER_TOAST_ID,
-          autoClose: false,
-          closeOnClick: false,
-          draggable: false,
-          onClose: () => handleDismiss(dismissKeysForGroup),
-        }
-      );
     } catch {
-      // Silent fail — reminders are non-blocking.
+      setDueDocuments([]);
     } finally {
       evaluatingRef.current = false;
     }
-  }, [dismissedKeys, handleDismiss, handleViewDocument]);
+  }, [setDueDocuments]);
 
   useEffect(() => {
-    void evaluateAndShowReminders();
-  }, [evaluateAndShowReminders]);
+    void refreshReminders();
+    const intervalId = window.setInterval(() => {
+      void refreshReminders();
+    }, REMINDER_POLL_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, [refreshReminders]);
 
-  /** Cross-tab dismissal sync via storage events. */
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== DISMISSED_EXPIRY_REMINDERS_KEY) return;
-      syncFromStorage();
-      toast.dismiss(GROUPED_EXPIRY_REMINDER_TOAST_ID);
-      void evaluateAndShowReminders();
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [evaluateAndShowReminders, syncFromStorage]);
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    markReminderModalDismissed();
+  }, []);
 
-  return null;
+  return (
+    <DocumentExpiryReminderModal
+      isOpen={isModalOpen}
+      onClose={handleCloseModal}
+      documents={dueDocuments}
+    />
+  );
 }
 
-export { GROUPED_EXPIRY_REMINDER_TOAST_ID };

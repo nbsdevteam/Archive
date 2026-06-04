@@ -1,0 +1,47 @@
+/* Expiry reminders: marquee bar and row highlight */
+
+.expiry-reminder-marquee {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: rgba(var(--bs-danger-rgb), 0.08);
+  color: var(--bs-danger-text-emphasis, #842029);
+  border-bottom: 1px solid rgba(var(--bs-danger-rgb), 0.2);
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+}
+
+.expiry-reminder-marquee__track {
+  display: flex;
+  gap: 2rem;
+  white-space: nowrap;
+  animation: expiry-reminder-scroll 25s linear infinite;
+  will-change: transform;
+}
+
+.expiry-reminder-marquee__track > span {
+  flex-shrink: 0;
+  padding-inline-start: 100%;
+}
+
+@keyframes expiry-reminder-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.documents-expiry-row {
+  background-color: rgba(var(--bs-danger-rgb), 0.12);
+}
+
+.table-striped > tbody > tr.documents-expiry-row > * {
+  background-color: rgba(var(--bs-danger-rgb), 0.12);
+}
+
+.datatable-card.documents-expiry-row {
+  border-color: rgba(var(--bs-danger-rgb), 0.5);
+  background-color: rgba(var(--bs-danger-rgb), 0.08);
+}

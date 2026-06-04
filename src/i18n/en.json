@@ -97,6 +97,7 @@
     "expiryReminderAndMore": "and {{count}} more…",
     "expiryReminderViewFirst": "View first",
     "expiryReminderDismiss": "Dismiss",
+    "expiryReminderModalTitle": "Expiring documents",
     "lastModified": "Last modified",
     "status": "Status",
     "confidentialityLabel": "Confidentiality",
