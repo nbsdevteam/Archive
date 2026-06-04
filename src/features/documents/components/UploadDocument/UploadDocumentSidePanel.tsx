@@ -17,6 +17,7 @@ import { getDefaultUploadFormValues } from "./types";
 import { UploadDocumentFormContent } from "./UploadDocumentFormContent";
 import { UploadDocumentActions } from "./UploadDocumentActions";
 import { useViewport } from "@/shared/hooks/useViewport";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import { useUploadSubmit } from "./useUploadSubmit";
 import { FailedUploadsModal } from "./FailedUploadsModal";
 
@@ -30,6 +31,7 @@ function UploadDocumentSidePanel({
 }: UploadDocumentSidePanelProps) {
   const { t } = useTranslation();
   const { isMobileView } = useViewport();
+  const { canUploadMultiple, uploadLimit } = useCapabilityPermissions();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -244,6 +246,19 @@ function UploadDocumentSidePanel({
     [uploadKind, departmentId, documentTypeId, departments, documentTypes, setValue]
   );
 
+  /** Limits selected files to upload_limit when multi-upload is enabled. */
+  const handleFileChange = useCallback(
+    (files: File[]) => {
+      const max =
+        (uploadKind === "main" && uploadMultipleMain) ||
+        (uploadKind === "sub" && uploadMultipleSub)
+          ? uploadLimit
+          : 1;
+      setSelectedFiles(files.slice(0, max));
+    },
+    [uploadKind, uploadMultipleMain, uploadMultipleSub, uploadLimit],
+  );
+
   const handleClearFile = useCallback(() => {
     setSelectedFiles([]);
     setValue("file", undefined, { shouldValidate: true });
@@ -348,7 +363,10 @@ function UploadDocumentSidePanel({
           fileInputRef={fileInputRef}
           selectedFile={selectedFile}
           selectedFiles={selectedFiles}
-          onFileChange={setSelectedFiles}
+          onFileChange={handleFileChange}
+          allowUploadMultipleMain={canUploadMultiple}
+          allowUploadMultipleSub={canUploadMultiple}
+          uploadLimit={uploadLimit}
           onClearFile={handleClearFile}
           uploadWhatDocumentLabel={uploadWhatDocumentLabel}
           uploadMultipleMain={uploadMultipleMain}

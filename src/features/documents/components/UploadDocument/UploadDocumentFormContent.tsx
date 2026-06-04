@@ -51,6 +51,9 @@ export interface UploadDocumentFormContentProps {
   isUploading: boolean;
   t: TFunction;
   fillFolderNameFromTitle: (titleValue: string) => void;
+  allowUploadMultipleMain?: boolean;
+  allowUploadMultipleSub?: boolean;
+  uploadLimit?: number;
 }
 
 /** Form body: error alert, target section, file section, bulk progress, optional section. */
@@ -94,6 +97,9 @@ export function UploadDocumentFormContent({
   isUploading,
   t,
   fillFolderNameFromTitle,
+  allowUploadMultipleMain = false,
+  allowUploadMultipleSub = false,
+  uploadLimit = 1,
 }: UploadDocumentFormContentProps) {
   return (
     <>
@@ -136,6 +142,9 @@ export function UploadDocumentFormContent({
         onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
         onSubSingleFileSelected={onSubSingleFileSelected}
+        allowUploadMultipleMain={allowUploadMultipleMain}
+        allowUploadMultipleSub={allowUploadMultipleSub}
+        uploadLimit={uploadLimit}
       />
 
       {((uploadKind === "sub" && uploadMultipleSub && isUploading && bulkJobId && bulkProgress) || (uploadKind === "main" && uploadMultipleMain && isUploading && bulkJobId && bulkProgress)) && (
@@ -144,7 +153,7 @@ export function UploadDocumentFormContent({
             <div>
               <div className="fw-semibold">{t("documents.bulkUploadInProgress", { defaultValue: "Bulk upload in progress" })}</div>
               <div className="small">
-                {t("documents.jobId", { defaultValue: "Job" })}: {bulkJobId} | {t("common.status")}: {bulkProgress.status ?? "processing"} | {t("documents.processed", { defaultValue: "Processed" })}: {bulkProgress.processed ?? 0}/{bulkProgress.total ?? 0} | {t("documents.failed", { defaultValue: "Failed" })}: {bulkProgress.failed ?? 0}
+                {t("common.status")}: {bulkProgress.status ?? "processing"} | {t("documents.uploadedCount", { defaultValue: "Uploaded" })}: {bulkProgress.processed ?? 0}/{bulkProgress.total ?? 0} | {t("documents.failed", { defaultValue: "Failed" })}: {bulkProgress.failed ?? 0}
               </div>
             </div>
             <Button type="button" variant="outline" className="btn-outline-danger" onClick={onCancelBulkJob} disabled={isCancellingBulkJob}>

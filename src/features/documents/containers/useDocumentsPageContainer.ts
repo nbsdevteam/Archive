@@ -8,6 +8,8 @@ import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
 import { usePaginationFromUrl } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
+import { gateBatchActionsForDelete } from "@/shared/utils/capabilityGating";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -44,6 +46,7 @@ export const useDocumentsPageContainer = () => {
   });
 
   const { t } = useTranslation();
+  const { canDeleteFiles } = useCapabilityPermissions();
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
@@ -104,8 +107,12 @@ export const useDocumentsPageContainer = () => {
 
   /** Batch action visibility: shared service intersection; drives toolbar batch buttons (Transfer/Archive/Trash etc.). */
   const batchActions = useMemo(
-    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
-    [documents, selectedDocumentIds]
+    () =>
+      gateBatchActionsForDelete(
+        getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
+        canDeleteFiles,
+      ),
+    [documents, selectedDocumentIds, canDeleteFiles],
   );
 
   const handleApplyFilter = useCallback(() => {

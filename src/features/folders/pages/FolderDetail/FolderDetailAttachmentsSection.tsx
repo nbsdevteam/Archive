@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react";
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { Document } from "@/app/adapter/api/documents.api";
@@ -7,6 +6,7 @@ import { Button, DataTable, Icon, Spinner } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
+import { AttachmentDocumentDropdown } from "@/features/folders/components";
 
 export interface AttachmentsSelectionConfig {
   selectedIds: (string | number)[];
@@ -23,7 +23,7 @@ export interface FolderDetailAttachmentsSectionProps {
   attachments: Attachment[];
   loadingAttachments: boolean;
   selectionConfig: AttachmentsSelectionConfig | null;
-  onAttachmentsDocIdChange: (e: ChangeEvent<HTMLSelectElement>) => void;
+  onAttachmentsDocIdChange: (docId: number) => void;
   onAddAttachment: () => void;
   onViewAttachment: (attachmentId: number) => void;
   onDownloadAttachment: (attachmentId: number, fileName: string) => void;
@@ -32,6 +32,7 @@ export interface FolderDetailAttachmentsSectionProps {
   onClearSelection: () => void;
   onBatchTrash: () => void;
   isAttachmentTrashing: boolean;
+  canDeleteFiles?: boolean;
 }
 
 /** Attachments card: document selector, attachments DataTable with selection and row actions. Responsive card view on mobile. */
@@ -52,14 +53,15 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
     onClearSelection,
     onBatchTrash,
     isAttachmentTrashing,
+    canDeleteFiles = false,
   } = props;
   const hasSelection = (selectionConfig?.selectedIds.length ?? 0) > 0;
 
   const columns: ColumnDef<Attachment>[] = useMemo(
     () => [
-      { id: "name", header: t("folders.name", { defaultValue: "Name" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.name}>{row.name}</span> },
-      { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.file_name}>{row.file_name}</span> },
-      { id: "description", header: t("documents.description", { defaultValue: "Description" }), render: (row) => <span className="folders-detail-attachments-cell-ellipsis" title={row.description != null ? String(row.description) : undefined}>{String(row.description ?? "").trim() || "–"}</span> },
+      { id: "name", header: t("folders.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.name },
+      { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), truncate: true, render: (row) => row.file_name },
+      { id: "description", header: t("documents.description", { defaultValue: "Description" }), truncate: true, render: (row) => String(row.description ?? "").trim() || "–" },
     ],
     [t]
   );
@@ -69,9 +71,22 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
       { id: "view", label: t("documents.view", { defaultValue: "View" }), icon: "eye", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onViewAttachment(row.id); } },
       { id: "download", label: t("documents.download", { defaultValue: "Download" }), icon: "download", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onDownloadAttachment(row.id, row.file_name); } },
       ...(onEditAttachment ? [{ id: "edit" as const, label: t("common.edit", { defaultValue: "Edit" }), icon: "pencil" as const, onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onEditAttachment!(row.id); } }] : []),
-      { id: "delete", label: t("documents.deleteAttachment", { defaultValue: "Delete" }), icon: "trash", variant: "danger", onClick: (row: Attachment, e: React.MouseEvent) => { e.stopPropagation(); onTrashAttachment(row.id); } },
+      ...(canDeleteFiles
+        ? [
+            {
+              id: "delete" as const,
+              label: t("documents.deleteAttachment", { defaultValue: "Delete" }),
+              icon: "trash" as const,
+              variant: "danger" as const,
+              onClick: (row: Attachment, e: React.MouseEvent) => {
+                e.stopPropagation();
+                onTrashAttachment(row.id);
+              },
+            },
+          ]
+        : []),
     ].filter(Boolean) as RowAction<Attachment>[],
-    [t, onViewAttachment, onDownloadAttachment, onEditAttachment, onTrashAttachment]
+    [t, onViewAttachment, onDownloadAttachment, onEditAttachment, onTrashAttachment, canDeleteFiles]
   );
 
   const selection: SelectionConfig<Attachment> | undefined = selectionConfig
@@ -91,22 +106,14 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
         <h6 className="mb-0">📎 {t("folders.attachments", { defaultValue: "Attachments" })}</h6>
         <div className="d-flex align-items-center gap-2">
           {documents.length > 0 && (
-            <select
-              className="form-select form-select-sm"
-              style={{ width: "auto", minWidth: 200 }}
-              value={attachmentsDocId}
-              onChange={onAttachmentsDocIdChange}
-              data-testid="folder-detail-attachments-doc-select"
-              aria-label={t("folders.selectDocument", { defaultValue: "Select document for attachments" })}
-            >
-              {documents.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.title ?? d.name ?? "–"} — {d.barcode}
-                </option>
-              ))}
-            </select>
+            <AttachmentDocumentDropdown
+              documents={documents}
+              selectedDocId={attachmentsDocId}
+              onSelectDocument={onAttachmentsDocIdChange}
+              ariaLabel={t("folders.selectDocument", { defaultValue: "Select document for attachments" })}
+            />
           )}
-          {attachments.length > 0 && hasSelection && (
+          {attachments.length > 0 && hasSelection && canDeleteFiles && (
             <>
               <Button variant="outline" size="sm" className="btn-outline-danger" onClick={onBatchTrash} disabled={isAttachmentTrashing}>
                 <Icon name="trash" className="me-1" />
@@ -140,7 +147,6 @@ export function FolderDetailAttachmentsSection(props: FolderDetailAttachmentsSec
           tableClassName="table table-sm mb-0 folders-detail-attachments-table"
           responsive="auto"
           cardsBelow="lg"
-          actionsStyle="inline"
         />
         )}
       </div>

@@ -34,6 +34,7 @@ export interface FolderDetailSubDocsSectionProps {
   isSubDocTrashing: boolean;
   isSubDocArchiving: boolean;
   isSubDocUnarchiving: boolean;
+  canDeleteFiles?: boolean;
 }
 
 /** Secondary documents table with selection, transfer, trash, per-row actions. Uses DataTable for responsive card view. */
@@ -56,6 +57,7 @@ export function FolderDetailSubDocsSection({
   isSubDocTrashing,
   isSubDocArchiving,
   isSubDocUnarchiving,
+  canDeleteFiles = false,
 }: FolderDetailSubDocsSectionProps) {
   const selectedIds = selectionConfig?.selectedIds ?? [];
   const hasSelection = selectedIds.length > 0;
@@ -64,11 +66,11 @@ export function FolderDetailSubDocsSection({
 
   const columns: ColumnDef<Document>[] = useMemo(
     () => [
-      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode ?? "–" },
-      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.title ?? row.name ?? "–" },
-      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
-      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (row) => formatDate(row.upload_date) },
-      { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => row.status ?? "–" },
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), truncate: true, render: (row) => row.barcode ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.title ?? row.name ?? "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), truncate: true, render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), truncate: true, render: (row) => formatDate(row.upload_date) },
+      { id: "status", header: t("documents.status", { defaultValue: "Status" }), truncate: true, render: (row) => row.status ?? "–" },
     ],
     [t, formatDate]
   );
@@ -81,9 +83,35 @@ export function FolderDetailSubDocsSection({
       { id: "transfer", label: t("documents.transfer", { defaultValue: "Transfer" }), icon: "arrow-right-left", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onTransfer([row.id]); }, disabled: () => transferSubmitting },
       { id: "unarchive", label: t("documents.unarchive", { defaultValue: "Unarchive" }), icon: "refresh-cw", visible: (row: Document) => (row.status ?? "").toLowerCase() === "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onUnarchive(row.id); }, disabled: () => isSubDocUnarchiving },
       { id: "archive", label: t("documents.archive", { defaultValue: "Archive" }), icon: "archive", visible: (row: Document) => (row.status ?? "").toLowerCase() !== "archived", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onArchive(row.id); }, disabled: () => isSubDocArchiving },
-      { id: "trash", label: t("documents.moveToTrash", { defaultValue: "Move to trash" }), icon: "trash-2", variant: "danger", onClick: (row: Document, e: React.MouseEvent) => { e.stopPropagation(); onTrash(row.id); } },
+      ...(canDeleteFiles
+        ? [
+            {
+              id: "trash" as const,
+              label: t("documents.moveToTrash", { defaultValue: "Move to trash" }),
+              icon: "trash-2" as const,
+              variant: "danger" as const,
+              onClick: (row: Document, e: React.MouseEvent) => {
+                e.stopPropagation();
+                onTrash(row.id);
+              },
+            },
+          ]
+        : []),
     ].filter(Boolean) as RowAction<Document>[],
-    [t, onNavigate, onEdit, onDownload, onTransfer, onUnarchive, onArchive, onTrash, transferSubmitting, isSubDocUnarchiving, isSubDocArchiving]
+    [
+      t,
+      onNavigate,
+      onEdit,
+      onDownload,
+      onTransfer,
+      onUnarchive,
+      onArchive,
+      onTrash,
+      transferSubmitting,
+      isSubDocUnarchiving,
+      isSubDocArchiving,
+      canDeleteFiles,
+    ]
   );
 
   const selection: SelectionConfig<Document> | undefined = selectionConfig
@@ -147,7 +175,6 @@ export function FolderDetailSubDocsSection({
           tableClassName="table table-sm mb-0"
           responsive="auto"
           cardsBelow="lg"
-          actionsStyle="inline"
         />
       </div>
     </div>

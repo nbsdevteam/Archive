@@ -12,6 +12,7 @@ import {
 } from "@/shared/utils/documents/expiryReminder";
 import { formatDate } from "@/shared/utils/format/date";
 import { Button, Modal, ModalFooter } from "@/shared/components/ui";
+import { useCapabilityPermissionsStore } from "@/shared/stores/capabilityPermissionsStore";
 
 const REMINDER_FETCH_PAGE_SIZE = 200;
 const REMINDER_POLL_INTERVAL_MS = 60_000;
@@ -56,6 +57,9 @@ function markReminderModalDismissed(): void {
 export function DocumentExpiryReminderMarquee() {
   const { t } = useTranslation();
   const dueDocuments = useDocumentExpiryReminderStore((s) => s.dueDocuments);
+  const marqueeDurationSeconds = useCapabilityPermissionsStore(
+    (s) => s.marqueeDurationSeconds,
+  );
 
   const message = useMemo(() => {
     if (dueDocuments.length === 0) return "";
@@ -85,9 +89,17 @@ export function DocumentExpiryReminderMarquee() {
 
   if (!message) return null;
 
+  const trackStyle = useMemo(
+    () =>
+      ({
+        ["--expiry-marquee-duration" as string]: `${marqueeDurationSeconds}s`,
+      }) as React.CSSProperties,
+    [marqueeDurationSeconds],
+  );
+
   return (
     <div className="expiry-reminder-marquee" role="status" aria-live="polite">
-      <div className="expiry-reminder-marquee__track">
+      <div className="expiry-reminder-marquee__track" style={trackStyle}>
         <span>{message}</span>
         <span aria-hidden>{message}</span>
       </div>

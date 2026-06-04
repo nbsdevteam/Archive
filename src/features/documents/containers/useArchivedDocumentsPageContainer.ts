@@ -8,6 +8,8 @@ import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
 import { usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
+import { gateBatchActionsForDelete } from "@/shared/utils/capabilityGating";
 import type { Document } from "@/app/adapter/api/documents.api";
 import { useDocumentStore } from "@/features/documents/stores/documentStore";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
@@ -34,6 +36,7 @@ export const useArchivedDocumentsPageContainer = () => {
   const [isMoveSubmitting, setIsMoveSubmitting] = useState(false);
 
   const { t } = useTranslation();
+  const { canDeleteFiles } = useCapabilityPermissions();
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
@@ -87,8 +90,12 @@ export const useArchivedDocumentsPageContainer = () => {
 
   /** Batch action visibility from shared service; on archived page only Unarchive/Trash can be offered. */
   const batchActions = useMemo(
-    () => getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
-    [documents, selectedDocumentIds]
+    () =>
+      gateBatchActionsForDelete(
+        getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds),
+        canDeleteFiles,
+      ),
+    [documents, selectedDocumentIds, canDeleteFiles],
   );
 
   const refetch = useCallback(() => {

@@ -15,6 +15,8 @@ import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
 import { useAttachmentOperations, useSelection } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
+import { gateBatchActionsForDelete } from "@/shared/utils/capabilityGating";
 import { useNotes, useNoteMutations } from "@/features/notes/hooks/useNotes";
 import { useNoteEditorHandlers } from "@/features/notes/hooks/useNoteEditorHandlers";
 import type { Document, Attachment } from "@/app/adapter/api/documents.api";
@@ -46,6 +48,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   const [editAttachmentDescription, setEditAttachmentDescription] = useState("");
 
   const { t } = useTranslation();
+  const { canDeleteFiles } = useCapabilityPermissions();
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
@@ -98,11 +101,14 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
   /** Batch action visibility for sub-docs: shared service intersection; drives sub-docs toolbar batch buttons. */
   const subDocsBatchActions = useMemo(
     () =>
-      getAllowedBatchActionsForDocumentsSelection(
-        subDocs,
-        subDocSelectedIds.map((id) => Number(id))
+      gateBatchActionsForDelete(
+        getAllowedBatchActionsForDocumentsSelection(
+          subDocs,
+          subDocSelectedIds.map((id) => Number(id)),
+        ),
+        canDeleteFiles,
       ),
-    [subDocs, subDocSelectedIds]
+    [subDocs, subDocSelectedIds, canDeleteFiles],
   );
 
   const {
@@ -570,6 +576,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
       subDocsSelectionConfig,
       attachmentSelectedIds,
       attachmentsSelectionConfig,
+      canDeleteFiles,
     },
     actions: {
       formatDate,

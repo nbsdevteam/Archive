@@ -13,6 +13,7 @@ import { getDocumentTableColumns } from "@/features/documents/utils/documentTabl
 import { DocumentsToolbar } from "./DocumentsToolbar";
 import { DocumentsTableCard } from "./DocumentsTableCard";
 import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryReminderStore";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
 import { PaginationSection } from "@/shared/components/PaginationSection";
@@ -28,6 +29,7 @@ import "@/features/documents/styles/documents.css";
 const DocumentsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { canDeleteFiles } = useCapabilityPermissions();
   const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
@@ -135,7 +137,10 @@ const DocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger me-1",
-          visible: (row) => row.is_main_document === false && (row.status ?? "").toLowerCase() === "active",
+          visible: (row) =>
+            canDeleteFiles &&
+            row.is_main_document === false &&
+            (row.status ?? "").toLowerCase() === "active",
           onClick: (row) => trashDialog.open(row.id),
         },
         {
@@ -173,6 +178,7 @@ const DocumentsPage = () => {
       unarchiveDialog.open,
       restoreDialog.open,
       trashDialog.open,
+      canDeleteFiles,
     ]
   );
 

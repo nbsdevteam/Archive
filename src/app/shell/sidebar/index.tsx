@@ -6,7 +6,8 @@ import ImageWithBasePath from "../imageWithBasePath";
 import { useSidebarUiStore } from "../../../shared/stores/sidebarUiStore";
 import { SidebarDataTest } from "../../config/sidebarMenu";
 import { all_routes } from "../../../router/all_routes";
-import { IS_ADMIN } from "../../../shared/constants/access";
+import { getIsAdmin } from "../../../shared/constants/access";
+import { useAuth } from "../../../shared/auth";
 import {
   Sidebar as NbsSidebarImport,
   type SidebarConfig,
@@ -93,7 +94,8 @@ const Sidebar = memo(() => {
   const { setExpandMenu } = useSidebarUiStore();
   const { t } = useTranslation();
 
-  const isAdmin = IS_ADMIN;
+  const { user } = useAuth();
+  const isAdmin = getIsAdmin(user);
   const [activeHref, setActiveHref] = useState<string>(() => location.pathname);
 
   const allHrefs = useMemo(() => {

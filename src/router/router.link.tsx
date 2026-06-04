@@ -15,6 +15,8 @@ import {
   FolderDetailPage,
   FoldersPage,
   Login,
+  ForgotPassword,
+  ResetPassword,
   NotesPage,
   NotificationsPage,
   PermissionsPage,
@@ -119,6 +121,22 @@ export const authRoutes = [
     element: (
       <PublicRoute>
         <Login />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: routes.forgotPassword,
+    element: (
+      <PublicRoute>
+        <ForgotPassword />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: routes.resetPassword,
+    element: (
+      <PublicRoute>
+        <ResetPassword />
       </PublicRoute>
     ),
   },

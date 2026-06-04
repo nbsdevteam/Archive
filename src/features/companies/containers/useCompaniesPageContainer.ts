@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
-import { IS_ADMIN } from "@/shared/constants/access";
+import { getIsManager } from "@/shared/constants/access";
+import { useAuth } from "@/shared/auth";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useSelection, useConfirmDialogEmpty } from "@/shared/hooks";
 import { listCompanies, deleteCompany, batchDeleteCompanies, deleteAllCompanies } from "../services/companies.api";
@@ -12,6 +13,7 @@ const DEFAULT_LIMIT = 100;
 
 export function useCompaniesPageContainer() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [count, setCount] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -246,6 +248,6 @@ export function useCompaniesPageContainer() {
       },
       pendingForceSkipCount: pendingForceIds.length,
     },
-    isAdmin: IS_ADMIN,
+    isAdmin: getIsManager(user),
   };
 }

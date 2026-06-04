@@ -93,6 +93,7 @@ export interface FolderDetailSelection {
     onToggleAll: () => void;
   } | null;
   attachmentSelectedIds: (string | number)[];
+  canDeleteFiles: boolean;
   attachmentsSelectionConfig: {
     isAllSelected: boolean;
     isIndeterminate: boolean;

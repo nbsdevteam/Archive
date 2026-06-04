@@ -201,6 +201,7 @@ const FolderDetailPage = () => {
         isSubDocTrashing={loadingState.isSubDocTrashing}
         isSubDocArchiving={loadingState.isSubDocArchiving}
         isSubDocUnarchiving={loadingState.isSubDocUnarchiving}
+        canDeleteFiles={selection.canDeleteFiles}
       />
 
       <FolderDetailAttachmentsSection
@@ -219,6 +220,7 @@ const FolderDetailPage = () => {
         onClearSelection={actions.clearAttachmentsSelection}
         onBatchTrash={batchAttachmentTrashDialog.open}
         isAttachmentTrashing={loadingState.isAttachmentTrashing}
+        canDeleteFiles={selection.canDeleteFiles}
       />
 
       <FolderDetailNotesSection

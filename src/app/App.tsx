@@ -10,6 +10,7 @@ import { base_path } from "../environment";
 import { usePrefersColorScheme } from "../shared/hooks";
 import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
 import { DocumentExpiryReminderProvider } from "../shared/components/reminders/DocumentExpiryReminderProvider";
+import { AuthSessionBootstrap } from "./providers/AuthSessionBootstrap";
 
 const RTL_BODY_CLASS = "layout-mode-rtl";
 
@@ -80,6 +81,7 @@ export const App = () => {
         <LiveAnnouncerProvider>
           <BootstrapDirectionSync />
           <RtlSync />
+          <AuthSessionBootstrap />
           <AppRouter />
           <ThemedToastContainer />
           <DocumentExpiryReminderProvider />

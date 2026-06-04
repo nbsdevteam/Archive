@@ -1,63 +1,86 @@
 /**
- * Auth API service
- * Delegates to adapter API layer
+ * Auth API service — delegates to adapter and bootstraps session state.
  */
 
 import { authApi as adapterAuthApi } from "../../../app/adapter/api/auth.api";
 import type {
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   LoginRequest,
   LoginResponse,
   RefreshRequest,
   RefreshResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
   UserResponse,
 } from "../../../app/adapter/api/auth.api";
+import { bootstrapAuthSession } from "./sessionBootstrap";
 
 /**
- * Login: stores tokens, then fetches /api/auth/me once and stores full user in localStorage.
- * All consumers (e.g. useAuth) read user from localStorage; no further /auth/me calls.
+ * Login: stores tokens, bootstraps /me, permissions, and marquee settings.
  */
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await adapterAuthApi.login(data);
   if (response.success && response.access_token && response.refresh_token) {
-    localStorage.setItem('access_token', response.access_token);
-    localStorage.setItem('refresh_token', response.refresh_token);
+    localStorage.setItem("access_token", response.access_token);
+    localStorage.setItem("refresh_token", response.refresh_token);
     if (response.user) {
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem("user", JSON.stringify(response.user));
     }
-    // Fetch full user (e.g. uploaded_documents, pending_approvals) once and persist for the session
     try {
-      const meResponse = await adapterAuthApi.getCurrentUser();
-      if (meResponse?.success && meResponse?.user) {
-        localStorage.setItem('user', JSON.stringify(meResponse.user));
-      }
+      await bootstrapAuthSession();
     } catch {
-      // Keep login response user if /me fails
+      // Keep login response user if bootstrap fails.
     }
   }
   return response;
 };
 
-/**
- * Refresh access token
- */
-export const refreshToken = async (data: RefreshRequest): Promise<RefreshResponse> => {
+/** Refresh access token in storage. */
+export const refreshToken = async (
+  data: RefreshRequest,
+): Promise<RefreshResponse> => {
   const response = await adapterAuthApi.refresh(data);
   if (response.success && response.access_token) {
-    localStorage.setItem('access_token', response.access_token);
+    localStorage.setItem("access_token", response.access_token);
   }
   return response;
 };
 
-/**
- * Logout
- */
+/** Logout via adapter (clears tokens in adapter). */
 export const logout = async (): Promise<void> => {
   await adapterAuthApi.logout();
 };
 
-/**
- * Get current user
- */
+/** Get current user from API. */
 export const getMe = async (): Promise<UserResponse> => {
-  return await adapterAuthApi.getCurrentUser();
+  return adapterAuthApi.getCurrentUser();
+};
+
+/** Re-hydrate user, permissions, and marquee after token refresh. */
+export const refreshSession = async (): Promise<void> => {
+  await bootstrapAuthSession();
+};
+
+/**
+ * Request password reset link for the given email.
+ */
+export const forgotPassword = async (
+  data: ForgotPasswordRequest,
+): Promise<ForgotPasswordResponse> => {
+  const fe_url =
+    data.fe_url ??
+    (typeof window !== "undefined"
+      ? `${window.location.origin}/reset-password`
+      : undefined);
+  return adapterAuthApi.forgotPassword({ ...data, fe_url });
+};
+
+/**
+ * Reset password using token from email link.
+ */
+export const resetPassword = async (
+  data: ResetPasswordRequest,
+): Promise<ResetPasswordResponse> => {
+  return adapterAuthApi.resetPassword(data);
 };

@@ -15,6 +15,7 @@ import { useArchivedDocumentsPageContainer } from "@/features/documents/containe
 import { useDocumentsTableSort } from "@/features/documents/hooks/useDocumentsTableSort";
 import { getDocumentTableColumns } from "@/features/documents/utils/documentTableColumns";
 import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryReminderStore";
+import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import "@/features/documents/styles/documents.css";
 
 /**
@@ -24,6 +25,7 @@ import "@/features/documents/styles/documents.css";
 const ArchivedDocumentsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { canDeleteFiles } = useCapabilityPermissions();
   const { isMobileView } = useViewport();
   const { data, loading, error, filter, selection, actions, modals, paging } =
     useArchivedDocumentsPageContainer();
@@ -88,6 +90,7 @@ const ArchivedDocumentsPage = () => {
           icon: "trash-2",
           variant: "outline",
           className: "btn-outline-danger",
+          visible: () => canDeleteFiles,
           onClick: (row) => trashDialog.open(row.id),
         },
       ]),
@@ -97,6 +100,7 @@ const ArchivedDocumentsPage = () => {
       actions.handleDownloadDocument,
       unarchiveDialog.open,
       trashDialog.open,
+      canDeleteFiles,
     ]
   );
 

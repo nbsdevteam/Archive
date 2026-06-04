@@ -14,6 +14,8 @@ export interface UploadDocumentFileSectionProps {
   /** When true (main only), multiple files can be selected and one folder per file is auto-created from filename. */
   uploadMultipleMain?: boolean;
   onUploadMultipleMainChange?: (value: boolean) => void;
+  /** Disable the upload multiple main checkbox (e.g., when uploading to pre-created folder). */
+  disableUploadMultipleMain?: boolean;
   /** When true (sub only), multiple files can be selected; each file becomes one sub document in the selected folder. */
   uploadMultipleSub?: boolean;
   onUploadMultipleSubChange?: (value: boolean) => void;
@@ -24,6 +26,8 @@ export interface UploadDocumentFileSectionProps {
   uploadWhatDocumentLabel: string;
   t: TFunction;
   setValue: (name: "file", value: File | undefined, opts?: { shouldValidate?: boolean }) => void;
+  /** Max files when multi-upload is enabled. */
+  uploadLimit?: number;
 }
 
 /** File input section: label, optional "upload multiple" toggle (main), hidden input, select/clear buttons, and validation error. */
@@ -37,6 +41,7 @@ export function UploadDocumentFileSection({
   uploadKind,
   uploadMultipleMain = false,
   onUploadMultipleMainChange,
+  disableUploadMultipleMain = false,
   uploadMultipleSub = false,
   onUploadMultipleSubChange,
   onMainSingleFileSelected,
@@ -44,6 +49,7 @@ export function UploadDocumentFileSection({
   uploadWhatDocumentLabel,
   t,
   setValue,
+  uploadLimit = 1,
 }: UploadDocumentFileSectionProps) {
   const allowMultiple = uploadKind === "attachment" || (uploadKind === "main" && uploadMultipleMain) || (uploadKind === "sub" && uploadMultipleSub);
 
@@ -89,10 +95,19 @@ export function UploadDocumentFileSection({
               className="form-check-input"
               checked={uploadMultipleMain}
               onChange={handleUploadMultipleMainCheckboxChange}
+              disabled={disableUploadMultipleMain}
               data-testid="upload-multiple-main-checkbox"
             />
             <span>{t("documents.uploadMultipleFiles", { defaultValue: "Upload multiple files" })}</span>
           </label>
+          {uploadMultipleMain && uploadLimit > 1 && (
+            <p className="text-muted small mb-0 mt-1">
+              {t("documents.uploadLimitHint", {
+                defaultValue: "You can select up to {{count}} files.",
+                count: uploadLimit,
+              })}
+            </p>
+          )}
           {uploadMultipleMain && (
             <p className="small text-muted mb-0 mt-2">
               {t("documents.batchMainUploadInfo", {

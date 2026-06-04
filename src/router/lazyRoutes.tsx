@@ -65,6 +65,14 @@ export const Login = createLazyComponent(
   () => import("../features/auth/pages/LoginPage"),
   <LoadingSpinner text="Loading login..." />,
 );
+export const ForgotPassword = createLazyComponent(
+  () => import("../features/auth/pages/ForgotPasswordPage"),
+  <LoadingSpinner text="Loading forgot password..." />,
+);
+export const ResetPassword = createLazyComponent(
+  () => import("../features/auth/pages/ResetPasswordPage"),
+  <LoadingSpinner text="Loading reset password..." />,
+);
 
 // Dashboard
 export const DashboardPage = createLazyComponent(
