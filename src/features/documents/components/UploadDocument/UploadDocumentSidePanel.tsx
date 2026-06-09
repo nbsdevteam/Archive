@@ -246,7 +246,7 @@ function UploadDocumentSidePanel({
     [uploadKind, departmentId, documentTypeId, departments, documentTypes, setValue]
   );
 
-  /** Limits selected files to upload_limit when multi-upload is enabled. */
+  /** Limits selected files when upload_limit > 1 and multi-upload is enabled. */
   const handleFileChange = useCallback(
     (files: File[]) => {
       const max =
@@ -254,7 +254,8 @@ function UploadDocumentSidePanel({
         (uploadKind === "sub" && uploadMultipleSub)
           ? uploadLimit
           : 1;
-      setSelectedFiles(files.slice(0, max));
+      const resolvedMax = max > 1 ? max : files.length;
+      setSelectedFiles(files.slice(0, resolvedMax));
     },
     [uploadKind, uploadMultipleMain, uploadMultipleSub, uploadLimit],
   );
