@@ -31,7 +31,7 @@ function UploadDocumentSidePanel({
 }: UploadDocumentSidePanelProps) {
   const { t } = useTranslation();
   const { isMobileView } = useViewport();
-  const { canUploadMultiple, uploadLimit } = useCapabilityPermissions();
+  const { uploadLimit } = useCapabilityPermissions();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -365,8 +365,6 @@ function UploadDocumentSidePanel({
           selectedFile={selectedFile}
           selectedFiles={selectedFiles}
           onFileChange={handleFileChange}
-          allowUploadMultipleMain={canUploadMultiple}
-          allowUploadMultipleSub={canUploadMultiple}
           uploadLimit={uploadLimit}
           onClearFile={handleClearFile}
           uploadWhatDocumentLabel={uploadWhatDocumentLabel}

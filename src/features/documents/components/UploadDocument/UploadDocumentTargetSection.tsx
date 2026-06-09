@@ -46,8 +46,6 @@ export interface UploadDocumentTargetSectionProps {
   onUploadMultipleSubChange?: (value: boolean) => void;
   onMainSingleFileSelected?: (baseName: string) => void;
   onSubSingleFileSelected?: (baseName: string) => void;
-  allowUploadMultipleMain?: boolean;
-  allowUploadMultipleSub?: boolean;
   uploadLimit?: number;
 }
 
@@ -93,8 +91,6 @@ export function UploadDocumentTargetSection({
   onUploadMultipleSubChange,
   onMainSingleFileSelected,
   onSubSingleFileSelected,
-  allowUploadMultipleMain = false,
-  allowUploadMultipleSub = false,
   uploadLimit = 1,
 }: UploadDocumentTargetSectionProps) {
   const titleRegistration = register("title");
@@ -226,14 +222,10 @@ export function UploadDocumentTargetSection({
         errorMessage={errors.file?.message as string | undefined}
         uploadKind={uploadKind}
         uploadMultipleMain={uploadMultipleMain}
-        onUploadMultipleMainChange={
-          allowUploadMultipleMain ? onUploadMultipleMainChange : undefined
-        }
+        onUploadMultipleMainChange={onUploadMultipleMainChange}
         disableUploadMultipleMain={lockFolderContext && uploadKind === "main"}
         uploadMultipleSub={uploadMultipleSub}
-        onUploadMultipleSubChange={
-          allowUploadMultipleSub ? onUploadMultipleSubChange : undefined
-        }
+        onUploadMultipleSubChange={onUploadMultipleSubChange}
         uploadLimit={uploadLimit}
         onMainSingleFileSelected={onMainSingleFileSelected}
         onSubSingleFileSelected={onSubSingleFileSelected}

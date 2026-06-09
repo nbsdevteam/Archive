@@ -51,8 +51,6 @@ export interface UploadDocumentFormContentProps {
   isUploading: boolean;
   t: TFunction;
   fillFolderNameFromTitle: (titleValue: string) => void;
-  allowUploadMultipleMain?: boolean;
-  allowUploadMultipleSub?: boolean;
   uploadLimit?: number;
 }
 
@@ -97,8 +95,6 @@ export function UploadDocumentFormContent({
   isUploading,
   t,
   fillFolderNameFromTitle,
-  allowUploadMultipleMain = false,
-  allowUploadMultipleSub = false,
   uploadLimit = 1,
 }: UploadDocumentFormContentProps) {
   return (
@@ -142,8 +138,6 @@ export function UploadDocumentFormContent({
         onUploadMultipleSubChange={onUploadMultipleSubChange}
         onMainSingleFileSelected={onMainSingleFileSelected}
         onSubSingleFileSelected={onSubSingleFileSelected}
-        allowUploadMultipleMain={allowUploadMultipleMain}
-        allowUploadMultipleSub={allowUploadMultipleSub}
         uploadLimit={uploadLimit}
       />
 
