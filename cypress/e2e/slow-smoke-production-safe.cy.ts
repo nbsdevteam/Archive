@@ -12,7 +12,6 @@ const ATTACHMENT_ID = 101;
 const FOLDER_ID_TRANSFER = 777;
 const TARGET_FOLDER_ID = 778;
 const FOLDER_ID_BULK = 100;
-const JOB_ID = 'slow-smoke-job-1';
 const TRASH_DOC_ID_1 = 901;
 const TRASH_DOC_ID_2 = 902;
 
@@ -292,12 +291,23 @@ describe('Slow smoke (production-safe, no delete)', () => {
     waitStep();
     cy.get('.react-select__option').contains('Test Folder').click();
     waitStep();
+    cy.get('[data-testid="upload-multiple-sub-checkbox"]').check({ force: true });
+    waitStep();
     cy.get('input[name="title"]').clear().type(titleBulk);
-    cy.intercept('POST', '**/api/documents/bulk-upload/start', { statusCode: 200, body: { result: { success: true, data: { job_id: JOB_ID } } } });
-    cy.intercept('POST', /\/api\/documents\/bulk-upload\/[^/]+\/upload/, { statusCode: 200, body: { result: { success: true } } });
-    cy.intercept('POST', /\/api\/documents\/bulk-upload\/[^/]+\/progress/, {
-      statusCode: 200,
-      body: { result: { success: true, data: { status: 'completed', total: 2, processed: 2, failed: 0 } } },
+    let bulkSingleIdx = 0;
+    cy.intercept('POST', '**/api/documents/upload/single', (req) => {
+      bulkSingleIdx += 1;
+      req.reply({
+        statusCode: 200,
+        body: {
+          success: true,
+          document_id: 200 + bulkSingleIdx,
+          barcode: `NBS00020${bulkSingleIdx}`,
+          folder_id: 100,
+          folder_name: 'Test Folder',
+          ocr_queued: true,
+        },
+      });
     });
     cy.get('input[type="file"]').selectFile(
       [

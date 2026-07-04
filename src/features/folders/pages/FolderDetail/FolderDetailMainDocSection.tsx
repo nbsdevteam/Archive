@@ -18,7 +18,7 @@ export interface FolderDetailMainDocSectionProps {
 }
 
 /**
- * Main document card: single-row table on desktop with inline action buttons.
+ * Main document card: single-row table on desktop with row actions menu.
  * Switches to stack card view on mobile (< lg) via DataTable cardsBelow="lg".
  */
 export function FolderDetailMainDocSection({
@@ -35,11 +35,11 @@ export function FolderDetailMainDocSection({
 }: FolderDetailMainDocSectionProps) {
   const columns: ColumnDef<Document>[] = useMemo(
     () => [
-      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), render: (row) => row.barcode ?? "–" },
-      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.title ?? row.name ?? "–" },
-      { id: "type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
-      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), render: (row) => formatDate(row.upload_date) },
-      { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => row.status ?? "–" },
+      { id: "barcode", header: t("documents.barcode", { defaultValue: "Barcode" }), truncate: true, render: (row) => row.barcode ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.title ?? row.name ?? "–" },
+      { id: "type", header: t("documents.type", { defaultValue: "Type" }), truncate: true, render: (row) => row.document_type_name ?? (row.document_type as { name?: string })?.name ?? "–" },
+      { id: "upload_date", header: t("documents.uploadDate", { defaultValue: "Upload date" }), truncate: true, render: (row) => formatDate(row.upload_date) },
+      { id: "status", header: t("documents.status", { defaultValue: "Status" }), truncate: true, render: (row) => row.status ?? "–" },
     ],
     [t, formatDate]
   );
@@ -79,7 +79,6 @@ export function FolderDetailMainDocSection({
           tableClassName="table table-sm mb-0"
           responsive="auto"
           cardsBelow="lg"
-          actionsStyle="inline"
         />
       </div>
     </div>

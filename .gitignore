@@ -40,3 +40,11 @@ CYPRESS_E2E_IMPROVEMENTS.md
 HowToConsumeStoryBook.md
 NOTES_SYSTEM_API_DOCUMENTATION.md
 API_DOCUMENTATION.md
+Readingfiles/
+
+# Test run artifacts
+cypress/videos
+cypress/screenshots
+LightHousereportArchive.json
+clean-report.json
+lighthouse-login.json

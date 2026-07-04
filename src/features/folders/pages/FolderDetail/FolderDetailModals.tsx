@@ -8,6 +8,7 @@ import { NoteEditor, NoteImageViewerModal } from "@/features/notes/components";
 import type { FolderDetail } from "@/features/folders/types/folders.types";
 import type { Document } from "@/app/adapter/api/documents.api";
 import type { NoteListItem } from "@/features/notes/types/notes.types";
+import type { UploadFormValues } from "@/features/documents/components/UploadDocument/types";
 
 /** Props for all folder detail modals (signature, edit request, confirm dialogs, transfer, edit folder, upload, note editor, note image viewer). */
 export interface FolderDetailModalsProps {
@@ -26,7 +27,7 @@ export interface FolderDetailModalsProps {
     editReason: string;
     isEditFolderOpen: boolean;
     isUploadOpen: boolean;
-    uploadPanelInitialValues: Partial<{ upload_kind: "main" | "sub" | "attachment"; folder_id: number; department_id: number; target_document_id: number }>;
+    uploadPanelInitialValues: Partial<UploadFormValues>;
     uploadPanelLockFolderContext: boolean;
     transferModalOpen: boolean;
     transferMode: "attachments" | "docs" | null;

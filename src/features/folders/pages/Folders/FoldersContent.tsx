@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
 import { Button, DataTable, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
-import type { RowAction } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { RowAction, SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { Folder } from "../../types/folders.types";
 
 export interface FoldersContentProps {
@@ -14,6 +14,7 @@ export interface FoldersContentProps {
   loading: boolean;
   error: string | null;
   formatDate: (date?: string) => string;
+  selectionConfig?: SelectionConfig<Folder>;
   actions: {
     handleRefresh: () => void;
     handleNavigateToFolder: (id: number) => void;
@@ -59,7 +60,7 @@ function FolderNameWithTooltip({ name }: { name: string }) {
 }
 
 export function FoldersContent(props: FoldersContentProps) {
-  const { t, routes, filteredFolders, viewMode, loading, error, formatDate, actions, onDeleteClick } = props;
+  const { t, routes, filteredFolders, viewMode, loading, error, formatDate, actions, onDeleteClick, selectionConfig } = props;
 
   const handleGridCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const id = e.currentTarget.dataset.folderId;
@@ -82,11 +83,11 @@ export function FoldersContent(props: FoldersContentProps) {
   };
   const listColumns: ColumnDef<Folder>[] = useMemo(
     () => [
-      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name || "–" },
-      { id: "code", header: t("folders.code", { defaultValue: "Code" }), render: (row) => row.code || "–" },
-      { id: "folder_type", header: t("documents.type", { defaultValue: "Type" }), render: (row) => row.folder_type || "–" },
-      { id: "department_name", header: t("documents.department", { defaultValue: "Department" }), render: (row) => row.department_name || "–" },
-      { id: "company_name", header: t("folders.companyBrand", { defaultValue: "Company/Brand" }), render: (row) => row.company_name ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.name || "–" },
+      { id: "code", header: t("folders.code", { defaultValue: "Code" }), truncate: true, render: (row) => row.code || "–" },
+      { id: "folder_type", header: t("documents.type", { defaultValue: "Type" }), truncate: true, render: (row) => row.folder_type || "–" },
+      { id: "department_name", header: t("documents.department", { defaultValue: "Department" }), truncate: true, render: (row) => row.department_name || "–" },
+      { id: "company_name", header: t("folders.companyBrand", { defaultValue: "Company/Brand" }), truncate: true, render: (row) => row.company_name ?? "–" },
       { id: "document_count", header: t("documents.documents", { defaultValue: "Documents" }), render: (row) => row.document_count ?? row.docs ?? 0 },
       { id: "status", header: t("documents.status", { defaultValue: "Status" }), render: (row) => <span className={`badge bg-${actions.getFolderStatusBadgeVariant(row.state)}`}>{row.state || "unknown"}</span> },
       { id: "updated", header: t("folders.updated", { defaultValue: "Updated" }), render: (row) => formatDate(row.last_modified ?? row.updated_at ?? row.write_date ?? row.create_date ?? row.updated) },
@@ -191,7 +192,7 @@ export function FoldersContent(props: FoldersContentProps) {
         actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
         responsive="auto"
         cardsBelow="lg"
-        actionsStyle="inline"
+        selection={selectionConfig}
       />
     </div>
   );

@@ -1,10 +1,9 @@
 /**
- * Multiple file uploads: bulk upload sub-documents (start job, upload files, progress).
+ * Multiple file uploads: bulk upload sub-documents via single-call endpoint.
  * PRODUCTION RULE: No delete folder, no permanent delete, no batch delete from /documents.
  */
 
 const FOLDER_ID = 100;
-const JOB_ID = 'e2e-job-1';
 
 const adminDepartments = { result: { success: true, data: [{ id: 1, name: 'Finance', code: 'FIN' }] } };
 const adminDocumentTypes = { result: { success: true, data: [{ id: 1, name: 'Invoice', code: 'INV' }] } };
@@ -27,24 +26,28 @@ describe('Multiple file uploads (bulk)', () => {
     });
   });
 
-  it('multiple file uploads: selects sub-doc, adds multiple files, submits and asserts bulk start + upload', () => {
+  it('multiple file uploads: selects sub-doc, adds multiple files, submits via per-file upload/single (NBS v2)', () => {
     const suffix = (Cypress as unknown as { uniqueE2ESuffix: () => string }).uniqueE2ESuffix();
     const title = `Bulk title ${suffix}`;
-    let startPayload: Record<string, unknown> = {};
-    let uploadPayload: { files?: unknown[] } = {};
-    cy.intercept('POST', '**/api/documents/bulk-upload/start', (req) => {
-      startPayload = (req.body as { params?: Record<string, unknown> })?.params ?? {};
-      req.reply({ statusCode: 200, body: { result: { success: true, data: { job_id: JOB_ID } } } });
-    }).as('bulkStart');
-    cy.intercept('POST', /\/api\/documents\/bulk-upload\/[^/]+\/upload/, (req) => {
-      const body = req.body as { params?: { files?: unknown[] } };
-      if (body?.params?.files) uploadPayload = { files: body.params.files };
-      req.reply({ statusCode: 200, body: { result: { success: true } } });
-    }).as('bulkUpload');
-    cy.intercept('POST', /\/api\/documents\/bulk-upload\/[^/]+\/progress/, {
-      statusCode: 200,
-      body: { result: { success: true, data: { status: 'completed', total: 2, processed: 2, failed: 0 } } },
-    }).as('bulkProgress');
+
+    let uploadIndex = 0;
+    cy.intercept('POST', '**/api/documents/upload/single', (req) => {
+      // Raw binary: Content-Type is the file MIME (e.g. application/pdf)
+      expect(req.headers['content-type']).to.exist;
+      uploadIndex += 1;
+      req.reply({
+        statusCode: 200,
+        body: {
+          success: true,
+          document_id: 100 + uploadIndex,
+          document_name: uploadIndex === 1 ? 'bulk1' : 'bulk2',
+          barcode: `NBS00010${uploadIndex}`,
+          folder_id: FOLDER_ID,
+          folder_name: 'Test Folder',
+          ocr_queued: true,
+        },
+      });
+    }).as('singleUpload');
 
     cy.loginByToken('/documents/upload');
     cy.get('[data-testid="upload-document-open-btn"]').click();
@@ -57,6 +60,7 @@ describe('Multiple file uploads (bulk)', () => {
     cy.get('.react-select__option').contains('Invoice (INV)').click();
     cy.get('[data-testid="folder-select"]').find('.react-select__control').click();
     cy.get('.react-select__option').contains('Test Folder').click();
+    cy.get('[data-testid="upload-multiple-sub-checkbox"]').check({ force: true });
     cy.get('input[name="title"]').clear().type(title);
     cy.get('input[type="file"]').selectFile(
       [
@@ -68,12 +72,8 @@ describe('Multiple file uploads (bulk)', () => {
 
     cy.get('[data-testid="upload-document-submit"]').click();
 
-    cy.wait('@bulkStart').then(() => {
-      expect(startPayload).to.have.property('folder_id', FOLDER_ID);
-      expect(startPayload).to.have.property('department_id', 1);
-    });
-    cy.wait('@bulkUpload').then(() => {
-      expect(uploadPayload.files).to.be.an('array').with.length(2);
-    });
+    cy.wait('@singleUpload');
+    cy.wait('@singleUpload');
+    cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible');
   });
 });

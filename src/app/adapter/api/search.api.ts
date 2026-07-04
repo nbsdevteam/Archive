@@ -26,6 +26,9 @@ export interface SearchResult {
   is_pinned?: boolean;
   color?: number;
   updated_at?: string;
+  // OCR fields (April 2026)
+  ocr_status?: string;
+  ocr_snippet?: string;
 }
 
 export interface SearchResponse {

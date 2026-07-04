@@ -3,9 +3,11 @@ import { FilePreview } from "@/shared/components/FilePreview";
 import { Button, Icon, DataTable } from "@/shared/components/ui";
 import { buildRowActions } from "@/shared/utils/buildRowActions";
 import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { DocumentVersion } from "@/app/adapter/api/documents.api";
 import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";
 
 type AttachmentRow = { id: number; name: string; file_name: string; description?: string | null };
+type VersionRow = DocumentVersion;
 
 /** Renders preview, download, versions, and attachments tabs for document detail. */
 export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
@@ -22,11 +24,55 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
 
   const attachmentColumns: ColumnDef<AttachmentRow>[] = useMemo(
     () => [
-      { id: "name", header: t("documents.name", { defaultValue: "Name" }), render: (row) => row.name },
-      { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), render: (row) => row.file_name },
-      { id: "description", header: t("documents.description", { defaultValue: "Description" }), render: (row) => row.description ?? "–" },
+      { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.name },
+      { id: "file_name", header: t("documents.fileName", { defaultValue: "File name" }), truncate: true, render: (row) => row.file_name },
+      { id: "description", header: t("documents.description", { defaultValue: "Description" }), truncate: true, render: (row) => row.description ?? "–" },
     ],
     [t]
+  );
+
+  const versionColumns: ColumnDef<VersionRow>[] = useMemo(
+    () => [
+      {
+        id: "version",
+        header: t("documents.version", { defaultValue: "Version" }),
+        render: (row) => `v${row.version_number}`,
+      },
+      {
+        id: "file_name",
+        header: t("documents.fileName", { defaultValue: "File name" }),
+        truncate: true,
+        render: (row) => row.file_name,
+      },
+      {
+        id: "uploader",
+        header: t("documents.uploader", { defaultValue: "Uploader" }),
+        truncate: true,
+        render: (row) => row.uploaded_by ?? "–",
+      },
+      {
+        id: "upload_date",
+        header: t("documents.uploadDate", { defaultValue: "Upload date" }),
+        render: (row) => actions.formatDate(row.upload_date),
+      },
+    ],
+    [t, actions.formatDate]
+  );
+
+  const versionRowActions = useMemo(
+    () =>
+      buildRowActions<VersionRow>(t, [
+        {
+          id: "download",
+          labelKey: "documents.download",
+          defaultValue: "Download",
+          icon: "download",
+          variant: "outline",
+          className: "btn-outline-secondary",
+          onClick: (row) => actions.handleDownloadVersion(row.id, row.file_name),
+        },
+      ]),
+    [t, actions.handleDownloadVersion]
   );
 
   const attachmentRowActions = useMemo(
@@ -91,41 +137,16 @@ export function DocumentDetailTabsGroup1(props: DocumentDetailTabContentProps) {
               {t("documents.uploadNewVersion", { defaultValue: "Upload new version" })}
             </Button>
           </div>
-          <div className="table-responsive">
-            <table className="table table-sm">
-              <thead>
-                <tr>
-                  <th>{t("documents.version", { defaultValue: "Version" })}</th>
-                  <th>{t("documents.fileName", { defaultValue: "File name" })}</th>
-                  <th>{t("documents.uploader", { defaultValue: "Uploader" })}</th>
-                  <th>{t("documents.uploadDate", { defaultValue: "Upload date" })}</th>
-                  <th>{t("common.actions", { defaultValue: "Actions" })}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.versions.map((v) => (
-                  <tr key={v.id}>
-                    <td>v{v.version_number}</td>
-                    <td>{v.file_name}</td>
-                    <td>{v.uploaded_by ?? "–"}</td>
-                    <td>{actions.formatDate(v.upload_date)}</td>
-                    <td>
-                      <Button variant="outline" size="sm" className="btn-outline-secondary" data-version-id={String(v.id)} data-file-name={v.file_name} onClick={handleDownloadVersionClick}>
-                        {t("documents.download", { defaultValue: "Download" })}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {data.versions.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center text-muted">
-                      {t("common.noData", { defaultValue: "No data" })}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<VersionRow>
+            data={data.versions}
+            getRowId={(row) => row.id}
+            columns={versionColumns}
+            emptyMessage={t("common.noData", { defaultValue: "No data" })}
+            rowActions={versionRowActions}
+            actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+            tableClassName="table table-sm mb-0"
+            actionsStyle="inline"
+          />
         </>
       )}
 

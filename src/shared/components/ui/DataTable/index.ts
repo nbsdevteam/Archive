@@ -4,5 +4,6 @@ export type {
   RowAction,
   SelectionConfig,
   DataTableProps,
+  DataListProps,
   ButtonVariant,
 } from "./DataTable.types";

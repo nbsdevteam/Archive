@@ -1,5 +1,8 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Button, Spinner, Icon } from "@/shared/components/ui";
+import { Button, Spinner, Icon, DataTable } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
+import type { SignatureRow } from "@/features/documents/types/documentDetailState";
 import { AuditActivityPanel } from "@/shared/components/Activity/AuditActivityPanel";
 import { NotesList } from "@/features/notes/components";
 import type { ActivityViewMode } from "@/features/activity/types/auditLogs.types";
@@ -8,6 +11,29 @@ import type { DocumentDetailTabContentProps } from "./DocumentDetailTabContent";
 /** Renders notes, ocr, signatures, relations, and audit tabs for document detail. */
 export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
   const { t, tabState, data, loading, error, actions, noteDeleteDialog } = props;
+
+  const signatureColumns: ColumnDef<SignatureRow>[] = useMemo(
+    () => [
+      {
+        id: "status",
+        header: t("documents.status", { defaultValue: "Status" }),
+        truncate: true,
+        render: (row) => row.state ?? "–",
+      },
+      {
+        id: "signer",
+        header: t("documents.signer", { defaultValue: "Signer" }),
+        truncate: true,
+        render: (row) => row.signer_name ?? "–",
+      },
+      {
+        id: "request_date",
+        header: t("documents.requestDate", { defaultValue: "Request date" }),
+        render: (row) => actions.formatDate(row.request_date ?? undefined),
+      },
+    ],
+    [t, actions.formatDate]
+  );
 
   const handleOpenRequestSignModal = () => actions.setModalRequestSign(true);
   const handleOpenUploadSignedModal = () => actions.setModalUploadSigned(true);
@@ -85,33 +111,13 @@ export function DocumentDetailTabsGroup2(props: DocumentDetailTabContentProps) {
               </Button>
             )}
           </div>
-          <div className="table-responsive">
-            <table className="table table-sm">
-              <thead>
-                <tr>
-                  <th>{t("documents.status", { defaultValue: "Status" })}</th>
-                  <th>{t("documents.signer", { defaultValue: "Signer" })}</th>
-                  <th>{t("documents.requestDate", { defaultValue: "Request date" })}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.signatureRows.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.state ?? "–"}</td>
-                    <td>{r.signer_name ?? "–"}</td>
-                    <td>{actions.formatDate(r.request_date ?? undefined)}</td>
-                  </tr>
-                ))}
-                {data.signatureRows.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="text-center text-muted">
-                      {t("common.noData", { defaultValue: "No data" })}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<SignatureRow>
+            data={data.signatureRows}
+            getRowId={(row) => row.id}
+            columns={signatureColumns}
+            emptyMessage={t("common.noData", { defaultValue: "No data" })}
+            tableClassName="table table-sm mb-0"
+          />
         </div>
       )}
 

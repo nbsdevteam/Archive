@@ -1,6 +1,9 @@
+import { useCallback, useMemo } from "react";
 import type { AuditLogEntry } from "./types";
 import { formatAuditTimestamp, humanizeAction } from "./utils";
 import { AuditActionBadge } from "./AuditActionBadge";
+import { DataTable } from "@/shared/components/ui";
+import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 import "./activity.css";
 
 export interface AuditLogsTableTranslator {
@@ -28,10 +31,69 @@ export const AuditLogsTable = ({
   onDocumentClick,
 }: AuditLogsTableProps) => {
   /** Navigates to document when document link is clicked; reads document id from data-document-id. */
-  const handleDocumentLinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const id = e.currentTarget.dataset.documentId;
-    if (id != null && onDocumentClick) onDocumentClick(Number(id));
-  };
+  const handleDocumentLinkClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const id = e.currentTarget.dataset.documentId;
+      if (id != null && onDocumentClick) onDocumentClick(Number(id));
+    },
+    [onDocumentClick]
+  );
+
+  const columns: ColumnDef<AuditLogEntry>[] = useMemo(() => {
+    const base: ColumnDef<AuditLogEntry>[] = [
+      {
+        id: "action",
+        header: t("activity.columns.action", { defaultValue: "Action" }),
+        render: (log) => {
+          const actionLabel = t(`activity.actions.${log.action}`, { defaultValue: humanizeAction(String(log.action)) });
+          return <AuditActionBadge action={log.action} label={actionLabel} />;
+        },
+      },
+      {
+        id: "user",
+        header: t("activity.columns.user", { defaultValue: "User" }),
+        truncate: true,
+        render: (log) => log.user_name || "–",
+      },
+      {
+        id: "timestamp",
+        header: t("activity.columns.timestamp", { defaultValue: "Timestamp" }),
+        truncate: true,
+        render: (log) => formatAuditTimestamp(log.timestamp),
+      },
+    ];
+
+    if (showDocument) {
+      base.push({
+        id: "document",
+        header: t("activity.columns.document", { defaultValue: "Document" }),
+        render: (log) =>
+          typeof log.document_id === "number" && onDocumentClick ? (
+            <button
+              type="button"
+              className="btn btn-link p-0 text-decoration-none"
+              data-document-id={String(log.document_id)}
+              onClick={handleDocumentLinkClick}
+            >
+              {log.document_title || `#${log.document_id}`}
+            </button>
+          ) : (
+            <span>{log.document_title || "–"}</span>
+          ),
+      });
+    }
+
+    if (showMetadata) {
+      base.push({
+        id: "metadata",
+        header: t("activity.columns.details", { defaultValue: "Details" }),
+        truncate: true,
+        render: (log) => log.metadata || "–",
+      });
+    }
+
+    return base;
+  }, [t, showDocument, showMetadata, handleDocumentLinkClick]);
 
   if (loading) {
     return <div className="text-muted small">{t("common.loading", { defaultValue: "Loading..." })}</div>;
@@ -42,56 +104,15 @@ export const AuditLogsTable = ({
   }
 
   return (
-    <div className="table-responsive activity-table-wrap">
-      <table className="table table-sm align-middle mb-0">
-        <thead>
-          <tr>
-            <th>{t("activity.columns.action", { defaultValue: "Action" })}</th>
-            <th>{t("activity.columns.user", { defaultValue: "User" })}</th>
-            <th>{t("activity.columns.timestamp", { defaultValue: "Timestamp" })}</th>
-            {showDocument && <th>{t("activity.columns.document", { defaultValue: "Document" })}</th>}
-            {showMetadata && <th>{t("activity.columns.details", { defaultValue: "Details" })}</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => {
-            const actionLabel = t(`activity.actions.${log.action}`, { defaultValue: humanizeAction(String(log.action)) });
-            return (
-              <tr key={log.id}>
-                <td>
-                  <AuditActionBadge action={log.action} label={actionLabel} />
-                </td>
-                <td>{log.user_name || "–"}</td>
-                <td>{formatAuditTimestamp(log.timestamp)}</td>
-                {showDocument && (
-                  <td>
-                    {typeof log.document_id === "number" && onDocumentClick ? (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 text-decoration-none"
-                        data-document-id={String(log.document_id)}
-                        onClick={handleDocumentLinkClick}
-                      >
-                        {log.document_title || `#${log.document_id}`}
-                      </button>
-                    ) : (
-                      <span>{log.document_title || "–"}</span>
-                    )}
-                  </td>
-                )}
-                {showMetadata && <td>{log.metadata || "–"}</td>}
-              </tr>
-            );
-          })}
-          {logs.length === 0 && (
-            <tr>
-              <td colSpan={showDocument && showMetadata ? 5 : showDocument || showMetadata ? 4 : 3} className="text-center text-muted">
-                {t("activity.noData", { defaultValue: "No activity found." })}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="activity-table-wrap">
+      <DataTable<AuditLogEntry>
+        data={logs}
+        getRowId={(log) => log.id}
+        columns={columns}
+        emptyMessage={t("activity.noData", { defaultValue: "No activity found." })}
+        tableClassName="table table-sm align-middle mb-0"
+        responsive="table"
+      />
     </div>
   );
 };

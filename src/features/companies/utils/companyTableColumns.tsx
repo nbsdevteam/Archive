@@ -14,26 +14,31 @@ export function getCompanyTableColumns(options: CompanyTableColumnsOptions): Col
   return [
     {
       id: "name",
+      truncate: true,
       header: t("companies.name", { defaultValue: "Name" }),
       render: (row: Company) => row.name ?? "-",
     },
     {
       id: "phone",
+      truncate: true,
       header: t("companies.phone", { defaultValue: "Phone" }),
       render: (row: Company) => row.phone ?? "-",
     },
     {
       id: "email",
+      truncate: true,
       header: t("companies.email", { defaultValue: "Email" }),
       render: (row: Company) => row.email ?? "-",
     },
     {
       id: "country",
+      truncate: true,
       header: t("companies.country", { defaultValue: "Country" }),
       render: (row: Company) => row.country_name ?? "-",
     },
     {
       id: "city",
+      truncate: true,
       header: t("companies.city", { defaultValue: "City" }),
       render: (row: Company) => row.city ?? "-",
     },

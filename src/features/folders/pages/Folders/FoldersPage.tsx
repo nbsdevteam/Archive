@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { PaginationSection } from "@/shared/components/PaginationSection";
-import { useConfirmDialog } from "@/shared/hooks";
+import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
@@ -18,8 +18,16 @@ const FoldersPage = () => {
   const { t } = useTranslation();
   const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
-  const { data, loading, error, filter, paging, actions, modals } =
+  const { data, loading, error, filter, paging, selection, actions, modals } =
     useFoldersPageContainer();
+
+  const deleteFolderDialog = useConfirmDialog<number>({
+    onConfirm: actions.confirmDeleteFolder,
+  });
+
+  const batchDeleteDialog = useConfirmDialogEmpty({
+    onConfirm: actions.confirmBatchDeleteFolders,
+  });
 
   useEffect(() => {
     if (!isDesktopView) return;
@@ -32,6 +40,7 @@ const FoldersPage = () => {
     registerHandler(SHORTCUT_KEYS.OPEN_FILTER, () => filter.handleOpenFilter());
     return () => registerHandler(SHORTCUT_KEYS.OPEN_FILTER, undefined);
   }, [isDesktopView, registerHandler, filter.handleOpenFilter]);
+
   const {
     routes,
     viewMode,
@@ -40,9 +49,6 @@ const FoldersPage = () => {
     foldersCountLabel,
     formatDate,
   } = data;
-  const deleteFolderDialog = useConfirmDialog<number>({
-    onConfirm: actions.confirmDeleteFolder,
-  });
 
   return (
     <PageLayout
@@ -57,6 +63,9 @@ const FoldersPage = () => {
           foldersCountLabel={foldersCountLabel}
           viewMode={viewMode}
           setViewMode={setViewMode}
+          isSomeSelected={selection.isSomeSelected}
+          selectedFolderIds={selection.selectedFolderIds}
+          isBatchDeleting={selection.isBatchDeleting}
           filter={{
             isFilterOpen: filter.isFilterOpen,
             handleOpenFilter: filter.handleOpenFilter,
@@ -82,6 +91,8 @@ const FoldersPage = () => {
           actions={{
             handleSearchDebounced: actions.handleSearchDebounced,
             handleRefresh: actions.handleRefresh,
+            handleOpenBatchDelete: batchDeleteDialog.open,
+            handleOpenCreateFolder: actions.handleOpenCreateFolder,
           }}
           loading={loading}
         />
@@ -93,6 +104,7 @@ const FoldersPage = () => {
           loading={loading}
           error={error}
           formatDate={formatDate}
+          selectionConfig={viewMode === "list" ? selection.selectionConfig : undefined}
           actions={{
             handleRefresh: actions.handleRefresh,
             handleNavigateToFolder: actions.handleNavigateToFolder,
@@ -123,10 +135,15 @@ const FoldersPage = () => {
       <FoldersModals
         t={t}
         deleteFolderDialog={deleteFolderDialog}
+        batchDeleteDialog={batchDeleteDialog}
+        selectedFolderIds={selection.selectedFolderIds}
         isEditOpen={modals.editingFolder != null}
         editingFolder={modals.editingFolder}
         onCloseEdit={actions.handleCloseEditFolder}
         onEditSuccess={actions.handleEditFolderSuccess}
+        isCreateOpen={modals.isCreateFolderOpen}
+        onCloseCreate={actions.handleCloseCreateFolder}
+        onCreateSuccess={actions.handleCreateFolderSuccess}
       />
     </PageLayout>
   );

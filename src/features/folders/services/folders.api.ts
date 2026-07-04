@@ -10,6 +10,7 @@ export {
   createFolder,
   updateFolder,
   deleteFolder,
+  batchDeleteFolders,
 } from "@/app/adapter/api/folders.api";
 
 export type {
@@ -18,4 +19,7 @@ export type {
   UpdateFolderParams,
   UpdateFolderResponse,
   DeleteFolderApiResponse,
+  BatchDeleteFoldersParams,
+  BatchDeleteFoldersSkippedFolder,
+  BatchDeleteFoldersResponse,
 } from "@/app/adapter/api/folders.api";

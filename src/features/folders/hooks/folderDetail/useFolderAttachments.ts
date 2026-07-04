@@ -21,8 +21,8 @@ export function useFolderAttachments(
   }, [refreshAttachments]);
 
   const handleAttachmentsDocIdChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setAttachmentsDocId(e.target.value ? Number(e.target.value) : "");
+    (docId: number) => {
+      setAttachmentsDocId(docId);
     },
     [setAttachmentsDocId]
   );

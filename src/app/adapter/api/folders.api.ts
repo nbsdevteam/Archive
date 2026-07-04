@@ -248,3 +248,57 @@ export const deleteFolder = async (folderId: number): Promise<{ ok: true }> => {
 
   return { ok: true };
 };
+
+export interface BatchDeleteFoldersParams {
+  folder_ids: number[];
+  force?: boolean;
+}
+
+export interface BatchDeleteFoldersSkippedFolder {
+  id: number;
+  name: string;
+  reason: string;
+}
+
+export interface BatchDeleteFoldersResponse {
+  success: boolean;
+  deleted: number[];
+  deleted_count: number;
+  skipped: BatchDeleteFoldersSkippedFolder[];
+  errors: Array<{ id: number; error: string }>;
+}
+
+/**
+ * Batch delete folders (NBS 2026 - updated).
+ * POST /api/folders/batch-delete (JSON-RPC)
+ * 
+ * @param folderIds - Array of folder IDs to delete
+ * @param force - If true, deletes folders even if they contain documents (default: false)
+ * @returns Response with deleted/skipped/errors arrays
+ * 
+ * @example
+ * // Soft delete (skip folders with documents)
+ * const result = await batchDeleteFolders([192, 191, 190], false);
+ * console.log(`Deleted: ${result.deleted_count}, Skipped: ${result.skipped.length}`);
+ * 
+ * // Force delete (including folders with documents)
+ * const result = await batchDeleteFolders([192, 191, 190], true);
+ */
+export const batchDeleteFolders = async (
+  folderIds: number[],
+  force = false
+): Promise<BatchDeleteFoldersResponse> => {
+  const response = await jsonRpcRequest<BatchDeleteFoldersResponse>(
+    "/api/folders/batch-delete",
+    {
+      folder_ids: folderIds,
+      force,
+    }
+  );
+  
+  if (!response.success) {
+    throw new Error("Batch delete folders failed");
+  }
+  
+  return response;
+};

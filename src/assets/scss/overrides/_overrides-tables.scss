@@ -109,15 +109,43 @@
   z-index: 999999 !important;
 }
 
+/* Portaled kebab menu (DataTable / DataList): stacks above page cards and theme chrome */
+.datatable-row-actions-portal-menu.dropdown-menu {
+  z-index: 20000 !important;
+}
+
 /* Allow row-action menus to escape table clipping: parent card-body uses .h-min-50vh (min-height: 50vh);
    child wrappers use min-height: inherit so the dropdown can overflow visibly. */
 .datatable-wrapper {
   min-height: inherit;
 }
 .datatable-responsive-wrap {
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: visible;
   min-height: inherit;
+}
+
+/* DataTable: truncate long cell text (table-layout:fixed set on <table> in DataTable.tsx) */
+.datatable-td-truncate {
+  overflow: hidden;
+  max-width: 0;
+}
+
+.datatable-cell-truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* InfoWrapper spans fill the cell width so ellipsis measures correctly */
+.datatable-cell-truncate-wrap,
+.datatable-cell-truncate-wrap > span,
+.datatable-cell-truncate-wrap > span > span {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden;
 }
 
 /* DataTable card view (mobile/tablet): stacked card rows with label/value pairs. */
