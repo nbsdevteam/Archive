@@ -77,11 +77,10 @@ function TimelineItemRow({
     >
       {/* Left side: timestamp — takes ~45% so the connector sits near the center */}
       <div
-        className="activity-timeline-opposite"
+        className="activity-timeline-opposite activity-timeline-time"
         style={{
           flex: "0 0 45%",
           fontSize: 12,
-          color: "#666",
           textAlign: "right",
           paddingRight: 12,
           paddingTop: 4,
@@ -104,11 +103,11 @@ function TimelineItemRow({
       >
         {/* Outlined dot: white background + colored border + colored icon, matching production MUI TimelineDot variant="outlined" */}
         <div
+          className="activity-timeline-dot"
           style={{
             width: 28,
             height: 28,
             borderRadius: "50%",
-            background: "#fff",
             border: `2px solid ${ACTION_COLOR_HEX[visual.color] ?? "#1976d2"}`,
             color: ACTION_COLOR_HEX[visual.color] ?? "#1976d2",
             display: "flex",
@@ -121,10 +120,10 @@ function TimelineItemRow({
         </div>
         {!isLast && (
           <div
+            className="activity-timeline-line"
             style={{
               width: 2,
               flex: 1,
-              background: "#e0e0e0",
               minHeight: 24,
               marginBlock: 8,
             }}
@@ -134,12 +133,10 @@ function TimelineItemRow({
       {/* Right side: content — takes remaining ~55% */}
       <div style={{ flex: 1, padding: "0 0 16px 12px", minWidth: 0 }}>
         <div
-          className="activity-timeline-label-grid"
+          className="activity-timeline-label-grid activity-timeline-card"
           style={{
             padding: 12,
-            border: "1px solid #e0e0e0",
             borderRadius: 8,
-            backgroundColor: "#fafafa",
           }}
         >
           <div className="activity-timeline-label-row small text-secondary">
