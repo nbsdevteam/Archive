@@ -186,6 +186,7 @@ const AuditLogsTreeViewComponent = ({
         edges={flowData.edges}
         nodeTypes={nodeTypes}
         fitView
+        onlyRenderVisibleElements
         fitViewOptions={{ padding: 0.2 }}
         nodesDraggable={false}
         nodesConnectable={false}

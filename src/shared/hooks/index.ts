@@ -11,9 +11,6 @@ export {
   useConfirmDialog,
   useConfirmDialogEmpty,
 } from "./useConfirmDialog";
-export { usePaginationFromUrl } from "./usePaginationFromUrl";
-export { useClientPagination } from "./useClientPagination";
-export type { PaginationMeta } from "./useClientPagination";
 export { useDocumentCount } from "./useDocumentCount";
 export type { UseDocumentCountParams, UseDocumentCountOptions } from "./useDocumentCount";
 export { useTrashDocumentCount } from "./useTrashDocumentCount";

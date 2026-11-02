@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { all_routes } from "@/router/all_routes";
@@ -6,49 +7,37 @@ import { getIsManager } from "@/shared/constants/access";
 import { useAuth } from "@/shared/auth";
 import { handleApiError } from "@/app/adapter/api/client";
 import { useSelection, useConfirmDialogEmpty } from "@/shared/hooks";
+import { queryKeys } from "@/shared/lib/queryKeys";
+import { invalidateCompanies } from "@/shared/lib/queryInvalidation";
 import { listCompanies, deleteCompany, batchDeleteCompanies, deleteAllCompanies } from "../services/companies.api";
 import type { Company } from "@/shared/types/company";
 
 const DEFAULT_LIMIT = 100;
+const EMPTY_COMPANIES: Company[] = [];
 
 export function useCompaniesPageContainer() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [count, setCount] = useState<number | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editCompanyId, setEditCompanyId] = useState<number | null>(null);
   const [detailsCompanyId, setDetailsCompanyId] = useState<number | null>(null);
   const [pendingForceIds, setPendingForceIds] = useState<number[]>([]);
 
+  const listParams = { search: search.trim() || undefined, limit: DEFAULT_LIMIT };
+  const companiesQuery = useQuery({
+    queryKey: queryKeys.companies.list(listParams),
+    queryFn: () => listCompanies(listParams),
+  });
+  const companies = companiesQuery.data?.data ?? EMPTY_COMPANIES;
+  const count = companiesQuery.data?.count;
+  const loading = companiesQuery.isLoading;
+  const error = companiesQuery.isError ? handleApiError(companiesQuery.error) : null;
+
   const { selectedIds, selectionConfig, clear: clearSelection } = useSelection(companies, (c) => c.id);
 
-  const fetchList = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, count: c } = await listCompanies({
-        search: search.trim() || undefined,
-        limit: DEFAULT_LIMIT,
-      });
-      setCompanies(data);
-      setCount(c);
-    } catch (e) {
-      console.error("Failed to fetch companies:", e);
-      setError(handleApiError(e));
-      setCompanies([]);
-      setCount(undefined);
-    } finally {
-      setLoading(false);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    fetchList();
-  }, [fetchList]);
+  /** Reloads this list and marks the company dropdown lookups stale (called after every change). */
+  const fetchList = useCallback(() => invalidateCompanies(), []);
 
   const handleRefresh = useCallback(() => {
     fetchList();

@@ -13,20 +13,12 @@ import { useFoldersPageContainer } from "./useFoldersPageContainer";
 import type { Folder } from "../types/folders.types";
 
 const mockDeleteFolder = vi.fn();
-const mockFetchFolders = vi.fn();
+const mockListFolders = vi.fn();
 
 vi.mock("../services/folders.api", () => ({
   deleteFolder: (...args: unknown[]) => mockDeleteFolder(...args),
-}));
-
-vi.mock("../hooks/useFolders", () => ({
-  useFolders: () => ({
-    folders: [] as Folder[],
-    loading: false,
-    error: null,
-    pagination: { total: 0, page: 1, per_page: 20, total_pages: 0 },
-    fetchFolders: mockFetchFolders,
-  }),
+  batchDeleteFolders: vi.fn(),
+  listFolders: (...args: unknown[]) => mockListFolders(...args),
 }));
 
 /** Real departments store is used so resetStores() works; mock admin API so fetchDepartments succeeds. */
@@ -57,7 +49,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Folder list item shape (Folder type) for useFolders return. */
+/** Folder list item shape (Folder type). */
 function makeFolder(overrides: Partial<Folder> = {}): Folder {
   const detail = makeFolderDetail(overrides);
   return { ...detail, ...overrides };
@@ -67,7 +59,10 @@ describe("useFoldersPageContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetStores();
-    mockFetchFolders.mockResolvedValue(undefined);
+    mockListFolders.mockResolvedValue({
+      folders: [] as Folder[],
+      pagination: { total: 0, page: 1, per_page: 20, total_pages: 0 },
+    });
     mockDeleteFolder.mockResolvedValue({ ok: true });
   });
 
@@ -75,9 +70,10 @@ describe("useFoldersPageContainer", () => {
     resetStores();
   });
 
-  it("exposes data, loading, filter, actions and modals", () => {
+  it("exposes data, loading, filter, actions and modals", async () => {
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
 
+    await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.data.routes).toBeDefined();
     expect(result.current.data.folders).toEqual([]);
     expect(result.current.data.filteredFolders).toEqual([]);
@@ -105,7 +101,7 @@ describe("useFoldersPageContainer", () => {
     expect(result.current.data.filteredFolders).toEqual([]);
   });
 
-  it("filter: open sets isFilterOpen, apply calls fetchFolders with draft filters", async () => {
+  it("filter: open sets isFilterOpen, apply requests folders with draft filters", async () => {
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
 
     act(() => {
@@ -120,31 +116,42 @@ describe("useFoldersPageContainer", () => {
       result.current.filter.handleApplyFilter();
     });
 
-    expect(mockFetchFolders).toHaveBeenCalledWith(
-      expect.objectContaining({ department_id: 10 })
+    await waitFor(() =>
+      expect(mockListFolders).toHaveBeenCalledWith(
+        expect.objectContaining({ department_id: 10, page: 1 })
+      )
     );
     expect(result.current.filter.isFilterOpen).toBe(false);
   });
 
-  it("filter: handleClearFilter clears filters and calls fetchFolders with empty params", () => {
+  it("filter: handleClearFilter clears filters and goes back to the unfiltered list", async () => {
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
 
     act(() => {
       result.current.filter.handleOpenFilter();
+    });
+    act(() => {
       result.current.filter.handlePrimaryFilterChange(20);
+    });
+    act(() => {
       result.current.filter.handleApplyFilter();
     });
-    mockFetchFolders.mockClear();
+    await waitFor(() =>
+      expect(mockListFolders).toHaveBeenCalledWith(expect.objectContaining({ department_id: 20 }))
+    );
 
     act(() => {
       result.current.filter.handleClearFilter();
     });
 
-    expect(mockFetchFolders).toHaveBeenCalledWith({ page: 1 });
+    expect(result.current.filter.draftFilters).toEqual({});
     expect(result.current.filter.isFilterOpen).toBe(false);
+    // The first, unfiltered request came without a department; clearing reuses that cached list.
+    expect(mockListFolders.mock.calls[0][0].department_id).toBeUndefined();
+    expect(result.current.loading).toBe(false);
   });
 
-  it("filter: apply with date range calls fetchFolders with from_date and to_date", () => {
+  it("filter: apply with date range requests folders with from_date and to_date", async () => {
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
 
     act(() => {
@@ -160,12 +167,14 @@ describe("useFoldersPageContainer", () => {
       result.current.filter.handleApplyFilter();
     });
 
-    expect(mockFetchFolders).toHaveBeenCalledWith(
-      expect.objectContaining({
-        from_date: "2026-02-01",
-        to_date: "2026-02-18",
-        page: 1,
-      })
+    await waitFor(() =>
+      expect(mockListFolders).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from_date: "2026-02-01",
+          to_date: "2026-02-18",
+          page: 1,
+        })
+      )
     );
   });
 
@@ -184,21 +193,23 @@ describe("useFoldersPageContainer", () => {
     expect(result.current.modals.editingFolder).toBeNull();
   });
 
-  it("handleEditFolderSuccess calls fetchFolders and closes edit panel", () => {
+  it("handleEditFolderSuccess reloads the list and closes edit panel", async () => {
     const folder = makeFolder({ id: 2 });
     const { result } = renderHook(() => useFoldersPageContainer(), { wrapper });
+    await waitFor(() => expect(mockListFolders).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => {
       result.current.actions.handleOpenEditFolder(folder);
     });
     expect(result.current.modals.editingFolder).not.toBeNull();
-    mockFetchFolders.mockClear();
+    mockListFolders.mockClear();
 
     act(() => {
       result.current.actions.handleEditFolderSuccess();
     });
 
-    expect(mockFetchFolders).toHaveBeenCalled();
+    await waitFor(() => expect(mockListFolders).toHaveBeenCalled());
     expect(result.current.modals.editingFolder).toBeNull();
   });
 

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { invalidateDocumentData } from "@/shared/lib/queryInvalidation";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { documentsApi } from "@/app/adapter/api/documents.api";
@@ -127,6 +128,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         toast.success(successMsg);
         announce(successMsg);
       }
+      void invalidateDocumentData();
       onSuccess?.();
       onClose();
     },
@@ -191,7 +193,8 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
         const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
         toast.success(successMsg);
         announce(successMsg);
-        onSuccess?.();
+        void invalidateDocumentData();
+      onSuccess?.();
         onClose();
         return;
       }
@@ -287,6 +290,7 @@ export function useUploadSubmit({ onSuccess, onClose, t, setSubmitError }: UseUp
       const successMsg = t("documents.uploadSuccess") ?? "Document uploaded successfully.";
       toast.success(successMsg);
       announce(successMsg);
+      void invalidateDocumentData();
       onSuccess?.();
       onClose();
     },

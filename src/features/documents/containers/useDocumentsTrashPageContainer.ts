@@ -1,15 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { all_routes } from "@/router/all_routes";
-import { documentsApi, type Document, type TrashDocumentsResponse } from "@/app/adapter/api/documents.api";
-import { handleApiError } from "@/app/adapter/api/client";
+import { documentsApi, type Document } from "@/app/adapter/api/documents.api";
 import { useAuth } from "@/shared/auth";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
-import { useSelection, usePaginationFromUrl, useClientPagination, useDraftAppliedFilters } from "@/shared/hooks";
+import { useSelection, useDraftAppliedFilters } from "@/shared/hooks";
+import { useInfiniteList } from "@/shared/hooks/useInfiniteList";
+import { queryKeys } from "@/shared/lib/queryKeys";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import type { DateRangeMode } from "@/shared/components/ui";
 
 type TrashDoc = Document & { deleted_at?: string; restore_deadline?: string };
+
+const TRASH_PAGE_SIZE = 20;
+const getTrashDocId = (d: TrashDoc) => d.id;
 
 export interface TrashFilterState {
   from_date?: string;
@@ -42,16 +46,11 @@ function deriveDateMode(f: TrashFilterState): DateRangeMode {
  * Returns grouped state (data, loading, selection, actions, modals, filter) for DocumentsTrashPage.
  */
 export const useDocumentsTrashPageContainer = () => {
-  const [documents, setDocuments] = useState<TrashDoc[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<TrashDocumentsResponse["pagination"] | undefined>(undefined);
   const [restoreLoadingId, setRestoreLoadingId] = useState<number | null>(null);
 
   const { t } = useTranslation();
   const routes = all_routes;
   const { user } = useAuth();
-  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
   const { isRestoring, isPermanentDeleting, restoreDocument, permanentDeleteSingle, permanentDeleteBatch } =
     useDocumentOperations();
   const isAdmin = user?.role === "admin" || (user as { is_admin?: boolean })?.is_admin === true;
@@ -69,15 +68,28 @@ export const useDocumentsTrashPageContainer = () => {
     handleClearFilter: baseHandleClearFilter,
   } = filterState;
 
-  /** Client-side pagination: slices documents when backend doesn't paginate. */
-  const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
-    useClientPagination(documents, page, perPage, pagination);
+  const listParams = useMemo(
+    () => ({
+      ...(appliedFilters.from_date != null && appliedFilters.from_date !== "" ? { from_date: appliedFilters.from_date } : {}),
+      ...(appliedFilters.to_date != null && appliedFilters.to_date !== "" ? { to_date: appliedFilters.to_date } : {}),
+    }),
+    [appliedFilters.from_date, appliedFilters.to_date],
+  );
+
+  const { items: documents, loading, error, refetch: fetchTrash, paging } = useInfiniteList({
+    queryKey: queryKeys.documents.trash({ ...listParams, per_page: TRASH_PAGE_SIZE }),
+    perPage: TRASH_PAGE_SIZE,
+    fetchPage: (page, per_page) => documentsApi.listTrashDocuments({ ...listParams, page, per_page }),
+    getItems: (response) => response?.data as TrashDoc[] | undefined,
+    getMeta: (response) => response?.pagination,
+    getItemId: getTrashDocId,
+  });
 
   const {
     selectedIds: selectedDocumentIdsRaw,
     selectionConfig: baseSelectionConfig,
     clear: clearSelection,
-  } = useSelection<TrashDoc>(paginatedDocuments, (d) => d.id);
+  } = useSelection<TrashDoc>(documents, getTrashDocId);
   /** Selected row ids as numbers for batch APIs and batch-action visibility. */
   const selectedDocumentIds = useMemo(
     () => selectedDocumentIdsRaw.map((id) => Number(id)),
@@ -86,9 +98,9 @@ export const useDocumentsTrashPageContainer = () => {
   const isSomeSelected = selectedDocumentIds.length > 0;
   /** Batch action visibility: shared service + canBatchRestore when any selected (trash page always shows restore). */
   const batchActions = useMemo(() => {
-    const base = getAllowedBatchActionsForDocumentsSelection(paginatedDocuments, selectedDocumentIds);
+    const base = getAllowedBatchActionsForDocumentsSelection(documents, selectedDocumentIds);
     return { ...base, canBatchRestore: isSomeSelected };
-  }, [paginatedDocuments, selectedDocumentIds, isSomeSelected]);
+  }, [documents, selectedDocumentIds, isSomeSelected]);
   /** Selection config with localized row aria-label for trash table. */
   const selectionConfig = useMemo(
     () => ({
@@ -102,51 +114,13 @@ export const useDocumentsTrashPageContainer = () => {
     [baseSelectionConfig, t]
   );
 
-  const fetchTrash = useCallback(
-    async (override?: TrashFilterState) => {
-      setLoading(true);
-      setError(null);
-      const f = override ?? appliedFilters;
-      const params: { page: number; per_page: number; from_date?: string; to_date?: string } = {
-        page,
-        per_page: perPage,
-      };
-      if (f.from_date != null && f.from_date !== "") params.from_date = f.from_date;
-      if (f.to_date != null && f.to_date !== "") params.to_date = f.to_date;
-      try {
-        const response = await documentsApi.listTrashDocuments(params);
-        setDocuments((response?.data ?? []) as TrashDoc[]);
-        setPagination(response?.pagination as TrashDocumentsResponse["pagination"]);
-      } catch (e: unknown) {
-        setError(handleApiError(e));
-        setDocuments([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, perPage, appliedFilters.from_date, appliedFilters.to_date]
-  );
-
-  useEffect(() => {
-    fetchTrash();
-  }, [fetchTrash]);
-
   const handleOpenFilter = useCallback(() => {
     baseHandleOpenFilter();
     setDraftFilters({ ...appliedFilters, date_mode: deriveDateMode(appliedFilters) });
   }, [baseHandleOpenFilter, setDraftFilters, appliedFilters]);
 
-  const handleApplyFilter = useCallback(() => {
-    resetPage();
-    baseHandleApplyFilter();
-    fetchTrash(draftFilters);
-  }, [resetPage, baseHandleApplyFilter, draftFilters, fetchTrash]);
-
-  const handleClearFilter = useCallback(() => {
-    resetPage();
-    baseHandleClearFilter();
-    fetchTrash({});
-  }, [resetPage, baseHandleClearFilter, fetchTrash]);
+  const handleApplyFilter = baseHandleApplyFilter;
+  const handleClearFilter = baseHandleClearFilter;
 
   const handleDateRangeModeChange = useCallback(
     (mode: DateRangeMode) => {
@@ -170,18 +144,16 @@ export const useDocumentsTrashPageContainer = () => {
     const hadDate = !!(appliedFilters.from_date || appliedFilters.to_date);
     if (!hadDate) return;
     baseHandleClearFilter();
-    fetchTrash({});
-  }, [appliedFilters.from_date, appliedFilters.to_date, baseHandleClearFilter, fetchTrash]);
+  }, [appliedFilters.from_date, appliedFilters.to_date, baseHandleClearFilter]);
 
   const handleRestore = useCallback(async (documentId: number) => {
     setRestoreLoadingId(documentId);
     await restoreDocument(documentId, {
       successMessage: t("documents.restored", { defaultValue: "Document restored." }),
       errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
-      onSuccess: fetchTrash,
     });
     setRestoreLoadingId(null);
-  }, [fetchTrash, restoreDocument, t]);
+  }, [restoreDocument, t]);
 
   /** Single permanent delete: call from useConfirmDialog onConfirm. */
   const confirmPermanentDelete = useCallback(
@@ -189,10 +161,9 @@ export const useDocumentsTrashPageContainer = () => {
       await permanentDeleteSingle(documentId, {
         successMessage: t("documents.permanentlyDeleted", { defaultValue: "Document permanently deleted." }),
         errorMessage: t("documents.permanentDeleteFailed", { defaultValue: "Failed to delete permanently." }),
-        onSuccess: fetchTrash,
       });
     },
-    [fetchTrash, permanentDeleteSingle, t]
+    [permanentDeleteSingle, t]
   );
 
   const confirmBatchRestore = useCallback(async () => {
@@ -205,10 +176,9 @@ export const useDocumentsTrashPageContainer = () => {
       errorMessage: t("documents.batchRestoreFailed", {
         defaultValue: "Failed to restore selected documents.",
       }),
-      onSuccess: fetchTrash,
     });
     if (didRestore) clearSelection();
-  }, [clearSelection, fetchTrash, restoreDocument, selectedDocumentIds, t]);
+  }, [clearSelection, restoreDocument, selectedDocumentIds, t]);
 
   const confirmBatchPermanentDelete = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
@@ -220,31 +190,15 @@ export const useDocumentsTrashPageContainer = () => {
       errorMessage: t("documents.batchPermanentDeleteFailed", {
         defaultValue: "Failed to permanently delete selected documents.",
       }),
-      onSuccess: fetchTrash,
     });
     if (didDelete) clearSelection();
-  }, [clearSelection, fetchTrash, permanentDeleteBatch, selectedDocumentIds, t]);
-
-  const handlePageChange = useCallback(
-    (p: number) => {
-      setPage(p);
-    },
-    [setPage]
-  );
-
-  const handlePerPageChange = useCallback(
-    (pp: number) => {
-      setPerPage(pp);
-    },
-    [setPerPage]
-  );
+  }, [clearSelection, permanentDeleteBatch, selectedDocumentIds, t]);
 
   /** Grouped return shape: data, loading, error, selection, actions, modals, filter (KISS/DRY). */
   return {
     data: {
       routes,
-      documents: paginatedDocuments,
-      pagination: resolvedPagination,
+      documents,
       isAdmin,
     },
     loading,
@@ -261,9 +215,8 @@ export const useDocumentsTrashPageContainer = () => {
       confirmPermanentDelete,
       confirmBatchRestore,
       confirmBatchPermanentDelete,
-      handlePageChange,
-      handlePerPageChange,
     },
+    paging,
     modals: {
       restoreLoadingId: isRestoring ? restoreLoadingId : null,
       isRestoring,

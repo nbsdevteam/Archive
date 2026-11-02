@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { signaturesApi, SignatureRequest } from '../../../app/adapter/api/signatures.api';
 import { handleApiError } from '../../../app/adapter/api/client';
+import { queryClient } from '../../../shared/lib/queryClient';
+import { queryKeys } from '../../../shared/lib/queryKeys';
+
+const invalidateSignatures = () => queryClient.invalidateQueries({ queryKey: queryKeys.signatures.all });
 
 interface SignatureState {
   requests: SignatureRequest[];
@@ -29,7 +33,11 @@ export const useSignatureStore = create<SignatureState>((set) => ({
   fetchRequests: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const resp = await signaturesApi.list({ ...(params || {}), page: 1, per_page: 50 });
+      const listParams = { ...(params || {}), page: 1, per_page: 50 };
+      const resp = await queryClient.fetchQuery({
+        queryKey: queryKeys.signatures.list(listParams),
+        queryFn: () => signaturesApi.list(listParams),
+      });
       set({ requests: resp.data || [], isLoading: false });
     } catch (e) {
       set({ error: handleApiError(e), requests: [], isLoading: false });
@@ -40,6 +48,7 @@ export const useSignatureStore = create<SignatureState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const resp = await signaturesApi.create(params);
+      void invalidateSignatures();
       set({ isLoading: false });
       return resp.data?.id;
     } catch (e) {
@@ -52,6 +61,7 @@ export const useSignatureStore = create<SignatureState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const resp = await signaturesApi.approve(request_id);
+      void invalidateSignatures();
       set({ isLoading: false });
       return resp.data;
     } catch (e) {
@@ -64,6 +74,7 @@ export const useSignatureStore = create<SignatureState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await signaturesApi.reject(request_id, rejection_reason);
+      void invalidateSignatures();
       set({ isLoading: false });
     } catch (e) {
       set({ error: handleApiError(e), isLoading: false });
@@ -75,6 +86,7 @@ export const useSignatureStore = create<SignatureState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const resp = await signaturesApi.uploadSigned(request_id, params);
+      void invalidateSignatures();
       set({ isLoading: false });
       return resp.data;
     } catch (e) {

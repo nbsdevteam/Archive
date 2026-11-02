@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { Button, Icon, Input } from '../../../shared/components/ui';
 import { fileToBase64 } from '../../../shared/utils/files/fileToBase64';
 import { NOTE_COLOR_NAMES, type NoteListItem, type NoteColorCode } from '../types/notes.types';
-import { listFolders } from '../../folders/services/folders.api';
+import { fetchFoldersCached } from '../../../shared/lib/cachedReads';
 import type { Folder } from '../../folders/types/folders.types';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -108,7 +108,7 @@ export const NoteEditor = ({
     let cancelled = false;
     setLoadingFolders(true);
 
-    listFolders()
+    fetchFoldersCached()
       .then((res) => {
         if (!cancelled) setFolders(res.folders ?? []);
       })

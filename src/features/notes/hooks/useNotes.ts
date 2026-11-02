@@ -3,7 +3,8 @@
  * Supports three contexts: document notes, folder notes, or standalone notes
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { handleApiError } from "../../../app/adapter/api/client";
@@ -21,6 +22,9 @@ import type {
   CreateNotePayload,
   UpdateNotePayload,
 } from "../types/notes.types";
+import { useInfiniteList } from "../../../shared/hooks/useInfiniteList";
+import { queryKeys } from "../../../shared/lib/queryKeys";
+import { invalidateNotes } from "../../../shared/lib/queryInvalidation";
 
 /** Hook options for context-specific notes */
 export interface UseNotesOptions {
@@ -34,12 +38,28 @@ export interface UseNotesOptions {
   autoLoad?: boolean;
   /** Items per page (default 50) */
   perPage?: number;
-  /** Initial page to load (e.g. from URL); when provided, effect uses this instead of 1 */
-  initialPage?: number;
 }
 
+const EMPTY_NOTES: NoteListItem[] = [];
+
 /**
- * Hook for managing notes list with pagination and CRUD operations
+ * Standalone Notes page list: every note, loaded as the user scrolls.
+ */
+export const useInfiniteNotes = (options: { includePrivate?: boolean; perPage?: number } = {}) => {
+  const { includePrivate = true, perPage = 50 } = options;
+  const { items, loading, error, refetch, paging } = useInfiniteList({
+    queryKey: queryKeys.notes.infinite({ include_private: includePrivate, per_page: perPage }),
+    perPage,
+    fetchPage: (page, per_page) => listNotes({ page, per_page, include_private: includePrivate }),
+    getItems: (response) => (response.success ? response.data : EMPTY_NOTES),
+    getMeta: (response) => response.pagination,
+    getItemId: (note: NoteListItem) => note.id,
+  });
+  return { notes: items, loading, error, refresh: refetch, paging };
+};
+
+/**
+ * Hook for one page of notes in a document/folder context, cached per context.
  */
 export const useNotes = (options: UseNotesOptions = {}) => {
   const {
@@ -48,92 +68,47 @@ export const useNotes = (options: UseNotesOptions = {}) => {
     includePrivate = true,
     autoLoad = true,
     perPage = 50,
-    initialPage,
   } = options;
 
-  const [notes, setNotes] = useState<NoteListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
-    total: 0,
-    page: 1,
+  const [page, setPage] = useState(1);
+  const [loadRequested, setLoadRequested] = useState(false);
+
+  const params: ListNotesParams = {
+    page,
     per_page: perPage,
-    total_pages: 0,
+    include_private: includePrivate,
+    ...(documentId ? { document_id: documentId } : {}),
+    ...(folderId ? { folder_id: folderId } : {}),
+  };
+
+  const query = useQuery({
+    queryKey: queryKeys.notes.list(params),
+    queryFn: () => listNotes(params),
+    enabled: autoLoad || loadRequested,
   });
 
-  /**
-   * Load notes list with current filters and pagination
-   */
-  const loadNotes = useCallback(
-    async (page = 1) => {
-      setLoading(true);
-      setError(null);
+  const response = query.data;
+  const notes = response?.success && response.data ? response.data : EMPTY_NOTES;
+  const pagination = response?.pagination ?? { total: 0, page, per_page: perPage, total_pages: 0 };
+  const { refetch } = query;
 
-      try {
-        const params: ListNotesParams = {
-          page,
-          per_page: perPage,
-          include_private: includePrivate,
-        };
+  /** Refresh current page */
+  const refresh = useCallback(() => refetch(), [refetch]);
 
-        if (documentId) params.document_id = documentId;
-        if (folderId) params.folder_id = folderId;
-
-        const response = await listNotes(params);
-
-        if (response.success && response.data) {
-          setNotes(response.data);
-          if (response.pagination) {
-            setPagination(response.pagination);
-          }
-        } else {
-          setNotes([]);
-        }
-      } catch (err) {
-        const msg = handleApiError(err);
-        setError(msg);
-        setNotes([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [documentId, folderId, includePrivate, perPage],
-  );
-
-  /**
-   * Refresh current page
-   */
-  const refresh = useCallback(() => {
-    loadNotes(pagination.page);
-  }, [loadNotes, pagination.page]);
-
-  /**
-   * Go to specific page
-   */
-  const goToPage = useCallback(
-    (page: number) => {
-      loadNotes(page);
-    },
-    [loadNotes],
-  );
-
-  /**
-   * Auto-load on mount or when filters / page / perPage change. Uses initialPage when provided (e.g. from URL).
-   */
-  useEffect(() => {
-    if (autoLoad) {
-      loadNotes(initialPage ?? 1);
-    }
-  }, [autoLoad, documentId, folderId, includePrivate, perPage, initialPage]);
+  /** Load a specific page (also starts loading when autoLoad is false). */
+  const loadNotes = useCallback((nextPage = 1) => {
+    setPage(nextPage);
+    setLoadRequested(true);
+  }, []);
 
   return {
     notes,
-    loading,
-    error,
+    loading: query.isLoading,
+    error: query.isError ? handleApiError(query.error) : null,
     pagination,
     loadNotes,
     refresh,
-    goToPage,
+    goToPage: loadNotes,
   };
 };
 
@@ -155,6 +130,7 @@ export const useNoteMutations = () => {
       try {
         const response = await createNote(payload);
         if (response.success) {
+          void invalidateNotes();
           toast.success(
             t("notes.createSuccess", {
               defaultValue: "Note created successfully.",
@@ -188,6 +164,7 @@ export const useNoteMutations = () => {
       try {
         const response = await updateNote(noteId, payload);
         if (response.success) {
+          void invalidateNotes();
           toast.success(
             t("notes.updateSuccess", {
               defaultValue: "Note updated successfully.",
@@ -220,6 +197,7 @@ export const useNoteMutations = () => {
       setIsDeleting(true);
       try {
         await deleteNote(noteId);
+        void invalidateNotes();
         toast.success(
           t("notes.deleteSuccess", {
             defaultValue: "Note deleted successfully.",

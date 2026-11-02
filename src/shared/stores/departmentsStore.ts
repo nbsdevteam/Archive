@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { create } from 'zustand';
-import { adminApi } from '../../app/adapter/api/admin.api';
+import { fetchDepartmentsCached } from '../lib/cachedReads';
 import { handleApiError } from '../../app/adapter/api/client';
 
 export interface Department {
@@ -47,7 +47,7 @@ export const useDepartmentsStore = create<DepartmentsState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await adminApi.getDepartments();
+      const response = await fetchDepartmentsCached();
       
       set({
         departments: response?.data || [],

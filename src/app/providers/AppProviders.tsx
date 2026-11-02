@@ -1,4 +1,6 @@
 import { type ReactNode } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "../../shared/lib/queryClient";
 import { ThemeProvider } from "./ThemeProvider";
 import { PerformanceProvider } from "./PerformanceProvider";
 import ErrorBoundary from "../components/ErrorBoundary/ErrorBoundary";
@@ -21,7 +23,7 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
     >
       <ThemeProvider>
         <ErrorBoundary fallback={<div>Oops! An unexpected error occurred.</div>}>
-          {children}
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
         </ErrorBoundary>
       </ThemeProvider>
     </PerformanceProvider>

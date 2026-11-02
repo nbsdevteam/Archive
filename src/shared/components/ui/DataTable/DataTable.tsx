@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useViewport } from "@/shared/hooks/useViewport";
+import { useWindowVirtualList } from "@/shared/hooks/useWindowVirtualList";
 import type { DataTableProps } from "./DataTable.types";
 import { Icon } from "../Icon";
 import { Spinner } from "../Spinner";
 import { DataList } from "../DataList/DataList";
 import { resolveActionIcon, stopPropagation, TruncatedCell } from "./datatableShared";
 import { RowActionsPortalMenu } from "./RowActionsPortalMenu";
+
+const SPACER_CELL_STYLE: React.CSSProperties = {
+  padding: 0,
+  border: 0,
+  background: "transparent",
+  boxShadow: "none",
+};
 
 export function DataTable<T>({
   data,
@@ -23,21 +32,52 @@ export function DataTable<T>({
   responsive = "auto",
   cardsBelow = "lg",
   actionsStyle = "menu",
+  virtualize = false,
+  estimatedRowHeight = 49,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
+  const { isDesktopView, isMobileView } = useViewport();
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
   const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
   const [actionsMenuAnchor, setActionsMenuAnchor] = useState<HTMLElement | null>(null);
 
-  const showTable = responsive === "table" || responsive === "auto";
-  const showCards = responsive === "cards" || responsive === "auto";
+  const isAutoLayout = responsive === "auto";
+  const isCardsViewport = cardsBelow === "lg" ? !isDesktopView : isMobileView;
+  // Virtualized: mount one layout only. Otherwise both mount and CSS hides one (unchanged behaviour).
+  const showTable = responsive === "table" || (isAutoLayout && !(virtualize && isCardsViewport));
+  const showCards = responsive === "cards" || (isAutoLayout && !(virtualize && !isCardsViewport));
   const tableDisplayClass = showTable && showCards ? (cardsBelow === "lg" ? "d-none d-lg-block" : "d-none d-md-block") : "";
   const cardsDisplayClass = showTable && showCards ? (cardsBelow === "lg" ? "d-block d-lg-none" : "d-block d-md-none") : "";
+
+  const isVirtualTable = virtualize && showTable && !loading && data.length > 0;
+  const getRowIdRef = useRef(getRowId);
+  getRowIdRef.current = getRowId;
+  const getItemKey = useCallback((index: number) => getRowIdRef.current(data[index]), [data]);
+  const virtualList = useWindowVirtualList<HTMLTableSectionElement>({
+    count: data.length,
+    estimateSize: estimatedRowHeight,
+    getItemKey,
+    enabled: isVirtualTable,
+  });
+  const firstVirtualIndex = virtualList.virtualItems[0]?.index ?? 0;
+  const renderedRows = isVirtualTable
+    ? virtualList.virtualItems.map((item) => ({ row: data[item.index], index: item.index }))
+    : data.map((row, index) => ({ row, index }));
 
   useEffect(() => {
     const el = headerCheckboxRef.current;
     if (el && selection) el.indeterminate = selection.isIndeterminate;
   }, [selection?.isIndeterminate]);
+
+  // The menu is anchored to a button inside its row. Once windowing unmounts that row the anchor is
+  // detached, and reopening would position the menu from an empty rect, so close it instead.
+  useEffect(() => {
+    if (!isVirtualTable || !openActionsRowId) return;
+    if (!renderedRows.some(({ row }) => String(getRowId(row)) === openActionsRowId)) {
+      setOpenActionsRowId(null);
+      setActionsMenuAnchor(null);
+    }
+  });
 
   // Keep row-actions menu state valid when table data changes.
   useEffect(() => {
@@ -125,7 +165,24 @@ export function DataTable<T>({
             )}
           </tr>
         </thead>
-        <tbody className={tbodyClassName}>
+        <tbody
+          ref={virtualize ? virtualList.containerRef : undefined}
+          className={tbodyClassName}
+          style={isVirtualTable ? { overflowAnchor: "none" } : undefined}
+        >
+          {isVirtualTable && (
+            <>
+              {/* table-striped colours rows with :nth-of-type, so keep each row's parity as rows above it unmount. */}
+              {firstVirtualIndex % 2 === 0 && (
+                <tr aria-hidden="true">
+                  <td colSpan={colSpan} style={SPACER_CELL_STYLE} />
+                </tr>
+              )}
+              <tr aria-hidden="true">
+                <td colSpan={colSpan} style={{ ...SPACER_CELL_STYLE, height: virtualList.paddingTop }} />
+              </tr>
+            </>
+          )}
           {loading ? (
             <tr>
               <td colSpan={colSpan} className="text-center py-4">
@@ -139,7 +196,7 @@ export function DataTable<T>({
               </td>
             </tr>
           ) : (
-            data.map((row) => {
+            renderedRows.map(({ row, index }) => {
               const rowId = getRowId(row);
               const rowIdStr = String(rowId);
               const isSelected = hasSelection && selection!.selectedIds.includes(rowId);
@@ -149,6 +206,8 @@ export function DataTable<T>({
               return (
                 <tr
                   key={rowIdStr}
+                  ref={isVirtualTable ? virtualList.measureElement : undefined}
+                  data-index={isVirtualTable ? index : undefined}
                   style={rowClickHandler ? { cursor: "pointer" } : undefined}
                   onClick={rowClickHandler}
                   data-row-id={rowIdStr}
@@ -275,6 +334,11 @@ export function DataTable<T>({
               );
             })
           )}
+          {isVirtualTable && (
+            <tr aria-hidden="true">
+              <td colSpan={colSpan} style={{ ...SPACER_CELL_STYLE, height: virtualList.paddingBottom }} />
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
@@ -293,6 +357,7 @@ export function DataTable<T>({
       actionsColumnHeader={actionsColumnHeader}
       rowClassName={rowClassName}
       className={cardsDisplayClass}
+      virtualize={virtualize}
     />
   );
 

@@ -4,44 +4,28 @@
  * Uses getTrashDocuments with minimal page size to get pagination.total (or count).
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getTrashDocuments } from "@/app/adapter/api/documents";
+import { queryKeys } from "../lib/queryKeys";
 
 export const useTrashDocumentCount = () => {
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const hasFetched = useRef(false);
-
-  /**
-   * Fetches trashed document count from API for dashboard summary.
-   * Reads `count` first (top-level field the server always returns), then falls
-   * back to `pagination.total` for any paginated endpoint variant.
-   */
-  const fetchCount = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getTrashDocuments({ page: 1, per_page: 1 });
-      const total =
-        response?.count ??
-        (response?.pagination as { total?: number } | undefined)?.total ??
-        0;
-      setCount(total);
-    } catch {
-      setCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    fetchCount();
-  }, [fetchCount]);
-
+  const query = useQuery({
+    queryKey: queryKeys.documents.trashCount(),
+    queryFn: () => getTrashDocuments({ page: 1, per_page: 1 }),
+  });
+  const { refetch: rawRefetch } = query;
   const refetch = useCallback(() => {
-    fetchCount();
-  }, [fetchCount]);
+    void rawRefetch();
+  }, [rawRefetch]);
+
+  // Reads `count` first (top-level field the server always returns), then falls
+  // back to `pagination.total` for any paginated endpoint variant.
+  const count =
+    query.data?.count ??
+    (query.data?.pagination as { total?: number } | undefined)?.total ??
+    0;
+  const loading = query.isLoading;
 
   return { count, loading, refetch };
 };

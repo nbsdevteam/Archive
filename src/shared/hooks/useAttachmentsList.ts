@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { documentsApi } from "@/app/adapter/api/documents.api";
+import { queryKeys } from "@/shared/lib/queryKeys";
 
 /** Minimal attachment shape for list fetching; API returns full Attachment type. */
 export interface AttachmentListItem {
@@ -10,6 +12,8 @@ export interface AttachmentListItem {
   description?: string | null;
   attachment_type?: string;
 }
+
+const EMPTY_ATTACHMENTS: AttachmentListItem[] = [];
 
 export interface UseAttachmentsListOptions {
   /** When false, no fetch runs (e.g. tab not active). Default true when documentId is set. */
@@ -25,31 +29,22 @@ export function useAttachmentsList(
   options: UseAttachmentsListOptions = {}
 ) {
   const { enabled = true } = options;
-  const [attachments, setAttachments] = useState<AttachmentListItem[]>([]);
-  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  // staleTime 0: revisiting a document shows its attachments at once, then revalidates.
+  const query = useQuery({
+    queryKey: queryKeys.documents.attachments(documentId ?? 0),
+    queryFn: () => documentsApi.listAttachments(documentId as number),
+    enabled: Boolean(documentId) && enabled,
+    staleTime: 0,
+  });
+  const { refetch } = query;
 
   const refreshAttachments = useCallback(async () => {
     if (!documentId) return;
-    setLoadingAttachments(true);
-    try {
-      const r = await documentsApi.listAttachments(documentId);
-      setAttachments((r.data ?? []) as AttachmentListItem[]);
-    } catch {
-      setAttachments([]);
-    } finally {
-      setLoadingAttachments(false);
-    }
-  }, [documentId]);
+    await refetch();
+  }, [documentId, refetch]);
 
-  useEffect(() => {
-    if (!documentId || !enabled) return;
-    setLoadingAttachments(true);
-    documentsApi
-      .listAttachments(documentId)
-      .then((r) => setAttachments((r.data ?? []) as AttachmentListItem[]))
-      .catch(() => setAttachments([]))
-      .finally(() => setLoadingAttachments(false));
-  }, [documentId, enabled]);
+  const attachments = (query.data?.data as AttachmentListItem[] | undefined) ?? EMPTY_ATTACHMENTS;
+  const loadingAttachments = query.isFetching && !query.data;
 
   return {
     attachments,

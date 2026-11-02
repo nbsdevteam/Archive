@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Alert, Button, DataTable, ConfirmModal, Icon, SearchInput, MobileActionsMenu } from "@/shared/components/ui";
 import type { MobileActionsMenuItem } from "@/shared/components/ui";
-import { PaginationSection } from "@/shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "@/shared/components/InfiniteScrollFooter";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { TablePageToolbar } from "@/shared/components/TablePageToolbar";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
@@ -29,8 +29,7 @@ const ArchivedDocumentsPage = () => {
   const { isMobileView } = useViewport();
   const { data, loading, error, filter, selection, actions, modals, paging } =
     useArchivedDocumentsPageContainer();
-  const { documents, routes, pagination } = data;
-  const { handlePageChange, handlePerPageChange } = paging;
+  const { documents, routes } = data;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
   const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
   const dueDocuments = useDocumentExpiryReminderStore((state) => state.dueDocuments);
@@ -110,9 +109,7 @@ const ArchivedDocumentsPage = () => {
       : (documents?.length != null && (
           <>
             <span className="Num">{documents.length}</span>
-            {pagination?.total != null && pagination.total !== documents.length && (
-              <> / {pagination.total}</>
-            )}{" "}
+            {paging.total !== documents.length && <> / {paging.total}</>}{" "}
             {documents.length === 1
               ? t("documents.document", { defaultValue: "document" })
               : t("documents.documents", { defaultValue: "documents" })}
@@ -304,18 +301,9 @@ const ArchivedDocumentsPage = () => {
             selection={selectionConfig}
             actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
             rowClassName={rowClassName}
+            virtualize
           />
-          {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
-            <PaginationSection
-              page={pagination.page ?? 1}
-              perPage={pagination.per_page ?? 20}
-              total={pagination.total}
-              totalPages={pagination.total_pages}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-              disabled={loading}
-            />
-          )}
+          <InfiniteScrollFooter paging={paging} />
         </div>
       </div>
 

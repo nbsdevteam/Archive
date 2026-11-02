@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { invalidateFolderData } from "@/shared/lib/queryInvalidation";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -511,6 +512,7 @@ export const useFolderDetailPageContainer = (): FolderDetailPageState => {
         toast.error(t("folders.deleteFailed"));
         throw new Error("Delete failed");
       }
+      void invalidateFolderData();
       toast.success(t("folders.folderDeleted"));
       navigate(routes.folders);
     } catch (e: unknown) {

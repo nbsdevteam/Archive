@@ -8,17 +8,20 @@
  * of the same adapter functions, so there is no duplication.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { listFolders } from "../../app/adapter/api/folders.api";
 import type {
   Folder,
   FolderListParams,
   FolderListResponse,
 } from "../../app/adapter/api/folders.types";
+import { queryKeys } from "../lib/queryKeys";
 
 export type { Folder, FolderListParams, FolderListResponse };
 
 const EMPTY_PARAMS: FolderListParams = {};
+const EMPTY_FOLDERS: Folder[] = [];
 
 interface UseFoldersOptions {
   useApi?: boolean;
@@ -29,94 +32,20 @@ interface UseFoldersOptions {
 export const useFolders = (options: UseFoldersOptions = {}) => {
   const { useApi = true, initialParams = EMPTY_PARAMS } = options;
 
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] =
-    useState<FolderListResponse["pagination"]>(undefined);
+  const query = useQuery({
+    queryKey: queryKeys.folders.list(initialParams),
+    queryFn: () => listFolders(initialParams),
+    enabled: useApi,
+  });
+  const { refetch } = query;
+  const fetchFolders = useCallback(() => refetch(), [refetch]);
 
-  // Destructure to primitives so fetchFolders reference stays stable between renders.
-  const stateParam = initialParams.state;
-  const departmentIdParam = initialParams.department_id;
-  const folderTypeParam = initialParams.folder_type;
-  const companyIdParam = initialParams.company_id;
-  const pageParam = initialParams.page;
-  const perPageParam = initialParams.per_page;
-  const fromDateParam = initialParams.from_date;
-  const toDateParam = initialParams.to_date;
-
-  const fetchFolders = useCallback(
-    async (params: FolderListParams = {}) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const mergedParams: FolderListParams = {
-          ...(stateParam !== undefined && { state: stateParam }),
-          ...(departmentIdParam !== undefined && {
-            department_id: departmentIdParam,
-          }),
-          ...(folderTypeParam !== undefined && {
-            folder_type: folderTypeParam,
-          }),
-          ...(companyIdParam !== undefined && { company_id: companyIdParam }),
-          ...(pageParam !== undefined && { page: pageParam }),
-          ...(perPageParam !== undefined && { per_page: perPageParam }),
-          ...(fromDateParam != null &&
-            fromDateParam !== "" && { from_date: fromDateParam }),
-          ...(toDateParam != null &&
-            toDateParam !== "" && { to_date: toDateParam }),
-          ...params,
-        };
-        let response: FolderListResponse;
-        if (useApi) {
-          try {
-            response = await listFolders(mergedParams);
-          } catch (err) {
-            setError(
-              err instanceof Error ? err.message : "Failed to load folders",
-            );
-            setFolders([]);
-            return;
-          }
-        } else {
-          response = { folders: [] };
-        }
-        setFolders(response.folders || []);
-        setPagination(response.pagination);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load folders");
-        setFolders([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      useApi,
-      stateParam,
-      departmentIdParam,
-      folderTypeParam,
-      companyIdParam,
-      pageParam,
-      perPageParam,
-      fromDateParam,
-      toDateParam,
-    ],
-  );
-
-  /** Re-fetches when any list param changes (filter, pagination, date range). */
-  useEffect(() => {
-    fetchFolders();
-  }, [
-    useApi,
-    stateParam,
-    departmentIdParam,
-    folderTypeParam,
-    companyIdParam,
-    pageParam,
-    perPageParam,
-    fromDateParam,
-    toDateParam,
-  ]);
+  const folders = query.data?.folders ?? EMPTY_FOLDERS;
+  const pagination = query.data?.pagination;
+  const loading = query.isLoading;
+  const error = query.isError
+    ? query.error?.message || "Failed to load folders"
+    : null;
 
   return {
     folders,

@@ -6,6 +6,8 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 import { jsonRpcRequest } from "../lib/http";
+import { queryClient, REFERENCE_STALE_TIME_MS } from "../lib/queryClient";
+import { queryKeys } from "../lib/queryKeys";
 import { handleApiError } from "../../app/adapter/api/client";
 import type { Company, CompaniesResponse } from "../types/company";
 
@@ -60,10 +62,15 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
       const payload: Record<string, unknown> = {};
       if (params?.search != null) payload.search = params.search;
       if (params?.limit != null) payload.limit = params.limit;
-      const result = await jsonRpcRequest<CompaniesResponse | Company[] | { success?: boolean; data?: Company[]; count?: number }>(
-        "/api/companies",
-        payload
-      );
+      const result = await queryClient.fetchQuery({
+        queryKey: queryKeys.companies.lookup(payload),
+        queryFn: () =>
+          jsonRpcRequest<CompaniesResponse | Company[] | { success?: boolean; data?: Company[]; count?: number }>(
+            "/api/companies",
+            payload
+          ),
+        staleTime: REFERENCE_STALE_TIME_MS,
+      });
       const { data, count } = normalizeCompaniesResult(result);
       set({
         companies: data,

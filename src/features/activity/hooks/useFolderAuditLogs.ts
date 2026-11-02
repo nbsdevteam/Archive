@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/shared/lib/queryKeys";
 import { getAuditLogs } from "../services/auditLogs.service";
 import type { AuditLogEntry } from "../types/auditLogs.types";
 
@@ -6,6 +8,8 @@ interface UseFolderAuditLogsOptions {
   enabled?: boolean;
   perPage?: number;
 }
+
+const EMPTY_LOGS: AuditLogEntry[] = [];
 
 /**
  * Fetches folder audit logs via POST /api/audit-logs with params { folder_id, per_page }.
@@ -16,41 +20,21 @@ export const useFolderAuditLogs = (
   options: UseFolderAuditLogsOptions = {}
 ) => {
   const { enabled = true, perPage = 50 } = options;
+  const params = { folder_id: folderId ?? undefined, per_page: perPage };
 
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const lastFetchedFolderIdRef = useRef<number | null>(null);
-
-  const fetchLogs = useCallback(async () => {
-    if (!enabled || !folderId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getAuditLogs({
-        folder_id: folderId,
-        per_page: perPage,
-      });
-      setLogs(response.data ?? []);
-    } catch (e: unknown) {
-      setLogs([]);
-      setError((e as Error)?.message || "Failed to load folder activity.");
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled, folderId, perPage]);
-
-  useEffect(() => {
-    if (!enabled || folderId == null) return;
-    if (lastFetchedFolderIdRef.current === folderId) return;
-    lastFetchedFolderIdRef.current = folderId;
-    fetchLogs().catch(() => undefined);
-  }, [enabled, fetchLogs, folderId]);
+  const query = useQuery({
+    queryKey: queryKeys.audit.list(params),
+    queryFn: () => getAuditLogs(params),
+    enabled: enabled && Boolean(folderId),
+    staleTime: 0,
+  });
+  const { refetch } = query;
+  const refresh = useCallback(() => refetch(), [refetch]);
 
   return {
-    logs,
-    loading,
-    error,
-    refresh: fetchLogs,
+    logs: query.data?.data ?? EMPTY_LOGS,
+    loading: query.isLoading,
+    error: query.isError ? (query.error as Error)?.message || "Failed to load folder activity." : null,
+    refresh,
   };
 };

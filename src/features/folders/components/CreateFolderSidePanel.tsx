@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { invalidateFolderData } from "@/shared/lib/queryInvalidation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
@@ -101,6 +102,7 @@ export const CreateFolderSidePanel = ({
         description: data.description?.trim() || null,
         company_id: data.company_id != null && data.company_id >= 1 ? data.company_id : undefined,
       });
+      void invalidateFolderData();
       toast.success(t("folders.createSuccess", { defaultValue: "Folder created successfully." }));
       onSuccess?.();
       onClose();

@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { adminApi } from "@/app/adapter/api/admin.api";
-import type { Document } from "@/app/adapter/api/documents.api";
+import type { DocumentType } from "@/app/adapter/api/admin.api";
+import { documentsApi, type Document } from "@/app/adapter/api/documents.api";
 import type { DateRangeMode, SelectOption } from "@/shared/components/ui";
-import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { useInfiniteList } from "@/shared/hooks/useInfiniteList";
+import { documentTypesQuery } from "@/shared/lib/cachedReads";
+import { queryKeys } from "@/shared/lib/queryKeys";
 import { useDepartmentsStore } from "@/shared/stores/departmentsStore";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import { useRunOnceOnMount, useSelection } from "@/shared/hooks";
@@ -31,14 +34,6 @@ function deriveDateMode(f: DocumentListFilterState): DateRangeMode {
   return "after";
 }
 
-/** Stable stringify for fetch params so we can de-dupe URL-sync fetches vs manual fetches. */
-function buildFetchKey(params: Record<string, unknown>): string {
-  const keys = Object.keys(params).sort();
-  const normalized: Record<string, unknown> = {};
-  for (const k of keys) normalized[k] = params[k];
-  return JSON.stringify(normalized);
-}
-
 export interface DocumentListFilterState {
   department_id?: number;
   document_type_id?: number;
@@ -52,76 +47,76 @@ export interface DocumentListFilterState {
 export interface UseDocumentListWithFiltersOptions {
   /** If set, all fetches include this status (e.g. "archived"). */
   status?: string;
-  /** If true, fetches use page/per_page and the hook returns pagination + handlePageChange. */
-  paginated?: boolean;
-  /** When set (e.g. from URL), fetches use this page and refetch when it changes. */
-  pageOverride?: number;
-  /** When set (e.g. from URL), fetches use this per_page and refetch when it changes. */
-  perPageOverride?: number;
+  /** Rows requested per scroll increment. */
+  perPage?: number;
 }
 
 const DEFAULT_PAGE_SIZE = 20;
+const getDocumentId = (d: Document) => d.id;
+
+const EMPTY_DOCUMENT_TYPES: DocumentType[] = [];
 
 /**
- * Shared hook for document list pages: filter state, department/document-type options,
- * search ref, selection, and refetch params. Uses useDepartmentsStore for departments everywhere.
+ * Shared hook for document list pages: filter state, department/document-type options, search,
+ * selection, and the cached infinite document list. Uses useDepartmentsStore for departments everywhere.
  * Used by useDocumentsPageContainer and useArchivedDocumentsPageContainer to avoid duplication.
  */
 export function useDocumentListWithFilters(
   options: UseDocumentListWithFiltersOptions = {}
 ) {
-  const { status, paginated = false, pageOverride, perPageOverride } = options;
-  const isUrlDrivenPagination = paginated && (pageOverride != null || perPageOverride != null);
+  const { status, perPage = DEFAULT_PAGE_SIZE } = options;
 
   const [appliedFilters, setAppliedFilters] = useState<DocumentListFilterState>({});
   const [draftFilters, setDraftFilters] = useState<DocumentListFilterState>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [documentTypes, setDocumentTypes] = useState<
-    Array<{
-      id: number;
-      name: string;
-      code: string;
-      department_id: number;
-      department_name: string;
-    }>
-  >([]);
+  const [search, setSearch] = useState("");
 
   const { t } = useTranslation();
-  const {
-    documents,
-    isLoading,
-    fetchDocuments,
-    error,
-    clearError,
-    pagination,
-  } = useDocumentStore();
   const { departments, fetchDepartments } = useDepartmentsStore();
   const { companies, fetchCompanies } = useCompaniesStore();
-  /** Holds current search term so getFetchParams can read it without causing fetch dependency churn. */
-  const lastSearchRef = useRef<string>("");
-  /**
-   * Tracks the most recent fetch signature. This prevents double-fetch when:
-   * - a handler manually fetches, then
-   * - the URL-sync effect runs (page/per_page change or callback identity change).
-   */
-  const lastFetchKeyRef = useRef<string | null>(null);
-  /** When true, next URL-driven fetch forces page=1 (used on Apply/Clear/Cancel). */
-  const forcePageOneOnNextUrlFetchRef = useRef(false);
-
-  const runFetch = useCallback(
-    (params: Record<string, unknown>) => {
-      lastFetchKeyRef.current = buildFetchKey(params);
-      fetchDocuments(params);
-    },
-    [fetchDocuments]
+  /** Only values that are set go to the API (from_date/to_date are never "-" or empty). */
+  const listParams = useMemo(
+    () => ({
+      ...(appliedFilters.department_id != null ? { department_id: appliedFilters.department_id } : {}),
+      ...(appliedFilters.document_type_id != null ? { document_type_id: appliedFilters.document_type_id } : {}),
+      ...(appliedFilters.company_id != null ? { company_id: appliedFilters.company_id } : {}),
+      ...(appliedFilters.from_date != null && appliedFilters.from_date !== "" ? { from_date: appliedFilters.from_date } : {}),
+      ...(appliedFilters.to_date != null && appliedFilters.to_date !== "" ? { to_date: appliedFilters.to_date } : {}),
+      ...(status != null ? { status } : {}),
+      ...(search.length >= 1 ? { search } : {}),
+    }),
+    [
+      appliedFilters.department_id,
+      appliedFilters.document_type_id,
+      appliedFilters.company_id,
+      appliedFilters.from_date,
+      appliedFilters.to_date,
+      status,
+      search,
+    ],
   );
+
+  const {
+    items: documents,
+    loading: isLoading,
+    error,
+    refetch,
+    paging,
+  } = useInfiniteList({
+    queryKey: queryKeys.documents.list({ ...listParams, per_page: perPage }),
+    perPage,
+    fetchPage: (page, per_page) => documentsApi.getDocuments({ ...listParams, page, per_page }),
+    getItems: (response) => response?.data,
+    getMeta: (response) => response?.pagination,
+    getItemId: getDocumentId,
+  });
 
   const {
     selectedIds: selectedDocumentIdsRaw,
     selectionConfig: baseSelectionConfig,
     clear: clearSelection,
     deselectIds: deselectDocumentIds,
-  } = useSelection<Document>(documents, (d) => d.id);
+  } = useSelection<Document>(documents, getDocumentId);
 
   /** Selected document ids as numbers for batch APIs and batch-action service. */
   const selectedDocumentIds = useMemo(
@@ -129,82 +124,20 @@ export function useDocumentListWithFilters(
     [selectedDocumentIdsRaw]
   );
 
-  /** Builds fetch params from current filter state; only includes from_date/to_date when set (never "-" or empty). */
-  const getFetchParams = useCallback(
-    (overrides?: { page?: number; per_page?: number }) => {
-      const search = lastSearchRef.current;
-      const params: Record<string, unknown> = {
-        ...(appliedFilters.department_id != null ? { department_id: appliedFilters.department_id } : {}),
-        ...(appliedFilters.document_type_id != null ? { document_type_id: appliedFilters.document_type_id } : {}),
-        ...(appliedFilters.company_id != null ? { company_id: appliedFilters.company_id } : {}),
-        ...(appliedFilters.from_date != null && appliedFilters.from_date !== "" ? { from_date: appliedFilters.from_date } : {}),
-        ...(appliedFilters.to_date != null && appliedFilters.to_date !== "" ? { to_date: appliedFilters.to_date } : {}),
-        ...(status != null ? { status } : {}),
-        ...(search.length >= 1 ? { search } : {}),
-      };
-      if (paginated) {
-        params.page = overrides?.page ?? pageOverride ?? 1;
-        params.per_page = overrides?.per_page ?? perPageOverride ?? DEFAULT_PAGE_SIZE;
-      }
-      return params;
-    },
-    [appliedFilters, status, paginated, pageOverride, perPageOverride]
-  );
-
-  const initialFetch = useCallback(() => {
-    runFetch(getFetchParams());
-  }, [runFetch, getFetchParams]);
-
   useRunOnceOnMount(() => {
     fetchDepartments();
   });
   useRunOnceOnMount(() => {
     fetchCompanies({ limit: 100 });
   });
-  /** When paginated with URL overrides, the effect below does the fetch; otherwise run once on mount. */
-  useRunOnceOnMount(() => {
-    if (paginated && (pageOverride != null || perPageOverride != null)) return;
-    initialFetch();
-  });
-
-  /** When URL-driven page/per_page are provided, fetch so list stays in sync with URL (and on mount). */
-  useEffect(() => {
-    if (!paginated) return;
-    if (pageOverride != null || perPageOverride != null) {
-      const forcedPage = forcePageOneOnNextUrlFetchRef.current ? 1 : (pageOverride ?? 1);
-      const params = getFetchParams({
-        page: forcedPage,
-        per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
-      });
-      const key = buildFetchKey(params);
-      if (lastFetchKeyRef.current === key) {
-        forcePageOneOnNextUrlFetchRef.current = false;
-        return;
-      }
-      runFetch(params);
-      forcePageOneOnNextUrlFetchRef.current = false;
-    }
-  }, [paginated, pageOverride, perPageOverride, getFetchParams, runFetch]);
-
   const departmentIdForTypes = draftFilters.department_id;
 
-  useEffect(() => {
-    if (departmentIdForTypes == null || departmentIdForTypes < 1) {
-      setDocumentTypes([]);
-      return;
-    }
-    let cancelled = false;
-    adminApi.getDocumentTypes(departmentIdForTypes).then((res) => {
-      if (!cancelled && res?.data) {
-        setDocumentTypes(res.data);
-      } else if (!cancelled) {
-        setDocumentTypes([]);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [departmentIdForTypes]);
+  const hasDepartmentForTypes = departmentIdForTypes != null && departmentIdForTypes >= 1;
+  const { data: documentTypes = EMPTY_DOCUMENT_TYPES } = useQuery({
+    ...documentTypesQuery(departmentIdForTypes ?? 0),
+    enabled: hasDepartmentForTypes,
+    select: (response) => response?.data ?? EMPTY_DOCUMENT_TYPES,
+  });
 
   const departmentOptions: SelectOption<number>[] = useMemo(
     () => departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
@@ -242,26 +175,7 @@ export function useDocumentListWithFilters(
     ]
   );
 
-  const handleSearchDebounced = useCallback(
-    (value: string) => {
-      const hadSearch = lastSearchRef.current.length >= 1;
-      lastSearchRef.current = value;
-      if (paginated) {
-        if (value.length >= 1) {
-          runFetch({ ...getFetchParams(), search: value, page: 1 });
-        } else if (hadSearch) {
-          runFetch(getFetchParams());
-        }
-      } else {
-        if (value.length >= 1) {
-          runFetch({ ...getFetchParams(), search: value });
-        } else if (hadSearch) {
-          runFetch(getFetchParams());
-        }
-      }
-    },
-    [getFetchParams, paginated, runFetch]
-  );
+  const handleSearchDebounced = useCallback((value: string) => setSearch(value), []);
 
   const handleOpenFilter = useCallback(() => {
     setDraftFilters({ ...appliedFilters, date_mode: deriveDateMode(appliedFilters) });
@@ -323,95 +237,28 @@ export function useDocumentListWithFilters(
     []
   );
 
-  const buildApiParams = useCallback(
-    (filters: DocumentListFilterState) => {
-      const params: Record<string, unknown> = {
-        ...(filters.department_id != null ? { department_id: filters.department_id } : {}),
-        ...(filters.document_type_id != null ? { document_type_id: filters.document_type_id } : {}),
-        ...(filters.company_id != null ? { company_id: filters.company_id } : {}),
-        ...(filters.from_date != null && filters.from_date !== "" ? { from_date: filters.from_date } : {}),
-        ...(filters.to_date != null && filters.to_date !== "" ? { to_date: filters.to_date } : {}),
-        ...(status != null ? { status } : {}),
-        ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
-      };
-      if (paginated) {
-        params.page = 1;
-        params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
-      }
-      return params;
-    },
-    [status, paginated, perPageOverride]
-  );
-
   const handleApplyFilter = useCallback(() => {
     setAppliedFilters(draftFilters);
-    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
-    if (!isUrlDrivenPagination) runFetch(buildApiParams(draftFilters));
     setIsFilterOpen(false);
-  }, [draftFilters, paginated, isUrlDrivenPagination, runFetch, buildApiParams]);
+  }, [draftFilters]);
 
   const handleClearFilter = useCallback(() => {
     setDraftFilters({});
     setAppliedFilters({});
-    const params: Record<string, unknown> = {
-      ...(status != null ? { status } : {}),
-      ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
-    };
-    if (paginated) {
-      params.page = 1;
-      params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
-    }
-    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
-    if (!isUrlDrivenPagination) runFetch(params);
     setIsFilterOpen(false);
-  }, [status, paginated, perPageOverride, isUrlDrivenPagination, runFetch]);
+  }, []);
 
-  /** Cancel: clear all filters and refetch only if a date filter was previously applied; then caller closes panel. */
+  /** Cancel: clear all filters only if a date filter was previously applied; then caller closes panel. */
   const handleCancelFilter = useCallback(() => {
     const hadDate = !!(appliedFilters.from_date || appliedFilters.to_date);
     if (!hadDate) return;
     setDraftFilters({});
     setAppliedFilters({});
-    const params: Record<string, unknown> = {
-      ...(status != null ? { status } : {}),
-      ...(lastSearchRef.current.length >= 1 ? { search: lastSearchRef.current } : {}),
-    };
-    if (paginated) {
-      params.page = 1;
-      params.per_page = perPageOverride ?? DEFAULT_PAGE_SIZE;
-    }
-    if (paginated) forcePageOneOnNextUrlFetchRef.current = true;
-    if (!isUrlDrivenPagination) runFetch(params);
     setIsFilterOpen(false);
-  }, [
-    appliedFilters.from_date,
-    appliedFilters.to_date,
-    status,
-    paginated,
-    perPageOverride,
-    isUrlDrivenPagination,
-    runFetch,
-  ]);
+  }, [appliedFilters.from_date, appliedFilters.to_date]);
 
-  const handleRetry = useCallback(() => {
-    clearError();
-    runFetch(getFetchParams());
-  }, [clearError, runFetch, getFetchParams]);
-
-  const handleRefresh = useCallback(() => {
-    runFetch(getFetchParams());
-  }, [runFetch, getFetchParams]);
-
-  const handlePageChange = useCallback(
-    (page: number) => {
-      runFetch({
-        ...getFetchParams(),
-        page,
-        per_page: perPageOverride ?? DEFAULT_PAGE_SIZE,
-      });
-    },
-    [getFetchParams, perPageOverride, runFetch]
-  );
+  const handleRetry = refetch;
+  const handleRefresh = refetch;
 
   const isSomeSelected = selectedDocumentIds.length > 0;
   const selectionConfig = useMemo(
@@ -441,8 +288,8 @@ export function useDocumentListWithFilters(
     documents,
     isLoading,
     error,
-    clearError,
-    pagination,
+    paging,
+    refetch,
     appliedFilters,
     draftFilters,
     isFilterOpen,
@@ -450,8 +297,6 @@ export function useDocumentListWithFilters(
     documentTypeOptions,
     companyOptions,
     filterApplyDisabled,
-    lastSearchRef,
-    getFetchParams,
     handleSearchDebounced,
     handleOpenFilter,
     handleCloseFilter,
@@ -465,7 +310,6 @@ export function useDocumentListWithFilters(
     handleCancelFilter,
     handleRetry,
     handleRefresh,
-    handlePageChange,
     selectedDocumentIds,
     selectionConfig,
     clearSelection,

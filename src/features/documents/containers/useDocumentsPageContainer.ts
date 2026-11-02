@@ -6,12 +6,11 @@ import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
-import { usePaginationFromUrl } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import { gateBatchActionsForDelete } from "@/shared/utils/capabilityGating";
 import type { Document } from "@/app/adapter/api/documents.api";
-import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { invalidateDocumentData } from "@/shared/lib/queryInvalidation";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
@@ -50,8 +49,6 @@ export const useDocumentsPageContainer = () => {
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
-  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
-  const { fetchDocuments } = useDocumentStore();
   const {
     isArchiving,
     isTrashing,
@@ -63,17 +60,12 @@ export const useDocumentsPageContainer = () => {
     restoreDocument,
   } = useDocumentOperations();
 
-  const list = useDocumentListWithFilters({
-    paginated: true,
-    pageOverride: page,
-    perPageOverride: perPage,
-  });
+  const list = useDocumentListWithFilters();
   const {
     documents,
     isLoading,
     error,
-    pagination,
-    getFetchParams,
+    paging,
     handleSearchDebounced,
     handleOpenFilter,
     handleCloseFilter,
@@ -82,12 +74,11 @@ export const useDocumentsPageContainer = () => {
     handleTertiaryFilterChange,
     handleDateRangeModeChange,
     handleDateRangeChange,
-    handleApplyFilter: listHandleApplyFilter,
-    handleClearFilter: listHandleClearFilter,
-    handleCancelFilter: listHandleCancelFilter,
+    handleApplyFilter,
+    handleClearFilter,
+    handleCancelFilter,
     handleRetry,
     handleRefresh,
-    handlePageChange: listHandlePageChange,
     draftFilters,
     departmentOptions,
     documentTypeOptions,
@@ -115,43 +106,12 @@ export const useDocumentsPageContainer = () => {
     [documents, selectedDocumentIds, canDeleteFiles],
   );
 
-  const handleApplyFilter = useCallback(() => {
-    listHandleApplyFilter();
-    resetPage();
-  }, [resetPage, listHandleApplyFilter]);
-
-  const handleClearFilter = useCallback(() => {
-    listHandleClearFilter();
-    resetPage();
-  }, [resetPage, listHandleClearFilter]);
-
-  const handleCancelFilter = useCallback(() => {
-    listHandleCancelFilter();
-    resetPage();
-  }, [resetPage, listHandleCancelFilter]);
-
-  const handlePageChange = useCallback(
-    (p: number) => {
-      setPage(p);
-      listHandlePageChange(p);
-    },
-    [setPage, listHandlePageChange]
-  );
-
-  const handlePerPageChange = useCallback(
-    (pp: number) => {
-      setPerPage(pp);
-      listHandlePageChange(1);
-    },
-    [setPerPage, listHandlePageChange]
-  );
-
   const handleOpenEdit = useCallback((documentId: number) => setEditDocumentId(documentId), []);
   const handleCloseEdit = useCallback(() => setEditDocumentId(null), []);
   const handleEditSuccess = useCallback(() => {
-    fetchDocuments(getFetchParams());
+    void invalidateDocumentData();
     setEditDocumentId(null);
-  }, [fetchDocuments, getFetchParams]);
+  }, []);
 
   const handleNavigateToDocument = useCallback(
     (documentId: number) => {
@@ -171,9 +131,9 @@ export const useDocumentsPageContainer = () => {
   const handleOpenUpload = useCallback(() => setIsUploadOpen(true), []);
   const handleCloseUpload = useCallback(() => setIsUploadOpen(false), []);
   const handleUploadSuccess = useCallback(() => {
-    fetchDocuments(getFetchParams());
+    void invalidateDocumentData();
     setIsUploadOpen(false);
-  }, [fetchDocuments, getFetchParams]);
+  }, []);
 
   const handleOpenSetRemindersSelected = useCallback(() => {
     if (selectedDocumentIds.length === 0) return;
@@ -190,7 +150,7 @@ export const useDocumentsPageContainer = () => {
 
   const handleSetRemindersSuccess = useCallback(
     (updated: number) => {
-      fetchDocuments(getFetchParams());
+      void invalidateDocumentData();
       toast.success(
         t('documents.setRemindersSuccess', {
           defaultValue: 'Reminders updated for {{count}} document(s).',
@@ -198,7 +158,7 @@ export const useDocumentsPageContainer = () => {
         })
       );
     },
-    [fetchDocuments, getFetchParams, t]
+    [t]
   );
 
   /** Single-doc confirm: call from useConfirmDialog onConfirm. */
@@ -207,10 +167,9 @@ export const useDocumentsPageContainer = () => {
       await trashDocument(documentId, {
         successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
         errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
-        onSuccess: () => fetchDocuments(getFetchParams()),
       });
     },
-    [trashDocument, t, fetchDocuments, getFetchParams]
+    [trashDocument, t]
   );
 
   const confirmArchive = useCallback(
@@ -218,10 +177,9 @@ export const useDocumentsPageContainer = () => {
       await archiveDocument(documentId, {
         successMessage: t("documents.archived", { defaultValue: "Document archived." }),
         errorMessage: t("documents.archiveFailed", { defaultValue: "Archive failed." }),
-        onSuccess: () => fetchDocuments(getFetchParams()),
       });
     },
-    [archiveDocument, t, fetchDocuments, getFetchParams]
+    [archiveDocument, t]
   );
 
   /** Single-doc unarchive: call from useConfirmDialog onConfirm. Refetches list on success. */
@@ -230,10 +188,9 @@ export const useDocumentsPageContainer = () => {
       await unarchiveDocument(documentId, {
         successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
         errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
-        onSuccess: () => fetchDocuments(getFetchParams()),
       });
     },
-    [unarchiveDocument, t, fetchDocuments, getFetchParams]
+    [unarchiveDocument, t]
   );
 
   /** Single-doc restore from trash: call from useConfirmDialog onConfirm. Refetches list on success. */
@@ -242,10 +199,9 @@ export const useDocumentsPageContainer = () => {
       await restoreDocument(documentId, {
         successMessage: t("documents.restored", { defaultValue: "Document restored." }),
         errorMessage: t("documents.restoreFailed", { defaultValue: "Failed to restore." }),
-        onSuccess: () => fetchDocuments(getFetchParams()),
       });
     },
-    [restoreDocument, t, fetchDocuments, getFetchParams]
+    [restoreDocument, t]
   );
 
   /** Batch trash: moves all selected documents to trash; clears selection and refetches on success. */
@@ -259,10 +215,9 @@ export const useDocumentsPageContainer = () => {
       errorMessage: t("documents.batchTrashFailed", {
         defaultValue: "Failed to move documents to trash.",
       }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
     });
     if (didTrash) clearSelection();
-  }, [clearSelection, fetchDocuments, getFetchParams, selectedDocumentIds, t, trashDocument]);
+  }, [clearSelection, selectedDocumentIds, t, trashDocument]);
 
   /**
    * Called when user clicks "Move Selected to Trash". If selection includes main files,
@@ -301,10 +256,9 @@ export const useDocumentsPageContainer = () => {
       errorMessage: t("documents.batchRestoreFailed", {
         defaultValue: "Failed to restore selected documents.",
       }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
     });
     if (didRestore) clearSelection();
-  }, [clearSelection, fetchDocuments, getFetchParams, restoreDocument, selectedDocumentIds, t]);
+  }, [clearSelection, restoreDocument, selectedDocumentIds, t]);
 
   /** Batch archive: archives all selected active documents; clears selection and refetches on success. */
   const confirmBatchArchive = useCallback(async () => {
@@ -317,14 +271,11 @@ export const useDocumentsPageContainer = () => {
       errorMessage: t("documents.batchArchiveFailed", {
         defaultValue: "Failed to archive documents.",
       }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
     });
     if (didArchive) clearSelection();
   }, [
     archiveDocument,
     clearSelection,
-    fetchDocuments,
-    getFetchParams,
     selectedDocumentIds,
     t,
   ]);
@@ -340,13 +291,10 @@ export const useDocumentsPageContainer = () => {
       errorMessage: t("documents.batchUnarchiveFailed", {
         defaultValue: "Failed to unarchive documents.",
       }),
-      onSuccess: () => fetchDocuments(getFetchParams()),
     });
     if (didUnarchive) clearSelection();
   }, [
     clearSelection,
-    fetchDocuments,
-    getFetchParams,
     selectedDocumentIds,
     t,
     unarchiveDocument,
@@ -417,21 +365,20 @@ export const useDocumentsPageContainer = () => {
         setMoveDocumentIds([]);
         setMoveDepartmentId(0);
         setMoveExcludeFolderIds([]);
-        await fetchDocuments(getFetchParams());
+        await invalidateDocumentData();
       } catch (err) {
         toast.error(handleApiError(err));
       } finally {
         setIsMoveSubmitting(false);
       }
     },
-    [clearSelection, fetchDocuments, getFetchParams, moveDocumentIds, t]
+    [clearSelection, moveDocumentIds, t]
   );
 
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
     data: {
       documents,
-      pagination,
       routes,
     },
     loading: isLoading,
@@ -466,11 +413,7 @@ export const useDocumentsPageContainer = () => {
       isSomeSelected,
       batchActions,
     },
-    paging: {
-      pagination,
-      handlePageChange,
-      handlePerPageChange,
-    },
+    paging,
     actions: {
       handleNavigateToDocument,
       handleDownloadDocument,

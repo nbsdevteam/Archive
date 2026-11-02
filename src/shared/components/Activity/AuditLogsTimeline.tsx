@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useState } from "react";
+import { useWindowVirtualList } from "../../hooks/useWindowVirtualList";
 import { Button, Checkbox, Modal, ModalFooter } from "../ui";
 import { getAuditActionVisual } from "../../utils/auditActionVisuals";
 import type { AuditLogEntry } from "./types";
@@ -44,7 +45,14 @@ export interface AuditLogsTimelineProps {
   showMetadata?: boolean;
   onDocumentClick?: (documentId: number, log: AuditLogEntry) => void;
   className?: string;
+  /** Render only the entries near the viewport; for long lists on the page scroll. */
+  virtualize?: boolean;
 }
+
+/** Day headings and entries as one flat sequence, so both can be windowed. */
+type TimelineFlatRow =
+  | { type: "day"; key: string; dayKey: string; isFirstDay: boolean }
+  | { type: "log"; key: string; log: AuditLogEntry; isLast: boolean };
 
 /** Single timeline item for the custom (no-MUI) timeline. */
 function TimelineItemRow({
@@ -195,6 +203,7 @@ const AuditLogsTimelineComponent = ({
   showMetadata = true,
   onDocumentClick,
   className,
+  virtualize = false,
 }: AuditLogsTimelineProps) => {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const hiddenActions = useActivityTimelineFilterStore(
@@ -260,8 +269,56 @@ const AuditLogsTimelineComponent = ({
     });
     return map;
   }, [filteredLogs, handleDocumentClick]);
+  const flatRows = useMemo(() => {
+    if (!virtualize) return [];
+    const rows: TimelineFlatRow[] = [];
+    dayKeys.forEach((dayKey, dayIndex) => {
+      rows.push({ type: "day", key: `day-${dayKey}`, dayKey, isFirstDay: dayIndex === 0 });
+      const dayLogs = groups[dayKey] || [];
+      dayLogs.forEach((log, index) => {
+        rows.push({ type: "log", key: `log-${log.id}`, log, isLast: index === dayLogs.length - 1 });
+      });
+    });
+    return rows;
+  }, [virtualize, dayKeys, groups]);
+  const getFlatRowKey = useCallback((index: number) => flatRows[index].key, [flatRows]);
+  const virtualList = useWindowVirtualList<HTMLDivElement>({
+    count: flatRows.length,
+    estimateSize: 130,
+    getItemKey: getFlatRowKey,
+    enabled: virtualize && !loading && !error && flatRows.length > 0,
+  });
   const openFilterModal = useCallback(() => setIsFilterModalOpen(true), []);
   const closeFilterModal = useCallback(() => setIsFilterModalOpen(false), []);
+
+  const renderLogRow = (log: AuditLogEntry, isLast: boolean) => (
+    <TimelineItemRow
+      key={log.id}
+      log={log}
+      actionLabel={t(`activity.actions.${log.action}`, {
+        defaultValue: humanizeAction(String(log.action)),
+      })}
+      visual={getAuditActionVisual(String(log.action))}
+      isLast={isLast}
+      showDocument={showDocument}
+      showMetadata={showMetadata}
+      isDocumentClickable={Boolean(
+        onDocumentClick && typeof log.document_id === "number",
+      )}
+      documentClickHandler={documentClickHandlers.get(log.id)}
+      t={t}
+    />
+  );
+  const renderDayTitle = (dayKey: string) => (
+    <h6
+      className="activity-timeline-day-title small fw-semibold text-secondary mb-2"
+      style={{ fontSize: "0.875rem" }}
+    >
+      {dayKey === "unknown"
+        ? t("activity.unknownDay", { defaultValue: "Unknown day" })
+        : dayKey}
+    </h6>
+  );
 
   if (loading)
     return (
@@ -310,45 +367,48 @@ const AuditLogsTimelineComponent = ({
           </Button>
         </div>
       )}
-      {dayKeys.map((dayKey) => (
-        <section className="activity-timeline-day" key={dayKey}>
-          <h6
-            className="activity-timeline-day-title small fw-semibold text-secondary mb-2"
-            style={{ fontSize: "0.875rem" }}
-          >
-            {dayKey === "unknown"
-              ? t("activity.unknownDay", { defaultValue: "Unknown day" })
-              : dayKey}
-          </h6>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {(groups[dayKey] || []).map((log, index) => {
-              const actionLabel = t(`activity.actions.${log.action}`, {
-                defaultValue: humanizeAction(String(log.action)),
-              });
-              const visual = getAuditActionVisual(String(log.action));
-              const isLast = index === (groups[dayKey]?.length ?? 0) - 1;
-              const isDocumentClickable = Boolean(
-                onDocumentClick && typeof log.document_id === "number",
-              );
-              const documentClickHandler = documentClickHandlers.get(log.id);
-              return (
-                <TimelineItemRow
-                  key={log.id}
-                  log={log}
-                  actionLabel={actionLabel}
-                  visual={visual}
-                  isLast={isLast}
-                  showDocument={showDocument}
-                  showMetadata={showMetadata}
-                  isDocumentClickable={isDocumentClickable}
-                  documentClickHandler={documentClickHandler}
-                  t={t}
-                />
-              );
-            })}
-          </div>
-        </section>
-      ))}
+      {virtualize ? (
+        <div
+          ref={virtualList.containerRef}
+          style={{
+            paddingTop: virtualList.paddingTop,
+            paddingBottom: virtualList.paddingBottom,
+            overflowAnchor: "none",
+          }}
+        >
+          {virtualList.virtualItems.map((item) => {
+            const row = flatRows[item.index];
+            return (
+              <div
+                key={item.key}
+                ref={virtualList.measureElement}
+                data-index={item.index}
+                // flow-root keeps margins inside the measured height; the padding stands in for
+                // the gap .activity-timeline-day + .activity-timeline-day gives whole sections.
+                style={{
+                  display: "flow-root",
+                  paddingTop: row.type === "day" && !row.isFirstDay ? "1.25rem" : undefined,
+                }}
+              >
+                {row.type === "day"
+                  ? renderDayTitle(row.dayKey)
+                  : renderLogRow(row.log, row.isLast)}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        dayKeys.map((dayKey) => (
+          <section className="activity-timeline-day" key={dayKey}>
+            {renderDayTitle(dayKey)}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {(groups[dayKey] || []).map((log, index) =>
+                renderLogRow(log, index === (groups[dayKey]?.length ?? 0) - 1),
+              )}
+            </div>
+          </section>
+        ))
+      )}
 
       <Modal
         isOpen={isFilterModalOpen}
@@ -419,7 +479,8 @@ const arePropsEqual = (
   prev.showDocument === next.showDocument &&
   prev.showMetadata === next.showMetadata &&
   prev.onDocumentClick === next.onDocumentClick &&
-  prev.className === next.className;
+  prev.className === next.className &&
+  prev.virtualize === next.virtualize;
 
 const AuditLogsTimeline = memo(AuditLogsTimelineComponent, arePropsEqual);
 export default AuditLogsTimeline;

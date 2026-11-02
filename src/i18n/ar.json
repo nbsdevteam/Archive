@@ -1,5 +1,9 @@
 {
   "common": {
+    "loadMore": "تحميل المزيد",
+    "loadingMore": "جارٍ تحميل المزيد…",
+    "loadMoreFailed": "تعذّر تحميل المزيد من العناصر.",
+    "showingLoaded": "عرض {{loaded}} من {{total}}",
     "back": "رجوع",
     "cancel": "إلغاء",
     "save": "حفظ",

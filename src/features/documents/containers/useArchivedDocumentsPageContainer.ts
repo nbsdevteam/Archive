@@ -6,12 +6,11 @@ import { all_routes } from "@/router/all_routes";
 import { handleApiError } from "@/app/adapter/api/client";
 import { documentsApi } from "@/app/adapter/api/documents.api";
 import { useDocumentOperations } from "@/features/documents/hooks/useDocumentOperations";
-import { usePaginationFromUrl, useClientPagination } from "@/shared/hooks";
 import { getAllowedBatchActionsForDocumentsSelection } from "@/shared/services/documentBatchActionsService";
 import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import { gateBatchActionsForDelete } from "@/shared/utils/capabilityGating";
 import type { Document } from "@/app/adapter/api/documents.api";
-import { useDocumentStore } from "@/features/documents/stores/documentStore";
+import { invalidateDocumentData } from "@/shared/lib/queryInvalidation";
 import { getDocumentStatusBadgeVariant } from "@/features/documents/utils/getDocumentStatusBadgeVariant";
 import { downloadDocumentWithToast } from "@/shared/utils/documents/downloadDocumentWithToast";
 import { useAnnounce } from "@/shared/components/a11y/LiveAnnouncer";
@@ -26,7 +25,7 @@ const ARCHIVED_STATUS = "archived" as const;
 
 /**
  * Container for the Archived Documents page. Composes useDocumentListWithFilters
- * with status "archived" and pagination; uses useDepartmentsStore via the shared hook.
+ * with status "archived"; uses useDepartmentsStore via the shared hook.
  * Adds unarchive/trash and move actions.
  */
 export const useArchivedDocumentsPageContainer = () => {
@@ -40,8 +39,6 @@ export const useArchivedDocumentsPageContainer = () => {
   const announce = useAnnounce();
   const routes = all_routes;
   const navigate = useNavigate();
-  const { page, perPage, setPage, setPerPage, resetPage } = usePaginationFromUrl(20);
-  const { fetchDocuments } = useDocumentStore();
   const {
     isTrashing,
     isUnarchiving,
@@ -49,28 +46,21 @@ export const useArchivedDocumentsPageContainer = () => {
     unarchiveDocument,
   } = useDocumentOperations();
 
-  const list = useDocumentListWithFilters({
-    status: ARCHIVED_STATUS,
-    paginated: true,
-    pageOverride: page,
-    perPageOverride: perPage,
-  });
+  const list = useDocumentListWithFilters({ status: ARCHIVED_STATUS });
   const {
     documents,
     isLoading,
     error,
-    pagination,
-    getFetchParams,
+    paging,
     handleSearchDebounced,
     handleOpenFilter,
     handleCloseFilter,
     handlePrimaryFilterChange,
     handleSecondaryFilterChange,
-    handleApplyFilter: listHandleApplyFilter,
-    handleClearFilter: listHandleClearFilter,
+    handleApplyFilter,
+    handleClearFilter,
     handleRetry,
     handleRefresh,
-    handlePageChange: listHandlePageChange,
     draftFilters,
     departmentOptions,
     documentTypeOptions,
@@ -84,10 +74,6 @@ export const useArchivedDocumentsPageContainer = () => {
     isSomeSelected,
   } = list;
 
-  /** Client-side pagination: slices documents when backend doesn't paginate. */
-  const { paginatedItems: paginatedDocuments, pagination: resolvedPagination } =
-    useClientPagination(documents, page, perPage, pagination);
-
   /** Batch action visibility from shared service; on archived page only Unarchive/Trash can be offered. */
   const batchActions = useMemo(
     () =>
@@ -96,36 +82,6 @@ export const useArchivedDocumentsPageContainer = () => {
         canDeleteFiles,
       ),
     [documents, selectedDocumentIds, canDeleteFiles],
-  );
-
-  const refetch = useCallback(() => {
-    fetchDocuments(getFetchParams());
-  }, [fetchDocuments, getFetchParams]);
-
-  const handleApplyFilter = useCallback(() => {
-    resetPage();
-    listHandleApplyFilter();
-  }, [resetPage, listHandleApplyFilter]);
-
-  const handleClearFilter = useCallback(() => {
-    resetPage();
-    listHandleClearFilter();
-  }, [resetPage, listHandleClearFilter]);
-
-  const handlePageChange = useCallback(
-    (p: number) => {
-      setPage(p);
-      listHandlePageChange(p);
-    },
-    [setPage, listHandlePageChange]
-  );
-
-  const handlePerPageChange = useCallback(
-    (pp: number) => {
-      setPerPage(pp);
-      listHandlePageChange(1);
-    },
-    [setPerPage, listHandlePageChange]
   );
 
   const handleNavigateToDocument = useCallback(
@@ -148,10 +104,9 @@ export const useArchivedDocumentsPageContainer = () => {
       await unarchiveDocument(documentId, {
         successMessage: t("documents.unarchived", { defaultValue: "Document unarchived." }),
         errorMessage: t("documents.unarchiveFailed", { defaultValue: "Unarchive failed." }),
-        onSuccess: refetch,
       });
     },
-    [unarchiveDocument, t, refetch]
+    [unarchiveDocument, t]
   );
 
   const confirmTrash = useCallback(
@@ -159,10 +114,9 @@ export const useArchivedDocumentsPageContainer = () => {
       await trashDocument(documentId, {
         successMessage: t("documents.trashed", { defaultValue: "Document moved to trash." }),
         errorMessage: t("documents.trashFailed", { defaultValue: "Failed to move to trash." }),
-        onSuccess: refetch,
       });
     },
-    [trashDocument, t, refetch]
+    [trashDocument, t]
   );
 
   const confirmBatchTrash = useCallback(async () => {
@@ -175,10 +129,9 @@ export const useArchivedDocumentsPageContainer = () => {
       errorMessage: t("documents.batchTrashFailed", {
         defaultValue: "Failed to move documents to trash.",
       }),
-      onSuccess: refetch,
     });
     if (didTrash) clearSelection();
-  }, [clearSelection, refetch, selectedDocumentIds, t, trashDocument]);
+  }, [clearSelection, selectedDocumentIds, t, trashDocument]);
 
   const confirmBatchUnarchive = useCallback(async () => {
     if (selectedDocumentIds.length === 0) return;
@@ -190,10 +143,9 @@ export const useArchivedDocumentsPageContainer = () => {
       errorMessage: t("documents.batchUnarchiveFailed", {
         defaultValue: "Failed to unarchive documents.",
       }),
-      onSuccess: refetch,
     });
     if (didUnarchive) clearSelection();
-  }, [clearSelection, refetch, selectedDocumentIds, t, unarchiveDocument]);
+  }, [clearSelection, selectedDocumentIds, t, unarchiveDocument]);
 
   const openMoveModalForIds = useCallback(
     (documentIds: number[]) => {
@@ -248,21 +200,20 @@ export const useArchivedDocumentsPageContainer = () => {
         setIsMoveModalOpen(false);
         setMoveDocumentIds([]);
         setMoveDepartmentId(0);
-        await refetch();
+        await invalidateDocumentData();
       } catch (err) {
         toast.error(handleApiError(err));
       } finally {
         setIsMoveSubmitting(false);
       }
     },
-    [clearSelection, moveDocumentIds, refetch, t]
+    [clearSelection, moveDocumentIds, t]
   );
 
   /** Grouped return shape: data, loading, error, filter, selection, paging, actions, modals (KISS/DRY). */
   return {
     data: {
-      documents: paginatedDocuments,
-      pagination: resolvedPagination,
+      documents,
       routes,
     },
     loading: isLoading,
@@ -290,11 +241,7 @@ export const useArchivedDocumentsPageContainer = () => {
       isSomeSelected,
       batchActions,
     },
-    paging: {
-      pagination: resolvedPagination,
-      handlePageChange,
-      handlePerPageChange,
-    },
+    paging,
     actions: {
       handleNavigateToDocument,
       handleDownloadDocument,

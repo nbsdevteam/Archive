@@ -16,7 +16,7 @@ import { useDocumentExpiryReminderStore } from "@/shared/stores/documentExpiryRe
 import { useCapabilityPermissions } from "@/shared/hooks/useCapabilityPermissions";
 import type { DocumentsModalsProps } from "./DocumentsModals";
 import { DocumentsModals } from "./DocumentsModals";
-import { PaginationSection } from "@/shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "@/shared/components/InfiniteScrollFooter";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
@@ -33,9 +33,8 @@ const DocumentsPage = () => {
   const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
   const { data, loading, error, filter, selection, paging, actions, modals } = useDocumentsPageContainer();
-  const { documents, routes, pagination } = data;
+  const { documents, routes } = data;
   const { selectedDocumentIds, selectionConfig, isSomeSelected, batchActions } = selection;
-  const { handlePageChange, handlePerPageChange } = paging;
   const { sortedDocuments, onSortClick, getSortIconForColumn } = useDocumentsTableSort(documents);
   const dueDocuments = useDocumentExpiryReminderStore((state) => state.dueDocuments);
   const dueDocumentIds = useMemo(() => new Set(dueDocuments.map((doc) => doc.id)), [dueDocuments]);
@@ -225,17 +224,7 @@ const DocumentsPage = () => {
           onRowClick={actions.handleNavigateToDocument}
           rowClassName={rowClassName}
         />
-        {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
-          <PaginationSection
-            page={pagination.page ?? 1}
-            perPage={pagination.per_page ?? 20}
-            total={pagination.total}
-            totalPages={pagination.total_pages}
-            onPageChange={handlePageChange}
-            onPerPageChange={handlePerPageChange}
-            disabled={loading}
-          />
-        )}
+        <InfiniteScrollFooter paging={paging} />
       </div>
       <DocumentsModals
         t={t}

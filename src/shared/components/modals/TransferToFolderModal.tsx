@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft } from "lucide-react";
 import { Button, Modal, ModalFooter, Spinner } from "@/shared/components/ui";
-import { listFolders } from "@/app/adapter/api/folders.api";
+import { fetchFoldersCached } from "@/shared/lib/cachedReads";
 import type { Folder } from "@/app/adapter/api/folders.types";
 
 export interface TransferToFolderModalProps {
@@ -51,7 +51,7 @@ export function TransferToFolderModal({
     }
     setLoading(true);
     setError(null);
-    listFolders({ department_id: departmentId })
+    fetchFoldersCached({ department_id: departmentId })
       .then((res) => {
         const list = res.folders ?? [];
         const excluded = (id: number) =>

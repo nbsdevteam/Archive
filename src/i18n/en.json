@@ -1,5 +1,9 @@
 {
   "common": {
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…",
+    "loadMoreFailed": "Could not load more items.",
+    "showingLoaded": "Showing {{loaded}} of {{total}}",
     "back": "Back",
     "cancel": "Cancel",
     "save": "Save",

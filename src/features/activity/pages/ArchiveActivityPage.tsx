@@ -1,14 +1,14 @@
-import { useCallback, useMemo, useState, lazy, Suspense } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, MobileActionsMenu } from "../../../shared/components/ui";
 import { useViewport } from "@/shared/hooks/useViewport";
-import { PaginationSection } from "../../../shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "../../../shared/components/InfiniteScrollFooter";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { usePaginationFromUrl } from "../../../shared/hooks";
-import { useAuditLogs } from "../hooks/useAuditLogs";
-import type { ActivityViewMode } from "../types/auditLogs.types";
+import { useActivityTimelineFilterStore } from "../../../shared/components/Activity/useActivityTimelineFilterStore";
+import { useInfiniteAuditLogs } from "../hooks/useAuditLogs";
+import type { ActivityViewMode, AuditLogsQueryParams } from "../types/auditLogs.types";
 const ActivityViewSwitcher = lazy(() =>
   import("../../../shared/components/Activity/ActivityViewSwitcher"),
 );
@@ -33,13 +33,6 @@ const ArchiveActivityPage = () => {
   const { t } = useTranslation();
   const routes = all_routes;
   const { isMobileView } = useViewport();
-  const {
-    page: urlPage,
-    perPage: urlPerPage,
-    setPage,
-    setPerPage,
-    resetPage,
-  } = usePaginationFromUrl(50);
   const [viewMode, setViewMode] = useState<ActivityViewMode>("timeline");
   const [treeGroupBy, setTreeGroupBy] = useState<"document" | "action">(
     "document",
@@ -49,43 +42,19 @@ const ArchiveActivityPage = () => {
   const [actionInput, setActionInput] = useState("");
   const defaultDateFrom = useMemo(() => getDateDaysAgoFormatted(7), []);
 
-  const { logs, loading, error, pagination, params, setParams, fetchLogs } =
-    useAuditLogs({
-      initialParams: {
-        date_from: defaultDateFrom,
-        page: urlPage,
-        per_page: urlPerPage,
-      },
-    });
+  const [params, setParams] = useState<AuditLogsQueryParams>({ date_from: defaultDateFrom });
+  const { logs, loading, error, refetch, paging } = useInfiniteAuditLogs(params);
+  /** Hidden action types narrow the rows client-side; don't let the footer auto-load everything. */
+  const hasHiddenActions = useActivityTimelineFilterStore((state) => state.hiddenActions.length > 0);
 
-  /** Applies filters; sends date_from/date_to as YYYY-MM-DDTHH:mm:ss per audit-logs API. Resets URL to page 1. */
-  const applyFilters = useCallback(
-    async (nextPage = 1) => {
-      const nextParams = {
-        ...params,
-        page: nextPage,
-        per_page: urlPerPage,
-        date_from: dateFromInput
-          ? formatDateForAuditApi(dateFromInput, false)
-          : params.date_from,
-        date_to: dateToInput
-          ? formatDateForAuditApi(dateToInput, true)
-          : undefined,
-        action: actionInput || undefined,
-      };
+  /** Switches to new filters; re-submitting identical ones still fetches fresh data. */
+  const applyParams = (nextParams: AuditLogsQueryParams) => {
+    if (JSON.stringify(nextParams) === JSON.stringify(params)) {
+      void refetch();
+    } else {
       setParams(nextParams);
-      await fetchLogs(nextParams);
-    },
-    [
-      params,
-      dateFromInput,
-      dateToInput,
-      actionInput,
-      urlPerPage,
-      setParams,
-      fetchLogs,
-    ],
-  );
+    }
+  };
 
   const actionOptions = useMemo(() => {
     return [
@@ -103,33 +72,27 @@ const ArchiveActivityPage = () => {
   }, []);
 
   const handleLast7DaysClick = () => {
-    const defaultParams = {
-      date_from: getDateDaysAgoFormatted(7),
-      page: 1,
-      per_page: 50,
-    };
     setDateFromInput("");
     setDateToInput("");
     setActionInput("");
-    setParams(defaultParams);
-    fetchLogs(defaultParams).catch(() => undefined);
+    applyParams({ date_from: getDateDaysAgoFormatted(7) });
   };
   const handleLast24HoursClick = () => {
-    const defaultParams = {
-      date_from: getDateDaysAgoFormatted(1),
-      page: 1,
-      per_page: 50,
-    };
     setDateFromInput("");
     setDateToInput("");
     setActionInput("");
-    setParams(defaultParams);
-    fetchLogs(defaultParams).catch(() => undefined);
+    applyParams({ date_from: getDateDaysAgoFormatted(1) });
   };
+  /** Sends date_from/date_to as YYYY-MM-DDTHH:mm:ss per audit-logs API. */
   const handleFiltersSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    resetPage();
-    applyFilters(1).catch(() => undefined);
+    applyParams({
+      date_from: dateFromInput
+        ? formatDateForAuditApi(dateFromInput, false)
+        : params.date_from,
+      ...(dateToInput ? { date_to: formatDateForAuditApi(dateToInput, true) } : {}),
+      ...(actionInput ? { action: actionInput } : {}),
+    });
   };
   const handleDateFromChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setDateFromInput(event.target.value);
@@ -141,21 +104,6 @@ const ArchiveActivityPage = () => {
   const handleTreeGroupByChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => setTreeGroupBy(event.target.value as "document" | "action");
-
-  const handlePageChange = useCallback(
-    (p: number) => {
-      setPage(p);
-      applyFilters(p).catch(() => undefined);
-    },
-    [setPage, applyFilters],
-  );
-  const handlePerPageChange = useCallback(
-    (pp: number) => {
-      setPerPage(pp);
-      applyFilters(1).catch(() => undefined);
-    },
-    [setPerPage, applyFilters],
-  );
 
   const pageTitle = t("activity.title", { defaultValue: "Activity" });
 
@@ -333,6 +281,7 @@ const ArchiveActivityPage = () => {
               logs={logs}
               loading={loading}
               error={error}
+              virtualize
             />
           )}
           {viewMode === "tree" && (
@@ -353,14 +302,10 @@ const ArchiveActivityPage = () => {
             </Suspense>
           )}
 
-          {!loading && (pagination?.total ?? 0) > 0 && (
-            <PaginationSection
-              page={pagination?.page ?? 1}
-              perPage={pagination?.per_page ?? 50}
-              total={pagination?.total}
-              onPageChange={handlePageChange}
-              onPerPageChange={handlePerPageChange}
-              disabled={loading}
+          {!loading && (
+            <InfiniteScrollFooter
+              paging={paging}
+              auto={viewMode === "timeline" && !hasHiddenActions}
             />
           )}
         </div>

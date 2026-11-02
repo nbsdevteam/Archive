@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { searchApi } from '../../../app/adapter/api/search.api';
 import { handleApiError } from '../../../app/adapter/api/client';
+import { queryClient } from '../../../shared/lib/queryClient';
+import { queryKeys } from '../../../shared/lib/queryKeys';
 import type { SearchResult } from '../types/search.types';
 
 interface SearchState {
@@ -30,7 +32,10 @@ export const useSearchStore = create<SearchState>((set) => ({
   search: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await searchApi.search(params);
+      const response = await queryClient.fetchQuery({
+        queryKey: queryKeys.search.results('standard', params),
+        queryFn: () => searchApi.search(params),
+      });
       set({
         results: (response.data ?? []) as SearchResult[],
         pagination: response.pagination || null,
@@ -48,7 +53,10 @@ export const useSearchStore = create<SearchState>((set) => ({
   globalSearch: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await searchApi.globalSearch(params);
+      const response = await queryClient.fetchQuery({
+        queryKey: queryKeys.search.results('global', params),
+        queryFn: () => searchApi.globalSearch(params),
+      });
       set({
         results: (response.data ?? []) as SearchResult[],
         pagination: response.pagination || null,
@@ -66,7 +74,10 @@ export const useSearchStore = create<SearchState>((set) => ({
   searchByBarcode: async (barcode) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await searchApi.searchByBarcode(barcode);
+      const response = await queryClient.fetchQuery({
+        queryKey: queryKeys.search.results('barcode', barcode),
+        queryFn: () => searchApi.searchByBarcode(barcode),
+      });
       if (response.data && response.data.length > 0) {
         set({
           results: response.data as SearchResult[],

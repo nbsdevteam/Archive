@@ -64,6 +64,14 @@ export interface DataTableProps<T> {
    * Card view always uses the kebab menu regardless of this setting.
    */
   actionsStyle?: "menu" | "inline";
+  /**
+   * Render only the rows near the viewport (page scroll). For long, growing lists; leave off for
+   * short tables. Only the layout for the current breakpoint is mounted while this is on, because
+   * rows hidden with display:none cannot be measured.
+   */
+  virtualize?: boolean;
+  /** Starting row height guess in px for `virtualize`; real heights are measured. */
+  estimatedRowHeight?: number;
 }
 
 /** Card/list layout for tabular rows; same data model as DataTable without table-only props. */
@@ -79,6 +87,7 @@ export type DataListProps<T> = Pick<
   | "selection"
   | "actionsColumnHeader"
   | "rowClassName"
+  | "virtualize"
 > & {
   /** Extra class on the outer cards wrapper (e.g. Bootstrap display utilities). */
   className?: string;

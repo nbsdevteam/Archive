@@ -11,8 +11,13 @@ import {
   htmlInputDateToApiWrite,
   toCanonicalDdMmYyyy,
 } from "@/shared/utils/documents/documentDate";
-import { adminApi } from "@/app/adapter/api/admin.api";
-import { listFolders } from "@/app/adapter/api/folders.api";
+import {
+  fetchDepartmentsCached,
+  fetchDocumentTypesCached,
+  fetchFoldersCached,
+  fetchTagsCached,
+} from "@/shared/lib/cachedReads";
+import { invalidateDocumentData } from "@/shared/lib/queryInvalidation";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
@@ -229,7 +234,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    Promise.all([adminApi.getDepartments(), adminApi.getTags()])
+    Promise.all([fetchDepartmentsCached(), fetchTagsCached()])
       .then(([deptsRes, tagsRes]) => {
         if (!cancelled && deptsRes?.data) setDepartments(deptsRes.data);
         if (!cancelled && tagsRes?.data) setTags(tagsRes.data);
@@ -254,7 +259,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
       return;
     }
     let cancelled = false;
-    Promise.all([adminApi.getDocumentTypes(departmentId), listFolders({ department_id: departmentId })])
+    Promise.all([fetchDocumentTypesCached(departmentId), fetchFoldersCached({ department_id: departmentId })])
       .then(([typesRes, foldersRes]) => {
         if (!cancelled) {
           setDocumentTypes(typesRes?.data ?? []);
@@ -310,6 +315,7 @@ export function EditDocumentSidePanel({ isOpen, documentId, initialFolderId, onC
           const params = formValuesToUpdateParams(values, isSubDoc, doc);
           await documentsApi.updateDocument(documentId, params);
         }
+        void invalidateDocumentData();
         toast.success(t("documents.updateSuccess", { defaultValue: "Document updated successfully." }));
         onSuccess?.();
         onClose();

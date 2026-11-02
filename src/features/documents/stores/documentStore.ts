@@ -1,29 +1,21 @@
 import { create } from 'zustand';
 import {
   documentsApi,
-  type Document,
   type DocumentDetail,
-  type GetDocumentsParams,
   type UploadDocumentRequest,
 } from '../../../app/adapter/api/documents.api';
 import { handleApiError } from '../../../app/adapter/api/client';
 import { downloadBlobAsFile } from '../../../shared/utils/files/downloadBlobAsFile';
+import { invalidateDocumentData } from '../../../shared/lib/queryInvalidation';
 
+/** The document lists live in React Query; this store holds the open document and write actions. */
 interface DocumentState {
-  documents: Document[];
   currentDocument: DocumentDetail | null;
   isLoading: boolean;
   isDownloading: boolean;
   error: string | null;
-  pagination: {
-    total: number;
-    page: number;
-    per_page: number;
-    total_pages: number;
-  };
 
   // Actions
-  fetchDocuments: (params?: GetDocumentsParams) => Promise<void>;
   fetchDocument: (id: number) => Promise<void>;
   uploadDocument: (data: UploadDocumentRequest) => Promise<number>;
   uploadVersion: (
@@ -43,38 +35,10 @@ interface DocumentState {
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
-  documents: [],
   currentDocument: null,
   isLoading: false,
   isDownloading: false,
   error: null,
-  pagination: {
-    total: 0,
-    page: 1,
-    per_page: 20,
-    total_pages: 0,
-  },
-
-  fetchDocuments: async (params?: GetDocumentsParams): Promise<void> => {
-    set({ isLoading: true, error: null });
-
-    try {
-      const response = await documentsApi.getDocuments(params);
-
-      set({
-        documents: response?.data || [],
-        pagination: response?.pagination || { total: 0, page: 1, per_page: 20, total_pages: 0 },
-        isLoading: false,
-      });
-    } catch (error) {
-      console.error('Fetch documents error:', error);
-      set({
-        documents: [], // Set empty array on error
-        error: handleApiError(error),
-        isLoading: false,
-      });
-    }
-  },
 
   fetchDocument: async (id: number): Promise<void> => {
     if (!id || isNaN(id)) {
@@ -109,6 +73,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       const response = await documentsApi.uploadDocument(data);
 
       set({ isLoading: false });
+      void invalidateDocumentData();
 
       return response.data.id;
     } catch (error) {
@@ -137,6 +102,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
       // Refresh document details
       await get().fetchDocument(documentId);
+      void invalidateDocumentData();
 
       set({ isLoading: false });
     } catch (error) {
@@ -185,7 +151,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       if (currentId && ids.includes(currentId)) {
         await get().fetchDocument(currentId);
       }
-      await get().fetchDocuments();
+      await invalidateDocumentData();
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;
@@ -202,7 +168,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       if (currentId && ids.includes(currentId)) {
         await get().fetchDocument(currentId);
       }
-      await get().fetchDocuments();
+      await invalidateDocumentData();
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;
@@ -219,7 +185,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       if (currentId && ids.includes(currentId)) {
         set({ currentDocument: null });
       }
-      await get().fetchDocuments();
+      await invalidateDocumentData();
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;
@@ -238,7 +204,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         if (currentId && result.restored.includes(currentId)) {
           await get().fetchDocument(currentId);
         }
-        await get().fetchDocuments();
+        await invalidateDocumentData();
       }
       return result;
     } catch (error) {
@@ -257,7 +223,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       if (current != null && documentIds.includes(current.id)) {
         set({ currentDocument: null });
       }
-      await get().fetchDocuments();
+      await invalidateDocumentData();
     } catch (error) {
       set({ error: handleApiError(error) });
       throw error;

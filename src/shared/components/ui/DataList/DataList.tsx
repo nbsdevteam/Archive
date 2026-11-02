@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useWindowVirtualList } from "@/shared/hooks/useWindowVirtualList";
 import type { DataListProps } from "../DataTable/DataTable.types";
 import { Icon } from "../Icon";
 import { Spinner } from "../Spinner";
@@ -21,11 +22,28 @@ export function DataList<T>({
   selection,
   rowClassName,
   className = "",
+  virtualize = false,
 }: DataListProps<T>) {
   const { t } = useTranslation();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [openActionsRowId, setOpenActionsRowId] = useState<string | null>(null);
   const [actionsMenuAnchor, setActionsMenuAnchor] = useState<HTMLElement | null>(null);
+
+  const isVirtualList = virtualize && !loading && data.length > 0;
+  const getRowIdRef = useRef(getRowId);
+  getRowIdRef.current = getRowId;
+  const getItemKey = useCallback((index: number) => getRowIdRef.current(data[index]), [data]);
+  const virtualList = useWindowVirtualList<HTMLUListElement>({
+    count: data.length,
+    // Header strip plus one label/value line per column.
+    estimateSize: 56 + columns.length * 30,
+    getItemKey,
+    overscan: 3,
+    enabled: isVirtualList,
+  });
+  const renderedRows = isVirtualList
+    ? virtualList.virtualItems.map((item) => ({ row: data[item.index], index: item.index }))
+    : data.map((row, index) => ({ row, index }));
 
   useEffect(() => {
     if (!openActionsRowId) return;
@@ -35,6 +53,15 @@ export function DataList<T>({
       setActionsMenuAnchor(null);
     }
   }, [data, getRowId, openActionsRowId]);
+
+  // The menu is anchored to a button inside its card; close it when windowing unmounts that card.
+  useEffect(() => {
+    if (!isVirtualList || !openActionsRowId) return;
+    if (!renderedRows.some(({ row }) => String(getRowId(row)) === openActionsRowId)) {
+      setOpenActionsRowId(null);
+      setActionsMenuAnchor(null);
+    }
+  });
 
   const hasSelection = Boolean(selection);
   const hasActions = Boolean(rowActions && rowActions.length > 0);
@@ -81,14 +108,29 @@ export function DataList<T>({
       ) : data.length === 0 ? (
         <div className="datatable-cards-empty text-center py-4 text-muted">{emptyMessage}</div>
       ) : (
-        <ul className="datatable-cards-list list-unstyled mb-0">
-          {data.map((row) => {
+        <ul
+          ref={isVirtualList ? virtualList.containerRef : undefined}
+          className="datatable-cards-list list-unstyled mb-0"
+          style={
+            isVirtualList
+              ? { paddingTop: virtualList.paddingTop, paddingBottom: virtualList.paddingBottom, overflowAnchor: "none" }
+              : undefined
+          }
+        >
+          {renderedRows.map(({ row, index }) => {
             const rowId = getRowId(row);
             const rowIdStr = String(rowId);
             const isSelected = hasSelection && selection!.selectedIds.includes(rowId);
             const rowClass = rowClassName ? rowClassName(row) : "";
             return (
-              <li key={rowIdStr} className="datatable-card-item">
+              <li
+                key={rowIdStr}
+                className="datatable-card-item"
+                ref={isVirtualList ? virtualList.measureElement : undefined}
+                data-index={isVirtualList ? index : undefined}
+                // flow-root keeps the card's bottom margin inside the measured height.
+                style={isVirtualList ? { display: "flow-root" } : undefined}
+              >
                 <div
                   className={`datatable-card rounded border mb-2 ${rowClass}`.trim()}
                   data-row-id={rowIdStr}

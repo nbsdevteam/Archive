@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { all_routes } from "@/router/all_routes";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { useAuth } from "@/shared/auth";
 import { getIsAdmin } from "@/shared/constants/access";
+import { queryClient } from "@/shared/lib/queryClient";
+import { queryKeys } from "@/shared/lib/queryKeys";
 import {
   createAdminUser,
   deleteAdminUser,
@@ -24,6 +27,8 @@ import type {
 } from "../types/permissions.types";
 import type { UserCapabilityPermissions } from "@/shared/types/capabilityPermissions";
 
+const EMPTY_USERS: AdminUser[] = [];
+
 /**
  * State and handlers for the admin permissions / user management page.
  */
@@ -35,9 +40,6 @@ export const usePermissionsPageContainer = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<AdminUserRole | "">("");
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,41 +50,23 @@ export const usePermissionsPageContainer = () => {
 
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const list = await listAdminUsers({
-        search: debouncedSearch.trim() || undefined,
-        role: roleFilter || undefined,
-      });
-      setUsers(list);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load users");
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, roleFilter]);
+  const listParams = {
+    search: debouncedSearch.trim() || undefined,
+    role: roleFilter || undefined,
+  };
+  const usersQuery = useQuery({
+    queryKey: queryKeys.permissions.users(listParams),
+    queryFn: () => listAdminUsers(listParams),
+    enabled: isAdmin,
+  });
+  const users = usersQuery.data ?? EMPTY_USERS;
+  const loading = usersQuery.isLoading;
+  const error = usersQuery.isError ? usersQuery.error?.message || "Failed to load users" : null;
 
-  const didRunRef = useRef(false);
-  const lastKeyRef = useRef("");
-  useEffect(() => {
-    if (!isAdmin) {
-      setLoading(false);
-      return;
-    }
-    const key = `${debouncedSearch}|${roleFilter}`;
-    if (didRunRef.current && lastKeyRef.current === key) return;
-    didRunRef.current = true;
-    lastKeyRef.current = key;
-    fetchUsers();
-    return () => {
-      setTimeout(() => {
-        didRunRef.current = false;
-      }, 0);
-    };
-  }, [debouncedSearch, roleFilter, fetchUsers, isAdmin]);
+  const fetchUsers = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all }),
+    [],
+  );
 
   const openUserDetails = useCallback(async (row: AdminUser) => {
     try {

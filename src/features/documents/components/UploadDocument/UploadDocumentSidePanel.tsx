@@ -5,8 +5,12 @@ import { useForm } from "react-hook-form";
 import { createUploadDocumentResolver } from "../../utils/UploadDocumentSidePanel.validations";
 import { SidePanel } from "@/shared/components/ui";
 import type { SelectOption } from "@/shared/components/ui";
-import { adminApi } from "@/app/adapter/api/admin.api";
-import { listFolders } from "@/app/adapter/api/folders.api";
+import {
+  fetchDepartmentsCached,
+  fetchDocumentTypesCached,
+  fetchFoldersCached,
+  fetchTagsCached,
+} from "@/shared/lib/cachedReads";
 import { useCompaniesStore } from "@/shared/stores/companiesStore";
 import type { Department } from "@/app/adapter/api/admin.api";
 import type { DocumentType } from "@/app/adapter/api/admin.api";
@@ -89,7 +93,7 @@ function UploadDocumentSidePanel({
     let cancelled = false;
     (async () => {
       try {
-        const [deptsRes, tagsRes] = await Promise.all([adminApi.getDepartments(), adminApi.getTags()]);
+        const [deptsRes, tagsRes] = await Promise.all([fetchDepartmentsCached(), fetchTagsCached()]);
         if (!cancelled && deptsRes?.data) setDepartments(deptsRes.data);
         if (!cancelled && tagsRes?.data) setTags(tagsRes.data);
       } catch {
@@ -140,8 +144,8 @@ function UploadDocumentSidePanel({
     (async () => {
       try {
         const [typesRes, foldersRes] = await Promise.all([
-          adminApi.getDocumentTypes(departmentId),
-          listFolders({ department_id: departmentId }),
+          fetchDocumentTypesCached(departmentId),
+          fetchFoldersCached({ department_id: departmentId }),
         ]);
         if (!cancelled) {
           const types = typesRes?.data ?? [];

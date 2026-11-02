@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import { useForm } from 'react-hook-form';
 import { Button, DateField, Input, Modal, ModalFooter } from '@/shared/components/ui';
 import { documentsApi } from '@/app/adapter/api/documents.api';
+import { invalidateDocumentData } from '@/shared/lib/queryInvalidation';
 import { toCanonicalDdMmYyyy } from '@/shared/utils/documents/documentDate';
 
 export type SetRemindersScope = 'selected' | 'all';
@@ -60,6 +61,7 @@ export function SetDocumentRemindersModal({
                 ...(expiryCanon ? { expiry_date: expiryCanon } : {}),
               };
         const result = await documentsApi.setDocumentReminders(payload);
+        void invalidateDocumentData();
         onSuccess?.(result.updated ?? selectedDocumentIds.length);
         handleClose();
       } catch (err) {

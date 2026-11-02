@@ -108,12 +108,25 @@ describe("useDocumentListWithFilters", () => {
     await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
     mockGetDocuments.mockClear();
 
-    result.current.handlePrimaryFilterChange(10);
-    result.current.handleApplyFilter();
+    act(() => {
+      result.current.handlePrimaryFilterChange(10);
+    });
+    act(() => {
+      result.current.handleApplyFilter();
+    });
     await waitFor(() => expect(mockGetDocuments).toHaveBeenCalled());
     mockGetDocuments.mockClear();
 
-    result.current.handleClearFilter();
+    act(() => {
+      result.current.handleClearFilter();
+    });
+
+    // The unfiltered list is already cached, so show it rather than fetching again.
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.appliedFilters).toEqual({});
+    act(() => {
+      void result.current.handleRefresh();
+    });
 
     await waitFor(() => {
       expect(mockGetDocuments).toHaveBeenCalled();

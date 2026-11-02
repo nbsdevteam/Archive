@@ -1,10 +1,26 @@
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useCallback, useMemo, useRef, useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import type { TFunction } from "i18next";
 import { Button, DataTable, Spinner, Alert, Icon, InfoWrapper } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui/DataTable/DataTable.types";
 import type { RowAction, SelectionConfig } from "@/shared/components/ui/DataTable/DataTable.types";
+import { useWindowVirtualList } from "@/shared/hooks/useWindowVirtualList";
 import type { Folder } from "../../types/folders.types";
+
+/** Matches the card's col-xl-3 col-md-6 classes: cards per row at each breakpoint. */
+const GRID_XL_QUERY = "(min-width: 1200px)";
+const GRID_MD_QUERY = "(min-width: 768px)";
+
+function subscribeToGridBreakpoints(onChange: () => void) {
+  const queries = [window.matchMedia(GRID_XL_QUERY), window.matchMedia(GRID_MD_QUERY)];
+  queries.forEach((query) => query.addEventListener("change", onChange));
+  return () => queries.forEach((query) => query.removeEventListener("change", onChange));
+}
+
+function getGridColumnCount() {
+  if (window.matchMedia(GRID_XL_QUERY).matches) return 4;
+  return window.matchMedia(GRID_MD_QUERY).matches ? 2 : 1;
+}
 
 export interface FoldersContentProps {
   t: TFunction;
@@ -81,6 +97,21 @@ export function FoldersContent(props: FoldersContentProps) {
     const id = e.currentTarget.dataset.folderId;
     if (id != null) onDeleteClick(Number(id));
   };
+
+  const isGridVirtual = viewMode === "grid" && !loading && !error && filteredFolders.length > 0;
+  const gridColumnCount = useSyncExternalStore(subscribeToGridBreakpoints, getGridColumnCount);
+  const getGridRowKey = useCallback(
+    (index: number) => filteredFolders[index * gridColumnCount]?.id ?? index,
+    [filteredFolders, gridColumnCount]
+  );
+  const gridList = useWindowVirtualList<HTMLDivElement>({
+    count: Math.ceil(filteredFolders.length / gridColumnCount),
+    estimateSize: 230,
+    getItemKey: getGridRowKey,
+    overscan: 2,
+    enabled: isGridVirtual,
+  });
+
   const listColumns: ColumnDef<Folder>[] = useMemo(
     () => [
       { id: "name", header: t("documents.name", { defaultValue: "Name" }), truncate: true, render: (row) => row.name || "–" },
@@ -129,11 +160,28 @@ export function FoldersContent(props: FoldersContentProps) {
   if (viewMode === "grid") {
     return (
       <div className="card-body h-min-50vh">
-        <div className="row g-3">
-          {filteredFolders.length === 0 ? (
+        {filteredFolders.length === 0 ? (
+          <div className="row g-3">
             <div className="col-12 text-center py-5 text-muted">{t("folders.noFoldersFound", { defaultValue: "No folders found" })}</div>
-          ) : (
-            filteredFolders.map((folder) => (
+          </div>
+        ) : (
+          <div
+            ref={gridList.containerRef}
+            style={{ paddingTop: gridList.paddingTop, paddingBottom: gridList.paddingBottom, overflowAnchor: "none" }}
+          >
+            {gridList.virtualItems.map((virtualRow) => (
+              <div
+                key={virtualRow.key}
+                ref={gridList.measureElement}
+                data-index={virtualRow.index}
+                // Each virtual row is its own .row; pb-3 restores the gutter a single wrapping .row gave.
+                className="pb-3"
+                style={{ display: "flow-root" }}
+              >
+                <div className="row g-3">
+                  {filteredFolders
+                    .slice(virtualRow.index * gridColumnCount, (virtualRow.index + 1) * gridColumnCount)
+                    .map((folder) => (
               <div className="col-xl-3 col-md-6" key={folder.id}>
                 <div className="folders__grid-card-wrapper" role="button" tabIndex={0} data-folder-id={folder.id} onClick={handleGridCardClick} onKeyDown={handleGridCardKeyDown} aria-label={folder.name}>
                   <div className="card folders__grid-card">
@@ -172,9 +220,12 @@ export function FoldersContent(props: FoldersContentProps) {
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -193,6 +244,7 @@ export function FoldersContent(props: FoldersContentProps) {
         responsive="auto"
         cardsBelow="lg"
         selection={selectionConfig}
+        virtualize
       />
     </div>
   );

@@ -120,7 +120,7 @@ describe("useDocumentsTrashPageContainer", () => {
     );
   });
 
-  it("clear filter calls listTrashDocuments without from_date or to_date", async () => {
+  it("clear filter returns to the unfiltered list, served from cache", async () => {
     const { act } = await import("@testing-library/react");
     mockListTrashDocuments.mockResolvedValue(defaultTrashResponse);
 
@@ -143,26 +143,20 @@ describe("useDocumentsTrashPageContainer", () => {
     await act(async () => {
       result.current.filter.handleClearFilter();
     });
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
-    const lastCall = mockListTrashDocuments.mock.calls[mockListTrashDocuments.mock.calls.length - 1][0];
-    expect(lastCall.from_date).toBeUndefined();
-    expect(lastCall.to_date).toBeUndefined();
+    expect(result.current.filter.hasAppliedDateFilter).toBe(false);
+    expect(result.current.loading).toBe(false);
+    expect(mockListTrashDocuments).not.toHaveBeenCalled();
   });
 
-  it("calls restoreDocument and refetches when handleRestore is called", async () => {
+  it("calls restoreDocument when handleRestore is called", async () => {
     const { result } = renderHook(() => useDocumentsTrashPageContainer(), { wrapper });
     await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled());
     mockListTrashDocuments.mockClear();
 
     await result.current.actions.handleRestore(5);
 
-    expect(mockRestoreDocument).toHaveBeenCalledWith(
-      5,
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-      })
-    );
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
+    // The store's restore action invalidates the list; covered by documentStore.test.ts.
+    expect(mockRestoreDocument).toHaveBeenCalledWith(5, expect.any(Object));
   });
 
   it("does not call restore when confirmBatchRestore with no selection", async () => {
@@ -191,13 +185,7 @@ describe("useDocumentsTrashPageContainer", () => {
 
     await result.current.actions.confirmBatchRestore();
 
-    expect(mockRestoreDocument).toHaveBeenCalledWith(
-      [1, 2],
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-      })
-    );
-    await waitFor(() => expect(mockListTrashDocuments).toHaveBeenCalled(), { timeout: 2000 });
+    expect(mockRestoreDocument).toHaveBeenCalledWith([1, 2], expect.any(Object));
   });
 
   it("batchActions when two trashed docs selected: canBatchRestore true, others false", async () => {

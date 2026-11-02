@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { invalidateDocumentData } from "@/shared/lib/queryInvalidation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { handleApiError } from "@/app/adapter/api/client";
@@ -91,6 +92,7 @@ export function useFolderTransfer(
             );
           }
           await documentsApi.batchMoveDocumentsToFolder(transferDocIds, targetFolderId);
+          void invalidateDocumentData();
           toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearSubDocsSelection();
           await loadFolderDocuments();
@@ -101,6 +103,7 @@ export function useFolderTransfer(
             return;
           }
           await documentsApi.batchMoveDocumentsToFolder(transferAttachmentIds, targetFolderId);
+          void invalidateDocumentData();
           toast.success(t("folders.transferSuccess", { defaultValue: "Transferred successfully." }));
           clearAttachmentsSelection();
           refreshAttachmentsForCurrentDocument();

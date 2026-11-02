@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { PageLayout } from "@/shared/layout/PageLayout";
-import { PaginationSection } from "@/shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "@/shared/components/InfiniteScrollFooter";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
@@ -18,7 +18,7 @@ const FoldersPage = () => {
   const { t } = useTranslation();
   const { isDesktopView } = useViewport();
   const { registerHandler } = useShortcuts();
-  const { data, loading, error, filter, paging, selection, actions, modals } =
+  const { data, loading, error, filter, paging, isClientFiltered, selection, actions, modals } =
     useFoldersPageContainer();
 
   const deleteFolderDialog = useConfirmDialog<number>({
@@ -118,19 +118,7 @@ const FoldersPage = () => {
           }}
           onDeleteClick={(id) => deleteFolderDialog.open(id)}
         />
-        {paging.pagination &&
-          (paging.pagination.total_pages > 0 ||
-            (paging.pagination.total ?? 0) > 0) && (
-            <PaginationSection
-              page={paging.pagination.page ?? 1}
-              perPage={paging.pagination.per_page ?? 20}
-              total={paging.pagination.total}
-              totalPages={paging.pagination.total_pages}
-              onPageChange={paging.handlePageChange}
-              onPerPageChange={paging.handlePerPageChange}
-              disabled={loading}
-            />
-          )}
+        <InfiniteScrollFooter paging={paging} auto={!isClientFiltered} />
       </div>
       <FoldersModals
         t={t}

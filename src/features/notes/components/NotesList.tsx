@@ -2,9 +2,10 @@
  * Notes list component with sorting and empty state
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '../../../shared/components/ui';
+import { useWindowVirtualList } from '../../../shared/hooks/useWindowVirtualList';
 import { NoteCard } from './NoteCard';
 import type { NoteListItem } from '../types/notes.types';
 
@@ -20,6 +21,8 @@ export interface NotesListProps {
   showDocument?: boolean;
   showFolder?: boolean;
   emptyMessage?: string;
+  /** Render only the notes near the viewport; for long lists on the page scroll. */
+  virtualize?: boolean;
 }
 
 /**
@@ -36,6 +39,7 @@ export const NotesList = ({
   showDocument = true,
   showFolder = true,
   emptyMessage,
+  virtualize = false,
 }: NotesListProps) => {
   const { t } = useTranslation();
 
@@ -47,6 +51,15 @@ export const NotesList = ({
       return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
   }, [notes]);
+
+  const getItemKey = useCallback((index: number) => sortedNotes[index].id, [sortedNotes]);
+  const virtualList = useWindowVirtualList<HTMLDivElement>({
+    count: sortedNotes.length,
+    estimateSize: 180,
+    getItemKey,
+    overscan: 3,
+    enabled: virtualize && !loading && !error && sortedNotes.length > 0,
+  });
 
   if (loading) {
     return (
@@ -71,6 +84,34 @@ export const NotesList = ({
           {emptyMessage ??
             t('notes.noNotes', { defaultValue: 'No notes found.' })}
         </p>
+      </div>
+    );
+  }
+
+  const renderNote = (note: NoteListItem) => (
+    <NoteCard
+      note={note}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onViewImage={onViewImage}
+      onFolderClick={onFolderClick}
+      showDocument={showDocument}
+      showFolder={showFolder}
+    />
+  );
+
+  if (virtualize) {
+    return (
+      <div
+        ref={virtualList.containerRef}
+        style={{ paddingTop: virtualList.paddingTop, paddingBottom: virtualList.paddingBottom, overflowAnchor: 'none' }}
+      >
+        {virtualList.virtualItems.map((item) => (
+          // flow-root keeps the card's margin inside the measured height.
+          <div key={item.key} ref={virtualList.measureElement} data-index={item.index} style={{ display: 'flow-root' }}>
+            {renderNote(sortedNotes[item.index])}
+          </div>
+        ))}
       </div>
     );
   }

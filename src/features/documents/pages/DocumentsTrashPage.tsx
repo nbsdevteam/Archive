@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { Alert, Icon, DataTable, ConfirmModal, Spinner, Button, MobileActionsMenu } from "@/shared/components/ui";
 import { ListFilter } from "@/shared/components/ui/ListFilter";
-import { PaginationSection } from "@/shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "@/shared/components/InfiniteScrollFooter";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import { useConfirmDialog, useConfirmDialogEmpty } from "@/shared/hooks";
 import { useViewport } from "@/shared/hooks/useViewport";
@@ -18,8 +18,8 @@ import "@/features/documents/styles/documents.css";
 const DocumentsTrashPage = () => {
   const { t } = useTranslation();
   const { isMobileView } = useViewport();
-  const { data, loading, error, selection, actions, modals, filter } = useDocumentsTrashPageContainer();
-  const { routes, documents, pagination, isAdmin } = data;
+  const { data, loading, error, selection, actions, modals, filter, paging } = useDocumentsTrashPageContainer();
+  const { routes, documents, isAdmin } = data;
   const { selectedDocumentIds, isSomeSelected, selectionConfig, batchActions } = selection;
   const { isRestoring, isPermanentDeleting } = modals;
 
@@ -74,9 +74,7 @@ const DocumentsTrashPage = () => {
       {loading ? t("common.loading", { defaultValue: "Loading..." }) : (
         <>
           <span className="Num">{documents.length}</span>
-          {pagination && pagination.total > documents.length && (
-            <> / {pagination.total}</>
-          )}{" "}
+          {paging.total > documents.length && <> / {paging.total}</>}{" "}
           {documents.length === 1
             ? t("documents.document", { defaultValue: "document" })
             : t("documents.documents", { defaultValue: "documents" })}
@@ -241,20 +239,10 @@ const DocumentsTrashPage = () => {
               rowActions={rowActions}
               selection={data.isAdmin ? selectionConfig : undefined}
               actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
+              virtualize
             />
           </div>
-          {/* Generic pagination: same component and layout as Documents page (per-page + First/Prev/numbers/Next/Last). */}
-          {pagination && (pagination.total_pages > 0 || (pagination.total ?? 0) > 0) && (
-            <PaginationSection
-              page={pagination.page ?? 1}
-              perPage={pagination.per_page ?? 20}
-              total={pagination.total}
-              totalPages={pagination.total_pages}
-              onPageChange={actions.handlePageChange}
-              onPerPageChange={actions.handlePerPageChange}
-              disabled={loading}
-            />
-          )}
+          <InfiniteScrollFooter paging={paging} />
         </div>
 
         <ConfirmModal

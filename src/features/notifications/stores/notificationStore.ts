@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { notificationsApi, Notification } from '../../../app/adapter/api/notifications.api';
 import { handleApiError } from '../../../app/adapter/api/client';
+import { queryClient } from '../../../shared/lib/queryClient';
+import { queryKeys } from '../../../shared/lib/queryKeys';
 
 interface NotificationState {
   notifications: Notification[];
@@ -26,9 +28,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await notificationsApi.getNotifications({
-        unread_only: unreadOnly,
-        per_page: 50,
+      const params = { unread_only: unreadOnly, per_page: 50 };
+      const response = await queryClient.fetchQuery({
+        queryKey: queryKeys.notifications.list(params),
+        queryFn: () => notificationsApi.getNotifications(params),
       });
 
       const list = Array.isArray(response?.data) ? response.data : [];
@@ -49,6 +52,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   markAsRead: async (id) => {
     try {
       await notificationsApi.markAsRead(id);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
 
       // Update local state
       const notifications = get().notifications.map((notif) =>
@@ -66,6 +70,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   markAllAsRead: async () => {
     try {
       await notificationsApi.markAllAsRead();
+      void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
 
       // Update local state
       const notifications = get().notifications.map((notif) => ({

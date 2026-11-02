@@ -5,11 +5,13 @@ import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { PageLayout } from "@/shared/layout/PageLayout";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
-import { PaginationSection } from "@/shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "@/shared/components/InfiniteScrollFooter";
 import { Button, Icon, Spinner, DataTable, SearchInput } from "@/shared/components/ui";
 import type { ColumnDef } from "@/shared/components/ui";
 import { TruncatedCell } from "@/shared/components/ui/DataTable/datatableShared";
 import { all_routes } from "@/router/all_routes";
+import { useInfiniteList } from "@/shared/hooks/useInfiniteList";
+import { queryKeys } from "@/shared/lib/queryKeys";
 import { getDocumentsReport } from "@/app/adapter/api/documents";
 import "@/features/documents/styles/documents.css";
 import type {
@@ -20,6 +22,8 @@ import type {
 import { formatDocumentDateDisplay } from "@/shared/utils/documents/documentDate";
 
 type Phase = "form" | "loading" | "results";
+
+const REPORT_PAGE_SIZE = 50;
 
 const DEFAULT_FORM: ReportParams = {
   from_date: "",
@@ -206,13 +210,35 @@ const DocumentsReportPage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  const [phase, setPhase] = useState<Phase>("form");
   const [form, setForm] = useState<ReportParams>(DEFAULT_FORM);
-  const [result, setResult] = useState<ReportResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [pageLoading, setPageLoading] = useState(false);
+  /** Filters of the report being shown; null while on the form. Page and size are set per request. */
+  const [submitted, setSubmitted] = useState<ReportParams | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  // staleTime 0: a report is an explicit request for current figures, so a cached one only bridges
+  // the gap while it revalidates.
+  const {
+    items: reportRows,
+    firstPage: result,
+    loading: reportLoading,
+    error,
+    refetch: refetchReport,
+    paging,
+  } = useInfiniteList<ReportResult, ReportDocument>({
+    queryKey: queryKeys.documents.report(submitted ?? {}),
+    perPage: REPORT_PAGE_SIZE,
+    enabled: submitted != null,
+    staleTime: 0,
+    fetchPage: (page, per_page) => getDocumentsReport({ ...submitted, page, per_page }),
+    getItems: (response) => response.data,
+    getMeta: (response) => response.pagination,
+    getItemId: (doc) => doc.id,
+    getErrorMessage: (err) => (err instanceof Error ? err.message : t("documents.report.fetchFailed")),
+  });
+
+  /** A failed first page falls back to the form, which shows the error. */
+  const phase: Phase = submitted == null ? "form" : reportLoading ? "loading" : result ? "results" : "form";
 
   /** Select options for confidentiality (reuses global confidentiality labels). */
   const confidentialityOptions = useMemo(
@@ -270,67 +296,16 @@ const DocumentsReportPage = () => {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   /** Fetch the report using the current form values. */
-  const handleSubmit = useCallback(async () => {
-    setPhase("loading");
-    setError(null);
+  const handleSubmit = useCallback(() => {
     setSearch("");
-    try {
-      const data = await getDocumentsReport(buildPayload({ ...form, page: 1 }));
-      setForm((prev) => ({ ...prev, page: 1 }));
-      setResult(data);
-      setPhase("results");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t("documents.report.fetchFailed")
-      );
-      setPhase("form");
+    const { page: _page, per_page: _perPage, ...filters } = buildPayload({ ...form, page: 1 });
+    if (submitted != null && JSON.stringify(filters) === JSON.stringify(submitted)) {
+      // Same key: the query will not restart by itself (e.g. retrying after a failure).
+      void refetchReport();
+    } else {
+      setSubmitted(filters);
     }
-  }, [form, t]);
-
-  /** Navigate to a different results page. */
-  const handlePageChange = useCallback(
-    async (newPage: number) => {
-      if (!result) return;
-      setPageLoading(true);
-      setError(null);
-      try {
-        const data = await getDocumentsReport(buildPayload({ ...form, page: newPage }));
-        setForm((prev) => ({ ...prev, page: newPage }));
-        setResult(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t("documents.report.loadPageFailed")
-        );
-      } finally {
-        setPageLoading(false);
-      }
-    },
-    [form, result, t]
-  );
-
-  /** Change server page size (matches Documents list); resets to page 1 and refetches. */
-  const handlePerPageChange = useCallback(
-    async (newPerPage: number) => {
-      if (!result) return;
-      const per = Math.min(500, Math.max(1, newPerPage));
-      setPageLoading(true);
-      setError(null);
-      try {
-        const data = await getDocumentsReport(buildPayload({ ...form, per_page: per, page: 1 }));
-        setForm((prev) => ({ ...prev, per_page: per, page: 1 }));
-        setResult(data);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : t("documents.report.changePageSizeFailed")
-        );
-      } finally {
-        setPageLoading(false);
-      }
-    },
-    [form, result, t]
-  );
+  }, [form, submitted, refetchReport]);
 
   /** Export all documents to Excel without pagination. */
   const handleExportToExcel = useCallback(async () => {
@@ -399,18 +374,15 @@ const DocumentsReportPage = () => {
 
   /** Reset to the filter form without clearing field values (so user can refine). */
   const handleNewSearch = useCallback(() => {
-    setPhase("form");
-    setResult(null);
-    setError(null);
+    setSubmitted(null);
     setSearch("");
   }, []);
 
   /** Client-side search across visible row text (including role and parent id). */
   const displayedData = useMemo(() => {
-    if (!result?.data) return [];
-    if (!search.trim()) return result.data;
+    if (!search.trim()) return reportRows;
     const q = search.toLowerCase();
-    return result.data.filter((d) => {
+    return reportRows.filter((d) => {
       const parentStr = d.parent_document_id != null ? String(d.parent_document_id) : "";
       const roleStr = d.document_role ? String(d.document_role).toLowerCase() : "";
       return (
@@ -426,7 +398,7 @@ const DocumentsReportPage = () => {
         formatDocumentDateDisplay(d.document_date).toLowerCase().includes(q)
       );
     });
-  }, [result?.data, search]);
+  }, [reportRows, search]);
 
   /** DataTable column definitions – Name gets flexible width; others max-width + truncate + tooltip. */
   const columns = useMemo<ColumnDef<ReportDocument>[]>(
@@ -892,9 +864,6 @@ const DocumentsReportPage = () => {
                 {result.summary.total.toLocaleString(i18n.language)}
               </span>
               <span className="drm-summary__item">
-                <strong>{t("documents.report.pages")}:</strong> {result.pagination.total_pages}
-              </span>
-              <span className="drm-summary__item">
                 <strong>{t("documents.report.summaryFrom")}:</strong>{" "}
                 {formatReportDate(result.summary.from_date, i18n.language)}
               </span>
@@ -934,7 +903,7 @@ const DocumentsReportPage = () => {
                       <p className="text-muted fs-12 mt-1 mb-0">
                         {t("documents.report.showingCount", {
                           shown: displayedData.length,
-                          total: result.data.length,
+                          total: reportRows.length,
                         })}
                       </p>
                     ) : undefined
@@ -946,7 +915,7 @@ const DocumentsReportPage = () => {
                 size="md"
                 className="d-inline-flex align-items-center btn-outline-theme flex-shrink-0"
                 onClick={() => void handleExportToExcel()}
-                disabled={exportLoading || pageLoading || !result.data.length}
+                disabled={exportLoading || !reportRows.length}
                 title={t("documents.report.exportToExcel")}
                 aria-label={t("documents.report.exportToExcel")}
               >
@@ -967,12 +936,6 @@ const DocumentsReportPage = () => {
 
           {/* Table body — match Documents list card body (min height + full-width scroll) */}
           <div className="card-body h-min-50vh p-0">
-            {pageLoading && (
-              <div className="d-flex align-items-center gap-2 px-3 py-2 text-muted fs-13 border-bottom">
-                <Spinner size="sm" />
-                {t("documents.report.loadingPage")}
-              </div>
-            )}
             {error && (
               <div className="alert alert-danger m-3 mb-0 fs-13 py-2">{error}</div>
             )}
@@ -981,27 +944,16 @@ const DocumentsReportPage = () => {
                 data={displayedData}
                 getRowId={(row) => row.id}
                 columns={columns}
-                loading={pageLoading}
                 emptyMessage={t("documents.report.emptyMessage")}
                 tableClassName="table table-hover table-sm mb-0 drm-table"
                 responsive="table"
+                virtualize
+                estimatedRowHeight={41}
               />
             </div>
           </div>
 
-          {/* Pagination + per page (Documents list pattern); always show in results so page size is controllable even when total is 0 */}
-          {result.pagination && (
-            <PaginationSection
-              page={result.pagination.page ?? 1}
-              perPage={result.pagination.per_page ?? form.per_page ?? 50}
-              total={result.pagination.total}
-              totalPages={result.pagination.total_pages}
-              onPageChange={(p) => void handlePageChange(p)}
-              onPerPageChange={(per) => void handlePerPageChange(per)}
-              disabled={pageLoading}
-              perPageOptions={[10, 20, 50, 100, 200, 500]}
-            />
-          )}
+          <InfiniteScrollFooter paging={paging} auto={!search.trim()} />
 
           {/* Card footer: list actions only */}
           <div className="card-footer d-flex align-items-center justify-content-end gap-2 flex-wrap">

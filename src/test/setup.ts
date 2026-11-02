@@ -1,5 +1,11 @@
 import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import { afterEach, vi } from "vitest";
+import { queryClient } from "../shared/lib/queryClient";
+
+// The query cache is an app-wide singleton; without this, responses leak between tests.
+afterEach(() => {
+  queryClient.clear();
+});
 
 // Mock window.matchMedia (Vitest uses vi.fn, not jest.fn)
 Object.defineProperty(window, "matchMedia", {

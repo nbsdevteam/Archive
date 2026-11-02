@@ -53,6 +53,7 @@ export function DocumentsTableCard({
         selection={selectionConfig}
         actionsColumnHeader={t("common.actions", { defaultValue: "Actions" })}
         rowClassName={rowClassName}
+        virtualize
       />
     </div>
   );

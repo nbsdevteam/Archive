@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "../../../app/adapter/api/admin.api";
 import { handleApiError } from "../../../app/adapter/api/client";
 // Import from shared so dashboard chunk does not pull in feature-folders (which statically
@@ -6,6 +7,7 @@ import { handleApiError } from "../../../app/adapter/api/client";
 // Use shared useNotifications to avoid circular chunk: feature-dashboard -> feature-notifications -> feature-dashboard.
 import { useFolders, useDocumentCount, useTrashDocumentCount, useNotifications } from "../../../shared/hooks";
 import { groupFoldersByDepartment } from "../utils/groupFoldersByDepartment";
+import { queryKeys } from "../../../shared/lib/queryKeys";
 
 // Define constants outside component to prevent recreation on every render
 const DOCUMENT_PARAMS_ARCHIVED = { status: "archived" as const, per_page: 1, page: 1 };
@@ -22,10 +24,7 @@ type DashboardStats = {
 };
 
 export const useDashboardPageContainer = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
   const [uploadPanelOpen, setUploadPanelOpen] = useState(false);
-  const hasFetchedStats = useRef(false);
 
   const {
     folders,
@@ -46,9 +45,10 @@ export const useDashboardPageContainer = () => {
     error: notificationsError,
   } = useNotifications(NOTIFICATIONS_OPTIONS);
 
-  /** Fetches dashboard stats (active document counts, department breakdown) from the API. */
-  const fetchDashboardStats = useCallback(async () => {
-    try {
+  /** Dashboard stats (active document counts, department breakdown) from the API. */
+  const statsQuery = useQuery({
+    queryKey: queryKeys.dashboard.stats(),
+    queryFn: async (): Promise<DashboardStats> => {
       const res = await adminApi.getDashboardStats();
       const data = res && typeof res === "object" ? res : {};
       const payload =
@@ -57,21 +57,13 @@ export const useDashboardPageContainer = () => {
           : "total_documents" in data || "by_department" in data
             ? data
             : {};
-      setStats(payload as DashboardStats);
-      setStatsError(null);
-    } catch (err) {
-      setStatsError(handleApiError(err));
-      setStats({});
-    }
-  }, []);
-
-  /** Fetches dashboard stats once on mount, protected against StrictMode double calls. */
-  useEffect(() => {
-    // Prevent double fetch in StrictMode
-    if (hasFetchedStats.current) return;
-    hasFetchedStats.current = true;
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+      return payload as DashboardStats;
+    },
+  });
+  const stats: DashboardStats | null = statsQuery.data ?? (statsQuery.isError ? {} : null);
+  const statsError = statsQuery.isError ? handleApiError(statsQuery.error) : null;
+  const { refetch: refetchStats } = statsQuery;
+  const fetchDashboardStats = useCallback(() => refetchStats(), [refetchStats]);
 
   /**
    * Re-fetches all dashboard counts (folders, active/archived/trashed documents, stats).

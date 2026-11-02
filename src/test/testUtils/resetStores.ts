@@ -6,17 +6,10 @@ import { useDocumentStore } from "../../features/documents/stores/documentStore"
 import { useDepartmentsStore } from "../../shared/stores/departmentsStore";
 
 const initialDocumentState = {
-  documents: [],
   currentDocument: null,
   isLoading: false,
   isDownloading: false,
   error: null,
-  pagination: {
-    total: 0,
-    page: 1,
-    per_page: 20,
-    total_pages: 0,
-  },
 };
 
 const initialDepartmentsState = {

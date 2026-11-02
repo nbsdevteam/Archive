@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { invalidateDocumentData } from "../lib/queryInvalidation";
 import { toast } from "react-toastify";
 import { documentsApi } from "../../app/adapter/api/documents.api";
 import { handleApiError } from "../../app/adapter/api/client";
@@ -55,6 +56,7 @@ export const useAttachmentOperations = (
             documentsApi.deleteAttachment(documentId, attachmentId)
           )
         );
+        void invalidateDocumentData();
         const failedCount = results.filter((r) => r.status === "rejected").length;
         if (failedCount === attachmentIds.length) {
           toast.error("Failed to delete attachment(s).");
@@ -92,6 +94,7 @@ export const useAttachmentOperations = (
       setIsUpdatingAttachment(true);
       try {
         await documentsApi.updateAttachment(documentId, attachmentId, payload);
+        void invalidateDocumentData();
         toast.success("Attachment updated.");
         await options?.onSuccess?.();
         return true;

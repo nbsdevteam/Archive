@@ -9,6 +9,7 @@ import {
   clearExpiryReminderModalSession,
 } from "../utils/storage";
 import { useCapabilityPermissionsStore } from "../stores/capabilityPermissionsStore";
+import { clearQueryCache } from "../lib/queryClient";
 import type { User } from "./types";
 
 /**
@@ -34,6 +35,7 @@ export const useAuth = () => {
       clearStoredUser();
       clearTokens();
       clearExpiryReminderModalSession();
+      clearQueryCache();
       useCapabilityPermissionsStore.getState().reset();
       const { useDepartmentsStore } = await import("../stores/departmentsStore");
       useDepartmentsStore.getState().clearDepartments();

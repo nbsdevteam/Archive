@@ -8,13 +8,13 @@ import { useTranslation } from "react-i18next";
 import CollapseHeader from "@/app/shell/collapse-header/collapse-header";
 import { all_routes } from "../../../router/all_routes";
 import { Button, ConfirmModal, Icon, SidePanel, MobileActionsMenu } from "../../../shared/components/ui";
-import { PaginationSection } from "../../../shared/components/PaginationSection";
+import { InfiniteScrollFooter } from "../../../shared/components/InfiniteScrollFooter";
 import { PageLayout } from "../../../shared/layout/PageLayout";
-import { useConfirmDialog, usePaginationFromUrl } from "../../../shared/hooks";
+import { useConfirmDialog } from "../../../shared/hooks";
 import { useViewport } from "@/shared/hooks/useViewport";
 import { useShortcuts } from "@/shared/shortcuts/ShortcutsContext";
 import { SHORTCUT_KEYS } from "@/shared/shortcuts/shortcutsRegistry";
-import { useNotes, useNoteMutations } from "../hooks/useNotes";
+import { useInfiniteNotes, useNoteMutations } from "../hooks/useNotes";
 import { useNoteEditorHandlers } from "../hooks/useNoteEditorHandlers";
 import { NotesList, NoteEditor, NoteImageViewerModal } from "../components";
 import type { NoteListItem } from "../types/notes.types";
@@ -25,21 +25,8 @@ const NotesPage = () => {
   const navigate = useNavigate();
   const { isDesktopView, isMobileView } = useViewport();
   const { registerHandler } = useShortcuts();
-  const { page: urlPage, perPage: urlPerPage, setPage, setPerPage } = usePaginationFromUrl(50);
 
-  const {
-    notes,
-    loading,
-    error,
-    pagination,
-    refresh,
-    goToPage,
-  } = useNotes({
-    includePrivate: true,
-    autoLoad: true,
-    perPage: urlPerPage,
-    initialPage: urlPage,
-  });
+  const { notes, loading, error, refresh, paging } = useInfiniteNotes({ includePrivate: true });
 
   const {
     create: createNote,
@@ -82,22 +69,6 @@ const NotesPage = () => {
       navigate(routes.folderDetail.replace(":id", String(folderId)));
     },
     [navigate, routes.folderDetail]
-  );
-
-  const handlePageChange = useCallback(
-    (p: number) => {
-      setPage(p);
-      goToPage(p);
-    },
-    [setPage, goToPage]
-  );
-
-  const handlePerPageChange = useCallback(
-    (pp: number) => {
-      setPerPage(pp);
-      // URL updates to page=1; useNotes effect will reload with new perPage
-    },
-    [setPerPage]
   );
 
   const pageTitle = t("notes.title", { defaultValue: "Notes" });
@@ -157,9 +128,9 @@ const NotesPage = () => {
             <h5 className="card-title mb-0">
               {t("notes.allNotes", { defaultValue: "All notes" })}
             </h5>
-            {pagination && pagination.total > 0 && (
+            {paging.total > 0 && (
               <span className="badge bg-secondary">
-                {t("common.total", { defaultValue: "Total" })}: {pagination.total}
+                {t("common.total", { defaultValue: "Total" })}: {paging.total}
               </span>
             )}
           </div>
@@ -174,22 +145,13 @@ const NotesPage = () => {
               onFolderClick={handleNavigateToFolder}
               showDocument={true}
               showFolder={true}
+              virtualize
               emptyMessage={t("notes.noNotes", {
                 defaultValue: "No notes found.",
               })}
             />
 
-            {pagination && pagination.total_pages > 0 && (
-              <PaginationSection
-                page={pagination.page}
-                perPage={pagination.per_page}
-                total={pagination.total}
-                totalPages={pagination.total_pages}
-                onPageChange={handlePageChange}
-                onPerPageChange={handlePerPageChange}
-                disabled={loading}
-              />
-            )}
+            <InfiniteScrollFooter paging={paging} />
           </div>
         </div>
 
