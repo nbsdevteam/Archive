@@ -10,6 +10,7 @@ import { HeaderSearch } from "./HeaderSearch";
 import { HeaderArchiveActions } from "./HeaderArchiveActions";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 import { HeaderMobileMenu } from "./HeaderMobileMenu";
+import { ThemeToggle } from "../../../shared/components/ui/ThemeToggle";
 
 /** True when current language is Arabic (handles ar, ar-SA, etc.). */
 function isArabic(i18n: {
@@ -110,7 +111,7 @@ const Header = React.memo(() => {
                   >
                     <Globe size={16} aria-hidden />
                   </button>
-                  <div className="dropdown-menu dropdown-menu-end">
+                  <div className="dropdown-menu dropdown-menu-end header-lang-menu">
                     <button
                       type="button"
                       className={`dropdown-item d-flex align-items-center ${!isAr ? "active" : ""}`}
@@ -138,6 +139,9 @@ const Header = React.memo(() => {
                       العربية
                     </button>
                   </div>
+                </div>
+                <div className="me-1">
+                  <ThemeToggle variant="menubar" />
                 </div>
                 <div className="me-1">
                   <Link

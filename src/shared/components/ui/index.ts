@@ -23,3 +23,4 @@ export * from "./MobileActionsMenu";
 export * from "./InfoWrapper";
 export * from "./Checkbox";
 export * from "./ColorPicker";
+export * from "./ThemeToggle";

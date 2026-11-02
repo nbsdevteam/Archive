@@ -31,6 +31,17 @@
         document.head.appendChild(link);
       }
       link.href = isAr ? '/assets/css/bootstrap.rtl.min.css' : '/assets/css/bootstrap.min.css';
+
+      // Pre-paint theme: saved toggle choice, else OS preference (mirrors themeModeStore)
+      var mode = null;
+      try { mode = localStorage.getItem('themeMode'); } catch (e) {}
+      if (mode !== 'light' && mode !== 'dark') {
+        mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      doc.setAttribute('data-theme', mode);
+      doc.setAttribute('data-bs-theme', mode);
+      doc.setAttribute('data-nbs-theme', mode);
+      doc.style.colorScheme = mode;
     })();
   </script>
   <title>NBS Archive System</title>

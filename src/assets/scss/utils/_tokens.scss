@@ -1,3 +1,14 @@
+// SYSTEM STYLE TOKENS - single source of truth for light/dark colors.
+//
+// Rules for the app:
+//  - Style surfaces, text, borders and inputs with these --app-* tokens, never with raw
+//    $white / #fff / $gray-* / darkmode-* values. Tokens switch with html[data-theme].
+//  - Third-party libraries (NBS component library, Bootstrap) are bridged to these tokens
+//    in src/shared/styles/nbs-theme-bridge.css so they can never drift from the app theme
+//    (the NBS library otherwise follows the OS setting, not the in-app toggle).
+//  - To change a color in one theme, change it here; to add a role, add it to :root AND
+//    html[data-theme="dark"], then document it in docs/theme-tokens.md.
+//
 // Theme color comes from CSS vars (--primary-rgb). Use SCSS variables only for non-theme values (e.g. success, danger, spacing).
 // Design tokens: src/shared/design-tokens/theme.ts (themeColorStore applies them at runtime).
 @use "variables";
@@ -9,9 +20,22 @@
   /* Dark-mode inner profile background; themeColorStore sets per theme (THEME_PROFILE_INNER_BG) */
   --app-profile-inner-bg: #2c2419;
 
+  /* Surfaces: canvas (page) < surface (header, sidebar, cards, modals, dropdowns) */
   --app-body-bg: #{variables.$body-bg};
-  --app-surface-bg: #{variables.$default-background};
+  --app-surface-bg: #ffffff;
+  --app-surface-muted-bg: #{variables.$default-background};
+  --app-content-bg: rgba(var(--primary-rgb), 0.04);
+  --app-hover-bg: rgba(17, 24, 39, 0.05);
+  --app-overlay-bg: rgba(0, 0, 0, 0.5);
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* Floating menus (header dropdowns): lifted above the surface so they never blend into it */
+  --app-menu-bg: #ffffff;
+  --app-menu-border: #{variables.$border-color};
+  --app-menu-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --app-shadow-md: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 18px rgba(0, 0, 0, 0.08);
+  --app-text-on-primary: #ffffff;
   --app-border-color: #{variables.$border-color};
+  --app-border-subtle-color: #f1f2f4;
   --app-text-color: #{variables.$text-color};
   --app-muted-color: #{variables.$text-muted};
   --app-title-color: #{variables.$title-color};
@@ -25,16 +49,50 @@
   --bs-heading-color: var(--app-title-color);
   --bs-border-color: var(--app-border-color);
   --bs-link-color: var(--app-link-color);
+
+  /* Form control tokens: single source for .form-control, .form-select, .input-group-text, .form-check-input */
+  --app-input-bg: #{variables.$form-control-bg};
+  --app-input-color: #{variables.$gray-900};
+  --app-input-border: #{variables.$input-border};
+  --app-input-border-hover: #{variables.$gray-400};
+  --app-input-placeholder: #{variables.$gray-500};
+  --app-input-icon: #{variables.$gray-700};
+  --app-input-disabled-bg: #{variables.$body-bg};
+  --app-input-focus-ring: rgba(var(--primary-rgb), 0.25);
+
+  /* Auth pages (login / forgot / reset) */
+  --auth-page-bg: linear-gradient(115.43deg, #ffffff 0.45%, #fff3ed 100%);
 }
 
 html[data-theme="dark"],
 body[data-theme="dark"] {
   --app-body-bg: #{variables.$darkmode-white};
   --app-surface-bg: #{variables.$darkmode-light};
+  --app-surface-muted-bg: #1a1d22;
+  --app-content-bg: #{variables.$darkmode-white};
+  --app-hover-bg: rgba(255, 255, 255, 0.06);
+  --app-overlay-bg: rgba(0, 0, 0, 0.7);
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --app-menu-bg: #1c2026;
+  --app-menu-border: #3a414c;
+  --app-menu-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --app-shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.45);
   --app-border-color: #{variables.$darkmode-gray-300};
+  --app-border-subtle-color: #{variables.$darkmode-gray-200};
   --app-text-color: #{variables.$darkmode-dark};
-  --app-muted-color: #{variables.$darkmode-gray-500};
+  --app-muted-color: #{variables.$darkmode-gray-400};
   --app-title-color: #{variables.$darkmode-gray-900};
   --app-link-color: #{variables.$primary};
   --app-link-muted-color: #{variables.$darkmode-gray-500};
+
+  --app-input-bg: #181b20;
+  --app-input-color: #{variables.$darkmode-gray-900};
+  --app-input-border: #{variables.$darkmode-gray-300};
+  --app-input-border-hover: #{variables.$darkmode-gray-600};
+  --app-input-placeholder: #8b93a1;
+  --app-input-icon: #{variables.$darkmode-gray-400};
+  --app-input-disabled-bg: #{variables.$darkmode-light};
+  --app-input-focus-ring: rgba(var(--primary-rgb), 0.35);
+
+  --auth-page-bg: linear-gradient(115.43deg, #0d0d0d 0.45%, #17130f 100%);
 }

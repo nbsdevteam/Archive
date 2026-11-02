@@ -1,46 +1,125 @@
-html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] {
-  background-color: var(--app-surface-bg);
-  color: var(--app-text-color);
-  border-color: var(--app-border-color);
+/**
+ * Theme bridge: makes third-party UI follow the in-app theme (html[data-theme]).
+ *
+ * Why: @nbs/component-library switches to dark via @media (prefers-color-scheme: dark),
+ * i.e. the OS setting. The app toggle can disagree with the OS, which produced a dark
+ * sidebar/cards next to a light page. Here every --nbs-* token is derived from the --app-*
+ * tokens (src/assets/scss/utils/_tokens.scss), and the library's hardcoded OS-dark rules
+ * are pinned to the app theme.
+ *
+ * Load after @nbs/component-library/dist/styles.css (see main.tsx).
+ * Selector `:root[data-theme]` outranks the library's plain `:root` / `[data-nbs-theme]`.
+ */
+
+/* ---- 1. Derived from app tokens (identical logic for light and dark) ---- */
+:root[data-theme] {
+  --nbs-bg: var(--app-surface-bg);
+  --nbs-bg-muted: var(--app-surface-muted-bg);
+  --nbs-bg-overlay: var(--app-overlay-bg);
+  --nbs-surface: var(--app-surface-bg);
+  --nbs-surface-border: var(--app-border-color);
+  --nbs-surface-border-subtle: var(--app-border-subtle-color);
+
+  --nbs-text: var(--app-title-color);
+  --nbs-text-muted: var(--app-muted-color);
+  --nbs-text-on-primary: var(--app-text-on-primary);
+
+  --nbs-primary: rgb(var(--primary-rgb));
+  --nbs-primary-hover: rgba(var(--primary-rgb), 0.9);
+  --nbs-primary-subtle: rgba(var(--primary-rgb), 0.12);
+
+  --nbs-sidebar-bg: var(--app-surface-bg);
+  --nbs-sidebar-border: var(--app-border-color);
+  --nbs-sidebar-text: var(--app-title-color);
+  --nbs-sidebar-text-muted: var(--app-muted-color);
+
+  --nbs-input-bg: var(--app-input-bg);
+  --nbs-input-border: var(--app-input-border);
+  --nbs-input-focus-border: rgb(var(--primary-rgb));
+  --nbs-input-focus-shadow: var(--app-input-focus-ring);
+
+  --nbs-shadow-sm: var(--app-shadow-sm);
+  --nbs-shadow: var(--app-shadow-md);
+  --nbs-shadow-lg: var(--app-shadow-md);
+
+  --nbs-dialog-backdrop: var(--app-overlay-bg);
+  --nbs-tabs-hover-bg: var(--app-hover-bg);
+  --nbs-accordion-trigger-hover: var(--app-hover-bg);
+  --nbs-nav-menu-hover: var(--app-hover-bg);
+  --nbs-command-selected: var(--app-hover-bg);
+  --nbs-table-hover-bg: var(--app-hover-bg);
 }
 
-html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] [class*="sidebar-module__sectionLabel"] {
-  color: var(--app-muted-color);
+/* ---- 2. Semantic status colors (no app token yet): pin to the matching theme ---- */
+:root[data-theme="light"] {
+  --nbs-secondary: #6c757d;
+  --nbs-secondary-hover: #5c636a;
+  --nbs-success: #198754;
+  --nbs-success-subtle: rgba(25, 135, 84, 0.15);
+  --nbs-danger: #dc3545;
+  --nbs-danger-subtle: rgba(220, 53, 69, 0.15);
+  --nbs-warning: #ffc107;
+  --nbs-warning-subtle: rgba(255, 193, 7, 0.2);
+  --nbs-info: #0dcaf0;
+  --nbs-info-subtle: rgba(13, 202, 240, 0.15);
+  --nbs-light: #f8f9fa;
+  --nbs-dark: #212529;
+  --nbs-input-invalid-border: #dc3545;
+  --nbs-input-valid-border: #198754;
 }
 
-html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button {
-  color: var(--app-text-color);
+:root[data-theme="dark"] {
+  --nbs-secondary: #6c757d;
+  --nbs-secondary-hover: #5c636a;
+  --nbs-success: #75b798;
+  --nbs-success-subtle: rgba(34, 197, 94, 0.2);
+  --nbs-danger: #f1aeb5;
+  --nbs-danger-subtle: rgba(220, 53, 69, 0.2);
+  --nbs-warning: #ffda6a;
+  --nbs-warning-subtle: rgba(255, 193, 7, 0.2);
+  --nbs-info: #6edff6;
+  --nbs-info-subtle: rgba(13, 202, 240, 0.2);
+  --nbs-light: #343a40;
+  --nbs-dark: #dee2e6;
+  --nbs-input-invalid-border: #f1aeb5;
+  --nbs-input-valid-border: #75b798;
 }
 
-html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button:hover,
-html[data-theme="dark"] .sidebar [class*="sidebar-module__sidebar"] button:focus {
-  background-color: var(--app-body-bg);
+/* ---- 3. Library rules hardcoded to the OS dark media query: pin to app theme ---- */
+html[data-theme="light"] .sidebar [class*="sidebar-module__sidebar"] button[class*="hoverNeutral"]:hover,
+html[data-theme="light"] .sidebar [class*="sidebar-module__sidebar"] button[class*="hoverNeutral"]:focus-visible {
+  background-color: var(--app-hover-bg);
   color: var(--app-title-color);
 }
 
+html[data-theme="light"] .sidebar [class*="sidebar-module__sidebar"] button[class*="activeNeutral"] {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--app-title-color);
+}
+
+/* Glass cards: undo the OS-dark border/shine when the app theme is light */
+html[data-theme="light"] [class*="glass-effect-module__perfumeGlass"] {
+  background: hsla(0, 0%, 100%, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme="light"] [class*="glass-effect-module__perfumeGlass"]:hover {
+  background: hsla(0, 0%, 100%, 0.06);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] [class*="glass-effect-module__perfumeGlass"]::before {
+  background: none;
+}
+
+/* ---- 4. App markup that lives inside the sidebar ---- */
 html[data-theme="dark"] .sidebar .bg-light {
-  background-color: var(--app-surface-bg) !important;
+  background-color: var(--app-surface-muted-bg) !important;
   color: var(--app-text-color) !important;
 }
 
 html[data-theme="dark"] .sidebar .bg-light h6,
 html[data-theme="dark"] .sidebar .bg-light p {
   color: inherit;
-}
-
-html[data-theme="dark"] [class*="Card-module__card"] {
-  background-color: var(--app-surface-bg);
-  border-color: var(--app-border-color);
-  color: var(--app-text-color);
-}
-
-html[data-theme="dark"] [class*="Card-module__header"],
-html[data-theme="dark"] [class*="Card-module__body"],
-html[data-theme="dark"] [class*="Card-module__footer"] {
-  background-color: transparent;
-  color: inherit;
-}
-
-html[data-theme="dark"] [class*="Card-module__card"]:hover {
-  background-color: var(--app-body-bg);
 }

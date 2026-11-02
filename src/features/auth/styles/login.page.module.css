@@ -8,7 +8,8 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  background: var(--bs-light, #f3f4f6);
+  background: var(--app-input-disabled-bg);
+  border: 1px solid var(--app-input-border);
   border-radius: 10px;
   padding: 4px;
   position: relative;
@@ -44,7 +45,7 @@
   padding: 10px 16px;
   font-size: 0.9rem;
   font-weight: 400;
-  color: var(--bs-secondary, #6c757d);
+  color: var(--app-muted-color);
   cursor: pointer;
   border-radius: 8px;
   transition: color 0.25s ease;
@@ -52,13 +53,13 @@
 }
 
 .roleOptionInput:focus-visible + .roleOptionLabel {
-  outline: 2px solid var(--bs-primary, #0d6efd);
+  outline: 2px solid rgb(var(--primary-rgb));
   outline-offset: 2px;
 }
 
 .roleOptionInput:checked + .roleOptionLabel {
-  color: var(--bs-primary, #0d6efd);
-  font-weight: 400;
+  color: var(--app-title-color);
+  font-weight: 500;
 }
 
 .slider {
@@ -67,7 +68,8 @@
   bottom: 4px;
   left: 4px;
   width: calc(50% - 4px);
-  background: var(--bs-white, #fff);
+  background: var(--app-input-bg);
+  border: 1px solid var(--app-input-border);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,15 +85,23 @@
   margin-bottom: 1rem;
 }
 
-/* Forgot password link below Sign In: same color as secondary button (no red). */
+/* Forgot password link below Sign In: muted, readable in both themes (no red). */
 .forgotPasswordLink {
-  color: var(--bs-secondary, #6c757d);
+  color: var(--app-muted-color);
   text-decoration: none;
 }
 
 .forgotPasswordLink:hover {
-  color: var(--bs-secondary, #6c757d);
+  color: var(--app-title-color);
   text-decoration: underline;
+}
+
+.copyright {
+  color: var(--app-muted-color);
+}
+
+.rememberLabel {
+  color: var(--app-text-color);
 }
 
 /* Return to sign in: explicit readable size (project typography overrides fs-5/fs-6 to 5px/6px). */

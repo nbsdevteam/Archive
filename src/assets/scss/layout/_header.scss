@@ -4,13 +4,13 @@
 .header {
     height: 50px;
     z-index: 999;
-    background: variables.$white;
+    background: var(--app-surface-bg);
     position: fixed;
     top: 0;
     right: 0;
     left: 0;
     @include mixins.transition(all 0.5s ease);
-    border-bottom: 1px solid variables.$gray-200;
+    border-bottom: 1px solid var(--app-border-color);
     .main-header {
         height: inherit;
     }
@@ -34,7 +34,7 @@
         }
         input {
             height: 30px;
-            border-left: 1px solid variables.$gray-200 !important;
+            border-left: 1px solid var(--app-input-border) !important;
             border-top-left-radius: 5px !important;
             border-bottom-left-radius: 5px !important;
             padding-left: 32px;
@@ -58,7 +58,7 @@
             
             .input-group-text {
                 border-color: #86b7fe !important;
-                background-color: #fff;
+                background-color: var(--app-input-bg);
             }
             
             input {
@@ -109,6 +109,69 @@
         margin-top: 8px !important;
         @include mixins.transform(translateY(0));
         @include mixins.transition(all 0.4s ease);
+    }
+    /* Header menus (language, profile): bordered, elevated panel that never blends into the header */
+    .dropdown-menu.header-lang-menu,
+    .dropdown-menu.header-profile-menu {
+        background-color: var(--app-menu-bg);
+        border: 1px solid var(--app-menu-border);
+        box-shadow: var(--app-menu-shadow) !important;
+    }
+    .dropdown-menu.header-profile-menu {
+        min-width: 240px;
+        padding: 0;
+        overflow: hidden;
+        /* The inner card must not paint a second surface on top of the panel */
+        .card {
+            background-color: transparent;
+            border: 0;
+            box-shadow: none;
+        }
+        .card-header,
+        .card-footer {
+            background-color: transparent;
+            border-color: var(--app-menu-border);
+        }
+        h5 {
+            color: var(--app-title-color);
+        }
+        p {
+            color: var(--app-muted-color);
+        }
+        .dropdown-item {
+            color: var(--app-title-color);
+            &:hover,
+            &:focus {
+                background-color: transparent;
+                color: rgb(var(--primary-rgb));
+            }
+        }
+    }
+    /* Language menu: clearly marked current language */
+    .dropdown-menu.header-lang-menu {
+        min-width: 180px;
+        padding: 6px;
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: variables.$font-size-14;
+            color: var(--app-title-color);
+            &:not(.active):hover,
+            &:not(.active):focus {
+                background-color: rgba(var(--primary-rgb), 0.1);
+                color: var(--app-title-color);
+            }
+            &.active {
+                background-color: rgba(var(--primary-rgb), 0.18);
+                color: rgb(var(--primary-rgb));
+                font-weight: variables.$font-weight-semibold;
+            }
+        }
+        .dropdown-item + .dropdown-item {
+            margin-top: 2px;
+        }
     }
     .header-left {
         float: left;
@@ -1020,12 +1083,17 @@
         width: 260px;
         @include mixins.respond-below(lg){
             position: relative;
-            border-bottom: 1px solid variables.$gray-200;
-            background: white;
+            border-bottom: 1px solid var(--app-border-color);
+            background: var(--app-surface-bg);
             width: 100%;
         }
         .header-left {
-            background: white;
+            background: var(--app-surface-bg);
+            /* Desktop: the header bar is collapsed and the sidebar already shows the logo.
+               Keeping this block would float it over the top-left of the page content. */
+            @include mixins.respond-above(lg) {
+                display: none;
+            }
         }
     }
     #collapse-header {

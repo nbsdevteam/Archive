@@ -8043,18 +8043,21 @@ body {
             }
 
             .input-group {
+                /* Input + shortcut hint read as one control: round only the outer corners, flush in the middle */
                 input {
-                    border-right: 1px solid variables.$gray-200 !important;
+                    border-right: 1px solid var(--app-input-border) !important;
                     border-top-right-radius: 5px !important;
                     border-bottom-right-radius: 5px !important;
+                    border-top-left-radius: 0 !important;
+                    border-bottom-left-radius: 0 !important;
                     border-left: 0 !important;
                     padding: 0.5rem 1.875rem 0.5rem 0.625rem;
                 }
 
                 .input-group-text {
                     border-right: 0;
-                    border-radius: 5px !important;
-                    border-left: 1px solid variables.$gray-200;
+                    border-radius: 5px 0 0 5px !important;
+                    border-left: 1px solid var(--app-input-border);
 
                     &:last-child {
                         padding-left: 10px;
@@ -8131,12 +8134,12 @@ body {
     }
 
     body {
-        background: variables.$darkmode-light;
+        background: var(--app-body-bg);
     }
 
     .header {
-        background: variables.$darkmode-white;
-        border-color: variables.$darkmode-gray-200;
+        background: var(--app-surface-bg);
+        border-color: var(--app-border-color);
 
         .header-left {
             .logo {
@@ -8197,8 +8200,8 @@ body {
     }
 
     .sidebar {
-        background: variables.$darkmode-white;
-        border-color: variables.$darkmode-gray-200;
+        background: var(--app-surface-bg);
+        border-color: var(--app-border-color);
 
         .sidebar-logo {
             .logo {
@@ -8444,17 +8447,6 @@ body {
                 }
             }
         }
-    }
-
-    .form-control {
-        background-color: variables.$darkmode-white;
-        border-color: variables.$darkmode-gray-200;
-    }
-
-    .input-group-text {
-        background-color: variables.$darkmode-white;
-        border-color: variables.$darkmode-gray-200;
-        color: variables.$darkmode-gray-900;
     }
 
     .sidebar-stacked {
@@ -8789,8 +8781,8 @@ body {
     }
 
     .card {
-        background-color: variables.$darkmode-white;
-        border: 1px solid variables.$darkmode-gray-200;
+        background-color: var(--app-surface-bg);
+        border: 1px solid var(--app-border-color);
 
         .card-title {
             color: variables.$darkmode-gray-900;
@@ -8929,7 +8921,7 @@ body {
 
     .page-wrapper {
         &::before {
-            background: variables.$darkmode-white;
+            background: var(--app-body-bg);
         }
     }
 
@@ -9366,11 +9358,6 @@ body {
         }
     }
 
-    .form-check-input {
-        background-color: variables.$darkmode-white;
-        border-color: variables.$darkmode-gray-200;
-    }
-
     .alert-outline-primary,
     .alert-outline-secondary,
     .alert-outline-warning,
@@ -9486,22 +9473,8 @@ body {
         }
     }
 
-    .form-label {
-        color: variables.$darkmode-gray-900;
-    }
-
-    .form-control {
-        color: variables.$darkmode-gray-900;
-    }
-
-    .form-select {
-        background-color: variables.$darkmode-white;
-        color: variables.$darkmode-gray-900;
-        border-color: variables.$darkmode-gray-200;
-
-        option {
-            background-color: variables.$darkmode-white;
-        }
+    .form-select option {
+        background-color: var(--app-input-bg);
     }
 
     .select2-container--default {

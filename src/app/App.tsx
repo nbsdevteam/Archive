@@ -7,7 +7,7 @@ import { AppProviders } from "./providers/AppProviders";
 import { BootstrapDirectionSync } from "./providers/BootstrapDirectionSync";
 import { AppRouter } from "./routes/AppRouter";
 import { base_path } from "../environment";
-import { usePrefersColorScheme } from "../shared/hooks";
+import { useThemeModeStore } from "../shared/stores/themeModeStore";
 import { LiveAnnouncerProvider } from "../shared/components/a11y/LiveAnnouncer";
 import { DocumentExpiryReminderProvider } from "../shared/components/reminders/DocumentExpiryReminderProvider";
 import { AuthSessionBootstrap } from "./providers/AuthSessionBootstrap";
@@ -49,8 +49,7 @@ function RtlSync() {
  */
 const ThemedToastContainer = () => {
   const { i18n } = useTranslation();
-  const { prefersDark } = usePrefersColorScheme();
-  const resolvedTheme = prefersDark ? "dark" : "light";
+  const resolvedTheme = useThemeModeStore((s) => s.mode);
   const isRtl = isArabic(i18n);
 
   return (

@@ -16,7 +16,7 @@
         padding: 24px;
         padding-bottom: 0;
         min-height: calc(100vh - 105px);
-        background-color: rgba(var(--primary-rgb), 0.04);
+        background-color: var(--app-content-bg);
         @include mixins.respond-below(lg) {
             padding: 15px;
             padding-bottom: 0;

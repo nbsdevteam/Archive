@@ -280,6 +280,18 @@
 .bg-linear-gradiant {
     background: linear-gradient(115.43deg, #FFFFFF 0.45%, #FFF3ED 100%);
 }
+.auth-shell {
+    position: relative;
+    min-height: 100vh;
+    background: var(--auth-page-bg);
+    color: var(--app-text-color);
+    .auth-theme-toggle {
+        position: fixed;
+        top: 16px;
+        inset-inline-end: 16px;
+        z-index: 10;
+    }
+}
 .border.border-dark-2 {
     border: 2px solid #E8E8E9 !important;
     border-radius: 8px !important;

@@ -708,6 +708,8 @@
     "loginAs": "تسجيل الدخول كـ",
     "loginAsAdmin": "تسجيل الدخول كمسؤول",
     "loginAsUser": "تسجيل الدخول كمستخدم",
+    "switchToDarkTheme": "التبديل إلى المظهر الداكن",
+    "switchToLightTheme": "التبديل إلى المظهر الفاتح",
     "whatsNewNbsArchive": "ما الجديد في أرشفة NBS",
     "resendVerificationLink": "إعادة إرسال رابط التحقق",
     "readMoreAbout": "اقرأ المزيد عن",

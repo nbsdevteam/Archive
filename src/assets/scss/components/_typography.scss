@@ -301,10 +301,10 @@ h6,
   color: variables.$gray-800;
 }
 .text-gray-9 {
-  color: variables.$gray-900 !important;
+  color: var(--app-title-color) !important;
 }
 .text-title {
-  color: variables.$gray-900 !important;
+  color: var(--app-title-color) !important;
 }
 .text-dark-transparent {
   color: variables.$dark-transparent;

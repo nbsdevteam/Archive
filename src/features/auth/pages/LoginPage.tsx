@@ -220,7 +220,7 @@ export default function LoginPage() {
                           />
                           <label
                             htmlFor="remember_me"
-                            className="form-check-label mt-0"
+                            className={`form-check-label mt-0 ${styles.rememberLabel}`}
                           >
                             {t("auth.rememberMe")}
                           </label>
@@ -256,7 +256,7 @@ export default function LoginPage() {
                       </div> */}
                     </div>
                     <div className="mt-5 pb-4 text-center">
-                      <p className="mb-0 text-gray-9">{t("auth.copyright")}</p>
+                      <p className={`mb-0 ${styles.copyright}`}>{t("auth.copyright")}</p>
                     </div>
                   </div>
                 </form>

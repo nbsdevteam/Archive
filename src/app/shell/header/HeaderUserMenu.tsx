@@ -25,7 +25,7 @@ export function HeaderUserMenu({ routes, onLogout }: HeaderUserMenuProps) {
           <ImageWithBasePath src="assets/img/profiles/avatar-12.jpg" alt="" className="img-fluid rounded-circle" />
         </span>
       </Link>
-      <div className="dropdown-menu dropdown-menu-end shadow-none">
+      <div className="dropdown-menu dropdown-menu-end header-profile-menu">
         <div className="card mb-0">
           <div className="card-header">
             <div className="d-flex align-items-center">

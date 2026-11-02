@@ -743,6 +743,8 @@
     "loginAs": "Login as",
     "loginAsAdmin": "Login as Admin",
     "loginAsUser": "Login as User",
+    "switchToDarkTheme": "Switch to dark theme",
+    "switchToLightTheme": "Switch to light theme",
     "whatsNewNbsArchive": "What's New in NBS Archive",
     "resendVerificationLink": "Resend verification link",
     "readMoreAbout": "Read more about",
