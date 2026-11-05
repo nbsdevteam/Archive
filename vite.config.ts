@@ -1,11 +1,29 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import path from "path";
 
+/** Historical default kept for existing development setups. */
+const DEFAULT_BACKEND = "http://192.168.116.211:8069";
+const PRODUCTION_HOSTS = ["192.168.116.211"];
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  /**
+   * Backend for the dev proxy: ARCHIVE_BACKEND_URL from the environment or a `.env.<mode>` file.
+   * `--mode odootest` (npm run dev:odootest) must point at a separate test installation and refuses the
+   * production Archive address.
+   */
+  const env = loadEnv(mode, process.cwd(), "");
+  const backend = (env.ARCHIVE_BACKEND_URL || DEFAULT_BACKEND).replace(/\/+$/, "");
+  const backendHost = new URL(backend).hostname;
+  if (mode === "odootest" && (!env.ARCHIVE_BACKEND_URL || PRODUCTION_HOSTS.includes(backendHost))) {
+    throw new Error("odootest mode needs ARCHIVE_BACKEND_URL pointing at the test installation, not production");
+  }
+  const backendWs = backend.replace(/^http/, "ws");
+
+  return {
   plugins: [
     react(),
     viteCompression({
@@ -66,7 +84,7 @@ export default defineConfig({
        * - Vite forwards that request to the backend target below
        */
       "/api": {
-        target: "http://192.168.116.211:8069",
+        target: backend,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
@@ -78,7 +96,7 @@ export default defineConfig({
        * and Vite will forward it to the backend WS server.
        */
       "/websocket": {
-        target: "ws://192.168.116.211:8069",
+        target: backendWs,
         /**
          * Enables WebSocket proxying. Without this, WS upgrade requests won't be forwarded.
          */
@@ -218,4 +236,5 @@ export default defineConfig({
     /** Skip compressed size report for faster builds; use build:analyze when needed. */
     reportCompressedSize: true,
   },
+};
 });
