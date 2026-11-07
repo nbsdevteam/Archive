@@ -128,6 +128,12 @@ export default defineConfig({
         },
         manualChunks(id) {
           const normalizedId = id.split("\\").join("/");
+          // Zustand — stores call create() at module load, so it must not live in a feature chunk:
+          // the feature chunks import each other in a cycle, and that crashed production on boot with
+          // "cannot access n before initialization".
+          if (normalizedId.includes("node_modules/zustand")) {
+            return "state-vendor";
+          }
           // React core — must load first
           if (
             normalizedId.includes("node_modules/react/") ||
